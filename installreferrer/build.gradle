@@ -7,6 +7,8 @@ android {
 
 
     defaultConfig {
+        ext.library_version = '0.1.0'
+
         minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
