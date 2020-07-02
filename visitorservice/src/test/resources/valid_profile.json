@@ -1,0 +1,120 @@
+{
+  "metrics": {
+    "22": 1,
+    "15": 1,
+    "28": 1,
+    "29": 1.0,
+    "21": 1
+  },
+  "dates": {
+    "23": 1585244808000
+  },
+  "properties": {
+    "profile": "kotlin-test",
+    "account": "tealiummobile"
+  },
+  "metric_lists": {
+    "5132": [
+      5
+    ]
+  },
+  "flags": {
+    "13": false,
+    "5122": false
+  },
+  "flag_lists": {
+    "5126": [
+      true
+    ]
+  },
+  "current_visit": {
+    "metrics": {
+      "12": 0,
+      "7": 1,
+      "80": 0,
+      "5128": 5
+    },
+    "dates": {
+      "11": 1585244808000,
+      "10": 1585244808000
+    },
+    "properties": {
+      "45": "Android",
+      "46": "Android",
+      "47": "mobile application",
+      "5135": "blue_shoes"
+    },
+    "flags": {
+      "14": true,
+      "5122": true
+    },
+    "property_sets": {
+      "50": [
+        "Android"
+      ],
+      "51": [
+        "Android"
+      ],
+      "52": [
+        "mobile application",
+        "test"
+      ]
+    },
+    "property_lists": {
+      "8482": [
+        "category 1"
+      ]
+    },
+    "metric_sets": {
+      "5136": {
+        "blue_shoes": 1
+      }
+    },
+    "metric_lists": {
+      "5130": [
+        5
+      ]
+    },
+    "flag_lists": {
+      "5124": [
+        true
+      ]
+    },
+    "total_event_count": 1000
+  },
+  "badges": {
+    "32": true
+  },
+  "audiences": {
+    "audience_1": "red_shoes",
+    "audience_2": "test_users",
+    "audience_3": "likes_cats"
+  },
+  "property_lists": {
+    "8483": [
+      "category 1",
+      "category 2",
+      "category 3",
+      "category 4",
+      "category 5",
+      "category 6",
+      "category 7",
+      "category 8",
+      "category 9",
+      "category 10",
+      "category 11",
+      "category 12",
+      "category 13"
+    ]
+  },
+  "property_sets": {
+    "49": [
+      "Chrome"
+    ],
+    "50": [
+      "1",
+      "2",
+      "3"
+    ]
+  }
+}
