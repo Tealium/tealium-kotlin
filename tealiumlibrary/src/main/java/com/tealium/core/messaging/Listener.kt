@@ -58,7 +58,8 @@ interface DispatchDroppedListener : Listener {
  * Executes when a Remote Command execution is required from an external module.
  */
 interface RemoteCommandListener : Listener {
-    fun onRemoteCommandSend(url: String)
+//    fun onRemoteCommandSend(url: String)
+    fun onExecuteJsonRemoteCommand(dispatch: Dispatch)
 }
 
 /**

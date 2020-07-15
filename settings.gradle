@@ -1,1 +1,2 @@
+include ':remotecommanddispatcher'
 include ':mobile', ':tealiumlibrary', ':collectdispatcher', ':tagmanagementdispatcher', ':lifecycle', ':visitorservice', ':installreferrer', ':location'

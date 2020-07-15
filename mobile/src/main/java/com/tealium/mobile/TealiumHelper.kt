@@ -7,6 +7,8 @@ import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.lifecycle.Lifecycle
 import com.tealium.location.Location
+import com.tealium.remotecommanddispatcher.*
+import com.tealium.tagmanagementdispatcher.TagManagementRemoteCommand
 import com.tealium.tagmanagementdispatcher.TagManagement
 import com.tealium.visitorservice.VisitorProfile
 import com.tealium.visitorservice.VisitorService
@@ -18,11 +20,11 @@ object TealiumHelper {
 
     fun init(application: Application) {
         val config = TealiumConfig(application,
-                "tealiummobile",
-                "location",
+                "services-christina",
+                "firebase",
                 Environment.DEV,
                 modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService),
-                dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement)
+                dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply { collectors.add(Collectors.Location) }
 
         instance = Tealium("instance_1", config) {
@@ -32,6 +34,28 @@ object TealiumHelper {
                     Logger.dev("--", "did update vp with $visitorProfile")
                 }
             }
+
+            remoteCommands?.add(localJsonCommand)
+            remoteCommands?.add(remoteJsonCommand)
+            remoteCommands?.add(customRemoteJsonCommand)
+        }
+    }
+
+    val localJsonCommand = object : RemoteCommand("someJsonId", "testingRCs", RemoteCommandType.LOCAL, filename = "remoteCommands.json") {
+        override fun onInvoke(response: Response) {
+            // ...do something here
+        }
+    }
+
+    val remoteJsonCommand = object: RemoteCommand("someRemoteId", "testingRCs", RemoteCommandType.REMOTE, remoteUrl = "https://tags.tiqcdn.com/dle/services-christina/tagbridge/firebase.json") {
+        override fun onInvoke(response: Response) {
+            // ...do something here
+        }
+    }
+
+    val customRemoteJsonCommand = object: RemoteCommand("someRemoteId", "testingRCs", RemoteCommandType.REMOTE, remoteUrl = "https://httpbin.org/json") {
+        override fun onInvoke(response: Response) {
+            // ...do something here
         }
     }
 

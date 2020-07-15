@@ -170,9 +170,9 @@ class WebViewLoader(private val context: TealiumContext,
             }
 
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                context.config.options[RemoteCommand.TIQ_CONFIG].let {
+                context.config.options[TagManagementRemoteCommand.TIQ_CONFIG].let {
                     url?.let {
-                        if (url.startsWith(RemoteCommand.PREFIX)) {
+                        if (url.startsWith(TagManagementRemoteCommand.PREFIX)) {
                             afterDispatchSendCallbacks.sendRemoteCommand(url)
                         }
                     }

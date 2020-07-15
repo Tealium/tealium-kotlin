@@ -48,4 +48,5 @@ dependencies {
     implementation project(':lifecycle')
     implementation project(':location')
     implementation project(':visitorservice:')
+    implementation project(':remotecommanddispatcher')
 }
