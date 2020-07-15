@@ -1,6 +1,7 @@
 package com.tealium.mobile
 
 import android.app.Application
+import android.util.Log
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
 import com.tealium.core.validation.DispatchValidator
@@ -23,7 +24,10 @@ object TealiumHelper {
                 Environment.DEV,
                 modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement)
-        ).apply { collectors.add(Collectors.Location) }
+        ).apply {
+            collectors.add(Collectors.Location)
+            useRemoteLibrarySettings = true
+        }
 
         instance = Tealium("instance_1", config) {
             consentManager.enabled = true

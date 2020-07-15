@@ -3,6 +3,7 @@ package com.tealium.visitorservice
 import com.tealium.core.*
 import com.tealium.core.network.ResourceRetriever
 import com.tealium.tealiumlibrary.BuildConfig
+import org.json.JSONObject
 import kotlin.properties.Delegates
 
 interface VisitorServiceDelegate {
@@ -49,7 +50,7 @@ class VisitorService(private val context: TealiumContext,
         val json = resourceRetriever.fetch()
         json?.let {
             Logger.dev(BuildConfig.TAG, "Fetched visitor profile: $it.")
-            visitorProfile = VisitorProfile.fromJson(it)
+            visitorProfile = VisitorProfile.fromJson(JSONObject(it))
         }
     }
 

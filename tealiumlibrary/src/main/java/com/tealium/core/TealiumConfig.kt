@@ -2,6 +2,7 @@ package com.tealium.core
 
 import android.app.Application
 import com.tealium.core.collection.*
+import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
 import java.io.File
 
@@ -40,22 +41,39 @@ class TealiumConfig @JvmOverloads constructor(val application: Application,
                     val dispatchers: MutableSet<DispatcherFactory> = mutableSetOf(),
                     val modules: MutableSet<ModuleFactory> = mutableSetOf()) {
 
+    /**
+     * A set of validators where any custom [DispatchValidator]s can be added. These will be merged
+     * in with the built in validators when initializing the library.
+     */
     val validators: MutableSet<DispatchValidator> = mutableSetOf()
+
     private val pathName = "${application.filesDir}${File.separatorChar}tealium${File.separatorChar}${accountName}${File.separatorChar}${profileName}${File.separatorChar}${environment.environment}"
     val tealiumDirectory: File = File(pathName)
+
+    /**
+     * Map of key-value pairs supporting override options that do not have a direct property on the
+     * [TealiumConfig] object.
+     */
     val options = mutableMapOf<String, Any>()
+
+    /**
+     * Gets and sets the initial LibrarySettings for the library. Useful defaults have already been
+     * set on the [LibrarySettings] default constructor, but the default settings used by the
+     * library can be set here.
+     */
+    var overrideDefaultLibrarySettings: LibrarySettings? = null
+
+    /**
+     * Sets whether or not to fetch publish settings from a remote host.
+     */
+    var useRemoteLibrarySettings: Boolean = false
+
+    /**
+     * Sets the remote URL to use when requesting updated remote publish settings.
+     */
+    var overrideLibrarySettingsUrl: String? = null
 
     init {
         tealiumDirectory.mkdirs()
     }
 }
-
-const val LIBRARY_SETTINGS_OVERRIDE_URL = "override_library_settings_url"
-
-var TealiumConfig.overrideLibrarySettingsUrl: String?
-    get() = options[LIBRARY_SETTINGS_OVERRIDE_URL] as? String
-    set(value) {
-        value?.let {
-            options[LIBRARY_SETTINGS_OVERRIDE_URL] = it
-        }
-    }

@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import com.tealium.core.TealiumConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
+import java.io.File
 import java.util.concurrent.Executors
 
 /**
@@ -38,7 +39,7 @@ internal class DatabaseHelper(config: TealiumConfig, databaseName: String? = dat
          *
          */
         fun databaseName(config: TealiumConfig): String {
-            return "tealium-${config.accountName}-${config.profileName}.db"
+            return "${config.tealiumDirectory}${File.separatorChar}tealium-${config.accountName}-${config.profileName}.db"
         }
     }
 }

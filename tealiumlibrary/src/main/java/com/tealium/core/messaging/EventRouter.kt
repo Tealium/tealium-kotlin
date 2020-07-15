@@ -1,8 +1,9 @@
 package com.tealium.core.messaging
 
+import com.tealium.core.Module
 import com.tealium.core.consent.ConsentManagementPolicy
 import com.tealium.core.consent.UserConsentPreferences
-import com.tealium.core.model.LibrarySettings
+import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 
@@ -57,7 +58,11 @@ class EventDispatcher : EventRouter {
     override suspend fun onDispatchSend(dispatch: Dispatch) {
         listeners.forEach {
             when (it) {
-                is DispatchSendListener -> it.onDispatchSend(dispatch)
+                is DispatchSendListener -> {
+                    if (it !is Module || it.enabled) {
+                        it.onDispatchSend(dispatch)
+                    }
+                }
             }
         }
     }
@@ -65,7 +70,11 @@ class EventDispatcher : EventRouter {
     override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {
         listeners.forEach {
             when (it) {
-                is BatchDispatchSendListener -> it.onBatchDispatchSend(dispatches)
+                is BatchDispatchSendListener -> {
+                    if (it !is Module || it.enabled) {
+                        it.onBatchDispatchSend(dispatches)
+                    }
+                }
             }
         }
     }

@@ -1,7 +1,7 @@
 package com.tealium.core.messaging
 
 import com.tealium.core.Collector
-import com.tealium.core.LibrarySettingsManager
+import com.tealium.core.settings.LibrarySettingsManager
 import com.tealium.core.Logger
 import com.tealium.core.consent.ConsentManagementPolicy
 import com.tealium.core.consent.UserConsentPreferences
@@ -23,13 +23,17 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
         UserConsentPreferencesUpdatedListener {
 
     private val scope = CoroutineScope(coroutineDispatcher)
-    private val settings = librarySettingsManager.librarySettings
-
+    private val settings
+        get() = librarySettingsManager.librarySettings
     /**
      * Entry point for all dispatch tracking. Contains business logic for passing dispatches through
      * the system, and informs any [Listener] instances registered with the [EventRouter]
      */
     fun track(dispatch: Dispatch) {
+        if (settings.disableLibrary) {
+            return
+        }
+
         scope.launch(Logger.exceptionHandler) {
             // Collection
             dispatch.addAll(collect())
@@ -66,7 +70,7 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
      */
     suspend fun collect(): Map<String, Any> {
         val data = mutableMapOf<String, Any>()
-        collectors.forEach {
+        collectors.filter { it.enabled }.forEach {
             try {
                 data.putAll(it.collect())
             } catch (ex: Exception) {
@@ -81,7 +85,7 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
      * @return true if dispatch should be queued; else false
      */
     fun shouldQueue(dispatch: Dispatch?, override: Class<out DispatchValidator>? = null): Boolean {
-        return validators.fold(false) { input, validator ->
+        return validators.filter { it.enabled }.fold(false) { input, validator ->
             input ||
                     if (override != null && override.isInstance(validator)) {
                         false
@@ -96,7 +100,7 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
      * @return true if dispatch should be dropped; else false
      */
     fun shouldDrop(dispatch: Dispatch): Boolean {
-        return validators.fold(false) { input, validator ->
+        return validators.filter { it.enabled }.fold(false) { input, validator ->
             input || validator.shouldDrop(dispatch).also { dropping ->
                 if (dropping) Logger.qa(BuildConfig.TAG, "Dropping dispatch requested by: ${validator.name}")
             }
