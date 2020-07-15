@@ -62,7 +62,7 @@ class LibrarySettingsTests {
         assertEquals(false, settings.wifiOnly)
         assertEquals(15 * 60, settings.refreshInterval)
         assertEquals(LogLevel.DEV, settings.logLevel)
-        assertEquals(false, settings.disableLibrary)
+        assertEquals(true, settings.disableLibrary)
     }
 
     @Test

@@ -1,33 +1,30 @@
 package com.tealium.core.settings
 
-import com.tealium.core.JsonUtils
 import com.tealium.core.LogLevel
 import org.json.JSONObject
 
-const val KEY_MODULES = "modules"
-const val KEY_COLLECT_DISPATCHER = "collect_dispatcher"
-const val KEY_TAG_MANAGEMENT_DISPATCHER = "tag_management_dispatcher"
-const val KEY_BATCHING = "batching"
-const val KEY_BATCH_SIZE = "batch_size"
-const val KEY_MAX_QUEUE_SIZE = "max_queue_size"
-const val KEY_EXPIRATION = "expiration"
-const val KEY_BATTERY_SAVER = "battery_saver"
-const val KEY_WIFI_ONLY = "wifi_only"
-const val KEY_REFRESH_INTERVAL = "refresh_interval"
-const val KEY_LOG_LEVEL = "log_level"
-const val KEY_DISABLE_LIBRARY = "disable_library"
-const val OPTIONAL_CONFIG_FLAGS = "optional_config_flags"
+private const val KEY_COLLECT_DISPATCHER = "collect_dispatcher"
+private const val KEY_TAG_MANAGEMENT_DISPATCHER = "tag_management_dispatcher"
+private const val KEY_BATCHING = "batching"
+private const val KEY_BATCH_SIZE = "batch_size"
+private const val KEY_MAX_QUEUE_SIZE = "max_queue_size"
+private const val KEY_EXPIRATION = "expiration"
+private const val KEY_BATTERY_SAVER = "battery_saver"
+private const val KEY_WIFI_ONLY = "wifi_only"
+private const val KEY_REFRESH_INTERVAL = "refresh_interval"
+private const val KEY_LOG_LEVEL = "log_level"
+private const val KEY_DISABLE_LIBRARY = "disable_library"
 
-const val MPS_KEY_COLLECT_DISPATCHER = "enable_collect"
-const val MPS_KEY_TAG_MANAGEMENT_DISPATCHER = "enable_tag_management"
-const val MPS_KEY_BATCH_SIZE = "event_batch_size"
-const val MPS_KEY_INTERVAL = "minutes_between_refresh"
-const val MPS_KEY_MAX_QUEUE_SIZE = "offline_dispatch_limit"
-const val MPS_KEY_EXPIRATION = "dispatch_expiration"
-const val MPS_KEY_BATTERY_SAVER = "battery_saver"
-const val MPS_KEY_WIFI_ONLY = "wifi_only_sending"
-const val MPS_KEY_LOG_LEVEL = "override_log"
-const val MPS_KEY_DISABLE_LIBRARY = "_is_enabled"
+private const val MPS_KEY_COLLECT_DISPATCHER = "enable_collect"
+private const val MPS_KEY_TAG_MANAGEMENT_DISPATCHER = "enable_tag_management"
+private const val MPS_KEY_BATCH_SIZE = "event_batch_size"
+private const val MPS_KEY_INTERVAL = "minutes_between_refresh"
+private const val MPS_KEY_MAX_QUEUE_SIZE = "offline_dispatch_limit"
+private const val MPS_KEY_EXPIRATION = "dispatch_expiration"
+private const val MPS_KEY_BATTERY_SAVER = "battery_saver"
+private const val MPS_KEY_WIFI_ONLY = "wifi_only_sending"
+private const val MPS_KEY_LOG_LEVEL = "override_log"
+private const val MPS_KEY_DISABLE_LIBRARY = "_is_enabled"
 
 data class LibrarySettings(
         var collectDispatcherEnabled: Boolean = false,
@@ -37,8 +34,7 @@ data class LibrarySettings(
         var wifiOnly: Boolean = false,
         var refreshInterval: Int = 900,
         var disableLibrary: Boolean = false,
-        var logLevel: LogLevel = LogLevel.PROD,    // todo: need to parse log level
-        var url: String? = null) {
+        var logLevel: LogLevel = LogLevel.PROD) {
 
     companion object {
         fun toJson(librarySettings: LibrarySettings) : JSONObject {
@@ -52,10 +48,6 @@ data class LibrarySettings(
             json.put(KEY_REFRESH_INTERVAL, "${librarySettings.refreshInterval}s")
             json.put(KEY_LOG_LEVEL, librarySettings.logLevel.name)
             json.put(KEY_DISABLE_LIBRARY, librarySettings.disableLibrary)
-
-//            json.optJSONObject(OPTIONAL_CONFIG_FLAGS)?.let {
-//                librarySettings.optionalConfigFlags = JsonUtils.mapFor(it)
-//            }
 
             return json
         }
@@ -79,10 +71,6 @@ data class LibrarySettings(
             val librarySettingsIntervalString = json.optString(KEY_REFRESH_INTERVAL)
             librarySettings.refreshInterval = LibrarySettingsExtractor.timeConverter(librarySettingsIntervalString)
             librarySettings.disableLibrary = json.optBoolean(KEY_DISABLE_LIBRARY, false)
-
-//            json.optJSONObject(OPTIONAL_CONFIG_FLAGS)?.let {
-//                librarySettings.optionalConfigFlags = JsonUtils.mapFor(it)
-//            }
 
             return librarySettings
         }
