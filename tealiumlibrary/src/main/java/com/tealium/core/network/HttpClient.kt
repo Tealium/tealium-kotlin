@@ -29,7 +29,7 @@ class HttpClient(var config: TealiumConfig,
         dateFormat.timeZone = TimeZone.getTimeZone("GMT")
     }
 
-    private var isConnected: Boolean = false
+    private val isConnected: Boolean
         get() = if (!connectivity.isConnected()) {
             networkClientListener?.onNetworkError("No network connection.")
             false
@@ -100,20 +100,14 @@ class HttpClient(var config: TealiumConfig,
         }
     }
 
-    override suspend fun getJson(urlString: String): JSONObject? = coroutineScope {
+    override suspend fun get(urlString: String): String? = coroutineScope {
         withContext(Dispatchers.Default) {
             try {
                 with(URL(urlString).openConnection() as HttpURLConnection) {
                     if (isActive && isConnected) {
                         requestMethod = "GET"
                         if (responseCode == HttpsURLConnection.HTTP_OK) {
-                            val jsonString = inputStream.bufferedReader().readText()
-                            try {
-                                JSONObject(jsonString)
-                            } catch (e: JSONException) {
-                                Logger.prod(BuildConfig.TAG, "Error parsing JSON: $e.")
-                                null
-                            }
+                            inputStream.bufferedReader().readText()
                         } else {
                             null
                         }

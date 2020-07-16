@@ -17,7 +17,7 @@ interface NetworkClient {
 
     suspend fun ifModified(urlString: String, timestamp: Long): Boolean?
 
-    suspend fun getJson(urlString: String): JSONObject?
+    suspend fun get(urlString: String): String?
 
     fun validUrl(urlString: String): Boolean
 }

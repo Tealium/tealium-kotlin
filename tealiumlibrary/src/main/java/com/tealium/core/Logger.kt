@@ -3,16 +3,29 @@ package com.tealium.core
 import android.content.Context
 import android.util.Log
 import com.tealium.core.messaging.*
-import com.tealium.core.model.LibrarySettings
+import com.tealium.core.settings.LibrarySettings
 import com.tealium.dispatcher.Dispatch
 import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineExceptionHandler
+import java.util.*
 
 enum class LogLevel(val level: Int) {
     DEV(Log.VERBOSE),
     QA(Log.INFO),
     PROD(Log.ASSERT),
-    SILENT(Integer.MAX_VALUE)
+    SILENT(Integer.MAX_VALUE);
+
+    companion object {
+        fun fromString(string: String) : LogLevel {
+            return when(string.toLowerCase(Locale.ROOT)) {
+                "dev" -> DEV
+                "qa" -> QA
+                "prod" -> PROD
+                "silent" -> SILENT
+                else -> PROD
+            }
+        }
+    }
 }
 
 interface Logging {

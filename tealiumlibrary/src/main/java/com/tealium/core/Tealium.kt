@@ -12,6 +12,7 @@ import com.tealium.core.persistence.*
 import com.tealium.core.persistence.DatabaseHelper
 import com.tealium.core.persistence.DispatchStorage
 import com.tealium.core.persistence.PersistentStorage
+import com.tealium.core.settings.LibrarySettingsManager
 import com.tealium.core.validation.BatchingValidator
 import com.tealium.core.validation.ConnectivityValidator
 import com.tealium.core.validation.DispatchValidator
@@ -114,7 +115,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     val consentManager: ConsentManager
 
     init {
-        librarySettingsManager = LibrarySettingsManager(config, networkClient, eventRouter = eventRouter)
+        librarySettingsManager = LibrarySettingsManager(config, networkClient, eventRouter = eventRouter, backgroundScope = backgroundScope)
         activityObserver = ActivityObserver(config, eventRouter)
 
         databaseHelper = DatabaseHelper(config)
@@ -147,6 +148,11 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
      * in-memory until the system is ready to send them.
      */
     fun track(dispatch: Dispatch) {
+        if (librarySettingsManager.librarySettings.disableLibrary) {
+            Logger.qa(BuildConfig.TAG, "Library is disabled. Cannot track new events.")
+            return
+        }
+
         when (initialized.get()) {
             true -> {
                 // needs to be done once we're fully initialised, else Session events might be missed
@@ -163,6 +169,11 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     }
 
     fun sendQueuedDispatches() {
+        if (librarySettingsManager.librarySettings.disableLibrary) {
+            Logger.qa(BuildConfig.TAG, "Library is disabled. Cannot dispatch queued events.")
+            return
+        }
+
         backgroundScope.launch {
             eventRouter.onRevalidate(BatchingValidator::class.java)
         }

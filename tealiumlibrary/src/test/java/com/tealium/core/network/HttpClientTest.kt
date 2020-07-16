@@ -11,6 +11,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -189,9 +190,9 @@ class HttpClientTest {
         val urlString = "http://localhost:$port"
         mockWebServer.url(urlString)
 
-        val json = httpClient.getJson(urlString)
+        val json = httpClient.get(urlString)
         assertNotNull(json)
-        val value = json!!.getString("hello")
+        val value = JSONObject(json!!).getString("hello")
         assertEquals("world", value)
 
         val request = mockWebServer.takeRequest()
@@ -210,7 +211,7 @@ class HttpClientTest {
         val urlString = "http://localhost:$port"
         mockWebServer.url(urlString)
 
-        val json = httpClient.getJson(urlString)
+        val json = httpClient.get(urlString)
         assertNull(json)
 
         val request = mockWebServer.takeRequest()
@@ -221,7 +222,7 @@ class HttpClientTest {
     fun getJsonReturnsNullNoConnection() = runBlocking {
         every { mockConnectivity.isConnected() } returns false
         mockWebServer = MockWebServer()
-        val json = httpClient.getJson("http://test.com")
+        val json = httpClient.get("http://test.com")
         assertNull(json)
         assertNotNull(errorMessage)
     }

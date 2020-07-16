@@ -4,7 +4,7 @@ import TealiumCollectorConstants.TEALIUM_VISITOR_ID
 import com.tealium.core.*
 import com.tealium.core.messaging.EventRouter
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
-import com.tealium.core.model.LibrarySettings
+import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient

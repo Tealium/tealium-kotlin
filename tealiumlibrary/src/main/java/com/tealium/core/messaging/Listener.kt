@@ -2,7 +2,7 @@ package com.tealium.core.messaging
 
 import com.tealium.core.consent.ConsentManagementPolicy
 import com.tealium.core.consent.UserConsentPreferences
-import com.tealium.core.model.LibrarySettings
+import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import java.util.*

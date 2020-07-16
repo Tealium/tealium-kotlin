@@ -4,7 +4,6 @@ import com.tealium.core.Logger
 import com.tealium.core.TealiumConfig
 import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.*
-import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -46,7 +45,7 @@ class ResourceRetriever(private val config: TealiumConfig,
         dateFormat.timeZone = TimeZone.getTimeZone("GMT")
     }
 
-    suspend fun fetch(): JSONObject? = coroutineScope {
+    suspend fun fetch(): String? = coroutineScope {
         async {
             retry(maxRetries, 500) {
                 fetchResource()
@@ -54,11 +53,11 @@ class ResourceRetriever(private val config: TealiumConfig,
         }.await()
     }
 
-    private suspend fun fetchResource(): JSONObject? = coroutineScope {
+    private suspend fun fetchResource(): String? = coroutineScope {
         withContext(Dispatchers.Default) {
             if (isActive) {
                 if (!useIfModifed) {
-                    val json = networkClient.getJson(resourceUrlString)
+                    val json = networkClient.get(resourceUrlString)
                     Logger.dev(BuildConfig.TAG, "Fetched resource with JSON: $json.")
                     json
                 } else {
@@ -70,14 +69,14 @@ class ResourceRetriever(private val config: TealiumConfig,
         }
     }
 
-    private suspend fun fetchIfModified(): JSONObject? = coroutineScope {
+    private suspend fun fetchIfModified(): String? = coroutineScope {
         withContext(Dispatchers.Default) {
             if (isActive) {
                 if (shouldFetchFromTimestamp(lastFetchTimestamp)) {
                     val resourceModified = async { shouldFetchIfModified() }.await()
                     resourceModified?.let {modified ->
                         if (modified) {
-                            val json = networkClient.getJson(resourceUrlString)
+                            val json = networkClient.get(resourceUrlString)
                             Logger.dev(BuildConfig.TAG, "Fetched resource with JSON at $resourceUrlString: $json.")
                             lastFetchTimestamp = System.currentTimeMillis()
                             json
@@ -99,7 +98,7 @@ class ResourceRetriever(private val config: TealiumConfig,
             for (i in 1..numRetries) {
                 try {
                     return withTimeout(timeout) {
-                        Logger.dev(BuildConfig.TAG, "Attempt number $i.")
+                        Logger.dev(BuildConfig.TAG, "Fetching resource; attempt number $i of $numRetries.")
                         block(i)
                     }
                 } catch (e: TimeoutCancellationException) {

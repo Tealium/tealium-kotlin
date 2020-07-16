@@ -1,8 +1,8 @@
 package com.tealium.core.validation
 
 import com.tealium.core.messaging.EventRouter
-import com.tealium.core.model.Batching
-import com.tealium.core.model.LibrarySettings
+import com.tealium.core.settings.Batching
+import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.persistence.DispatchStorage
 import com.tealium.dispatcher.EventDispatch
 import io.mockk.*
