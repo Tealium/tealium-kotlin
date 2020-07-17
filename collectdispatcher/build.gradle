@@ -1,18 +1,20 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'maven-publish'
+
+version = '0.1.0'
 
 android {
     compileSdkVersion 29
+    buildToolsVersion "29.0.3"
 
     defaultConfig {
-        ext.library_version = '0.1.0'
-
         minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
-        buildConfigField 'String', 'TAG', "\"Tealium-CollectDispatcher-$library_version\""
+        buildConfigField 'String', 'TAG', "\"Tealium-CollectDispatcher-$version\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -29,17 +31,36 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(':tealiumlibrary')
+    api project(':tealiumlibrary')
 
-    implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_core_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
     testImplementation 'junit:junit:4.12'
     testImplementation "io.mockk:mockk:$mockk_version"
-    androidTestImplementation 'androidx.test:runner:1.1.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
 }
 repositories {
     mavenCentral()
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.tealium'
+                artifactId = 'kotlin-collect-dispatcher'
+            }
+        }
+        repositories {
+            maven {
+                url "s3://maven.tealiumiq.com/android/releases/"
+                credentials(AwsCredentials) {
+                    accessKey AWS_ACCESS_KEY
+                    secretKey AWS_SECRET_KEY
+                }
+            }
+        }
+    }
 }
