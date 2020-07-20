@@ -1,5 +1,6 @@
 package com.tealium.location
 
+import android.os.Build
 import com.tealium.core.JsonLoader
 import io.mockk.MockKAnnotations
 import org.json.JSONArray
@@ -10,8 +11,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [Build.VERSION_CODES.P])
 class LocationGeofenceLoaderTests {
 
     @Before
