@@ -60,23 +60,23 @@ repositories {
     maven { url "https://kotlin.bintray.com/kotlinx" }
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            release(MavenPublication) {
-                from components.release
-                groupId = 'com.tealium'
-                artifactId = 'kotlin-core'
-            }
-        }
-        repositories {
-            maven {
-                url "s3://maven.tealiumiq.com/android/releases/"
-                credentials(AwsCredentials) {
-                    accessKey AWS_ACCESS_KEY
-                    secretKey AWS_SECRET_KEY
-                }
-            }
-        }
-    }
-}
+//afterEvaluate {
+//    publishing {
+//        publications {
+//            release(MavenPublication) {
+//                from components.release
+//                groupId = 'com.tealium'
+//                artifactId = 'kotlin-core'
+//            }
+//        }
+//        repositories {
+//            maven {
+//                url "s3://maven.tealiumiq.com/android/releases/"
+//                credentials(AwsCredentials) {
+//                    accessKey AWS_ACCESS_KEY
+//                    secretKey AWS_SECRET_KEY
+//                }
+//            }
+//        }
+//    }
+//}
