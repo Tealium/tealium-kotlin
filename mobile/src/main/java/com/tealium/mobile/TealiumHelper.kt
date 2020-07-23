@@ -1,6 +1,7 @@
 package com.tealium.mobile
 
 import android.app.Application
+import android.util.Log
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
 import com.tealium.core.validation.DispatchValidator
@@ -23,9 +24,12 @@ object TealiumHelper {
                 "services-christina",
                 "firebase",
                 Environment.DEV,
-                modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService),
+                modules = mutableSetOf(Modules.Lifecycle),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
-        ).apply { collectors.add(Collectors.Location) }
+        ).apply {
+//            collectors.add(Collectors.Location)
+            useRemoteLibrarySettings = true
+        }
 
         instance = Tealium("instance_1", config) {
             consentManager.enabled = true
@@ -37,23 +41,32 @@ object TealiumHelper {
 
             remoteCommands?.add(localJsonCommand)
             remoteCommands?.add(remoteJsonCommand)
-            remoteCommands?.add(customRemoteJsonCommand)
+            remoteCommands?.add(webviewRemoteCommand)
+
+            val request = RemoteCommandRequest.tagManagementRequest("tealium://command?request=%7B%22foo%22%3A%22bar%22%7D")
+            Logger.dev(BuildConfig.TAG, "%%%%%%%%%%%%%%%%%%% Request here: ${request.response?.requestPayload}")
         }
     }
 
-    val localJsonCommand = object : RemoteCommand("someJsonId", "testingRCs", RemoteCommandType.LOCAL, filename = "remoteCommands.json") {
+    val webviewRemoteCommand = object : RemoteCommand("bgcolor", "testing Webview RCs") {
+        override fun onInvoke(response: Response) {
+            Logger.dev(BuildConfig.TAG, "ResponsePayload for webview RemoteCommand ${response.requestPayload}")
+        }
+    }
+
+    val localJsonCommand = object : RemoteCommand("localJsonCommand", "testingRCs", RemoteCommandType.JSON, filename = "remoteCommand.json") {
+        override fun onInvoke(response: Response) {
+            Logger.dev(BuildConfig.TAG, "ResponsePayload for local JSON RemoteCommand ${response.requestPayload}")
+        }
+    }
+
+    val remoteJsonCommand = object: RemoteCommand("someRemoteId", "testingRCs", RemoteCommandType.JSON, remoteUrl = "https://tags.tiqcdn.com/dle/services-christina/tagbridge/firebase.json") {
         override fun onInvoke(response: Response) {
             // ...do something here
         }
     }
 
-    val remoteJsonCommand = object: RemoteCommand("someRemoteId", "testingRCs", RemoteCommandType.REMOTE, remoteUrl = "https://tags.tiqcdn.com/dle/services-christina/tagbridge/firebase.json") {
-        override fun onInvoke(response: Response) {
-            // ...do something here
-        }
-    }
-
-    val customRemoteJsonCommand = object: RemoteCommand("someRemoteId", "testingRCs", RemoteCommandType.REMOTE, remoteUrl = "https://httpbin.org/json") {
+    val customRemoteJsonCommand = object: RemoteCommand("someRemoteId", "testingRCs", RemoteCommandType.JSON, remoteUrl = "https://httpbin.org/json") {
         override fun onInvoke(response: Response) {
             // ...do something here
         }

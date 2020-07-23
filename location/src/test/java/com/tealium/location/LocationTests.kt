@@ -44,7 +44,7 @@ class LocationTests {
     private val mainThreadSurrogate = newSingleThreadContext("UI thread")
 
     @Before
-    fun setup() {
+    fun setUp() {
         MockKAnnotations.init(this)
         Dispatchers.setMain(mainThreadSurrogate)
 

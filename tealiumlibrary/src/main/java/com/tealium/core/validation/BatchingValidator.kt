@@ -3,7 +3,7 @@ package com.tealium.core.validation
 import com.tealium.core.messaging.ActivityObserverListener
 import com.tealium.core.messaging.EventRouter
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
-import com.tealium.core.model.LibrarySettings
+import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.persistence.DispatchStorage
 import com.tealium.dispatcher.Dispatch
 
@@ -22,6 +22,11 @@ internal class BatchingValidator(private val dispatchStorage: DispatchStorage,
     private var activityCount = 0
 
     override fun shouldQueue(dispatch: Dispatch?): Boolean {
+        if (enabled) {
+            dispatch?.let {
+                eventRouter.onProcessRemoteCommand(it)
+            }
+        }
         val count = dispatchStorage.count()
         return batchSettings.maxQueueSize != 0 &&
                 count + 1 < batchSettings.batchSize

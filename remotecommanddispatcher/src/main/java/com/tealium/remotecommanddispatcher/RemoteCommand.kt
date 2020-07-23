@@ -1,7 +1,6 @@
 package com.tealium.remotecommanddispatcher
 
 import com.tealium.core.Logger
-import com.tealium.dispatcher.Dispatch
 import java.util.*
 
 abstract class RemoteCommand(var commandId: String,
@@ -9,7 +8,7 @@ abstract class RemoteCommand(var commandId: String,
                              val type: String? = RemoteCommandType.WEBVIEW,
                              val filename: String? = null,
                              val remoteUrl: String? = null,
-                             var settings: RemoteCommandSettings? = null) {
+                             var remoteCommandConfigRetriever: RemoteCommandConfigRetriever? = null) {
 
     init {
         if (!isCommandNameValid(commandId)) {
@@ -46,13 +45,9 @@ abstract class RemoteCommand(var commandId: String,
         }
     }
 
-    fun process(dispatch: Dispatch) {
-
-    }
-
     companion object {
         fun isCommandNameValid(commandName: String): Boolean {
-            if (commandName.isBlank() || commandName.isEmpty()) {
+            if (commandName.isNullOrEmpty()) {
                 return false
             }
 

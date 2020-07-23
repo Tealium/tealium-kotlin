@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
     }
 
     private fun onTrack() {
-        val eventDispatch = EventDispatch( "event1", mutableMapOf("key1" to "value1", "key2" to 2))
+        val eventDispatch = EventDispatch( "event1", mutableMapOf("key1" to "value1", "key2" to 2, "achievement_id" to "abc123"))
 
         tealium.track(eventDispatch)
     }

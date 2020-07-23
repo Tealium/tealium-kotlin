@@ -15,7 +15,7 @@ import org.robolectric.RuntimeEnvironment
 class LocationGeofenceLoaderTests {
 
     @Before
-    fun setup() {
+    fun setUp() {
         MockKAnnotations.init(this)
     }
 

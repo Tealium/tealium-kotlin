@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">tealium-kotlin-builder</string>
+    <string name="app_name">Tealium Kotlin Example</string>
     <string name="track">Track</string>
     <string name="consented">Consented</string>
     <string name="notConsented">Not Consented</string>

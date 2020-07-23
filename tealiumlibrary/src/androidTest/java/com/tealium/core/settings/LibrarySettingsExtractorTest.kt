@@ -1,4 +1,4 @@
-package com.tealium.core
+package com.tealium.core.settings
 
 import org.junit.Assert.*
 import org.junit.Test
@@ -27,6 +27,13 @@ class LibrarySettingsExtractorTest {
     }
 
     @Test
+    fun convertSecondsSuccess() {
+        val time = "10s"
+        val result = LibrarySettingsExtractor.timeConverter(time)
+        assertEquals(10, result)
+    }
+
+    @Test
     fun convertMinutesWithSpace() {
         val time = "10 m"
         val result = LibrarySettingsExtractor.timeConverter(time)
@@ -38,6 +45,13 @@ class LibrarySettingsExtractorTest {
         val time = "10      m"
         val result = LibrarySettingsExtractor.timeConverter(time)
         assertEquals(600, result)
+    }
+
+    @Test
+    fun convertSecondsWithExtraSpaces() {
+        val time = "10  s"
+        val result = LibrarySettingsExtractor.timeConverter(time)
+        assertEquals(10, result)
     }
 
     @Test

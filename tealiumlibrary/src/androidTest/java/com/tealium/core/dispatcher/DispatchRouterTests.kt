@@ -1,13 +1,13 @@
 package com.tealium.core.dispatcher
 
 import com.tealium.core.Collector
-import com.tealium.core.LibrarySettingsManager
+import com.tealium.core.settings.LibrarySettingsManager
 import com.tealium.core.Logger
 import com.tealium.core.messaging.DispatchRouter
 import com.tealium.core.messaging.EventDispatcher
 import com.tealium.core.messaging.EventRouter
-import com.tealium.core.model.Batching
-import com.tealium.core.model.LibrarySettings
+import com.tealium.core.settings.Batching
+import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.persistence.DispatchStorage
 import com.tealium.core.validation.BatchingValidator
 import com.tealium.core.validation.ConnectivityValidator
@@ -65,6 +65,12 @@ class DispatchRouterTests {
         // Some default answers to get the Dispatch through the entire system.
         // Edit as required per-test to change route.
         coEvery { collector.collect() } returns mapOf("key" to "value")
+        coEvery { collector.enabled } returns true
+        coEvery { validator.enabled } returns true
+        coEvery { validator2.enabled } returns true
+        coEvery { dispatcher.enabled } returns true
+        coEvery { batchingValidator.enabled } returns true
+        coEvery { connectivityValidator.enabled } returns true
         every { validator.shouldDrop(eventDispatch) } returns false
         every { validator.shouldQueue(eventDispatch) } returns false
         every { validator2.shouldDrop(eventDispatch) } returns false
@@ -96,6 +102,43 @@ class DispatchRouterTests {
             collector.collect()
         }
         assertTrue(eventDispatch["key"] == "value")
+    }
+
+    @Test
+    fun testIsNotCollected_WhenDisabled() {
+        every { collector.enabled } returns false
+        dispatchRouter.track(eventDispatch)
+
+        coVerify(exactly = 0) {
+            collector.collect()
+        }
+    }
+
+    @Test
+    fun testIsNotValidated_WhenDisabled() {
+        every { validator.enabled } returns false
+        dispatchRouter.track(eventDispatch)
+
+        coVerify(exactly = 0) {
+            validator.shouldQueue(eventDispatch)
+            validator.shouldDrop(eventDispatch)
+        }
+
+        coVerify(exactly = 1) {
+            validator2.shouldQueue(eventDispatch)
+            validator2.shouldDrop(eventDispatch)
+        }
+    }
+
+    @Test
+    fun testIsNotDispatched_WhenDisabled() {
+        every { dispatcher.enabled } returns false
+        dispatchRouter.track(eventDispatch)
+
+        coVerify(exactly = 0) {
+            dispatcher.onDispatchSend(eventDispatch)
+            dispatcher.onBatchDispatchSend(eventDispatchList)
+        }
     }
 
     @Test

@@ -2,7 +2,7 @@ package com.tealium.core.messaging
 
 import com.tealium.core.consent.ConsentManagementPolicy
 import com.tealium.core.consent.UserConsentPreferences
-import com.tealium.core.model.LibrarySettings
+import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import java.util.*
@@ -58,8 +58,8 @@ interface DispatchDroppedListener : Listener {
  * Executes when a Remote Command execution is required from an external module.
  */
 interface RemoteCommandListener : Listener {
-//    fun onRemoteCommandSend(url: String)
-    fun onExecuteJsonRemoteCommand(dispatch: Dispatch)
+    fun onRemoteCommandSend(url: String)
+    fun onProcessRemoteCommand(dispatch: Dispatch)
 }
 
 /**

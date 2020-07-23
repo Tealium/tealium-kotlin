@@ -5,6 +5,7 @@ import com.tealium.core.DispatchType
 import com.tealium.dispatcher.Dispatch
 import java.util.*
 
+// TODO prep for Dispatch Specs??
 data class RemoteCommandDispatch(var remoteCommandName: String) : Dispatch {
 
     override val id: String = UUID.randomUUID().toString()
@@ -12,7 +13,7 @@ data class RemoteCommandDispatch(var remoteCommandName: String) : Dispatch {
 
     init {
         mutableMap[CoreConstant.TEALIUM_EVENT] = remoteCommandName
-        mutableMap[CoreConstant.TEALIUM_EVENT_TYPE] = DispatchType.EVENT
+        mutableMap[CoreConstant.TEALIUM_EVENT_TYPE] = DispatchType.EVENT // DispatchType.REMOTE_API?
         mutableMap[CoreConstant.TEALIUM_EVENT_NAME] = remoteCommandName
     }
 

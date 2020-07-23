@@ -1,6 +1,6 @@
 package com.tealium.core.validation
 
-import com.tealium.core.model.LibrarySettings
+import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.dispatcher.EventDispatch
 import io.mockk.every

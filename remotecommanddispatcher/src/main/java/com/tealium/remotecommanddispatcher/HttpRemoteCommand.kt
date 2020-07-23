@@ -1,12 +1,13 @@
 package com.tealium.remotecommanddispatcher
 
+import com.tealium.core.network.HttpClient
 import org.json.JSONException
 import org.json.JSONObject
 import java.net.URLEncoder
-import java.util.*
 import kotlin.text.StringBuilder
 
 class HttpRemoteCommand : RemoteCommand(NAME, DESCRIPTION) {
+
     override fun onInvoke(response: Response) {
         val url = response.requestPayload?.optString(URL, null)
         val method = response.requestPayload?.optString(METHOD, null)
@@ -19,10 +20,8 @@ class HttpRemoteCommand : RemoteCommand(NAME, DESCRIPTION) {
             return
         }
 
-        val urlString = appendParameters(insertAuthCredentials(url, response.requestPayload),
-                response.requestPayload)
-
-//        execute(response, urlString, method.toUpperCase(Locale.ROOT))
+        val urlString = appendParameters(insertAuthCredentials(url, response.requestPayload), response.requestPayload)
+        // TODO needs HttpClient to execute(response, urlString, method)
     }
 
     private fun insertAuthCredentials(url: String, obj: JSONObject): String {
@@ -41,7 +40,7 @@ class HttpRemoteCommand : RemoteCommand(NAME, DESCRIPTION) {
             } else if (url.startsWith("https://")) {
                 prefix = "https://"
             } else {
-                // TODO: user Logger instead???
+                // TODO: use Logger instead???
                 throw JSONException("Unsupported URL protocol.")
             }
 
@@ -71,13 +70,10 @@ class HttpRemoteCommand : RemoteCommand(NAME, DESCRIPTION) {
 
             sb.insert(0, if (url.indexOf('?') > 0) '&' else '?')
             return sb.insert(0, url).toString()
-
         } ?: run {
             return url
         }
     }
-
-
 
     companion object {
         val NAME = "_http"

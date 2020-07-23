@@ -1,7 +1,7 @@
 package com.tealium.core
 
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
-import com.tealium.core.model.LibrarySettings
+import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatcher
 import org.json.JSONObject
