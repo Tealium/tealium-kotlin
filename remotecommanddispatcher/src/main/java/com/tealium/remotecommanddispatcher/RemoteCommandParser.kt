@@ -16,7 +16,8 @@ class RemoteCommandParser {
                         if (mapPayload(nestedMap, lookup).count() == 0) {
                             mappedDispatch[key] = nestedMap
                         } else {
-                            mappedDispatch.putAll(mapPayload(nestedMap, lookup))
+                            mappedDispatch[key] = mapPayload(nestedMap, lookup)
+//                            mappedDispatch.putAll(mapPayload(nestedMap, lookup))
                         }
                     }
                 }
@@ -34,13 +35,26 @@ class RemoteCommandParser {
             lookup.forEach { (key, value) ->
                 payload[key]?.let { payloadValue ->
                     lookup[key]?.let { lookupValue ->
-                        temp.putAll(splitKeys(lookupValue, payloadValue, lookup))
+                        if (lookupValue.contains(".")) {
+                            val tempMap = split(lookupValue, payloadValue)
+                            val tempKey = tempMap[tempMap.keys.toTypedArray()[0]]
+                            val tempValue = tempMap[key]
+//                            temp[tempKey] = tempValue
+                        }
+                       // temp.putAll(mapPayload(payloadValue, lookup))
+//                        temp.putAll(splitKeys(lookupValue, payloadValue, lookup))
 //                     temp = mergeMaps(temp, splitKeys(lookupValue, payloadValue, lookup)).toMutableMap()
                     }
                 }
             }
 
             return temp
+        }
+
+        private fun split(key: String, payloadValue: Any): Map<String, Any> {
+            val splitKeys = key.split(".")
+            val tempMap = mapOf(splitKeys[1] to payloadValue)
+            return mapOf(splitKeys[0] to tempMap)
         }
 
         /**

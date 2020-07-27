@@ -8,7 +8,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.DataOutputStream
 import java.net.ConnectException
@@ -35,10 +34,14 @@ class HttpClient(var config: TealiumConfig,
             false
         } else true
 
-    override suspend fun post(payload: String, urlString: String, gzip: Boolean) = coroutineScope {
+    override suspend fun post(payload: String, urlString: String, gzip: Boolean, headers: JSONObject?) = coroutineScope {
         if (isActive && isConnected) {
             try {
                 with(URL(urlString).openConnection() as HttpURLConnection) {
+                    headers?.let {
+                        addHeaders(it, this)
+                    }
+
                     try {
                         doOutput = true
                         setRequestProperty("Content-Type", "application/json")

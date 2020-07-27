@@ -106,7 +106,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     private suspend fun executeHttpRemoteCommand(response: Response, url: String, method: String) {
 
         if ("POST" == method || "PUT" == method) {
-            client.post(response.requestPayload.toString(), url, false)
+            client.post(response.requestPayload.toString(), url, false, null)
         }
     }
 

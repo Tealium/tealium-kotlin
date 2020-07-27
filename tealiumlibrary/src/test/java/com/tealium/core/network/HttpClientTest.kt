@@ -79,7 +79,7 @@ class HttpClientTest {
         val urlString = "http://localhost:$port"
         mockWebServer.url(urlString)
 
-        httpClient.post("hello", urlString, false)
+        httpClient.post("hello", urlString, false, null)
 
         val request = mockWebServer.takeRequest()
         assertEquals("POST / HTTP/1.1", request.requestLine)
@@ -104,7 +104,7 @@ class HttpClientTest {
         mockWebServer.url(urlString)
 
         assertNull(errorMessage)
-        httpClient.post("hello", urlString, false)
+        httpClient.post("hello", urlString, false, null)
         assertNotNull(errorMessage)
     }
 

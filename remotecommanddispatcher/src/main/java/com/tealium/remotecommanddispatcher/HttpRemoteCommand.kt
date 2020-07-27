@@ -1,12 +1,15 @@
 package com.tealium.remotecommanddispatcher
 
-import com.tealium.core.network.HttpClient
+import com.tealium.core.TealiumConfig
+import com.tealium.core.network.*
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.isActive
 import org.json.JSONException
 import org.json.JSONObject
 import java.net.URLEncoder
 import kotlin.text.StringBuilder
 
-class HttpRemoteCommand : RemoteCommand(NAME, DESCRIPTION) {
+class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME, DESCRIPTION) {
 
     override fun onInvoke(response: Response) {
         val url = response.requestPayload?.optString(URL, null)
@@ -22,6 +25,10 @@ class HttpRemoteCommand : RemoteCommand(NAME, DESCRIPTION) {
 
         val urlString = appendParameters(insertAuthCredentials(url, response.requestPayload), response.requestPayload)
         // TODO needs HttpClient to execute(response, urlString, method)
+    }
+
+    private suspend fun execute(response: Response, urlString: String, method: String) = coroutineScope {
+
     }
 
     private fun insertAuthCredentials(url: String, obj: JSONObject): String {

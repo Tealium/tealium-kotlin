@@ -34,7 +34,7 @@ class HttpClientListenerTest {
         every { mockConnectivity.isConnected() } returns false
         every { mockNetworkClientListener.onNetworkError(any()) } just Runs
 
-        httpClient.post("test", "test_url", false)
+        httpClient.post("test", "test_url", false, null)
 
         verify {
             mockNetworkClientListener.onNetworkError("No network connection.")
@@ -48,7 +48,7 @@ class HttpClientListenerTest {
         every { mockNetworkClientListener.onNetworkError(any()) } just Runs
 
         val urlString = "invalid_url"
-        httpClient.post("test", urlString, false)
+        httpClient.post("test", urlString, false, null)
 
         verify {
             mockNetworkClientListener.onNetworkError("Invalid URL: $urlString.")

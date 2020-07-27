@@ -1,25 +1,32 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'maven-publish'
+
+version = '0.1.0'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
+    buildToolsVersion "29.0.3"
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
-        buildConfigField 'String', 'TAG', "\"Tealium-RemoteCommandDispatcher-\""
+        buildConfigField 'String', 'TAG', "\"Tealium-RemoteCommandDispatcher-$version\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 }
@@ -38,3 +45,29 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
 }
+
+repositories {
+    mavenCentral()
+    maven { url "https://kotlin.bintray.com/kotlinx" }
+}
+
+//afterEvaluate {
+//    publishing {
+//        publications {
+//            release(MavenPublication) {
+//                from components.release
+//                groupId = 'com.tealium'
+//                artifactId = 'kotlin-remote-commands'
+//            }
+//        }
+//        repositories {
+//            maven {
+//                url "s3://maven.tealiumiq.com/android/releases/"
+//                credentials(AwsCredentials) {
+//                    accessKey AWS_ACCESS_KEY
+//                    secretKey AWS_SECRET_KEY
+//                }
+//            }
+//        }
+//    }
+//}

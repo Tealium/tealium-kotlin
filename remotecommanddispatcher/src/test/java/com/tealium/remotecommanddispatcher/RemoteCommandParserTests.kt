@@ -105,7 +105,7 @@ class RemoteCommandParserTests {
 //        val expectedMap = mapOf()
         val testOutput = RemoteCommandParser.mapDispatch(dispatch, lookup)
 
-        System.out.println(testOutput)
+        println(testOutput)
         Assert.assertTrue(testOutput.containsKey("command_name"))
         Assert.assertEquals("purchase", testOutput["command_name"])
     }

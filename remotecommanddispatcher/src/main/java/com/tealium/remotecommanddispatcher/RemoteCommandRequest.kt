@@ -1,10 +1,13 @@
 package com.tealium.remotecommanddispatcher
 
-import androidx.core.text.htmlEncode
+import com.tealium.core.Logger
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
+import java.lang.Exception
 import java.lang.RuntimeException
+import java.lang.StringBuilder
 import java.net.URLDecoder
+import java.net.URLEncoder
 import java.util.*
 import java.util.regex.Pattern
 
@@ -39,17 +42,30 @@ data class RemoteCommandRequest(var commandId: String? = null,
             } else {
                 remoteCommandRequest.commandId = request.substring(TEALIUM_PREFIX.length, argsIndex).toLowerCase(Locale.ROOT)
                 val encodedJSONSuffix = request.substring(argsIndex + ARG.length)
-                val decodedJson: String
+//                var decodedJson: String
 
-                try {
-                    decodedJson = URLDecoder.decode(encodedJSONSuffix, "UTF-8")
-                    println("DECODE JSON: $decodedJson")
-                } catch (ex: UnsupportedEncodingException) {
-                    throw RuntimeException(ex)
-                }
+//                decodedJson = URLDecoder.decode(encodedJSONSuffix, "UTF-8")
 
-                requestArgs = JSONObject(decodedJson) // if (decodedJson.isNotEmpty()) JSONObject(decodedJson) else JSONObject()
+//                try {
+//                    decodedJson = URLDecoder.decode(encodedJSONSuffix, "UTF-8")
+//                    println(decodedJson)
+//                } catch (ex: UnsupportedEncodingException) {
+//                    decodedJson = ""
+//                    Logger.dev(BuildConfig.TAG, "Unsupported encoding to tag management remote command $encodedJSONSuffix")
+//                }
+
+//                try {
+//                    requestArgs = JSONObject(decodedJson)
+//                } catch (ex: Throwable) {
+//                    requestArgs = JSONObject()
+//                    Logger.dev(BuildConfig.TAG, "Unable to process $encodedJSONSuffix")
+//                }
+
+                requestArgs = UrlDecoder.decode(encodedJSONSuffix)
+
+//                requestArgs = JSONObject(decodedJson) // if (decodedJson.isNotEmpty()) JSONObject(decodedJson) else JSONObject()
             }
+
             remoteCommandRequest.commandId?.let {
                 if (RemoteCommand.isCommandNameValid(it)) {
                     requestArgs?.let { args ->

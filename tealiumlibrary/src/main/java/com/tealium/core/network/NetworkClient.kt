@@ -14,7 +14,7 @@ interface NetworkClient {
 
     var networkClientListener: NetworkClientListener?
 
-    suspend fun post(payload: String, urlString: String, gzip: Boolean)
+    suspend fun post(payload: String, urlString: String, gzip: Boolean, headers: JSONObject?)
 
     suspend fun ifModified(urlString: String, timestamp: Long): Boolean?
 

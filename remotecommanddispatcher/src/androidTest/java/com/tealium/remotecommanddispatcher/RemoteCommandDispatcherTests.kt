@@ -53,7 +53,7 @@ class RemoteCommandDispatcherTests {
             }
         }
 
-        //every { jsonRemoteCommand.invoke(mockRemoteCommandRequest) } just Runs
+        every { jsonRemoteCommand.invoke(mockRemoteCommandRequest) } just Runs
     }
 
     @Test
@@ -68,10 +68,7 @@ class RemoteCommandDispatcherTests {
         remoteCommandDispatcher.add(jsonCommand)
         remoteCommandDispatcher.onProcessRemoteCommand(dispatch)
 
-        mockkStatic(RemoteCommandRequest::class)
-        every { RemoteCommandRequest }
-
-        verify { jsonCommand.invoke(mockRemoteCommandRequest) }
+        verify { jsonCommand.invoke(any()) }
     }
 
     @Test

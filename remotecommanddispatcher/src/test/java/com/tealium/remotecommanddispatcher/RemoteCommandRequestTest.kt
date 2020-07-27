@@ -3,6 +3,7 @@ package com.tealium.remotecommanddispatcher
 import junit.framework.Assert
 import org.json.JSONObject
 import org.junit.Test
+import java.util.*
 
 class RemoteCommandRequestTest {
 
@@ -50,7 +51,7 @@ class RemoteCommandRequestTest {
         }
         val request = RemoteCommandRequest.jsonRequest(command, JSONObject())
 
-        Assert.assertEquals("jsontest", request.commandId)
+        Assert.assertEquals("jsonTest".toLowerCase(Locale.ROOT), request.commandId)
         Assert.assertNotNull(request.payload)
         Assert.assertNotNull(request.response)
 
