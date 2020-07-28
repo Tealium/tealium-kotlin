@@ -51,7 +51,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     private fun loadStockCommands(method: String): RemoteCommand? {
         var httpRemoteCommand: RemoteCommand? = null
         if (HttpRemoteCommand.NAME == method) {
-            httpRemoteCommand = HttpRemoteCommand()
+//            httpRemoteCommand = HttpRemoteCommand()
         }
 
         httpRemoteCommand?.let {

@@ -36,8 +36,8 @@ class RemoteCommandRequestTest {
 
     @Test
     fun webViewRemoteCommandValidRequest() {
-//        val request = RemoteCommandRequest.tagManagementRequest("tealium://command?request=%7B%22foo%22%3A%22bar%22%7D")
-        val request = RemoteCommandRequest.tagManagementRequest("tealium://task-populated_arg?request=%7B%22payload%22%3A%7B%22foo%22%3A%22bar%22%7D%7D")
+        val request = RemoteCommandRequest.tagManagementRequest("tealium://command?request=%7B%22foo%22%3A%22bar%22%7D")
+//        val request = RemoteCommandRequest.tagManagementRequest("tealium://task-populated_arg?request=%7B%22payload%22%3A%7B%22foo%22%3A%22bar%22%7D%7D")
 
         Assert.assertEquals("command", request.commandId)
         Assert.assertNull(request.response?.requestPayload)

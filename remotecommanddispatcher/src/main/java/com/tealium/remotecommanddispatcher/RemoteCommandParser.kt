@@ -1,7 +1,5 @@
 package com.tealium.remotecommanddispatcher
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.tealium.core.Logger
 import com.tealium.dispatcher.Dispatch
 
@@ -17,7 +15,6 @@ class RemoteCommandParser {
                             mappedDispatch[key] = nestedMap
                         } else {
                             mappedDispatch[key] = mapPayload(nestedMap, lookup)
-//                            mappedDispatch.putAll(mapPayload(nestedMap, lookup))
                         }
                     }
                 }
@@ -31,19 +28,33 @@ class RemoteCommandParser {
          *
          */
         private fun mapPayload(payload: Map<String, Any>, lookup: Map<String, String>): MutableMap<String, Any> {
-            var temp = mutableMapOf<String, Any>()
+            val temp = mutableMapOf<String, Any>()
             lookup.forEach { (key, value) ->
                 payload[key]?.let { payloadValue ->
                     lookup[key]?.let { lookupValue ->
-                        if (lookupValue.contains(".")) {
-                            val tempMap = split(lookupValue, payloadValue)
-                            val tempKey = tempMap[tempMap.keys.toTypedArray()[0]]
-                            val tempValue = tempMap[key]
-//                            temp[tempKey] = tempValue
+                        val objectRow = splitKeys(lookupValue, payloadValue, lookup)
+                        val objectKey = objectRow.second
+                        objectKey?.let {
+                            if (temp.containsKey(it)) {
+                                // object key is already in the map, append to the same key
+                                (temp[it] as? MutableMap<*, *>)?.let { objectMap ->
+                                    // create a map with a String key. This will throw an exception if the JSON mapping file does not use a String as a key.
+                                    val oMap = objectMap.entries.associate { entry -> entry.key as String to entry.value }.toMutableMap()
+                                    (objectRow.first[objectKey] as? Map<*, *>)?.let {
+                                        it.entries.associate { entry -> entry.key as String to entry.value as String }
+                                    }?.forEach { (kk, vv) ->
+                                        // add mapped values from splitKeys to the temporary oMap
+                                        oMap[kk] = vv
+                                        // append to the same key (e.g. "event")
+                                        temp[objectKey] = oMap
+                                    }
+                                }
+                            } else {
+                                temp.putAll(objectRow.first)
+                            }
+                        } ?: run {
+                            temp.putAll(objectRow.first)
                         }
-                       // temp.putAll(mapPayload(payloadValue, lookup))
-//                        temp.putAll(splitKeys(lookupValue, payloadValue, lookup))
-//                     temp = mergeMaps(temp, splitKeys(lookupValue, payloadValue, lookup)).toMutableMap()
                     }
                 }
             }
@@ -51,18 +62,13 @@ class RemoteCommandParser {
             return temp
         }
 
-        private fun split(key: String, payloadValue: Any): Map<String, Any> {
-            val splitKeys = key.split(".")
-            val tempMap = mapOf(splitKeys[1] to payloadValue)
-            return mapOf(splitKeys[0] to tempMap)
-        }
-
         /**
          * Splits config mappings keys when a "." is present and creates nested object.
          * If key in JSON was "event.parameter", method returns  {event = {parameter = value}}
          */
-        private fun splitKeys(key: String, payloadValue: Any, lookup: Map<String, String>): Map<String, Any> {
+        private fun splitKeys(key: String, payloadValue: Any, lookup: Map<String, String>): Pair<MutableMap<String, Any>, String?> {
             val result = mutableMapOf<String, Any>()
+            var objectKey: String? = null
             if (key.contains(".")) {
                 val keyValue = key.split(".")
                 val temp = mutableMapOf<String, Any>()
@@ -75,13 +81,12 @@ class RemoteCommandParser {
                     temp[keyValue[1]] = payloadValue
                 }
                 result[keyValue[0]] = temp
+                objectKey = keyValue[0]
             } else {
                 result[key] = payloadValue
             }
 
-            return result
+            return Pair(result, objectKey)
         }
-
-
     }
 }

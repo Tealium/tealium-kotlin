@@ -13,8 +13,6 @@ public class UrlDecoder {
         try {
             decodedString = URLDecoder.decode(url, "UTF-8");
             json = decodedString.length() == 0 ? new JSONObject() : new JSONObject(decodedString);
-        }catch (RuntimeException ex) {
-            return new JSONObject();
         } catch (UnsupportedEncodingException ex) {
             return new JSONObject();
 //            throw new RuntimeException(ex);
@@ -23,8 +21,10 @@ public class UrlDecoder {
 
         } catch (Throwable t) {
             return new JSONObject();
-
         }
+//        } catch (RuntimeException ex) {
+//        return new JSONObject();
+//    }
 
         return json;
     }

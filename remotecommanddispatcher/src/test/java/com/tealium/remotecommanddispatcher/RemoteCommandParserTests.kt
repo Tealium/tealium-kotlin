@@ -1,10 +1,11 @@
 package com.tealium.remotecommanddispatcher
 
 import com.tealium.dispatcher.EventDispatch
-import junit.framework.Assert
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class RemoteCommandParserTests {
+class RemoteCommandParserTest {
 
     @Test
     fun mapDispatchValidResultantMap() {
@@ -47,12 +48,22 @@ class RemoteCommandParserTests {
                 "tealium_event" to "command_name",
                 "customer_id" to "user_id")
 
-        val expectedMap = mapOf("item_id" to arrayListOf("ABC123"), "item_name" to arrayListOf("milk chocolate"), "item_brand" to arrayListOf("see's"), "price" to arrayListOf("19.99"), "quantity" to arrayListOf("1"), "user_id" to "CUST234324", "transaction_id" to "ORD239847", "event_name" to "ecommerce_purchase", "tax" to "1.99", "shipping" to "5.00", "command_name" to "test_dispatch")
+        val expectedMap = mapOf(
+                "item_id" to arrayListOf("ABC123"),
+                "item_name" to arrayListOf("milk chocolate"),
+                "item_brand" to arrayListOf("see's"),
+                "price" to arrayListOf("19.99"),
+                "quantity" to arrayListOf("1"),
+                "user_id" to "CUST234324",
+                "transaction_id" to "ORD239847",
+                "event_name" to "ecommerce_purchase",
+                "tax" to "1.99", "shipping" to "5.00",
+                "command_name" to "test_dispatch")
         val testOutput = RemoteCommandParser.mapDispatch(dispatch, lookup)
 
-        Assert.assertEquals(expectedMap, testOutput)
-        Assert.assertTrue(testOutput.containsKey("command_name"))
-        Assert.assertEquals(dispatch.eventName, testOutput["command_name"])
+        assertEquals(expectedMap, testOutput)
+        assertTrue(testOutput.containsKey("command_name"))
+        assertEquals(dispatch.eventName, testOutput["command_name"])
     }
 
     @Test
@@ -104,10 +115,71 @@ class RemoteCommandParserTests {
 
 //        val expectedMap = mapOf()
         val testOutput = RemoteCommandParser.mapDispatch(dispatch, lookup)
-
-        println(testOutput)
-        Assert.assertTrue(testOutput.containsKey("command_name"))
-        Assert.assertEquals("purchase", testOutput["command_name"])
+        assertTrue(testOutput.containsKey("command_name"))
+        assertEquals("purchase", testOutput["command_name"])
     }
 
+    @Test
+    fun mapDispatchWithSingleObjectMapping() {
+        val dispatch = EventDispatch(
+                "level_up",
+                mapOf("level" to 19))
+        val eventKey = "event"
+        val lookup = mapOf("level" to "$eventKey.fb_level")
+        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+
+        assertTrue(result.containsKey(eventKey))
+        assertEquals(1, result.keys.count())
+        (result[eventKey] as? Map<*, *>)?.let {
+            assertEquals(19, it["fb_level"])
+        }
+    }
+
+    @Test
+    fun mapDispatchWithMultipleObjectMappings() {
+        val dispatch = EventDispatch(
+                "level_up",
+                mapOf("level" to 19,
+                        "product_availability" to "In Stock"))
+        val eventKey = "event"
+        val lookup = mapOf("level" to "$eventKey.fb_level",
+                "product_availability" to "$eventKey.fb_product_availability")
+
+        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        println("result: $result")
+        assertTrue(result.containsKey(eventKey))
+        (result[eventKey] as? Map<*, *>)?.let {
+            assertEquals(19, it["fb_level"])
+            assertEquals("In Stock", it["fb_product_availability"])
+        }
+    }
+
+    @Test
+    fun mapDispatchWithObjectMappingsAndExtraProperties() {
+        val dispatch = EventDispatch(
+                "purchase",
+                mapOf("order_total" to 5,
+                        "order_currency" to "USD",
+                        "product_color" to "red"
+                ))
+        val purchaseKey = "purchase"
+        val purchasePropertiesKey = "purchase_properties"
+        val lookup = mapOf(
+                "order_total" to "$purchaseKey.fb_purchase_amount",
+                "order_currency" to "$purchaseKey.fb_purchase_currency",
+                "product_color" to "$purchasePropertiesKey.fb_product_color"
+        )
+        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        println(result)
+        assertTrue(result.containsKey(purchaseKey))
+        assertTrue(result.containsKey(purchasePropertiesKey))
+
+        (result[purchaseKey] as? Map<*, *>)?.let {
+            assertEquals(5, it["fb_purchase_amount"])
+            assertEquals("USD", it["fb_purchase_currency"])
+        }
+        (result[purchasePropertiesKey] as? Map<*, *>)?.let {
+            assertEquals("red", it["fb_product_color"])
+        }
+    }
 }
