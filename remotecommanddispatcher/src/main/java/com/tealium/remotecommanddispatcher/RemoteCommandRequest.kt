@@ -6,7 +6,6 @@ import java.io.UnsupportedEncodingException
 import java.net.URLDecoder
 import java.util.*
 import java.util.regex.Pattern
-import kotlin.text.StringBuilder
 
 /**
  * The object used to request a remote command to the remote command dispatcher.

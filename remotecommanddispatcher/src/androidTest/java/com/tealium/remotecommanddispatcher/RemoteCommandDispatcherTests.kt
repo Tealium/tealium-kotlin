@@ -1,7 +1,6 @@
 package com.tealium.remotecommanddispatcher
 
 import android.app.Application
-import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.JsonUtils
@@ -12,7 +11,6 @@ import com.tealium.dispatcher.EventDispatch
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import junit.framework.Assert
-import org.json.JSONObject
 import org.junit.Before
 import org.junit.Test
 
@@ -41,30 +39,11 @@ class RemoteCommandDispatcherTests {
         MockKAnnotations.init(this)
         context = ApplicationProvider.getApplicationContext()
 
-//        mockkStatic(Log::class)
-//        every { Log.v(any(), any()) } returns 0
         mockkConstructor(RemoteCommand::class)
         every { anyConstructed<RemoteCommand>().invoke(any()) } just Runs
 
         config = TealiumConfig(context, "test", "profile", Environment.DEV)
         every { tealiumContext.config } returns config
-        jsonRemoteCommand = object : RemoteCommand("testJsonCommand", "Testing JSON Remote Command", RemoteCommandType.JSON, filename = "test.json") {
-            override fun onInvoke(response: Response) { // invoke block...
-            }
-        }
-
-        webViewRemoteCommand = object : RemoteCommand("testWebViewCommand", "Testing WebView Remote Command", RemoteCommandType.WEBVIEW) {
-            override fun onInvoke(response: Response) { //invoke block...
-            }
-        }
-
-
-
-        every { jsonRemoteCommand.invoke(mockRemoteCommandRequest) } just Runs
-//        every { jsonRemoteCommand.onInvoke(any()) } just Runs
-        every { webViewRemoteCommand.invoke(mockRemoteCommandRequest) } just Runs
-//        every { webViewRemoteCommand.onInvoke(mockResponse) } just Runs
-
     }
 
     @Test

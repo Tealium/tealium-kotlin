@@ -5,7 +5,6 @@ import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.messaging.RemoteCommandListener
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
-import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
 import com.tealium.dispatcher.DispatcherListener
