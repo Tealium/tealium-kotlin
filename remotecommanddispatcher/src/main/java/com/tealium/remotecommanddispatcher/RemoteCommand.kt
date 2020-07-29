@@ -2,6 +2,7 @@ package com.tealium.remotecommanddispatcher
 
 import com.tealium.core.Logger
 import java.util.*
+import java.util.regex.Pattern
 
 abstract class RemoteCommand(var commandId: String,
                              val description: String? = null,
@@ -47,12 +48,11 @@ abstract class RemoteCommand(var commandId: String,
 
     companion object {
         fun isCommandNameValid(commandName: String): Boolean {
-            if (commandName.isNullOrEmpty()) {
+            if (commandName.isEmpty()) {
                 return false
             }
 
-            val regex = """^[\w-]*${'$'}""".toRegex()
-            return regex.containsMatchIn(commandName)
+            return Pattern.matches("^[\\w-]*$", commandName)
         }
     }
 }

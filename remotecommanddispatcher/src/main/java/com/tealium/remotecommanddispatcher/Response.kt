@@ -4,7 +4,7 @@ import org.json.JSONObject
 
 open class Response(val commandId: String,
                     val responseId: String? = null,
-                    val requestPayload: JSONObject? = null,
+                    val requestPayload: JSONObject = JSONObject(),
                     var status: Int = STATUS_OK,
                     var body: String? = null,
                     var evalJavascript: String? = null,

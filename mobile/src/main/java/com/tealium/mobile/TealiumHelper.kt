@@ -42,9 +42,6 @@ object TealiumHelper {
             remoteCommands?.add(localJsonCommand)
             remoteCommands?.add(remoteJsonCommand)
             remoteCommands?.add(webviewRemoteCommand)
-
-            val request = RemoteCommandRequest.tagManagementRequest("tealium://command?request=%7B%22foo%22%3A%22bar%22%7D")
-            Logger.dev(BuildConfig.TAG, "%%%%%%%%%%%%%%%%%%% Request here: ${request.response?.requestPayload}")
         }
     }
 

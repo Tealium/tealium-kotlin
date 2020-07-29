@@ -73,16 +73,16 @@ class RemoteCommandParserTest {
                 mapOf("content" to "someContent",
                         "content_type" to "someContentType",
                         "coupon" to "someCoupon",
-                        "product_brand" to arrayListOf("someBrand"),
-                        "product_category" to arrayListOf("someCategory"),
-                        "product_id" to arrayListOf("someId"),
-                        "product_list" to arrayListOf("someList"),
+                        "product_brand" to arrayOf("someBrand"),
+                        "product_category" to arrayOf("someCategory"),
+                        "product_id" to arrayOf("someId"),
+                        "product_list" to arrayOf("someList"),
                         "product_location_id" to "someLocationId",
-                        "product_name" to arrayListOf("someName"),
-                        "product_variant" to arrayListOf("someVariant"),
+                        "product_name" to arrayOf("someName"),
+                        "product_variant" to arrayOf("someVariant"),
                         "campaign_medium" to "someMedium",
-                        "product_unit_price" to arrayListOf(0.00),
-                        "product_quantity" to arrayListOf(1),
+                        "product_unit_price" to arrayOf(0.00),
+                        "product_quantity" to arrayOf(1),
                         "search_keyword" to "someSearchTerm",
                         "order_shipping_amount" to 5.00,
                         "order_tax_amount" to 3.00,
@@ -113,10 +113,12 @@ class RemoteCommandParserTest {
                 "tealium_event" to "command_name",
                 "customer_id" to "user.user_id")
 
-//        val expectedMap = mapOf()
+        val expectedMap = mapOf("purchase" to mapOf("coupon" to "someCoupon"))
         val testOutput = RemoteCommandParser.mapDispatch(dispatch, lookup)
         assertTrue(testOutput.containsKey("command_name"))
         assertEquals("purchase", testOutput["command_name"])
+        assertTrue(testOutput.containsKey("purchase"))
+        assertEquals(expectedMap, testOutput["purchase"])
     }
 
     @Test

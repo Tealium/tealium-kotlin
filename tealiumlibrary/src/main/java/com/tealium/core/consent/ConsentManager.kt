@@ -94,7 +94,7 @@ class ConsentManager(private val config: TealiumConfig,
                         json.put(TEALIUM_PROFILE, config.profileName)
                         json.put(TEALIUM_VISITOR_ID, visitorId)
 
-                        httpClient.post(json.toString(), consentLoggingUrl, false, null)
+                        httpClient.post(json.toString(), consentLoggingUrl, false)
                     }
                 }
             }

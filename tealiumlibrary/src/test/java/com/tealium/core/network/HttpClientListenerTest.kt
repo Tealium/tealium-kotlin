@@ -34,7 +34,7 @@ class HttpClientListenerTest {
         every { mockConnectivity.isConnected() } returns false
         every { mockNetworkClientListener.onNetworkError(any()) } just Runs
 
-        httpClient.post("test", "test_url", false, null)
+        httpClient.post("test", "test_url", false)
 
         verify {
             mockNetworkClientListener.onNetworkError("No network connection.")

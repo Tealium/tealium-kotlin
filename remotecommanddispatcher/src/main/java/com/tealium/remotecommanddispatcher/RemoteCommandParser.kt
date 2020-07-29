@@ -41,7 +41,7 @@ class RemoteCommandParser {
                                     // create a map with a String key. This will throw an exception if the JSON mapping file does not use a String as a key.
                                     val oMap = objectMap.entries.associate { entry -> entry.key as String to entry.value }.toMutableMap()
                                     (objectRow.first[objectKey] as? Map<*, *>)?.let {
-                                        it.entries.associate { entry -> entry.key as String to entry.value as String }
+                                        it.entries.associate { entry -> entry.key as String to entry.value } // as String }
                                     }?.forEach { (kk, vv) ->
                                         // add mapped values from splitKeys to the temporary oMap
                                         oMap[kk] = vv

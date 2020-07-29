@@ -1,6 +1,8 @@
 package com.tealium.remotecommanddispatcher
 
+import com.tealium.core.Logger
 import org.json.JSONObject
+import java.io.UnsupportedEncodingException
 import java.net.URLDecoder
 import java.util.*
 import java.util.regex.Pattern
@@ -11,11 +13,11 @@ import kotlin.text.StringBuilder
  * A response object must be set in order for the command to be invoked.
  */
 data class RemoteCommandRequest(var commandId: String? = null,
-                                var payload: JSONObject? = null, // comes from tiq or payload of track call when using json rc
+                                var payload: JSONObject = JSONObject(), // comes from tiq or payload of track call when using json rc
                                 var response: Response? = null) {
 
     companion object {
-        fun jsonRequest(remoteCommand: RemoteCommand, mappedPayload: JSONObject?): RemoteCommandRequest {
+        fun jsonRequest(remoteCommand: RemoteCommand, mappedPayload: JSONObject): RemoteCommandRequest {
             return RemoteCommandRequest().apply {
                 commandId = remoteCommand.commandId
                 payload = mappedPayload
@@ -23,7 +25,7 @@ data class RemoteCommandRequest(var commandId: String? = null,
             }
         }
 
-        fun tagManagementRequest(request: String): RemoteCommandRequest {
+        fun tagManagementRequest(request: String): RemoteCommandRequest? {
             val remoteCommandRequest = RemoteCommandRequest()
             val argsIndex = request.indexOf(ARG)
             var requestArgs: JSONObject? = null
@@ -37,13 +39,14 @@ data class RemoteCommandRequest(var commandId: String? = null,
             } else {
                 remoteCommandRequest.commandId = request.substring(TEALIUM_PREFIX.length, argsIndex).toLowerCase(Locale.ROOT)
                 val encodedJSONSuffix = request.substring(argsIndex + ARG.length)
-                val decodedJson: String = URLDecoder.decode(encodedJSONSuffix, "UTF-8").toString()
-//                val decodedJson: StringBuilder = java.lang.StringBuilder()
-//                decodedJson.append(URLDecoder.decode(encodedJSONSuffix, "UTF-8"))
-//
-//                val temp = decodedJson.toString()
+                val decodedJson: String
 
-//                requestArgs = UrlDecoder.decode(encodedJSONSuffix)
+                try {
+                    decodedJson  = URLDecoder.decode(encodedJSONSuffix, "UTF-8").toString()
+                } catch (ex: UnsupportedEncodingException) {
+                    Logger.dev(BuildConfig.TAG, "Invalid encoding for request arguments: $encodedJSONSuffix")
+                    return null
+                }
 
                 requestArgs = if (decodedJson.isNotEmpty()) JSONObject(decodedJson) else JSONObject()
             }
@@ -53,15 +56,23 @@ data class RemoteCommandRequest(var commandId: String? = null,
                     requestArgs?.let { args ->
                         val config = args.optJSONObject(METAKEY_CONFIG)
                         val responseId = config?.optString(CONFIG_RESPONSE_ID, null)
-                        remoteCommandRequest.payload = requestArgs.optJSONObject(METAKEY_PAYLOAD)
+                        requestArgs.optJSONObject(METAKEY_PAYLOAD)?.let { payload ->
+                            remoteCommandRequest.payload = payload
+                        } ?: run {
+                            remoteCommandRequest.payload = JSONObject()
+                        }
+
                         remoteCommandRequest.response = createResponse(it, responseId, remoteCommandRequest.payload)
                     }
+                } else {
+                    Logger.dev(BuildConfig.TAG, "The command id provided by request is not a valid command id")
+                    return null
                 }
             }
             return remoteCommandRequest
         }
 
-        private fun createResponse(commandName: String, id: String?, args: JSONObject?): Response {
+        private fun createResponse(commandName: String, id: String?, args: JSONObject): Response {
             return object : Response(commandName, id, args) {
                 override fun send() {
                     responseId?.let {
@@ -83,7 +94,7 @@ data class RemoteCommandRequest(var commandId: String? = null,
             }
         }
 
-        fun isRequest(url: String): Boolean {
+        private fun isRequest(url: String): Boolean {
             return PROTOCOL_PREFIX.matcher(url).matches()
         }
 
