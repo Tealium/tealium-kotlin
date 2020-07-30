@@ -1,0 +1,22 @@
+[
+ {
+    "name": "Tealium_asset1",
+    "latitude": 59.4610304,
+    "longitude": -9.9707625,
+    "radius": 100,
+    "expire_after": -1,
+    "trigger_on_enter": true,
+    "trigger_on_exit": true,
+    "minimum_dwell_time": 0
+  },
+  {
+    "name": "Tealium_asset1_invalid_radius",
+    "latitude": 59.4610304,
+    "longitude": -9.9707625,
+    "radius": -100,
+    "expire_after": -1,
+    "trigger_on_enter": true,
+    "trigger_on_exit": true,
+    "minimum_dwell_time": 0
+  }
+]
