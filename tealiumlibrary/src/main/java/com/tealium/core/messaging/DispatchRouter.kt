@@ -3,6 +3,7 @@ package com.tealium.core.messaging
 import com.tealium.core.Collector
 import com.tealium.core.settings.LibrarySettingsManager
 import com.tealium.core.Logger
+import com.tealium.core.Transformer
 import com.tealium.core.consent.ConsentManagementPolicy
 import com.tealium.core.consent.UserConsentPreferences
 import com.tealium.core.persistence.DispatchStorage
@@ -16,6 +17,7 @@ import kotlinx.coroutines.launch
 internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
                               private val collectors: Set<Collector>,
                               private val validators: Set<DispatchValidator>,
+                              private val transformers: Set<Transformer>,
                               private val dispatchStore: DispatchStorage,
                               private val librarySettingsManager: LibrarySettingsManager,
                               private val eventRouter: EventRouter)
@@ -25,6 +27,7 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
     private val scope = CoroutineScope(coroutineDispatcher)
     private val settings
         get() = librarySettingsManager.librarySettings
+
     /**
      * Entry point for all dispatch tracking. Contains business logic for passing dispatches through
      * the system, and informs any [Listener] instances registered with the [EventRouter]
@@ -37,6 +40,8 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
         scope.launch(Logger.exceptionHandler) {
             // Collection
             dispatch.addAll(collect())
+
+            transform(dispatch)
 
             // Validation - Drop
             if (shouldDrop(dispatch)) {
@@ -78,6 +83,19 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
             }
         }
         return data
+    }
+
+    /**
+     *  Calls the [Transformer.transform] method of each [Transformer] to enrich the [Dispatch]
+     */
+    suspend fun transform(dispatch: Dispatch) {
+        transformers.filter { it.enabled }.forEach {
+            try {
+                it.transform(dispatch)
+            } catch (ex: Exception) {
+                Logger.dev(BuildConfig.TAG, "Failed to transform data from ${it.name}")
+            }
+        }
     }
 
     /**

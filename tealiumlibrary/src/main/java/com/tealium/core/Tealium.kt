@@ -208,6 +208,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
         dispatchRouter = DispatchRouter(singleThreadedBackground,
                 modules.getModulesForType(Collector::class.java),
                 modules.getModulesForType(DispatchValidator::class.java),
+                modules.getModulesForType(Transformer::class.java),
                 dispatchStore,
                 librarySettingsManager,
                 eventRouter)
