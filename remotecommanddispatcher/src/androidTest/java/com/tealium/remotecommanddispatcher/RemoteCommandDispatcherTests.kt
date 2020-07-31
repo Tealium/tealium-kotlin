@@ -13,26 +13,16 @@ import io.mockk.impl.annotations.MockK
 import junit.framework.Assert
 import org.junit.Before
 import org.junit.Test
+import java.util.*
 
 class RemoteCommandDispatcherTests {
 
     @MockK
     lateinit var mockNetworkClient: NetworkClient
 
-    @MockK
-    lateinit var mockRemoteCommandRequest: RemoteCommandRequest
-
-    @MockK
-    lateinit var mockRemoteCommandConfigRetriever: RemoteCommandConfigRetriever
-
-    @MockK
-    lateinit var response: Response
-
     lateinit var context: Application
     lateinit var config: TealiumConfig
     private val tealiumContext = mockk<TealiumContext>()
-    lateinit var jsonRemoteCommand: RemoteCommand
-    lateinit var webViewRemoteCommand: RemoteCommand
 
     @Before
     fun setUp() {
@@ -67,16 +57,16 @@ class RemoteCommandDispatcherTests {
     @Test
     fun validAddAndProcessWebViewRemoteCommand() {
         val remoteCommandDispatcher = RemoteCommandDispatcher(tealiumContext, mockk(), mockNetworkClient)
-        val webViewCommand = mockk<RemoteCommand>()
-        every { webViewCommand.commandId } returns "testWebViewCommand"
-        every { webViewCommand.type } returns RemoteCommandType.WEBVIEW
-        every { webViewCommand.invoke(any()) } just Runs
+        val webViewCommand = spyk<RemoteCommand>(object : RemoteCommand("testWebViewCommand") {
+            override fun onInvoke(response: Response) { // invoke block
+            }
+        })
 
         remoteCommandDispatcher.add(webViewCommand)
         val request = RemoteCommandRequest.tagManagementRequest("tealium://testWebViewCommand?request={\"config\":{\"response_id\":\"123\"}, \"payload\":{\"hello\": \"world\"}}")
         remoteCommandDispatcher.processTagManagementRequest(request)
 
-        verify { webViewCommand.invoke(any()) }
+        verify { webViewCommand.invoke(request!!) }
     }
 
     @Test

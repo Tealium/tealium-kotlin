@@ -41,11 +41,11 @@ object TealiumHelper {
 
             remoteCommands?.add(localJsonCommand)
             remoteCommands?.add(remoteJsonCommand)
-            remoteCommands?.add(webviewRemoteCommand)
+            remoteCommands?.add(webViewRemoteCommand)
         }
     }
 
-    val webviewRemoteCommand = object : RemoteCommand("bgcolor", "testing Webview RCs") {
+    val webViewRemoteCommand = object : RemoteCommand("bgcolor", "testing Webview RCs") {
         override fun onInvoke(response: Response) {
             Logger.dev(BuildConfig.TAG, "ResponsePayload for webview RemoteCommand ${response.requestPayload}")
         }
