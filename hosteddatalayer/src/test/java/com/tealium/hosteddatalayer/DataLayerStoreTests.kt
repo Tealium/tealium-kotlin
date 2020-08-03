@@ -61,7 +61,6 @@ class DataLayerStoreTests {
         every { mockConnectivity.isConnected() } returns true
         every { mockConnectivity.isConnectedWifi() } returns true
 
-
         // mock directories, valid file
         mockDirectory = spyk(File("hdl_test"))
         mockDirectory.mkdir()
@@ -307,7 +306,6 @@ class DataLayerStoreTests {
         assertFalse(store.contains("entry1"))
         assertFalse(store.contains("entry0"))
     }
-
 
     /**
      * Utility to check equality of Data Layers.

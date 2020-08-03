@@ -138,7 +138,6 @@ class HostedDataLayer(private val config: TealiumConfig,
         return false
     }
 
-
     /**
      * Clears any locally cached data layers - This will prompt subsequent events to recheck the
      * Hosted Data Layer by making a new HTTP request

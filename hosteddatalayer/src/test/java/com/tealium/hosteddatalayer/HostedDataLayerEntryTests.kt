@@ -69,7 +69,6 @@ class HostedDataLayerEntryTests {
         assertEquals("{}", result.readText(Charsets.UTF_8))
     }
 
-
     /**
      * Utility to check equality of Data Layers.
      * [HostedDataLayerEntry.lastUpdated] is taken from the [File.lastModified] and may only have
@@ -91,5 +90,4 @@ class HostedDataLayerEntryTests {
         file.writeText(entry.data.toString(), Charsets.UTF_8)
         file.setLastModified(entry.lastUpdated)
     }
-
 }

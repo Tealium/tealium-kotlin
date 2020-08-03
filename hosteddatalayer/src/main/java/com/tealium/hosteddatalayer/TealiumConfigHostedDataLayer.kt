@@ -1,7 +1,6 @@
 package com.tealium.hosteddatalayer
 
 import com.tealium.core.TealiumConfig
-import java.util.concurrent.TimeUnit
 
 const val HOSTED_DATA_LAYER_EVENT_MAPPINGS = "hosted_data_layer_event_mappings"
 const val HOSTED_DATA_LAYER_MAX_CACHE_SIZE = "hosted_data_layer_max_cache_size"
@@ -33,7 +32,8 @@ var TealiumConfig.hostedDataLayerMaxCacheSize: Int?
     }
 
 /**
- * Sets the max time in
+ * Sets the max time, in minutes, that any Hosted Data Layer files should remain cached on the
+ * device.
  */
 var TealiumConfig.hostedDataLayerMaxCacheTimeMinutes: Long?
     get() = options[HOSTED_DATA_LAYER_MAX_CACHE_TIME] as? Long
