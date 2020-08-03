@@ -7,6 +7,7 @@ import java.util.*
 data class ViewDispatch(var viewName: String) : Dispatch {
 
     override val id: String = UUID.randomUUID().toString()
+    override var timestamp: Long? = System.currentTimeMillis()
     private var mutableMap: MutableMap<String, Any> = mutableMapOf()
 
     init {

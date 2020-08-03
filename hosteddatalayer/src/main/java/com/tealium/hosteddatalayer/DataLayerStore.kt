@@ -1,44 +1,12 @@
 package com.tealium.hosteddatalayer
 
+import com.tealium.core.Logger
 import com.tealium.core.TealiumConfig
 import com.tealium.core.persistence.KeyValueDao
-import org.json.JSONObject
 import java.io.File
-import java.io.FilenameFilter
 import java.util.concurrent.TimeUnit
 
 interface DataLayerStorage : KeyValueDao<String, HostedDataLayerEntry>
-
-data class HostedDataLayerEntry(val id: String,
-                                val lastUpdated: Long,
-                                val data: JSONObject) {
-
-    companion object {
-        const val KEY_ID = "key"
-        const val KEY_LAST_UPDATED = "last_updated"
-        const val KEY_DATA = "data"
-
-        fun fromJson(json: JSONObject): HostedDataLayerEntry? {
-            if (!json.has(KEY_ID) || !json.has(KEY_LAST_UPDATED) || !json.has(KEY_DATA)) {
-                return null
-            }
-            return HostedDataLayerEntry(
-                    json.getString(KEY_ID),
-                    json.getLong(KEY_LAST_UPDATED),
-                    json.getJSONObject(KEY_DATA)
-            )
-        }
-
-        fun toJson(entry: HostedDataLayerEntry): JSONObject {
-            val json = JSONObject()
-            json.put(KEY_ID, entry.id)
-            json.put(KEY_LAST_UPDATED, entry.lastUpdated)
-            json.put(KEY_DATA, entry.data)
-            return json
-        }
-    }
-
-}
 
 class DataLayerStore(config: TealiumConfig,
                      private val hdlDirectory: File = File(config.tealiumDirectory, hostDataLayerSubdirectory),
@@ -58,29 +26,38 @@ class DataLayerStore(config: TealiumConfig,
     }
 
     override fun get(key: String): HostedDataLayerEntry? {
-        return when (cache.containsKey(key)) {
+        val entry = when (cache.containsKey(key)) {
             true -> cache[key]
             false -> {
                 if (contains(key)) {
                     val file = File(hdlDirectory, "$key$jsonFileExtension")
-                    val jsonText = file.readText(Charsets.UTF_8)
-                    HostedDataLayerEntry.fromJson(JSONObject(jsonText))
+                    HostedDataLayerEntry.fromFile(file)
                 } else {
                     null
                 }
             }
-        }.also {
-            cache(key, it)
+        }
+        return entry?.let {
+            when (isExpired(it.lastUpdated)) {
+                true -> {
+                    delete(it.id)
+                    null
+                }
+                else -> {
+                    cache(it.id, it)
+                    it
+                }
+            }
         }
     }
 
     override fun getAll(): Map<String, HostedDataLayerEntry> {
         val entries = mutableMapOf<String, HostedDataLayerEntry>()
-        hdlDirectory.list { _, name -> name.endsWith(jsonFileExtension) }?.forEach { fileName ->
-            val key = fileName.removeSuffix(jsonFileExtension)
+        hdlDirectory.listFiles { _, name -> name.endsWith(jsonFileExtension) }?.forEach { fileName ->
+            val key = fileName.nameWithoutExtension
             val entry = get(key)
             entry?.let {
-                entries.put(key, it)
+                entries[key] = it
                 cache(key, it)
             }
         }
@@ -96,6 +73,7 @@ class DataLayerStore(config: TealiumConfig,
     }
 
     override fun delete(key: String) {
+        cache.remove(key)
         val file = File(hdlDirectory, "$key$jsonFileExtension")
         if (file.exists()) {
             file.delete()
@@ -103,8 +81,13 @@ class DataLayerStore(config: TealiumConfig,
     }
 
     override fun upsert(item: HostedDataLayerEntry) {
-        val file = File(hdlDirectory, "${item.id}$jsonFileExtension")
-        file.writeText(HostedDataLayerEntry.toJson(item).toString(), Charsets.UTF_8)
+        while (!hasSpace()) {
+            Logger.dev(BuildConfig.TAG, "Max cache reached. Removing oldest.")
+            removeOldestDataLayer()
+        }
+
+        val file = HostedDataLayerEntry.toFile(hdlDirectory, item)
+        file.writeText(item.data.toString(), Charsets.UTF_8)
         cache(item.id, item)
     }
 
@@ -115,10 +98,10 @@ class DataLayerStore(config: TealiumConfig,
     }
 
     override fun keys(): List<String> {
-        return hdlDirectory.list { _, name -> name.endsWith(jsonFileExtension) }
+        return hdlDirectory.listFiles { _, name -> name.endsWith(jsonFileExtension) }
                 ?.filterNotNull()
                 ?.map {
-                    it.removeSuffix(jsonFileExtension)
+                    it.nameWithoutExtension
                 } ?: emptyList()
     }
 
@@ -131,7 +114,31 @@ class DataLayerStore(config: TealiumConfig,
     }
 
     override fun purgeExpired() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        filesSortedByAge().filter { file ->
+            isExpired(file.lastModified())
+        }.forEach { file ->
+            delete(file.nameWithoutExtension)
+        }
+    }
+
+    private fun isExpired(timestamp: Long): Boolean {
+        return (timestamp <
+                System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(maxCacheTimeMinutes))
+    }
+
+    private fun hasSpace(incoming: Int = 1): Boolean {
+        return count() + incoming.coerceAtLeast(1) <= maxCacheSize
+    }
+
+    private fun removeOldestDataLayer() {
+        val oldest = filesSortedByAge().first()
+        delete(oldest.nameWithoutExtension)
+    }
+
+    private fun filesSortedByAge(): Array<File> {
+        return hdlDirectory.listFiles()?.also { file ->
+            file.sortByDescending { it.lastModified() }
+        } ?: emptyArray()
     }
 
     companion object {

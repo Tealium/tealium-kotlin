@@ -5,6 +5,7 @@ import org.json.JSONStringer
 interface Dispatch {
 
     val id: String
+    var timestamp: Long?
 
     fun payload(): Map<String, Any>
 

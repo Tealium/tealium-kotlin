@@ -64,8 +64,9 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
                 }
                 return@launch
             }
+
             // Dispatch Send
-            val queue = dequeue(dispatch)
+            var queue = dequeue(dispatch).sortedBy { d -> d.timestamp }
             sendDispatches(queue)
         }
     }

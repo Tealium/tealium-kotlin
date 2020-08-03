@@ -57,6 +57,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
             "Consent Manager" -> ConsentFragment()
             "Visitor Service" -> VisitorServiceFragment()
             "Location" -> LocationFragment()
+            "Hosted Data Layer" -> HostedDataLayerFragment()
             else -> null
         }
         fragment?.let {

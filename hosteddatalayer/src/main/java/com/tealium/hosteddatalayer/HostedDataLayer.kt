@@ -5,28 +5,30 @@ import com.tealium.core.CoreConstant.TEALIUM_EVENT
 import com.tealium.core.network.*
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
+import org.json.JSONException
 import org.json.JSONObject
 
+/**
+ * Module to integrate with the Tealium Hosted Data Layer.
+ */
 class HostedDataLayer(private val config: TealiumConfig,
-                      private val dataLayerStorage: DataLayerStore = DataLayerStore(config),
-                      connectivity: Connectivity = ConnectivityRetriever(config.application))
-    : Module,
-        Transformer
-//        DispatchValidator
-{
+                      private val dataLayerStorage: DataLayerStorage = DataLayerStore(config),
+                      private val httpClient: NetworkClient = HttpClient(config, connectivity = ConnectivityRetriever(config.application)))
+    : Module, Transformer, DispatchValidator {
 
     override val name: String
         get() = moduleName
     override var enabled: Boolean = true
 
-    private val httpClient: NetworkClient = HttpClient(config, connectivity = connectivity)
+    private val pending = mutableSetOf<String>()
 
     /**
      * Event Mapping should contain key-value pairs, where the key is equal to the value found in
      * "tealium_event" within the [Dispatch]. The Value should be the key within the [Dispatch] to
      * look in for the DataLayer Id.
      */
-    private val eventMappings: Map<String, String> = config.hostedDataLayerEventMappings ?: emptyMap()
+    private val eventMappings: Map<String, String> = config.hostedDataLayerEventMappings
+            ?: emptyMap()
 
     /**
      * Base URL for Tealium's Hosted DataLayer CDN location
@@ -39,6 +41,10 @@ class HostedDataLayer(private val config: TealiumConfig,
      */
     private val failedDataLayerIds = mutableListOf<String>()
 
+    init {
+        dataLayerStorage.purgeExpired()
+    }
+
     /**
      * Looks in the cache for a stored copy of the Data Layer - if found then its data will be
      * merged into the Dispatch. If not found in the cache, then it will fetch the latest version
@@ -46,24 +52,39 @@ class HostedDataLayer(private val config: TealiumConfig,
      */
     override suspend fun transform(dispatch: Dispatch) {
         val eventName = dispatch[TEALIUM_EVENT]
-        eventMappings[eventName]?.let { key ->
+        val key = eventMappings[eventName]
+        if (!key.isNullOrEmpty()) {
             // Found event mapping.
-            dispatch[key]?.toString()?.also { id ->
+            Logger.dev(BuildConfig.TAG, "Found event mapping from tealium_event=$eventName")
+            val id = dispatch[key]?.toString()
+            if (!id.isNullOrEmpty()) {
                 // Found data layer id in dispatch.
+                Logger.dev(BuildConfig.TAG, "Found DataLayerId ($id) in key: $key")
                 if (dataLayerStorage.contains(id)) {
                     // data is cached
                     dataLayerStorage.get(id)?.let {
+                        Logger.dev(BuildConfig.TAG, "Found DataLayerId ($id) loaded from cache.")
                         merge(dispatch, it)
                     }
                 } else {
                     // data is not cached - fetch
                     if (!failedDataLayerIds.contains(id)) {
-                        val dataLayer = fetch(id)
-                        if (dataLayer != null) {
-                            merge(dispatch, dataLayer)
-                            dataLayerStorage.insert(dataLayer)
-                        } else {
-                            failedDataLayerIds.add(id)
+                        Logger.dev(BuildConfig.TAG, "DataLayerId ($id) not found in cache; fetching.")
+
+                        pending.add(id)
+
+                        try {
+                            val dataLayer = fetch(id)
+                            if (dataLayer != null) {
+                                Logger.dev(BuildConfig.TAG, "DataLayerId ($id) found on CDN; caching.")
+                                merge(dispatch, dataLayer)
+                                dataLayerStorage.insert(dataLayer)
+                            } else {
+                                Logger.dev(BuildConfig.TAG, "DataLayerId ($id) not found on CDN; will not be requested again this session.")
+                                failedDataLayerIds.add(id)
+                            }
+                        } finally {
+                            pending.remove(id)
                         }
                     }
                 }
@@ -72,17 +93,22 @@ class HostedDataLayer(private val config: TealiumConfig,
     }
 
     /**
-     * Fetches the Data Layer form the CDN and returns it if it has been found.
+     * Fetches the Data Layer from the CDN and returns it if it has been found.
      */
-    private suspend fun fetch(id: String): HostedDataLayerEntry?  {
+    private suspend fun fetch(id: String): HostedDataLayerEntry? {
         val retriever = ResourceRetriever(config, createUrlForResource(id), httpClient).apply {
             maxRetries = 3
             useIfModifed = false
         }
 
         return retriever.fetch()?.let {
-            val json = JSONObject(it)
-            HostedDataLayerEntry(id, System.currentTimeMillis(), json)
+            try {
+                val json = JSONObject(it)
+                HostedDataLayerEntry(id, System.currentTimeMillis(), json)
+            } catch (ex: JSONException) {
+                Logger.qa(BuildConfig.TAG, "Exception parsing retrieved JSON.")
+                null
+            }
         }
     }
 
@@ -97,18 +123,31 @@ class HostedDataLayer(private val config: TealiumConfig,
      * Merges the data into the
      */
     private fun merge(dispatch: Dispatch, dataLayerEntry: HostedDataLayerEntry) {
+        Logger.dev(BuildConfig.TAG, "HostedDataLayer entry found for ${dataLayerEntry.id}; merging.")
+        val map = JsonUtils.mapFor(dataLayerEntry.data)
+        dispatch.addAll(map)
+    }
 
+    override fun shouldQueue(dispatch: Dispatch?): Boolean {
+        return (pending.count() > 0).also { queueing ->
+            if (queueing) Logger.qa(BuildConfig.TAG, "Awaiting Hosted Data Layer responses for $pending")
+        }
+    }
+
+    override fun shouldDrop(dispatch: Dispatch): Boolean {
+        return false
     }
 
 
-    //TODO: DispatchValidator to queue to try and ensure sequential event sending
-//    override fun shouldQueue(dispatch: Dispatch?): Boolean {
-//        return false
-//    }
-//
-//    override fun shouldDrop(dispatch: Dispatch): Boolean {
-//        return false
-//    }
+    /**
+     * Clears any locally cached data layers - This will prompt subsequent events to recheck the
+     * Hosted Data Layer by making a new HTTP request
+     */
+    fun clearCache() {
+        Logger.qa(BuildConfig.TAG, "Clearing HostedDataLayer cache.")
+        dataLayerStorage.clear()
+        failedDataLayerIds.clear()
+    }
 
     companion object : ModuleFactory {
 
@@ -119,3 +158,9 @@ class HostedDataLayer(private val config: TealiumConfig,
         }
     }
 }
+
+val Tealium.hostedDataLayer: HostedDataLayer?
+    get() = modules.getModule(HostedDataLayer::class.java)
+
+val Modules.HostedDataLayer: ModuleFactory
+    get() = com.tealium.hosteddatalayer.HostedDataLayer

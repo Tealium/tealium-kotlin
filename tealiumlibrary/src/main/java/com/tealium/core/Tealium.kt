@@ -153,6 +153,10 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
             return
         }
 
+        if (dispatch.timestamp == null) {
+            dispatch.timestamp = System.currentTimeMillis()
+        }
+
         when (initialized.get()) {
             true -> {
                 // needs to be done once we're fully initialised, else Session events might be missed
