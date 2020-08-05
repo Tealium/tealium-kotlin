@@ -1,7 +1,5 @@
 package com.tealium.dispatcher
 
-import com.tealium.core.CoreConstant
-import com.tealium.core.DispatchType
 import java.util.*
 
 data class EventDispatch(var eventName: String) : Dispatch {
@@ -10,7 +8,6 @@ data class EventDispatch(var eventName: String) : Dispatch {
     private var mutableMap: MutableMap<String, Any> = mutableMapOf()
 
     init {
-        mutableMap[CoreConstant.TEALIUM_EVENT_NAME] = eventName
         mutableMap[CoreConstant.TEALIUM_EVENT_TYPE] = DispatchType.EVENT
         mutableMap[CoreConstant.TEALIUM_EVENT] = eventName
     }
