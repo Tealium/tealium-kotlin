@@ -25,8 +25,8 @@ class BatteryValidator(config: TealiumConfig,
     private val batteryIntentFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
 
     /**
-     * Returns the current Battery level in percentage points. For performance, this value is
-     * updated for each new event only, so the value will be from the previous event.
+     * Returns the current Battery level in percentage points, or -1 if there is not yet a valid
+     * battery status
      */
     val batteryLevel: Int
         get() {
