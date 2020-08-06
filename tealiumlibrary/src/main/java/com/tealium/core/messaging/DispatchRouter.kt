@@ -40,7 +40,6 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
         scope.launch(Logger.exceptionHandler) {
             // Collection
             dispatch.addAll(collect())
-
             transform(dispatch)
 
             // Validation - Drop
@@ -66,7 +65,7 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
             }
 
             // Dispatch Send
-            var queue = dequeue(dispatch).sortedBy { d -> d.timestamp }
+            val queue = dequeue(dispatch).sortedBy { d -> d.timestamp }
             sendDispatches(queue)
         }
     }

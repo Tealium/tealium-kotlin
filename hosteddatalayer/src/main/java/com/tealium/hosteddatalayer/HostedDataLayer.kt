@@ -17,7 +17,7 @@ class HostedDataLayer(private val config: TealiumConfig,
     : Module, Transformer, DispatchValidator {
 
     override val name: String
-        get() = moduleName
+        get() = MODULE_NAME
     override var enabled: Boolean = true
 
     private val pending = mutableSetOf<String>()
@@ -70,7 +70,6 @@ class HostedDataLayer(private val config: TealiumConfig,
                     // data is not cached - fetch
                     if (!failedDataLayerIds.contains(id)) {
                         Logger.dev(BuildConfig.TAG, "DataLayerId ($id) not found in cache; fetching.")
-
                         pending.add(id)
 
                         try {
@@ -150,7 +149,7 @@ class HostedDataLayer(private val config: TealiumConfig,
 
     companion object : ModuleFactory {
 
-        const val moduleName = "HOSTED_DATA_LAYER"
+        const val MODULE_NAME = "HOSTED_DATA_LAYER"
 
         override fun create(context: TealiumContext): Module {
             return HostedDataLayer(context.config)
