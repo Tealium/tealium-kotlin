@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 interface DataLayerStorage : KeyValueDao<String, HostedDataLayerEntry>
 
 class DataLayerStore(config: TealiumConfig,
-                     private val hdlDirectory: File = File(config.tealiumDirectory, hostDataLayerSubdirectory),
+                     private val hdlDirectory: File = File(config.tealiumDirectory, HOSTED_DATALAYER_SUBDIRECTORY),
                      private val cache: MutableMap<String, HostedDataLayerEntry> = mutableMapOf()) : DataLayerStorage {
 
     private val maxCacheSize = config.hostedDataLayerMaxCacheSize ?: 50
@@ -30,7 +30,7 @@ class DataLayerStore(config: TealiumConfig,
             true -> cache[key]
             false -> {
                 if (contains(key)) {
-                    val file = File(hdlDirectory, "$key$jsonFileExtension")
+                    val file = File(hdlDirectory, "$key$JSON_FILE_EXTENSION")
                     HostedDataLayerEntry.fromFile(file)
                 } else {
                     null
@@ -53,7 +53,7 @@ class DataLayerStore(config: TealiumConfig,
 
     override fun getAll(): Map<String, HostedDataLayerEntry> {
         val entries = mutableMapOf<String, HostedDataLayerEntry>()
-        hdlDirectory.listFiles { _, name -> name.endsWith(jsonFileExtension) }?.forEach { fileName ->
+        hdlDirectory.listFiles { _, name -> name.endsWith(JSON_FILE_EXTENSION) }?.forEach { fileName ->
             val key = fileName.nameWithoutExtension
             val entry = get(key)
             entry?.let {
@@ -74,7 +74,7 @@ class DataLayerStore(config: TealiumConfig,
 
     override fun delete(key: String) {
         cache.remove(key)
-        val file = File(hdlDirectory, "$key$jsonFileExtension")
+        val file = File(hdlDirectory, "$key$JSON_FILE_EXTENSION")
         if (file.exists()) {
             file.delete()
         }
@@ -98,7 +98,7 @@ class DataLayerStore(config: TealiumConfig,
     }
 
     override fun keys(): List<String> {
-        return hdlDirectory.listFiles { _, name -> name.endsWith(jsonFileExtension) }
+        return hdlDirectory.listFiles { _, name -> name.endsWith(JSON_FILE_EXTENSION) }
                 ?.filterNotNull()
                 ?.map {
                     it.nameWithoutExtension
@@ -106,7 +106,7 @@ class DataLayerStore(config: TealiumConfig,
     }
 
     override fun count(): Int {
-        return hdlDirectory.list { _, name -> name.endsWith(jsonFileExtension) }?.size ?: 0
+        return hdlDirectory.list { _, name -> name.endsWith(JSON_FILE_EXTENSION) }?.size ?: 0
     }
 
     override fun contains(key: String): Boolean {
@@ -142,7 +142,7 @@ class DataLayerStore(config: TealiumConfig,
     }
 
     companion object {
-        const val jsonFileExtension = ".json"
-        const val hostDataLayerSubdirectory = "hdl"
+        const val JSON_FILE_EXTENSION = ".json"
+        const val HOSTED_DATALAYER_SUBDIRECTORY = "hdl"
     }
 }

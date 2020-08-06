@@ -43,3 +43,24 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
+
+//afterEvaluate {
+//    publishing {
+//        publications {
+//            release(MavenPublication) {
+//                from components.release
+//                groupId = 'com.tealium'
+//                artifactId = 'kotlin-hosted-datalayer'
+//            }
+//        }
+//        repositories {
+//            maven {
+//                url "s3://maven.tealiumiq.com/android/releases/"
+//                credentials(AwsCredentials) {
+//                    accessKey AWS_ACCESS_KEY
+//                    secretKey AWS_SECRET_KEY
+//                }
+//            }
+//        }
+//    }
+//}
