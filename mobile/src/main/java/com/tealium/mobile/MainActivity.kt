@@ -42,8 +42,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
             onTrack()
         }
 
-        val viewDispatch = ViewDispatch("MAIN ACTIVITY")
-        tealium.track(viewDispatch)
+//        val viewDispatch = ViewDispatch("MAIN ACTIVITY")
+//        tealium.track(viewDispatch)
     }
 
     private fun onTrack() {

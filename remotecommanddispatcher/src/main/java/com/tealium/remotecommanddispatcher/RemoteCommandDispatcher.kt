@@ -5,6 +5,7 @@ import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.messaging.RemoteCommandListener
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
+import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
 import com.tealium.dispatcher.DispatcherListener
@@ -14,14 +15,10 @@ interface RemoteCommandDispatcherListener : DispatcherListener {
 
 class RemoteCommandDispatcher(private val context: TealiumContext,
                               private val afterDispatchSendCallbacks: AfterDispatchSendCallbacks,
-                              private val client: NetworkClient = HttpClient(context.config)) : Dispatcher, RemoteCommandListener {
+                              private val client: NetworkClient = HttpClient(context.config)) : Dispatcher, DispatchValidator, RemoteCommandListener {
 
     private val webViewCommands = mutableMapOf<String, RemoteCommand>()
     private val jsonCommands = mutableMapOf<String, RemoteCommand>()
-
-    init {
-        webViewCommands[ConfigRemoteCommand.NAME] = ConfigRemoteCommand()
-    }
 
     fun add(remoteCommand: RemoteCommand) {
         when (remoteCommand.type) {
@@ -48,9 +45,9 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
         jsonCommands.clear()
     }
 
-    private fun loadStockCommands(method: String): RemoteCommand? {
+    private fun loadHttpCommand(id: String): RemoteCommand? {
         var httpRemoteCommand: RemoteCommand? = null
-        if (HttpRemoteCommand.NAME == method) {
+        if (HttpRemoteCommand.NAME == id) {
             httpRemoteCommand = HttpRemoteCommand(client)
         }
 
@@ -60,9 +57,9 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
         return httpRemoteCommand
     }
 
-    fun processTagManagementRequest(request: RemoteCommandRequest?) {
+    private fun processTagManagementRequest(request: RemoteCommandRequest?) {
         request?.commandId?.let { id ->
-            loadStockCommands(id)
+            loadHttpCommand(id)
             webViewCommands[id]?.let { command ->
                 Logger.dev(BuildConfig.TAG, "Detected Remote Command $id with payload ${request.response?.requestPayload}")
                 request.response?.evalJavascript?.let { js ->
@@ -78,7 +75,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
         }
     }
 
-    fun processJsonRequest(request: RemoteCommandRequest) {
+    private fun processJsonRequest(request: RemoteCommandRequest) {
         jsonCommands.forEach { (key, command) ->
             command.invoke(request)
         }
@@ -93,11 +90,10 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
                 config.apiCommands?.get(eventName)?.let {
                     mappedDispatch[Settings.COMMAND_NAME] = it
                 } ?: run {
-                    eventName?.let {
-                        mappedDispatch[Settings.COMMAND_NAME] = it
-                    }
+                    return
                 }
 
+                Logger.dev(BuildConfig.TAG, "Processing Remote Command: ${remoteCommand.commandId} with command name: ${mappedDispatch[Settings.COMMAND_NAME]}")
                 processJsonRequest(RemoteCommandRequest.jsonRequest(remoteCommand, JsonUtils.jsonFor(mappedDispatch)))
             }
         }
@@ -124,6 +120,14 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
 
     override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {
         // do nothing - individual dispatch sent through onProcessRemoteCommand without batching
+    }
+
+    override fun shouldQueue(dispatch: Dispatch?): Boolean {
+        return false
+    }
+
+    override fun shouldDrop(dispatch: Dispatch): Boolean {
+        return false
     }
 
     override val name = "REMOTE_COMMAND_DISPATCHER"

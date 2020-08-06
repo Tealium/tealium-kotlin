@@ -1,6 +1,7 @@
 package com.tealium.remotecommanddispatcher
 
 import android.net.Uri
+import android.util.Log
 import com.tealium.core.Logger
 import com.tealium.core.network.*
 import kotlinx.coroutines.coroutineScope
@@ -15,6 +16,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 import java.nio.charset.Charset
+import java.util.*
 import kotlin.text.StringBuilder
 
 class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME, DESCRIPTION) {
@@ -45,7 +47,7 @@ class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME,
                     this.requestMethod = method
                     this.doInput = true
 
-                    if ("POST" == method || "PUT" == method) {
+                    if (POST == method.toLowerCase(Locale.ROOT) || PUT == method.toLowerCase(Locale.ROOT)) {
                         this.doOutput = true
                         val outputStream = this.outputStream
                         outputStream.write(parseEntity(response.requestPayload))
@@ -95,7 +97,7 @@ class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME,
                 prefix = "https://"
             } else {
                 // TODO: use Logger instead???
-                throw JSONException("Unsupported URL protocol.")
+                Logger.dev(BuildConfig.TAG,"Unsupported URL protocol.")
             }
 
             return "$prefix${URLEncoder.encode(username, "UTF-8")}:${URLEncoder.encode(password, "UTF-8")}${url.substring(prefix.length)}"
@@ -132,28 +134,25 @@ class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME,
     private fun parseEntity(json: JSONObject): ByteArray {
         val utf8 = Charset.forName("utf-8")
 
-        val body = json.opt(BODY)
+        return when(json.opt(BODY)) {
+            is JSONObject -> {
+                val temp = json.opt(BODY) as JSONObject
+                val keys = temp.keys()
+                val builder = Uri.Builder()
 
-        if (body is JSONObject) {
-            val temp = body as JSONObject
-            val keys = temp.keys()
-            val builder = Uri.Builder()
-
-            while (keys.hasNext()) {
-                val key = keys.next()
-                builder.appendQueryParameter(key, temp.optString(key, ""))
+                while (keys.hasNext()) {
+                    val key = keys.next()
+                    builder.appendQueryParameter(key, temp.optString(key, ""))
+                }
+                builder.build().encodedQuery?.let {
+                    it.toByteArray(utf8)
+                } ?: run {
+                    byteArrayOf()
+                }
             }
-            builder.build().encodedQuery?.let {
-                return it.toByteArray(utf8)
-            } ?: run {
-                return byteArrayOf()
-            }
-        } else if (body is String) {
-            return URLEncoder.encode(body, "utf8").toByteArray(utf8)
-        } else if (body == null) {
-            return byteArrayOf()
-        } else {
-            return URLEncoder.encode(body.toString(), "utf-8").toByteArray(utf8)
+            is String -> URLEncoder.encode(json.opt(BODY) as String, "utf8").toByteArray(utf8)
+            null -> byteArrayOf()
+            else -> URLEncoder.encode(json.opt(BODY) as String, "utf-8").toByteArray(utf8)
         }
     }
 
@@ -177,5 +176,8 @@ class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME,
         const val URL = "url"
         const val METHOD = "method"
         const val BODY = "body"
+
+        const val POST = "post"
+        const val PUT = "put"
     }
 }

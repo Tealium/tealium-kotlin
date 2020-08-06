@@ -6,7 +6,7 @@
     "firebase_session_minimum_seconds": "100"
   },
   "mappings": {
-    "achievement_id": "param.achievement_id",
+    "achievement_id": "achievement_id",
     "ad_network_click_id": "param_ad_network_click_id",
     "affiliation": "param_affiliation",
     "campaign_keywords": "param_cp1",

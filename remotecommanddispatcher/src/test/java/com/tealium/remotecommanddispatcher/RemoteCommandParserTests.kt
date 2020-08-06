@@ -184,4 +184,33 @@ class RemoteCommandParserTest {
             assertEquals("red", it["fb_product_color"])
         }
     }
+
+    @Test
+    fun mapDispatchWithMultipleDotParams() {
+        val dispatch = EventDispatch(
+                "purchase",
+                mapOf("order_total" to 5,
+                        "order_currency" to "USD",
+                        "product_color" to "red"
+                ))
+        val purchaseKey = "purchase"
+        val purchasePropertiesKey = "purchase_properties"
+        val lookup = mapOf(
+                "order_total" to "$purchaseKey.fb_purchase_amount",
+                "order_currency" to "$purchaseKey.fb_purchase_currency",
+                "product_color" to "$purchasePropertiesKey.fb_product_color"
+        )
+        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        println(result)
+        assertTrue(result.containsKey(purchaseKey))
+        assertTrue(result.containsKey(purchasePropertiesKey))
+
+        (result[purchaseKey] as? Map<*, *>)?.let {
+            assertEquals(5, it["fb_purchase_amount"])
+            assertEquals("USD", it["fb_purchase_currency"])
+        }
+        (result[purchasePropertiesKey] as? Map<*, *>)?.let {
+            assertEquals("red", it["fb_product_color"])
+        }
+    }
 }

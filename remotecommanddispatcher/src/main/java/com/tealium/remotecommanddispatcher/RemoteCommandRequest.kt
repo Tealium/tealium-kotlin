@@ -17,11 +17,7 @@ data class RemoteCommandRequest(var commandId: String? = null,
 
     companion object {
         fun jsonRequest(remoteCommand: RemoteCommand, mappedPayload: JSONObject): RemoteCommandRequest {
-            return RemoteCommandRequest().apply {
-                commandId = remoteCommand.commandId
-                payload = mappedPayload
-                response = Response(remoteCommand.commandId, requestPayload = mappedPayload)
-            }
+            return RemoteCommandRequest(remoteCommand.commandId, mappedPayload, Response(remoteCommand.commandId, requestPayload = mappedPayload))
         }
 
         fun tagManagementRequest(request: String): RemoteCommandRequest? {
@@ -41,7 +37,7 @@ data class RemoteCommandRequest(var commandId: String? = null,
                 val decodedJson: String
 
                 try {
-                    decodedJson  = URLDecoder.decode(encodedJSONSuffix, "UTF-8").toString()
+                    decodedJson = URLDecoder.decode(encodedJSONSuffix, "UTF-8").toString()
                 } catch (ex: UnsupportedEncodingException) {
                     Logger.dev(BuildConfig.TAG, "Invalid encoding for request arguments: $encodedJSONSuffix")
                     return null

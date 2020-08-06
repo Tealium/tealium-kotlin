@@ -12,8 +12,7 @@ import com.tealium.dispatcher.Dispatch
  * The BatchingValidator will queue events until the batch limit, set in the Library Settings, has
  * been reached.
  */
-internal class BatchingValidator(private val config: TealiumConfig,
-                                 private val dispatchStorage: DispatchStorage,
+internal class BatchingValidator(private val dispatchStorage: DispatchStorage,
                                  librarySettings: LibrarySettings,
                                  private val eventRouter: EventRouter) : DispatchValidator, LibrarySettingsUpdatedListener, ActivityObserverListener {
 
@@ -23,14 +22,7 @@ internal class BatchingValidator(private val config: TealiumConfig,
     private var batchSettings = librarySettings.batching
     private var activityCount = 0
 
-    private val REMOTE_COMMAND_ENABLED = "remote_command_enabled"
-
     override fun shouldQueue(dispatch: Dispatch?): Boolean {
-        if (enabled && config.options[REMOTE_COMMAND_ENABLED] == true) {
-            dispatch?.let {
-                eventRouter.onProcessRemoteCommand(it)
-            }
-        }
         val count = dispatchStorage.count()
         return batchSettings.maxQueueSize != 0 &&
                 count + 1 < batchSettings.batchSize

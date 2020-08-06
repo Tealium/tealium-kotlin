@@ -6,7 +6,7 @@ import java.util.regex.Pattern
 
 abstract class RemoteCommand(var commandId: String,
                              val description: String? = null,
-                             val type: String? = RemoteCommandType.WEBVIEW,
+                             val type: RemoteCommandType? = RemoteCommandType.WEBVIEW,
                              val filename: String? = null,
                              val remoteUrl: String? = null,
                              var remoteCommandConfigRetriever: RemoteCommandConfigRetriever? = null) {
@@ -21,12 +21,12 @@ abstract class RemoteCommand(var commandId: String,
     /**
      * Execution block for the Remote Command.
      * <p/>
-     * This method will need to call {@link Response#send()} for the TealiumIQ
+     * This method will need to call [Response.send] for the TealiumIQ
      * callback can be invoked. If an exception is thrown inside of this
      * implementation, the library will perform the callback, so please only
      * call send() on completion.
      *
-     * @param remoteCommandResponse a {@link Response} object. It's methods possess request
+     * @param response a [Response] object. It's methods possess request
      *                              arguments and response capabilities.
      * @throws Throwable the library will call {@link Response#send()} with a status
      *                   of 555 and provide a stack-trace as the body.
@@ -34,7 +34,7 @@ abstract class RemoteCommand(var commandId: String,
     abstract fun onInvoke(response: Response)
 
     /**
-     * Performs the {@link RemoteCommand#onInvoke(RemoteCommand.Response)}, and
+     * Performs the [RemoteCommand.onInvoke], and
      * handles the Throwable if thrown.
      *
      * @param request

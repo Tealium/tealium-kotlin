@@ -1,8 +1,8 @@
 package com.tealium.remotecommanddispatcher
 
-object RemoteCommandType {
-    const val WEBVIEW = "webview"
-    const val JSON = "json"
+enum class RemoteCommandType(val type: String) {
+    WEBVIEW("webview"),
+    JSON("json")
 }
 
 object Settings {

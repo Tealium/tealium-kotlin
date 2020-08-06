@@ -233,7 +233,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
         customValidators.forEach { it.enabled = true }
         return setOf<DispatchValidator>(
                 ConnectivityValidator(connectivity, librarySettingsManager.librarySettings),
-                BatchingValidator(config, dispatchStore, librarySettingsManager.librarySettings, eventRouter)
+                BatchingValidator(dispatchStore, librarySettingsManager.librarySettings, eventRouter)
         ).union(customValidators)
     }
 
