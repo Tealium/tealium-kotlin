@@ -4,7 +4,7 @@ import com.tealium.core.messaging.EventRouter
 import com.tealium.core.settings.Batching
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.persistence.DispatchStorage
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.Event
 import io.mockk.*
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertTrue
@@ -13,7 +13,7 @@ import org.junit.Test
 
 class BatchingValidatorTests {
 
-    private val dispatch = EventDispatch("", emptyMap())
+    private val dispatch = Event("", emptyMap())
     private lateinit var mockStore: DispatchStorage
     private lateinit var mockSettings: LibrarySettings
     private lateinit var batchSettings: Batching

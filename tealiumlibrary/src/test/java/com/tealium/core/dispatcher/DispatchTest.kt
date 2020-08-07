@@ -1,6 +1,6 @@
 package com.tealium.core.dispatcher
 
-import com.tealium.dispatcher.ViewDispatch
+import com.tealium.dispatcher.View
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -12,7 +12,7 @@ class DispatchTest {
     @Test
     fun toJsonStringEncodesString() {
         val data: MutableMap<String, Any> = mutableMapOf("key" to "value")
-        val viewDispatch = ViewDispatch("test", data)
+        val viewDispatch = View("test", data)
 
         val result = viewDispatch.toJsonString()
         val match = Regex("\"key\":\"value\"").find(result)
@@ -22,7 +22,7 @@ class DispatchTest {
     @Test
     fun toJsonStringEncodesInt() {
         val data: MutableMap<String, Any> = mutableMapOf("key" to 123)
-        val viewDispatch = ViewDispatch("test", data)
+        val viewDispatch = View("test", data)
 
         val result = viewDispatch.toJsonString()
         val match = Regex("\"key\":123").find(result)
@@ -32,7 +32,7 @@ class DispatchTest {
     @Test
     fun toJsonStringEncodesFloat() {
         val data: MutableMap<String, Any> = mutableMapOf("key" to 12.34f)
-        val viewDispatch = ViewDispatch("test", data)
+        val viewDispatch = View("test", data)
 
         val result = viewDispatch.toJsonString()
         val match = Regex("\"key\":12[.]34").find(result)
@@ -42,7 +42,7 @@ class DispatchTest {
     @Test
     fun toJsonStringEncodesDouble() {
         val data: MutableMap<String, Any> = mutableMapOf("key" to 12.34)
-        val viewDispatch = ViewDispatch("test", data)
+        val viewDispatch = View("test", data)
 
         val result = viewDispatch.toJsonString()
         val match = Regex("\"key\":12[.]34").find(result)
@@ -52,7 +52,7 @@ class DispatchTest {
     @Test
     fun toJsonStringEncodesStringArray() {
         val data: MutableMap<String, Any> = mutableMapOf("key" to listOf("a", "b", "c"))
-        val viewDispatch = ViewDispatch("test", data)
+        val viewDispatch = View("test", data)
 
         val result = viewDispatch.toJsonString()
        println(result)

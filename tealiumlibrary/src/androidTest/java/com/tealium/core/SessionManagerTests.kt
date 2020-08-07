@@ -3,7 +3,7 @@ package com.tealium.core
 import android.app.Application
 import android.content.SharedPreferences
 import com.tealium.core.messaging.EventRouter
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.Event
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.delay
@@ -32,7 +32,7 @@ class SessionManagerTests {
 
     lateinit var config: TealiumConfig
     lateinit var sessionManager: SessionManager
-    val dispatch = EventDispatch("test")
+    val dispatch = Event("test")
 
     @Before
     fun setUp() {

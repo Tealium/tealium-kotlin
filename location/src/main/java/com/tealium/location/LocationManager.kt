@@ -3,7 +3,7 @@ package com.tealium.location
 import android.content.Intent
 import android.location.Location
 import com.tealium.core.*
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.Event
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -146,7 +146,7 @@ class LocationManager(private val context: TealiumContext) :
         }
 
         fun sendGeofenceEvent(geofenceName: String, transitionType: String) {
-            val dispatch = EventDispatch(transitionType,
+            val dispatch = Event(transitionType,
                     mapOf(GeofenceEventConstants.GEOFENCE_NAME to geofenceName,
                             GeofenceEventConstants.GEOFENCE_TRANSITION_TYPE to transitionType))
             tealiumContext.track(dispatch)

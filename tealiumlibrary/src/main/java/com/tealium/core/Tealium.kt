@@ -18,6 +18,7 @@ import com.tealium.core.validation.ConnectivityValidator
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
+import com.tealium.dispatcher.Event
 import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -166,6 +167,20 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
                 dispatchBuffer.enqueue(dispatch)
             }
         }
+    }
+
+    /**
+     * Automatically creates an [Event] [Dispatch].
+     * It will have it's data merged with any [Collector]s that you have enabled.
+     * Any [DispatchValidator]s will control whether or not this [Dispatch] should be queued or
+     * dropped. And finally it will be distributed to all [Dispatcher]s that you have registered.
+     *
+     * As the [modules] are initialized on a background thread, calls to this method will be buffered
+     * in-memory until the system is ready to send them.
+     */
+    fun track(eventName: String, data: Map<String, Any>? = null) {
+        val event = Event(eventName, data)
+        track(event)
     }
 
     fun sendQueuedDispatches() {

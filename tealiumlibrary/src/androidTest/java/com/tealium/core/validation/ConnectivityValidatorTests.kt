@@ -1,8 +1,8 @@
 package com.tealium.core.validation
 
-import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.network.ConnectivityRetriever
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.core.settings.LibrarySettings
+import com.tealium.dispatcher.Event
 import io.mockk.every
 import io.mockk.mockk
 import junit.framework.Assert.assertFalse
@@ -12,7 +12,7 @@ import org.junit.Test
 
 class ConnectivityValidatorTests {
 
-    private val dispatch =  EventDispatch("", emptyMap())
+    private val dispatch = Event("", emptyMap())
     private lateinit var connectivityRetriever: ConnectivityRetriever
     private lateinit var librarySettings: LibrarySettings
 
