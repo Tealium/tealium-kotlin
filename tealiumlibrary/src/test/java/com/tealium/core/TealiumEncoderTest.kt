@@ -1,7 +1,7 @@
 package com.tealium.core
 
 import CoreConstant
-import com.tealium.dispatcher.View
+import com.tealium.dispatcher.TealiumView
 import junit.framework.Assert.assertTrue
 import org.junit.Test
 
@@ -9,7 +9,7 @@ class TealiumEncoderTest {
 
     @Test
     fun encodeViewDispatchStringPayload() {
-        val dispatch = View("my_view", mapOf("test_key" to "test_value"))
+        val dispatch = TealiumView("my_view", mapOf("test_key" to "test_value"))
         val result = TealiumEncoder.encode(dispatch)
         var expected = "${CoreConstant.TEALIUM_EVENT_TYPE}=view"
         expected += "&${CoreConstant.TEALIUM_EVENT}=my_view"
@@ -19,7 +19,7 @@ class TealiumEncoderTest {
 
     @Test
     fun encodeViewDispatchStringWithSpacesPayload() {
-        val dispatch = View("my_view", mapOf("test_key" to "value with spaces"))
+        val dispatch = TealiumView("my_view", mapOf("test_key" to "value with spaces"))
         val result = TealiumEncoder.encode(dispatch)
         var expected = "${CoreConstant.TEALIUM_EVENT_TYPE}=view"
         expected += "&${CoreConstant.TEALIUM_EVENT}=my_view"
@@ -29,7 +29,7 @@ class TealiumEncoderTest {
 
     @Test
     fun encodeViewDispatchIntPayload() {
-        val dispatch = View("my_view", mapOf("test_key" to 1234))
+        val dispatch = TealiumView("my_view", mapOf("test_key" to 1234))
         val result = TealiumEncoder.encode(dispatch)
         var expected = "${CoreConstant.TEALIUM_EVENT_TYPE}=view"
         expected += "&${CoreConstant.TEALIUM_EVENT}=my_view"
@@ -39,7 +39,7 @@ class TealiumEncoderTest {
 
     @Test
     fun encodeViewDispatchFloatPayload() {
-        val dispatch = View("my_view", mapOf("test_key" to 12.34f))
+        val dispatch = TealiumView("my_view", mapOf("test_key" to 12.34f))
         val result = TealiumEncoder.encode(dispatch)
         var expected = "${CoreConstant.TEALIUM_EVENT_TYPE}=view"
         expected += "&${CoreConstant.TEALIUM_EVENT}=my_view"
@@ -49,7 +49,7 @@ class TealiumEncoderTest {
 
     @Test
     fun encodeViewDispatchArrayPayload() {
-        val dispatch = View("my_view", mapOf("test_key" to arrayOf("1", "2", "3")))
+        val dispatch = TealiumView("my_view", mapOf("test_key" to arrayOf("1", "2", "3")))
         val result = TealiumEncoder.encode(dispatch)
         val commaEncoded = "%2C"
         var expected = "${CoreConstant.TEALIUM_EVENT_TYPE}=view"
@@ -60,7 +60,7 @@ class TealiumEncoderTest {
 
     @Test
     fun encodeViewDispatchListPayload() {
-        val dispatch = View("my_view", mapOf("test_key" to listOf("1", "2", "3")))
+        val dispatch = TealiumView("my_view", mapOf("test_key" to listOf("1", "2", "3")))
         val result = TealiumEncoder.encode(dispatch)
         val commaEncoded = "%2C"
         var expected = "${CoreConstant.TEALIUM_EVENT_TYPE}=view"
