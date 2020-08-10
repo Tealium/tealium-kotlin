@@ -210,6 +210,8 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
                 modules.getModulesForType(DispatchValidator::class.java),
                 dispatchStore,
                 librarySettingsManager,
+                connectivity,
+                consentManager,
                 eventRouter)
         eventRouter.subscribe(dispatchRouter)
         eventRouter.subscribe(dispatchStore)

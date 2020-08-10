@@ -5,6 +5,8 @@ import android.util.Log
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
 import com.tealium.core.collection.Tealium
+import com.tealium.core.consent.ConsentPolicy
+import com.tealium.core.consent.consentManagerPolicy
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.lifecycle.Lifecycle
@@ -29,7 +31,8 @@ object TealiumHelper {
                 modules = mutableSetOf(Modules.Lifecycle),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
-            useRemoteLibrarySettings = true
+//            useRemoteLibrarySettings = true
+            consentManagerPolicy = ConsentPolicy.GDPR
         }
 
         instance = Tealium("instance_1", config) {
@@ -51,7 +54,7 @@ object TealiumHelper {
         }
     }
 
-    val localJsonCommand = object : RemoteCommand("localJsonCommand", "testingRCs", RemoteCommandType.JSON, filename = "remoteCommand.json") {
+    val localJsonCommand = object : JsonRemoteCommand("localJsonCommand", "testingRCs", filename = "remoteCommand.json") {
         override fun onInvoke(response: Response) {
             Logger.dev(BuildConfig.TAG, "ResponsePayload for local JSON RemoteCommand ${response.requestPayload}")
         }

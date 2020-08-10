@@ -5,11 +5,7 @@ import java.util.*
 import java.util.regex.Pattern
 
 abstract class RemoteCommand(var commandId: String,
-                             val description: String? = null,
-                             val type: RemoteCommandType? = RemoteCommandType.WEBVIEW,
-                             val filename: String? = null,
-                             val remoteUrl: String? = null,
-                             var remoteCommandConfigRetriever: RemoteCommandConfigRetriever? = null) {
+                             val description: String? = null) {
 
     init {
         if (!isCommandNameValid(commandId)) {
@@ -28,8 +24,6 @@ abstract class RemoteCommand(var commandId: String,
      *
      * @param response a [Response] object. It's methods possess request
      *                              arguments and response capabilities.
-     * @throws Throwable the library will call {@link Response#send()} with a status
-     *                   of 555 and provide a stack-trace as the body.
      */
     abstract fun onInvoke(response: Response)
 

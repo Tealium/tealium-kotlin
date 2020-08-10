@@ -1,13 +1,11 @@
 package com.tealium.remotecommanddispatcher
 
 import android.net.Uri
-import android.util.Log
 import com.tealium.core.Logger
 import com.tealium.core.network.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -33,9 +31,13 @@ class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME,
             return
         }
 
-        val urlString = appendParameters(insertAuthCredentials(url, response.requestPayload), response.requestPayload)
-        runBlocking {
-            execute(response, urlString, method)
+        val credentials = insertAuthCredentials(url, response.requestPayload)
+
+        if (credentials.isNotEmpty()) {
+            val urlString = appendParameters(credentials, response.requestPayload)
+            runBlocking {
+                execute(response, urlString, method)
+            }
         }
     }
 
@@ -86,22 +88,20 @@ class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME,
             val username = auth.optString("username")
             val password = auth.optString("password")
 
-            if (username == null || password == null) {
+            if (username.isNullOrEmpty() || password.isNullOrEmpty()) {
                 return url
             }
 
-            var prefix = ""
-            if (url.startsWith("http://")) {
-                prefix = "http://"
-            } else if (url.startsWith("https://")) {
-                prefix = "https://"
-            } else {
-                // TODO: use Logger instead???
-                Logger.dev(BuildConfig.TAG,"Unsupported URL protocol.")
+            val prefix = when {
+                url.startsWith("http://") -> "http://"
+                url.startsWith("https://") -> "https://"
+                else -> {
+                    Logger.dev(BuildConfig.TAG, "Unsupported URL protocol.")
+                    return ""
+                }
             }
 
             return "$prefix${URLEncoder.encode(username, "UTF-8")}:${URLEncoder.encode(password, "UTF-8")}${url.substring(prefix.length)}"
-
         } ?: run {
             return url
         }
@@ -134,7 +134,7 @@ class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME,
     private fun parseEntity(json: JSONObject): ByteArray {
         val utf8 = Charset.forName("utf-8")
 
-        return when(json.opt(BODY)) {
+        return when (json.opt(BODY)) {
             is JSONObject -> {
                 val temp = json.opt(BODY) as JSONObject
                 val keys = temp.keys()
