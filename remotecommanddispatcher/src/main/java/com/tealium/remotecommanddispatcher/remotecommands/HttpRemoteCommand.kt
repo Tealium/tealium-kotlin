@@ -1,8 +1,10 @@
-package com.tealium.remotecommanddispatcher
+package com.tealium.remotecommanddispatcher.remotecommands
 
 import android.net.Uri
 import com.tealium.core.Logger
 import com.tealium.core.network.*
+import com.tealium.remotecommanddispatcher.BuildConfig
+import com.tealium.remotecommanddispatcher.Response
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking
@@ -26,7 +28,7 @@ class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME,
         if (url.isNullOrEmpty() || method.isNullOrEmpty()) {
             response.apply {
                 status = Response.STATUS_BAD_REQUEST
-                body = "Missing required keys \"${METHOD}\" or \"$URL\""
+                body = "Missing required keys \"$METHOD\" or \"$URL\""
             }.send()
             return
         }

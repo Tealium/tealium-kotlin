@@ -1,11 +1,14 @@
-package com.tealium.remotecommanddispatcher
+package com.tealium.remotecommanddispatcher.remotecommands
 
 import com.tealium.core.Logger
+import com.tealium.remotecommanddispatcher.BuildConfig
+import com.tealium.remotecommanddispatcher.RemoteCommandRequest
+import com.tealium.remotecommanddispatcher.Response
 import java.util.*
 import java.util.regex.Pattern
 
-abstract class RemoteCommand(var commandId: String,
-                             val description: String? = null) {
+abstract class RemoteCommand(open var commandId: String,
+                             open val description: String? = null) {
 
     init {
         if (!isCommandNameValid(commandId)) {

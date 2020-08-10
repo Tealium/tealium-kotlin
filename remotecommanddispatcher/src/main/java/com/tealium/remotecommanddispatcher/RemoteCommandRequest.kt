@@ -1,6 +1,7 @@
 package com.tealium.remotecommanddispatcher
 
 import com.tealium.core.Logger
+import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
 import java.net.URLDecoder

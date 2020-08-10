@@ -8,17 +8,28 @@ import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.network.NetworkClient
 import com.tealium.dispatcher.EventDispatch
+import com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand
+import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
+import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import junit.framework.Assert
 import org.junit.Before
 import org.junit.Test
-import java.util.*
 
 class RemoteCommandDispatcherTests {
 
     @MockK
     lateinit var mockNetworkClient: NetworkClient
+
+    @MockK
+    lateinit var mockRemoteCommandConfigRetriever: RemoteCommandConfigRetriever
+
+    @MockK
+    lateinit var mockRemoteCommandConfig: RemoteCommandConfig
+
+    @MockK
+    lateinit var mockRemoteCommandParser: RemoteCommandParser
 
     lateinit var context: Application
     lateinit var config: TealiumConfig
@@ -32,6 +43,9 @@ class RemoteCommandDispatcherTests {
         mockkConstructor(RemoteCommand::class)
         every { anyConstructed<RemoteCommand>().invoke(any()) } just Runs
 
+        mockkStatic(RemoteCommandRequest::class)
+        every { RemoteCommandRequest.jsonRequest(any(), any()) } returns mockk()
+
         config = TealiumConfig(context, "test", "profile", Environment.DEV)
         every { tealiumContext.config } returns config
     }
@@ -40,15 +54,18 @@ class RemoteCommandDispatcherTests {
     fun validAddAndProcessJsonRemoteCommand() {
         val remoteCommandDispatcher = RemoteCommandDispatcher(tealiumContext, mockk(), mockNetworkClient)
         val jsonCommand = mockk<JsonRemoteCommand>()
-        every { jsonCommand.id } returns "123"
         every { jsonCommand.commandId } returns "123"
         every { jsonCommand.filename } returns null
         every { jsonCommand.remoteUrl } returns null
         every { jsonCommand.invoke(any()) } just Runs
+        every { jsonCommand.remoteCommandConfigRetriever?.remoteCommandConfig } returns mockRemoteCommandConfig
+        every { mockRemoteCommandConfig.mappings } returns mapOf("testkey" to "testValue")
+        every { mockRemoteCommandConfig.apiCommands?.get("event_test") } returns "test_command"
 
         remoteCommandDispatcher.add(jsonCommand)
         val dispatch = EventDispatch("event_test", mapOf("key1" to "value1", "key2" to "value2"))
-        val request = RemoteCommandRequest.jsonRequest(jsonCommand, JsonUtils.jsonFor(dispatch.payload()))
+        val request = RemoteCommandRequest.jsonRequest(jsonCommand, JsonUtils.jsonFor(mapOf("command_name" to "test_command")))
+        remoteCommandDispatcher.onProcessRemoteCommand(dispatch)
 
         verify { jsonCommand.invoke(request) }
     }
@@ -62,7 +79,6 @@ class RemoteCommandDispatcherTests {
         })
 
         remoteCommandDispatcher.add(webViewCommand)
-//        val request = RemoteCommandRequest.tagManagementRequest("tealium://testWebViewCommand?request={\"config\":{\"response_id\":\"123\"}, \"payload\":{\"hello\": \"world\"}}")
         remoteCommandDispatcher.onRemoteCommandSend("tealium://testWebViewCommand?request={\"config\":{\"response_id\":\"123\"}, \"payload\":{\"hello\": \"world\"}}")
 
         verify { webViewCommand.invoke(any()) }

@@ -1,21 +1,18 @@
 package com.tealium.mobile
 
 import android.app.Application
-import android.util.Log
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
-import com.tealium.core.collection.Tealium
 import com.tealium.core.consent.ConsentPolicy
 import com.tealium.core.consent.consentManagerPolicy
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.lifecycle.Lifecycle
-import com.tealium.location.Location
 import com.tealium.remotecommanddispatcher.*
-import com.tealium.tagmanagementdispatcher.TagManagementRemoteCommand
+import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
+import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 import com.tealium.tagmanagementdispatcher.TagManagement
 import com.tealium.visitorservice.VisitorProfile
-import com.tealium.visitorservice.VisitorService
 import com.tealium.visitorservice.VisitorServiceDelegate
 import com.tealium.visitorservice.visitorService
 

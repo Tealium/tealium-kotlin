@@ -1,5 +1,6 @@
 package com.tealium.remotecommanddispatcher
 
+import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 import junit.framework.Assert
 import org.json.JSONException
 import org.json.JSONObject

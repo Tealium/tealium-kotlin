@@ -1,20 +1,16 @@
 package com.tealium.remotecommanddispatcher
 
 import com.tealium.core.*
-import com.tealium.core.consent.ConsentManagementPolicy
-import com.tealium.core.consent.UserConsentPreferences
-import com.tealium.core.consent.consentManagerEnabled
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
-import com.tealium.core.messaging.DispatchQueuedListener
 import com.tealium.core.messaging.RemoteCommandListener
-import com.tealium.core.messaging.UserConsentPreferencesUpdatedListener
-import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
-import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
 import com.tealium.dispatcher.DispatcherListener
+import com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand
+import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
+import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 
 interface RemoteCommandDispatcherListener : DispatcherListener {
 }
@@ -36,7 +32,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
                     remoteCommand.remoteUrl?.let {
                         remoteCommand.remoteCommandConfigRetriever = RemoteCommandConfigRetriever(context.config, remoteCommand.commandId, remoteUrl = it)
                     } ?: run {
-                        Logger.dev(BuildConfig.TAG, "No filename or remote url found for JSON Remote command: ${remoteCommand.id}")
+                        Logger.dev(BuildConfig.TAG, "No filename or remote url found for JSON Remote command: ${remoteCommand.commandId}")
                     }
                 }
             }
