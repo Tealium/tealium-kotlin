@@ -1,13 +1,10 @@
 package com.tealium.mobile
 
 import android.app.Application
-import android.util.Log
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
-import com.tealium.dispatcher.EventDispatch
-import com.tealium.dispatcher.ViewDispatch
 import com.tealium.lifecycle.Lifecycle
 import com.tealium.location.Location
 import com.tealium.tagmanagementdispatcher.TagManagement

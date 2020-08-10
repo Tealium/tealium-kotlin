@@ -4,8 +4,6 @@ import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 import com.tealium.core.messaging.EventRouter
-import com.tealium.core.persistence.DataLayer
-import com.tealium.core.persistence.Expiry
 
 class ActivityObserver(config: TealiumConfig, val eventRouter: EventRouter) {
 
