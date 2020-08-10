@@ -5,7 +5,6 @@ object CoreConstant {
     const val TEALIUM_EVENT_TYPE = "tealium_event_type"
     const val TEALIUM_EVENT = "tealium_event"
     const val SCREEN_TITLE = "screen_title"
-    const val TEALIUM_EVENT_NAME = "tealium_event_name"
     const val TRACE_ID = "cp.trace_id"
     const val TRACE_ID_QUERY_PARAM = "tealium_trace_id"
     const val KILL_VISITOR_SESSION = "kill_visitor_session"

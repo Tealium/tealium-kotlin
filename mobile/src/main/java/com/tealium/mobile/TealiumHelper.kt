@@ -27,7 +27,7 @@ object TealiumHelper {
             collectors.add(Collectors.Location)
             useRemoteLibrarySettings = true
         }
-        config.deepLinkTrackingEnabled = false
+
         instance = Tealium("instance_1", config) {
             consentManager.enabled = true
             visitorService?.delegate = object : VisitorServiceDelegate {
