@@ -6,6 +6,8 @@ import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
+import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.ViewDispatch
 import com.tealium.lifecycle.Lifecycle
 import com.tealium.location.Location
 import com.tealium.tagmanagementdispatcher.TagManagement
@@ -28,7 +30,7 @@ object TealiumHelper {
             collectors.add(Collectors.Location)
             useRemoteLibrarySettings = true
         }
-
+        config.deepLinkTrackingEnabled = false
         instance = Tealium("instance_1", config) {
             consentManager.enabled = true
             visitorService?.delegate = object : VisitorServiceDelegate {

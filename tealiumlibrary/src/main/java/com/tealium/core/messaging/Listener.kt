@@ -1,5 +1,6 @@
 package com.tealium.core.messaging
 
+import android.app.Activity
 import com.tealium.core.consent.ConsentManagementPolicy
 import com.tealium.core.consent.UserConsentPreferences
 import com.tealium.core.settings.LibrarySettings
@@ -74,9 +75,9 @@ interface LibrarySettingsUpdatedListener : Listener {
  * [android.app.Application.ActivityLifecycleCallbacks.onActivityResumed] respectively
  */
 interface ActivityObserverListener : ExternalListener {
-    fun onActivityPaused()
-    fun onActivityResumed()
-    fun onActivityStopped(isChangingConfiguration: Boolean)
+    fun onActivityPaused(activity: Activity?)
+    fun onActivityResumed(activity: Activity?)
+    fun onActivityStopped(isChangingConfiguration: Boolean, activity: Activity?)
 }
 
 /**

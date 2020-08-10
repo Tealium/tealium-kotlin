@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 import com.tealium.core.messaging.EventRouter
+import com.tealium.core.persistence.DataLayer
+import com.tealium.core.persistence.Expiry
 
 class ActivityObserver(config: TealiumConfig, val eventRouter: EventRouter) {
 
@@ -18,11 +20,11 @@ class ActivityObserver(config: TealiumConfig, val eventRouter: EventRouter) {
     private fun createActivityLifecycleCallbacks(): Application.ActivityLifecycleCallbacks {
         return object : Application.ActivityLifecycleCallbacks {
             override fun onActivityPaused(activity: Activity?) {
-                eventRouter.onActivityPaused()
+                eventRouter.onActivityPaused(activity)
             }
 
             override fun onActivityResumed(activity: Activity?) {
-                eventRouter.onActivityResumed()
+                eventRouter.onActivityResumed(activity)
             }
 
             override fun onActivityStarted(activity: Activity?) {
@@ -38,7 +40,7 @@ class ActivityObserver(config: TealiumConfig, val eventRouter: EventRouter) {
             }
 
             override fun onActivityStopped(activity: Activity?) {
-                eventRouter.onActivityStopped(activity?.isChangingConfigurations ?: false)
+                eventRouter.onActivityStopped(activity?.isChangingConfigurations ?: false, activity)
             }
 
             override fun onActivityCreated(activity: Activity?, savedInstanceState: Bundle?) {
