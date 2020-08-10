@@ -232,7 +232,7 @@ class TealiumTests {
         verify(exactly = 1) {
             mockTealium.track(
                     withArg { dispatch ->
-                        assertEquals("kill_visitor_session", dispatch.get("tealium_event_name"))
+                        assertEquals("kill_visitor_session", dispatch.get("tealium_event"))
                         assertEquals("kill_visitor_session", dispatch.get("event"))
                     })
         }
