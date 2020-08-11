@@ -88,13 +88,4 @@ class RemoteCommandDispatcherTests {
         Assert.assertEquals(remoteCommand.commandId, httpRemoteCommand.commandId)
         Assert.assertEquals(remoteCommand.description, httpRemoteCommand.description)
     }
-
-    @Test
-    fun httpRemoteCommandValidParseEntity() {
-        val remoteCommand = HttpRemoteCommand(mockNetworkClient)
-
-        remoteCommand
-
-    }
-
 }
