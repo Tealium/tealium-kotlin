@@ -162,18 +162,23 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
     }
 
     /**
-     * If batching is enabled, attempt to send remote commands. If Conssent Manager
+     * If batching is enabled, attempt to send remote commands. If Consent Manager
      * is enabled, verify consent is granted. If disabled, check connectivity.
      */
     private fun attemptSendRemoteCommand(dispatch: Dispatch?) {
         if (settings.batching.batchSize > 1) {
             dispatch?.let {
-                if (consentManager.enabled
-                        && consentManager.userConsentStatus == ConsentStatus.CONSENTED
-                        && connectivity.isConnected()) {
-                    eventRouter.onProcessRemoteCommand(it)
-                } else if (!consentManager.enabled && connectivity.isConnected()) {
-                    eventRouter.onProcessRemoteCommand(it)
+                when (consentManager.enabled) {
+                    true -> {
+                        if (consentManager.userConsentStatus == ConsentStatus.CONSENTED && connectivity.isConnected()) {
+                            eventRouter.onProcessRemoteCommand(it)
+                        }
+                    }
+                    false -> {
+                        if (connectivity.isConnected()) {
+                            eventRouter.onProcessRemoteCommand(it)
+                        }
+                    }
                 }
             }
         }
@@ -189,7 +194,7 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
         if (!shouldQueue(null, override)) {
             val dispatches = dequeue(null)
             sendDispatches(dispatches)
-            //
+
             if (dispatches.count() > 1) {
                 dispatches.forEach {
                     attemptSendRemoteCommand(it)

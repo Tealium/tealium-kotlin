@@ -4,7 +4,7 @@
     "tag_management_dispatcher": true
   },
   "batching": {
-    "batch_size": 3,
+    "batch_size": 1,
     "interval": "10m",
     "max_queue_size": 100,
     "expiration": "1d"
@@ -15,6 +15,6 @@
   "log_level": "dev",
   "disable_library": false,
   "optional_config_flags": {
-    "consent_manager": true
+    "consent_manager": false
   }
 }
