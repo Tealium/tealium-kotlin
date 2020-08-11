@@ -16,8 +16,8 @@ import kotlinx.coroutines.launch
 
 internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
                               private val collectors: Set<Collector>,
-                              private val validators: Set<DispatchValidator>,
                               private val transformers: Set<Transformer>,
+                              private val validators: Set<DispatchValidator>,
                               private val dispatchStore: DispatchStorage,
                               private val librarySettingsManager: LibrarySettingsManager,
                               private val eventRouter: EventRouter)
