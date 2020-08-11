@@ -122,7 +122,7 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
      * Pops all currently queued items off the queue, and adds the [dispatch] if one is supplied.
      */
     fun dequeue(dispatch: Dispatch?): List<Dispatch> {
-        //
+        // check if remote commands should be triggered, only on incoming dispatch
         attemptSendRemoteCommand(dispatch)
         var queue = dispatchStore.dequeue(-1)
         dispatch?.let {
@@ -162,7 +162,8 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
     }
 
     /**
-     * If batching is enabled,
+     * If batching is enabled, attempt to send remote commands. If Conssent Manager
+     * is enabled, verify consent is granted. If disabled, check connectivity.
      */
     private fun attemptSendRemoteCommand(dispatch: Dispatch?) {
         if (settings.batching.batchSize > 1) {
