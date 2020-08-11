@@ -137,6 +137,6 @@ class TagManagementDispatcherTest {
         val dispatch = EventDispatch("test", mapOf("key" to "value"))
         tagManagementDispatcher.onDispatchReady(dispatch)
 
-        coVerify { mockWebViewLoader.createWebViewClient() }
+        coVerify { mockWebViewLoader.initializeWebView() }
     }
 }
