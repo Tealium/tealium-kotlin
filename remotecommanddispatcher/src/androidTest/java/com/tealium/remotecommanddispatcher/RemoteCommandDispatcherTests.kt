@@ -23,13 +23,7 @@ class RemoteCommandDispatcherTests {
     lateinit var mockNetworkClient: NetworkClient
 
     @MockK
-    lateinit var mockRemoteCommandConfigRetriever: RemoteCommandConfigRetriever
-
-    @MockK
     lateinit var mockRemoteCommandConfig: RemoteCommandConfig
-
-    @MockK
-    lateinit var mockRemoteCommandParser: RemoteCommandParser
 
     lateinit var context: Application
     lateinit var config: TealiumConfig
@@ -43,11 +37,10 @@ class RemoteCommandDispatcherTests {
         mockkConstructor(RemoteCommand::class)
         every { anyConstructed<RemoteCommand>().invoke(any()) } just Runs
 
-        mockkStatic(RemoteCommandRequest::class)
-        every { RemoteCommandRequest.jsonRequest(any(), any()) } returns mockk()
 
         config = TealiumConfig(context, "test", "profile", Environment.DEV)
         every { tealiumContext.config } returns config
+
     }
 
     @Test
@@ -64,10 +57,9 @@ class RemoteCommandDispatcherTests {
 
         remoteCommandDispatcher.add(jsonCommand)
         val dispatch = EventDispatch("event_test", mapOf("key1" to "value1", "key2" to "value2"))
-        val request = RemoteCommandRequest.jsonRequest(jsonCommand, JsonUtils.jsonFor(mapOf("command_name" to "test_command")))
         remoteCommandDispatcher.onProcessRemoteCommand(dispatch)
 
-        verify { jsonCommand.invoke(request) }
+        verify { jsonCommand.invoke(any()) }
     }
 
     @Test
@@ -95,6 +87,14 @@ class RemoteCommandDispatcherTests {
 
         Assert.assertEquals(remoteCommand.commandId, httpRemoteCommand.commandId)
         Assert.assertEquals(remoteCommand.description, httpRemoteCommand.description)
+    }
+
+    @Test
+    fun httpRemoteCommandValidParseEntity() {
+        val remoteCommand = HttpRemoteCommand(mockNetworkClient)
+
+        remoteCommand
+
     }
 
 }

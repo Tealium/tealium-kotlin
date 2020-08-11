@@ -15,6 +15,10 @@ import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 interface RemoteCommandDispatcherListener : DispatcherListener {
 }
 
+/**
+ * The RemoteCommandDispatcher processes and evaluates client-provided commands via
+ * Tag Management or JSON-controlled
+ */
 class RemoteCommandDispatcher(private val context: TealiumContext,
                               private val afterDispatchSendCallbacks: AfterDispatchSendCallbacks,
                               private val client: NetworkClient = HttpClient(context.config)) : Dispatcher, RemoteCommandListener {
@@ -22,6 +26,9 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     private val webViewCommands = mutableMapOf<String, RemoteCommand>()
     private val jsonCommands = mutableMapOf<String, RemoteCommand>()
 
+    /**
+     * Adds remote commands to be evaluated when triggered
+     */
     fun add(remoteCommand: RemoteCommand) {
         when (remoteCommand) {
             is JsonRemoteCommand -> {
@@ -40,11 +47,19 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
         }
     }
 
+    /**
+     * Remove remote command from being processed
+     *
+     * @param commandId id of command to be removed
+     */
     fun remove(commandId: String) {
         webViewCommands.remove(commandId)
         jsonCommands.remove(commandId)
     }
 
+    /**
+     * Removes all remote commands
+     */
     fun removeAll() {
         webViewCommands.clear()
         jsonCommands.clear()
@@ -68,8 +83,6 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
             webViewCommands[id]?.let { command ->
                 Logger.dev(BuildConfig.TAG, "Detected Remote Command $id with payload ${request.response?.requestPayload}")
                 request.response?.evalJavascript?.let { js ->
-                    //eventRouter.onEvaluateJavascript(it)
-                    // OR
                     afterDispatchSendCallbacks.onEvaluateJavascript(js)
                 }
                 command.invoke(request)

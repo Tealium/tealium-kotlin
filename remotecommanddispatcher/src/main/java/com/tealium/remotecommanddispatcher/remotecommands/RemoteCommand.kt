@@ -3,7 +3,7 @@ package com.tealium.remotecommanddispatcher.remotecommands
 import com.tealium.core.Logger
 import com.tealium.remotecommanddispatcher.BuildConfig
 import com.tealium.remotecommanddispatcher.RemoteCommandRequest
-import com.tealium.remotecommanddispatcher.Response
+import org.json.JSONObject
 import java.util.*
 import java.util.regex.Pattern
 
@@ -50,6 +50,25 @@ abstract class RemoteCommand(open var commandId: String,
             }
 
             return Pattern.matches("^[\\w-]*$", commandName)
+        }
+    }
+
+    open class Response(val commandId: String,
+                   val responseId: String? = null,
+                   val requestPayload: JSONObject = JSONObject(),
+                   var status: Int = STATUS_OK,
+                   var body: String? = null,
+                   var evalJavascript: String? = null,
+                   var sent: Boolean = false) {
+        companion object {
+            const val STATUS_EXCEPTION_THROWN = 555
+            const val STATUS_BAD_REQUEST = 400
+            const val STATUS_NOT_FOUND = 404
+            const val STATUS_OK = 200
+        }
+
+        open fun send() {
+            sent = true
         }
     }
 }
