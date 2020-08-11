@@ -83,16 +83,16 @@ class BatchingValidatorTests {
         val batchingValidator = BatchingValidator(mockStore, mockSettings, mockEventRouter)
 
         // simulates a 2 activity app
-        batchingValidator.onActivityResumed(null)       // activity count = 1
-        batchingValidator.onActivityResumed(null)       // activity count = 2
-        batchingValidator.onActivityStopped(false, null)  // activity count = 1
+        batchingValidator.onActivityResumed()       // activity count = 1
+        batchingValidator.onActivityResumed()       // activity count = 2
+        batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = 1
         verify(exactly = 0) {
             mockEventRouter.onRevalidate(any())
         }
 
-        batchingValidator.onActivityResumed(null)       // activity count = 2
-        batchingValidator.onActivityStopped(false, null)  // activity count = 1
-        batchingValidator.onActivityStopped(false, null)  // activity count = 0
+        batchingValidator.onActivityResumed()       // activity count = 2
+        batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = 1
+        batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = 0
         verify(exactly = 1) {
             mockEventRouter.onRevalidate(any())
         }
@@ -109,22 +109,22 @@ class BatchingValidatorTests {
         val batchingValidator = BatchingValidator(mockStore, mockSettings, mockEventRouter)
 
         // simulates a 2 activity app
-        batchingValidator.onActivityResumed(null)       // activity count = 1
-        batchingValidator.onActivityResumed(null)       // activity count = 2
-        batchingValidator.onActivityStopped(false, null)  // activity count = 1
+        batchingValidator.onActivityResumed()       // activity count = 1
+        batchingValidator.onActivityResumed()       // activity count = 2
+        batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = 1
         verify(exactly = 0) {
             mockEventRouter.onRevalidate(any())
         }
 
         // change configuration (screen rotation) causes "stopped" to called prior to "resumed".
-        batchingValidator.onActivityStopped(true, null)   // activity count = 0
-        batchingValidator.onActivityResumed(null)       // activity count = 1
+        batchingValidator.onActivityStopped( isChangingConfiguration = true)   // activity count = 0
+        batchingValidator.onActivityResumed()       // activity count = 1
         verify(exactly = 0) {
             mockEventRouter.onRevalidate(any())
         }
 
         // backgrounding
-        batchingValidator.onActivityStopped(false, null)  // activity count = 1
+        batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = 1
         verify(exactly = 1) {
             mockEventRouter.onRevalidate(any())
         }

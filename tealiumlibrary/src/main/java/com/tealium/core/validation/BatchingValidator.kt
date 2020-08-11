@@ -40,7 +40,7 @@ internal class BatchingValidator(private val dispatchStorage: DispatchStorage,
         ++activityCount
     }
 
-    override fun onActivityStopped(isChangingConfiguration: Boolean, activity: Activity?) {
+    override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
         --activityCount
         if (activityCount == 0 && !isChangingConfiguration) {
             eventRouter.onRevalidate(BatchingValidator::class.java)

@@ -68,7 +68,7 @@ class SessionManager(config: TealiumConfig,
         // nothing to do.
     }
 
-    override fun onActivityStopped(isChangingConfiguration: Boolean, activity: Activity?) {
+    override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
         // nothing to do.
     }
 

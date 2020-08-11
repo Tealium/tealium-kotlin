@@ -128,10 +128,10 @@ class EventDispatcher : EventRouter {
         }
     }
 
-    override fun onActivityStopped(isChangingConfiguration: Boolean, activity: Activity?) {
+    override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
         listeners.forEach {
             when (it) {
-                is ActivityObserverListener -> it.onActivityStopped(isChangingConfiguration, activity)
+                is ActivityObserverListener -> it.onActivityStopped(activity, isChangingConfiguration)
             }
         }
     }

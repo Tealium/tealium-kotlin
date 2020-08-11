@@ -75,9 +75,9 @@ interface LibrarySettingsUpdatedListener : Listener {
  * [android.app.Application.ActivityLifecycleCallbacks.onActivityResumed] respectively
  */
 interface ActivityObserverListener : ExternalListener {
-    fun onActivityPaused(activity: Activity?)
-    fun onActivityResumed(activity: Activity?)
-    fun onActivityStopped(isChangingConfiguration: Boolean, activity: Activity?)
+    fun onActivityPaused(activity: Activity? = null)
+    fun onActivityResumed(activity: Activity? = null)
+    fun onActivityStopped(activity: Activity? = null, isChangingConfiguration: Boolean)
 }
 
 /**

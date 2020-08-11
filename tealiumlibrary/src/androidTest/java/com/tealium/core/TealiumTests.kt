@@ -17,16 +17,46 @@ import org.junit.Test
 class TealiumTests {
 
     lateinit var tealium: Tealium
-
+    lateinit var mockDataLayer: DataLayer
+    lateinit var mockTealium: Tealium
     val application = ApplicationProvider.getApplicationContext<Application>()
     val configWithNoModules = TealiumConfig(application,
             "test",
             "test",
             Environment.DEV)
+    val configWithQRTraceDisabled get(): TealiumConfig {
+        val config = configWithNoModules
+        config.qrTraceEnabled = false
+        return config
+    }
+
+    val configWithQRTraceEnabled get(): TealiumConfig {
+        val config = configWithNoModules
+        config.qrTraceEnabled = true
+        return config
+    }
+
+    val configWithDeepLinkingDisabled get(): TealiumConfig {
+        val config = configWithNoModules
+        config.deepLinkTrackingEnabled = false
+        return config
+    }
+
+    val configWithDeepLinkingEnabled get(): TealiumConfig {
+        val config = configWithNoModules
+        config.deepLinkTrackingEnabled = true
+        return config
+    }
 
     @Before
     fun setUp() {
-        tealium = Tealium("name", configWithNoModules)
+        mockDataLayer = mockk(relaxed = true)
+        runBlocking {
+            tealium = Tealium("name", configWithNoModules)
+            delay(100)
+        }
+
+        mockTealium = spyk(tealium)
     }
 
     @Test
@@ -50,15 +80,18 @@ class TealiumTests {
 
     @Test
     fun testHandleDeepLink() {
-        var mockDataLayer = mockk<DataLayer>(relaxed = true)
-        tealium._dataLayer = mockDataLayer
+        val context = mockk<TealiumContext>()
+        every { context.config } returns configWithDeepLinkingEnabled
+        every { context.dataLayer } returns mockDataLayer
+        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+
         val builder = Uri.Builder()
-        val queryParams = hashMapOf<String, Any>("_dfgsdftwet" to "sdgfdgfdfg",
+        val queryParams = mapOf<String, Any>("_dfgsdftwet" to "sdgfdgfdfg",
                 "_fbclid" to "1234567",
                 "tealium" to "cdh",
                 "bool" to true,
                 "int" to 123)
-        var uri = builder.scheme("https")
+        val uri = builder.scheme("https")
                 .authority("tealium.com")
                 .path("/")
 
@@ -67,168 +100,230 @@ class TealiumTests {
         }
         val builtURI = uri.build()
         runBlocking {
-            tealium.handleDeepLink(builtURI)
+            mockActivityObserverListener.handleDeepLink(builtURI)
             delay(100)
         }
 
-        verify(exactly = 1) { mockDataLayer.putString("deep_link_url", "${builtURI.toString()}", Expiry.SESSION) }
+        verify(exactly = 1) { mockDataLayer.putString("deep_link_url", builtURI.toString(), Expiry.SESSION) }
     }
 
     @Test
     fun testHandleDeepLinkDoesNotRunFromActivityResumeIfDisabled() {
-        var config = configWithNoModules
-        config.deepLinkTrackingEnabled = false
-        var tealium = Tealium("name", config)
-        var mockDataLayer = mockk<DataLayer>(relaxed = true)
-        tealium._dataLayer = mockDataLayer
+        val context = mockk<TealiumContext>()
+        every { context.config } returns configWithDeepLinkingDisabled
+        every { context.dataLayer } returns mockDataLayer
+        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+
         val builder = Uri.Builder()
-        val queryParams = hashMapOf<String, Any>("_dfgsdftwet" to "sdgfdgfdfg",
+        val queryParams = mapOf<String, Any>("_dfgsdftwet" to "sdgfdgfdfg",
                 "_fbclid" to "1234567",
                 "tealium" to "cdh",
                 "bool" to true,
                 "int" to 123)
-        var uri = builder.scheme("https")
+        val uri = builder.scheme("https")
                 .authority("tealium.com")
                 .path("/")
 
         queryParams.forEach { entry ->
             uri.appendQueryParameter(entry.key, entry.value.toString())
         }
-        var activity: Activity = mockk()
-        var intent = Intent()
+        val activity: Activity = mockk()
+        val intent = Intent()
         val builtURI = uri.build()
         intent.data = builtURI
         every { activity.intent } returns intent
         runBlocking {
-            tealium.onActivityResumed(activity)
+            mockActivityObserverListener.onActivityResumed(activity)
             delay(100)
         }
-
-        verify(exactly = 0) { mockDataLayer.putString("deep_link_url", "${builtURI.toString()}", Expiry.SESSION) }
+        verify(exactly = 0) { mockDataLayer.putString("deep_link_url", builtURI.toString(), Expiry.SESSION) }
     }
 
 
     @Test
     fun testHandleDeepLinkFromActivityResume() {
-        var mockDataLayer = mockk<DataLayer>(relaxed = true)
-        tealium._dataLayer = mockDataLayer
+        val context = mockk<TealiumContext>()
+        every { context.config } returns configWithDeepLinkingEnabled
+        every { context.dataLayer } returns mockDataLayer
+        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+
         val builder = Uri.Builder()
-        val queryParams = hashMapOf<String, Any>("_dfgsdftwet" to "sdgfdgfdfg",
+        val queryParams = mapOf<String, Any>("_dfgsdftwet" to "sdgfdgfdfg",
                 "_fbclid" to "1234567",
                 "tealium" to "cdh",
                 "bool" to true,
                 "int" to 123)
-        var uri = builder.scheme("https")
+        val uri = builder.scheme("https")
                 .authority("tealium.com")
                 .path("/")
 
         queryParams.forEach { entry ->
             uri.appendQueryParameter(entry.key, entry.value.toString())
         }
-        var activity: Activity = mockk()
-        var intent = Intent()
+        val activity: Activity = mockk()
+        val intent = Intent()
         val builtURI = uri.build()
         intent.data = builtURI
         every { activity.intent } returns intent
         runBlocking {
-            tealium.onActivityResumed(activity)
+            mockActivityObserverListener.onActivityResumed(activity)
             delay(100)
         }
 
-        verify(exactly = 1) { mockDataLayer.putString("deep_link_url", "${builtURI.toString()}", Expiry.SESSION) }
+        verify(exactly = 1) { mockDataLayer.putString("deep_link_url", builtURI.toString(), Expiry.SESSION) }
     }
 
     @Test
     fun testHandleJoinTraceFromActivityResume() {
-        var mockDataLayer = mockk<DataLayer>(relaxed = true)
-        tealium._dataLayer = mockDataLayer
+        val context = mockk<TealiumContext>()
+        every { context.config } returns configWithQRTraceEnabled
+        every { context.dataLayer } returns mockDataLayer
+        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+
         val builder = Uri.Builder()
         val traceId = "abc123"
-        val queryParams = hashMapOf<String, Any>("tealium_trace_id" to traceId)
-        var uri = builder.scheme("https")
+        val queryParams = mapOf<String, Any>("tealium_trace_id" to traceId)
+        val uri = builder.scheme("https")
                 .authority("tealium.com")
                 .path("/")
 
         queryParams.forEach { entry ->
             uri.appendQueryParameter(entry.key, entry.value.toString())
         }
-        var activity: Activity = mockk()
-        var intent = Intent()
+        val activity: Activity = mockk()
+        val intent = Intent()
         val builtURI = uri.build()
         intent.data = builtURI
         every { activity.intent } returns intent
         runBlocking {
-            tealium.onActivityResumed(activity)
+            mockActivityObserverListener.onActivityResumed(activity)
             delay(100)
         }
 
-        verify(exactly = 1) { mockDataLayer.putString("cp.trace_id", "$traceId", Expiry.SESSION) }
+        verify(exactly = 1) { mockDataLayer.putString("tealium_trace_id", traceId, Expiry.SESSION) }
+    }
+
+    @Test
+    fun testHandleLeaveTraceFromActivityResume() {
+        val context = mockk<TealiumContext>()
+        every { context.config } returns configWithQRTraceEnabled
+        every { context.dataLayer } returns mockDataLayer
+        every {context.tealium } returns mockTealium
+        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+
+        val builder = Uri.Builder()
+        val traceId = "abc123"
+        val queryParams = mapOf<String, Any>("tealium_trace_id" to traceId,
+        CoreConstant.LEAVE_TRACE_QUERY_PARAM to "true" )
+        val uri = builder.scheme("https")
+                .authority("tealium.com")
+                .path("/")
+
+        queryParams.forEach { entry ->
+            uri.appendQueryParameter(entry.key, entry.value.toString())
+        }
+        val activity: Activity = mockk()
+        val intent = Intent()
+        val builtURI = uri.build()
+        intent.data = builtURI
+        every { activity.intent } returns intent
+        runBlocking {
+            mockActivityObserverListener.onActivityResumed(activity)
+            delay(100)
+        }
+        verify(exactly = 1) { mockDataLayer.remove(CoreConstant.TRACE_ID) }
+    }
+
+    @Test
+    fun testKillVisitorSessionFromActivityResume() {
+        val context = mockk<TealiumContext>()
+        val mockTealium = mockk<Tealium>()
+        every { context.config } returns configWithQRTraceEnabled
+        every { context.dataLayer } returns mockDataLayer
+        every {context.tealium } returns mockTealium
+        every { mockTealium.killTraceVisitorSession() } just Runs
+        runBlocking {
+            val mockActivityObserverListener = TealiumActivityObserverListener(context, this)
+
+
+            val builder = Uri.Builder()
+            val traceId = "abc123"
+            val queryParams = mapOf<String, Any>("tealium_trace_id" to traceId,
+                    CoreConstant.KILL_VISITOR_SESSION to "true" )
+            val uri = builder.scheme("https")
+                    .authority("tealium.com")
+                    .path("/")
+
+            queryParams.forEach { entry ->
+                uri.appendQueryParameter(entry.key, entry.value.toString())
+            }
+            val activity: Activity = mockk()
+            val intent = Intent()
+            val builtURI = uri.build()
+            intent.data = builtURI
+            every { activity.intent } returns intent
+            runBlocking {
+                mockActivityObserverListener.onActivityResumed(activity)
+                delay(100)
+            }
+
+            verify(exactly = 1) { mockTealium.killTraceVisitorSession() }
+        }
     }
 
     @Test
     fun testHandleJoinTraceDoesNotRunFromActivityResumeIfDisabled() {
-        var config = configWithNoModules
-        config.qrTraceEnabled = false
-        var tealium = Tealium("name", config)
-        var mockDataLayer = mockk<DataLayer>(relaxed = true)
-        tealium._dataLayer = mockDataLayer
+        val context = mockk<TealiumContext>()
+        every { context.config } returns configWithQRTraceDisabled
+        every { context.dataLayer } returns mockDataLayer
+        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+
         val builder = Uri.Builder()
         val traceId = "abc123"
-        val queryParams = hashMapOf<String, Any>("tealium_trace_id" to traceId)
-        var uri = builder.scheme("https")
+        val queryParams = mapOf<String, Any>("tealium_trace_id" to traceId)
+        val uri = builder.scheme("https")
                 .authority("tealium.com")
                 .path("/")
 
         queryParams.forEach { entry ->
             uri.appendQueryParameter(entry.key, entry.value.toString())
         }
-        var activity: Activity = mockk()
-        var intent = Intent()
+        val activity: Activity = mockk()
+        val intent = Intent()
         val builtURI = uri.build()
         intent.data = builtURI
         every { activity.intent } returns intent
         runBlocking {
-            tealium.onActivityResumed(activity)
+            mockActivityObserverListener.onActivityResumed(activity)
             delay(100)
         }
 
-        verify(exactly = 0) { mockDataLayer.putString("cp.trace_id", "$traceId", Expiry.SESSION) }
+        verify(exactly = 0) { mockDataLayer.putString("tealium_trace_id", traceId, Expiry.SESSION) }
     }
 
     @Test
     fun testJoinTrace() {
-        var mockDataLayer = mockk<DataLayer>(relaxed = true)
-        tealium._dataLayer = mockDataLayer
-        tealium.joinTrace("abc123")
-        verify(exactly = 1) { mockDataLayer.putString("cp.trace_id", "abc123", Expiry.SESSION) }
+        val context = mockk<TealiumContext>()
+        every { context.config } returns configWithQRTraceEnabled
+        every { context.dataLayer } returns mockDataLayer
+        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+        mockActivityObserverListener.joinTrace("abc123")
+        verify(exactly = 1) { mockDataLayer.putString("tealium_trace_id", "abc123", Expiry.SESSION) }
     }
 
     @Test
     fun testLeaveTrace() {
-        var mockDataLayer = mockk<DataLayer>(relaxed = true)
-        tealium._dataLayer = mockDataLayer
-        tealium.leaveTrace()
-        verify(exactly = 1) { mockDataLayer.remove("cp.trace_id") }
-    }
-
-    @Test
-    fun testKillVisitorSessionNotCalledIfLeaveTraceParameterFalse() {
-        var mockTealium = spyk(tealium)
-        mockTealium.leaveTrace(false)
-        verify(exactly = 0) { mockTealium.killVisitorSession() }
-    }
-
-    @Test
-    fun testKillVisitorSessionIsCalledIfLeaveTraceParamTrue() {
-        var mockTealium = spyk(tealium)
-        mockTealium.leaveTrace(true)
-        verify(exactly = 1) { mockTealium.killVisitorSession() }
+        val context = mockk<TealiumContext>()
+        every { context.config } returns configWithQRTraceEnabled
+        every { context.dataLayer } returns mockDataLayer
+        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+        mockActivityObserverListener.leaveTrace()
+        verify(exactly = 1) { mockDataLayer.remove("tealium_trace_id") }
     }
 
     @Test
     fun testKillVisitorSessionTriggersTrackCall() {
-        var mockTealium = spyk(tealium)
-        mockTealium.killVisitorSession()
+        mockTealium.killTraceVisitorSession()
         verify(exactly = 1) {
             mockTealium.track(
                     withArg { dispatch ->

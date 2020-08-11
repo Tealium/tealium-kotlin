@@ -207,7 +207,7 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
         }, LifecycleDefaults.SLEEP_THRESHOLD)
     }
 
-    override fun onActivityStopped(isChangingConfiguration: Boolean, activity: Activity?) {
+    override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
         // do nothing
     }
 

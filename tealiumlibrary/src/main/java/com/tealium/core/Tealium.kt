@@ -1,7 +1,5 @@
 package com.tealium.core
 
-import android.app.Activity
-import android.net.Uri
 import com.tealium.core.collection.SessionCollector
 import com.tealium.core.collection.TealiumCollector
 import com.tealium.core.consent.ConsentManager
@@ -34,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @param config - the object that defines how to appropriately configure this instance.
  * @param onReady - completion block that signifies when this instance has completed finished initializing.
  */
-class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConfig, private val onReady: (Tealium.() -> Unit)? = null): ActivityObserverListener {
+class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConfig, private val onReady: (Tealium.() -> Unit)? = null) {
 
     private val singleThreadedBackground = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     private val backgroundScope = CoroutineScope(singleThreadedBackground)
@@ -63,6 +61,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     private val databaseHelper: DatabaseHelper
     private val eventRouter = EventDispatcher()
     private val sessionManager = SessionManager(config, eventRouter)
+    private lateinit var activityObserverListener: TealiumActivityObserverListener
 
     // Are publicly accessible, therefore need to be initialized on creation.
     /**
@@ -89,15 +88,14 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
      */
     val events: Subscribable = MessengerService(eventRouter, backgroundScope)
 
-    internal var _dataLayer: DataLayer
+    private var _dataLayer: DataLayer
 
     /**
      * Persistent storage location for data that should appear on all subsequent [Dispatch] events.
      * Data will be collected from here and merged into each [Dispatch] along with any other defined
      * [Collector] data.
      */
-    val dataLayer: DataLayer
-    get() =  _dataLayer
+    val dataLayer get() = _dataLayer
 
     /**
      * Object representing the current Tealium session in progress.
@@ -137,8 +135,6 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
         logger = Logger
         eventRouter.subscribe(Logger)
         eventRouter.subscribe(sessionManager)
-        eventRouter.subscribe(this)
-
         // Initialize everything else in the background.
         backgroundScope.launch {
             bootstrap()
@@ -173,7 +169,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
             }
         }
     }
-
+    @Suppress("unused")
     fun sendQueuedDispatches() {
         if (librarySettingsManager.librarySettings.disableLibrary) {
             Logger.qa(BuildConfig.TAG, "Library is disabled. Cannot dispatch queued events.")
@@ -219,7 +215,8 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
                 eventRouter)
         eventRouter.subscribe(dispatchRouter)
         eventRouter.subscribe(dispatchStore)
-
+        activityObserverListener = TealiumActivityObserverListener(context, backgroundScope)
+        eventRouter.subscribe(activityObserverListener)
         onInstanceReady()
     }
 
@@ -295,71 +292,27 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     /**
      * Adds the supplied Trace ID to the data layer for the current session.
      */
+    @Suppress("unused")
     fun joinTrace(id: String) {
-        dataLayer.putString(CoreConstant.TRACE_ID, id, Expiry.SESSION)
+        activityObserverListener.joinTrace(id)
     }
 
     /**
-     * Removes the Trace ID from the data layer if present, and calls killVisitorSession.
+     * Removes the Trace ID from the data layer if present
      */
     @Suppress("unused")
-    fun leaveTrace(killVisitorSession: Boolean = true) {
-        if (killVisitorSession) {
-            killVisitorSession()
-        }
-        dataLayer.remove(CoreConstant.TRACE_ID)
+    fun leaveTrace() {
+        activityObserverListener.leaveTrace()
     }
+
 
     /**
      * Kills the visitor session remotely to test end of session events (does not terminate the SDK session
      * or reset the session ID).
      */
-    fun killVisitorSession() {
+    fun killTraceVisitorSession() {
         val dispatch = EventDispatch(eventName = CoreConstant.KILL_VISITOR_SESSION,
                 data = hashMapOf(CoreConstant.KILL_VISITOR_SESSION_EVENT_KEY to  CoreConstant.KILL_VISITOR_SESSION))
         track(dispatch)
     }
-
-    /**
-     * If the app was launched from a deep link, adds the link and query parameters to the data layer for the current session.
-     */
-    fun handleDeepLink(uri: Uri) {
-        backgroundScope.launch {
-            dataLayer.putString(CoreConstant.DEEP_LINK_URL, uri.toString(), Expiry.SESSION)
-            uri.queryParameterNames.forEach { name ->
-                uri.getQueryParameter(name)?.let { value ->
-                    dataLayer.putString("${CoreConstant.DEEP_LINK_QUERY_PREFIX}$name", value, Expiry.SESSION)
-                }
-            }
-        }
-    }
-
-    override fun onActivityPaused(activity: Activity?) {
-        // not used
-    }
-
-    /**
-     * Handles deep linking and joinTrace requests.
-     */
-    override fun onActivityResumed(activity: Activity?) {
-        backgroundScope.launch {
-            val intent = activity?.intent?.let { intent ->
-                intent.data?.let { uri ->
-                    uri.getQueryParameter(CoreConstant.TRACE_ID_QUERY_PARAM)?.let { traceId ->
-                        if (config.qrTraceEnabled) {
-                            joinTrace(traceId)
-                        }
-                    } ?:
-                    if (config.deepLinkTrackingEnabled) {
-                        handleDeepLink(uri)
-                    }
-                }
-            }
-        }
-    }
-
-    override fun onActivityStopped(isChangingConfiguration: Boolean, activity: Activity?) {
-        // not used
-    }
-
 }
