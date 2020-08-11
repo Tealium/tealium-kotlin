@@ -1,8 +1,10 @@
 package com.tealium.core.dispatcher
 
+import android.util.Log
 import com.tealium.core.Collector
 import com.tealium.core.settings.LibrarySettingsManager
 import com.tealium.core.Logger
+import com.tealium.core.Transformer
 import com.tealium.core.messaging.DispatchRouter
 import com.tealium.core.messaging.EventDispatcher
 import com.tealium.core.messaging.EventRouter
@@ -18,9 +20,9 @@ import com.tealium.dispatcher.EventDispatch
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertTrue
+import junit.framework.Assert.*
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
 import java.util.concurrent.Executors
@@ -32,6 +34,9 @@ class DispatchRouterTests {
 
     @RelaxedMockK
     private lateinit var collector: Collector
+
+    @RelaxedMockK
+    private lateinit var transformer: Transformer
 
     @RelaxedMockK
     private lateinit var validator: DispatchValidator
@@ -52,8 +57,8 @@ class DispatchRouterTests {
     private lateinit var librarySettingsManager: LibrarySettingsManager
 
     val coroutineDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
-    val eventDispatch = EventDispatch("TestEvent")
-    val eventDispatchList = mutableListOf<Dispatch>(eventDispatch, eventDispatch)
+    lateinit var eventDispatch : Dispatch
+    lateinit var eventDispatchList : List<Dispatch>
 
     var batching = spyk(Batching(batchSize = 1))
     val librarySettings = LibrarySettings(batching = batching)
@@ -62,32 +67,45 @@ class DispatchRouterTests {
     fun setUp() {
         MockKAnnotations.init(this)
 
+        eventDispatch =  EventDispatch("TestEvent")
+        eventDispatchList = mutableListOf<Dispatch>(eventDispatch, eventDispatch)
+
         // Some default answers to get the Dispatch through the entire system.
         // Edit as required per-test to change route.
         coEvery { collector.collect() } returns mapOf("key" to "value")
         coEvery { collector.enabled } returns true
+        coEvery { transformer.transform(eventDispatch) } answers {
+            eventDispatch.addAll(mapOf("transformed" to "value"))
+        }
+        coEvery { transformer.enabled } returns true
         coEvery { validator.enabled } returns true
         coEvery { validator2.enabled } returns true
         coEvery { dispatcher.enabled } returns true
         coEvery { batchingValidator.enabled } returns true
         coEvery { connectivityValidator.enabled } returns true
-        every { validator.shouldDrop(eventDispatch) } returns false
-        every { validator.shouldQueue(eventDispatch) } returns false
-        every { validator2.shouldDrop(eventDispatch) } returns false
-        every { validator2.shouldQueue(eventDispatch) } returns false
-        every { batchingValidator.shouldDrop(eventDispatch) } returns false
-        every { batchingValidator.shouldQueue(eventDispatch) } returns false
-        every { connectivityValidator.shouldDrop(eventDispatch) } returns false
-        every { connectivityValidator.shouldQueue(eventDispatch) } returns false
+        coEvery { validator.shouldDrop(eventDispatch) } returns false
+        coEvery { validator.shouldQueue(eventDispatch) } returns false
+        coEvery { validator2.shouldDrop(eventDispatch) } returns false
+        coEvery { validator2.shouldQueue(eventDispatch) } returns false
+        coEvery { batchingValidator.shouldDrop(eventDispatch) } returns false
+        coEvery { batchingValidator.shouldQueue(eventDispatch) } returns false
+        coEvery { connectivityValidator.shouldDrop(eventDispatch) } returns false
+        coEvery { connectivityValidator.shouldQueue(eventDispatch) } returns false
 
+        coEvery { librarySettingsManager.fetchLibrarySettings() } just Runs
         every { librarySettingsManager.librarySettings } returns librarySettings
         every { dispatchStore.dequeue(-1) } returns eventDispatchList
+
+        mockkStatic(Log::class)
+        every { Log.i(any(), any()) } returns 0
+        every { Log.e(any(), any()) } returns 0
 
         eventRouter = spyk(EventDispatcher())
         eventRouter.subscribe(dispatcher)
 
         dispatchRouter = DispatchRouter(coroutineDispatcher,
                 setOf(collector),
+                setOf(transformer),
                 setOf(validator, validator2, batchingValidator, connectivityValidator),
                 dispatchStore,
                 librarySettingsManager,
@@ -115,6 +133,30 @@ class DispatchRouterTests {
     }
 
     @Test
+    fun testIsTransformed() {
+        assertNull(eventDispatch["transformed"])
+        dispatchRouter.track(eventDispatch)
+
+        coVerify {
+            transformer.transform(eventDispatch)
+        }
+        assertTrue(eventDispatch["transformed"] == "value")
+    }
+
+    @Test
+    fun testIsNotTransformed_WhenDisabled() {
+        assertNull(eventDispatch["transformed"])
+        every { transformer.enabled } returns false
+        dispatchRouter.track(eventDispatch)
+
+        coVerify(exactly = 0) {
+            transformer.transform(eventDispatch)
+        }
+        // still null
+        assertNull(eventDispatch["transformed"])
+    }
+
+    @Test
     fun testIsNotValidated_WhenDisabled() {
         every { validator.enabled } returns false
         dispatchRouter.track(eventDispatch)
@@ -124,7 +166,7 @@ class DispatchRouterTests {
             validator.shouldDrop(eventDispatch)
         }
 
-        coVerify(exactly = 1) {
+        coVerify(exactly = 1, timeout = 500) {
             validator2.shouldQueue(eventDispatch)
             validator2.shouldDrop(eventDispatch)
         }
@@ -149,6 +191,7 @@ class DispatchRouterTests {
 
         coVerify {
             collector.collect()
+            transformer.transform(eventDispatch)
             validator.shouldDrop(eventDispatch)
             eventRouter.onDispatchDropped(eventDispatch)
         }
@@ -166,6 +209,7 @@ class DispatchRouterTests {
 
         coVerify {
             collector.collect()
+            transformer.transform(eventDispatch)
             validator.shouldDrop(eventDispatch)
             eventRouter.onDispatchDropped(eventDispatch)
         }
@@ -196,6 +240,7 @@ class DispatchRouterTests {
 
         coVerify(timeout = 1000) {
             collector.collect()
+            transformer.transform(eventDispatch)
             validator.shouldDrop(eventDispatch)
             validator.shouldQueue(eventDispatch)
             dispatchStore.enqueue(eventDispatch)
@@ -209,12 +254,13 @@ class DispatchRouterTests {
     }
 
     @Test
-    fun testIsQueuedWhenOneReturnsTrue() {
+    fun testIsQueuedWhenOneReturnsTrue() = runBlocking  {
         every { validator.shouldQueue(eventDispatch) } returns true
         dispatchRouter.track(eventDispatch)
 
-        coVerify(timeout = 1000) {
+        coVerify(timeout = 1500) {
             collector.collect()
+            transformer.transform(eventDispatch)
             validator.shouldDrop(eventDispatch)
             validator.shouldQueue(eventDispatch)
             dispatchStore.enqueue(eventDispatch)
@@ -258,6 +304,7 @@ class DispatchRouterTests {
 
         coVerify {
             collector.collect()
+            transformer.transform(eventDispatch)
             validator.shouldDrop(eventDispatch)
             eventRouter.onDispatchReady(eventDispatch)
             validator.shouldQueue(eventDispatch)
@@ -273,6 +320,7 @@ class DispatchRouterTests {
 
         coVerify {
             collector.collect()
+            transformer.transform(eventDispatch)
             validator.shouldQueue(eventDispatch)
             eventRouter.onDispatchReady(eventDispatch)
             validator.shouldQueue(eventDispatch)
@@ -283,8 +331,6 @@ class DispatchRouterTests {
 
     @Test
     fun testLibrarySettingsAreFetchedOnlyOnce() {
-        coEvery { librarySettingsManager.fetchLibrarySettings() } just Runs
-
         val oneEvent = listOf<Dispatch>(eventDispatch)
         dispatchRouter.sendDispatches(oneEvent)
 
