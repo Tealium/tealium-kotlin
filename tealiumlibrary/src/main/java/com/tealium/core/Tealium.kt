@@ -88,14 +88,12 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
      */
     val events: Subscribable = MessengerService(eventRouter, backgroundScope)
 
-    private var _dataLayer: DataLayer
-
     /**
      * Persistent storage location for data that should appear on all subsequent [Dispatch] events.
      * Data will be collected from here and merged into each [Dispatch] along with any other defined
      * [Collector] data.
      */
-    val dataLayer get() = _dataLayer
+    val dataLayer: DataLayer
 
     /**
      * Object representing the current Tealium session in progress.
@@ -122,7 +120,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
         librarySettingsManager = LibrarySettingsManager(config, networkClient, eventRouter = eventRouter, backgroundScope = backgroundScope)
         activityObserver = ActivityObserver(config, eventRouter)
         databaseHelper = DatabaseHelper(config)
-        _dataLayer = PersistentStorage(databaseHelper, "datalayer")
+        dataLayer = PersistentStorage(databaseHelper, "datalayer")
 
         visitorId = getOrCreateVisitorId()
         consentManager = ConsentManager(config, eventRouter, visitorId, librarySettingsManager.librarySettings)
