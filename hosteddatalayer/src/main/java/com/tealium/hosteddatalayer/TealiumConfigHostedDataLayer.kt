@@ -13,6 +13,7 @@ const val HOSTED_DATA_LAYER_MAX_CACHE_TIME = "hosted_data_layer_max_cache_time"
  * to retrieve the Data Layer Id.
  */
 var TealiumConfig.hostedDataLayerEventMappings: Map<String, String>?
+    @Suppress("UNCHECKED_CAST")
     get() = options[HOSTED_DATA_LAYER_EVENT_MAPPINGS] as? Map<String, String>
     set(value) {
         value?.let {
