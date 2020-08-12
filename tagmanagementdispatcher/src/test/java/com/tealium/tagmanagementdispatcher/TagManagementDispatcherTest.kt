@@ -9,7 +9,7 @@ import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.network.ConnectivityRetriever
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
@@ -101,7 +101,7 @@ class TagManagementDispatcherTest {
     fun webViewLoadedShouldNotQueueDispatch() {
         val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks)
         tagManagementDispatcher.webViewLoader.isWebViewLoaded.set(true)
-        val dispatch = EventDispatch("", emptyMap())
+        val dispatch = TealiumEvent("", emptyMap())
         val result = tagManagementDispatcher.shouldQueue(dispatch)
         Assert.assertFalse(result)
     }
@@ -109,7 +109,7 @@ class TagManagementDispatcherTest {
     @Test
     fun webViewNotLoadedShouldQueueDispatch() {
         val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks)
-        val dispatch = EventDispatch("", emptyMap())
+        val dispatch = TealiumEvent("", emptyMap())
         tagManagementDispatcher.webViewLoader.isWebViewLoaded.set(false)
         val result = tagManagementDispatcher.shouldQueue(dispatch)
         Assert.assertTrue(result)
@@ -120,7 +120,7 @@ class TagManagementDispatcherTest {
         val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks)
         mockkConstructor(JSONStringer::class)
         every { anyConstructed<JSONStringer>().toString() } returns ""
-        val dispatch = EventDispatch("test", mapOf("key" to "value"))
+        val dispatch = TealiumEvent("test", mapOf("key" to "value"))
         tagManagementDispatcher.onDispatchReady(dispatch)
 
         coVerify { tagManagementDispatcher.callRemoteCommandTags(dispatch) }
@@ -133,7 +133,7 @@ class TagManagementDispatcherTest {
         every { mockWebViewLoader.isWebViewLoaded.get() } returns false
         every { mockWebViewLoader.createWebViewClient() } returns mockk()
 
-        val dispatch = EventDispatch("test", mapOf("key" to "value"))
+        val dispatch = TealiumEvent("test", mapOf("key" to "value"))
         tagManagementDispatcher.onDispatchReady(dispatch)
 
         verify { tagManagementDispatcher.webViewLoader.createWebViewClient() }

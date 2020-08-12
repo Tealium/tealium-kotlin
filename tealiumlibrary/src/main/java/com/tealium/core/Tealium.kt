@@ -19,6 +19,7 @@ import com.tealium.core.validation.ConnectivityValidator
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
+import com.tealium.dispatcher.TealiumEvent
 import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
