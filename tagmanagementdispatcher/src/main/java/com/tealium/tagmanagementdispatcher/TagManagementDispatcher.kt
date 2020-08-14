@@ -32,7 +32,11 @@ class TagManagementDispatcher(private val context: TealiumContext,
                 ?: "https://tags.tiqcdn.com/utag/" +
                 "${context.config.accountName}/" +
                 "${context.config.profileName}/" +
-                "${context.config.environment.environment}/mobile.html"
+                "${context.config.environment.environment}/mobile.html?" +
+                "${DeviceCollectorConstants.DEVICE_PLATFORM}=android" +
+                "&${DeviceCollectorConstants.DEVICE_OS_VERSION}=${Build.VERSION.RELEASE}" +
+                "&${CoreConstant.LIBRARY_VERSION}=${BuildConfig.VERSION_NAME}" +
+                "&sdk_session_count=true"
 
     private val scope = CoroutineScope(Dispatchers.Main)
     internal var webViewLoader = WebViewLoader(context, urlString, afterDispatchSendCallbacks)
