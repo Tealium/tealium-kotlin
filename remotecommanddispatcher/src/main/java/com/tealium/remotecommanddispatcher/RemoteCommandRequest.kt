@@ -94,11 +94,11 @@ class RemoteCommandRequest(var commandId: String? = null,
             return PROTOCOL_PREFIX.matcher(url).matches()
         }
 
-        const val TEALIUM_PREFIX = "tealium://"
-        const val ARG = "?request="
-        const val CONFIG_RESPONSE_ID = "response_id"
-        const val METAKEY_CONFIG = "config"
-        const val METAKEY_PAYLOAD = "payload"
+        private const val TEALIUM_PREFIX = "tealium://"
+        private const val ARG = "?request="
+        private const val CONFIG_RESPONSE_ID = "response_id"
+        private const val METAKEY_CONFIG = "config"
+        private const val METAKEY_PAYLOAD = "payload"
 
         private val PROTOCOL_PREFIX = Pattern.compile("^$TEALIUM_PREFIX.+", Pattern.CASE_INSENSITIVE);
     }

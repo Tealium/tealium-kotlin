@@ -224,6 +224,7 @@ class LocationTests {
 
     @Test
     fun createAndAddNewGeofenceWithInvalidInputs() {
+        location
         val mockLocationClient = mockkClass(FusedLocationProviderClient::class)
         every { mockLocationClient.requestLocationUpdates(any(), any(), any()) } returns mockk()
 
@@ -247,6 +248,6 @@ class LocationTests {
 
         location.addGeofence(name, latitude, longitude, radius, expireTime, loiterTime, triggerEnter, triggerExit)
 
-        Assert.assertEquals(location.allGeofenceNames()?.size, 0)
+        Assert.assertEquals(0, location.allGeofenceNames()?.size)
     }
 }

@@ -76,6 +76,25 @@ class LocationManager(private val context: TealiumContext) :
     }
 
     /**
+     * Remove specific Geofence by given name
+     * @param name name of geofence to be removed from monitoring list
+     */
+    fun removeGeofence(name: String) {
+        allGeofenceLocations.forEach {
+            if (it.name == name) {
+                allGeofenceLocations.remove(it)
+            }
+        }
+    }
+
+    /**
+     * Removes all geofences from monitoring list
+     */
+    fun removeAll() {
+        allGeofenceLocations.clear()
+    }
+
+    /**
      * Returns last location latitude
      */
     fun lastLocationLatitude(): Double? {
