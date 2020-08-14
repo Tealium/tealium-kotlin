@@ -146,7 +146,7 @@ class WebViewLoaderTest {
     }
 
     @Test
-    fun newSession_IsNotRegisteredWhenNoConnectivity() = runBlocking {
+    fun newSession_IsNotRegisteredWhenNoConnectivity() {
         every { anyConstructed<ConnectivityRetriever>().isConnected() } returns false
         webViewLoader = spyk(WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks),
                 recordPrivateCalls = true)
