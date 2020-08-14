@@ -21,6 +21,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import java.io.File
+import java.net.URL
 
 class TagManagementDispatcherTest {
 
@@ -52,6 +53,7 @@ class TagManagementDispatcherTest {
 
         mockkConstructor(TealiumConfig::class)
         every { mockContext.filesDir } returns mockFile
+        every { mockContext.resources } returns mockk(relaxed = true)
         every { anyConstructed<TealiumConfig>().tealiumDirectory.mkdir() } returns mockk()
         every { anyConstructed<TealiumConfig>().tealiumDirectory.absolutePath } returns ""
 
@@ -84,10 +86,20 @@ class TagManagementDispatcherTest {
     @Test
     fun tagManagementDispatcherHasValidDefaultUrl() {
         val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks)
-        Assert.assertEquals(
-                "https://tags.tiqcdn.com/utag/${config.accountName}/${config.profileName}/${config.environment.environment}/mobile.html",
-                tagManagementDispatcher.urlString
-        )
+        val url = URL(tagManagementDispatcher.urlString)
+
+        Assert.assertEquals("https", url.protocol)
+        Assert.assertEquals("tags.tiqcdn.com", url.authority)
+        Assert.assertEquals("/utag/${config.accountName}/${config.profileName}/${config.environment.environment}/mobile.html", url.path)
+        Assert.assertEquals("/utag/${config.accountName}/${config.profileName}/${config.environment.environment}/mobile.html", url.path)
+
+        val queryParams = url.query.split("&").associate { param ->
+            Pair(param.split("=")[0], param.split("=")[1])
+        }
+        Assert.assertEquals("android", queryParams[DeviceCollectorConstants.DEVICE_PLATFORM])
+        Assert.assertEquals(/* Build.VERSION.RELEASE */"null", queryParams[DeviceCollectorConstants.DEVICE_OS_VERSION])
+        Assert.assertEquals(BuildConfig.VERSION_NAME, queryParams[CoreConstant.LIBRARY_VERSION])
+        Assert.assertEquals("true", queryParams["sdk_session_count"])
     }
 
     @Test
