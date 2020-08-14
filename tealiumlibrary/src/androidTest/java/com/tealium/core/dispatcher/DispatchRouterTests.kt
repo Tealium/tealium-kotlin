@@ -16,7 +16,7 @@ import com.tealium.core.validation.ConnectivityValidator
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
@@ -60,7 +60,7 @@ class DispatchRouterTests {
     private lateinit var consentManager: ConsentManager
 
     val coroutineDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
-    val eventDispatch = EventDispatch("TestEvent")
+    val eventDispatch = TealiumEvent("TestEvent")
     val eventDispatchList = mutableListOf<Dispatch>(eventDispatch, eventDispatch)
 
     var batching = spyk(Batching(batchSize = 1))

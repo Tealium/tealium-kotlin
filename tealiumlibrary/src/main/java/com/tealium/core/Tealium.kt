@@ -14,10 +14,12 @@ import com.tealium.core.persistence.DispatchStorage
 import com.tealium.core.persistence.PersistentStorage
 import com.tealium.core.settings.LibrarySettingsManager
 import com.tealium.core.validation.BatchingValidator
+import com.tealium.core.validation.BatteryValidator
 import com.tealium.core.validation.ConnectivityValidator
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
+import com.tealium.dispatcher.TealiumEvent
 import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -234,6 +236,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     private fun initializeValidators(customValidators: Set<DispatchValidator>): Set<DispatchValidator> {
         customValidators.forEach { it.enabled = true }
         return setOf<DispatchValidator>(
+                BatteryValidator(config, librarySettingsManager.librarySettings, events),
                 ConnectivityValidator(connectivity, librarySettingsManager.librarySettings),
                 BatchingValidator(dispatchStore, librarySettingsManager.librarySettings, eventRouter)
         ).union(customValidators)
