@@ -19,7 +19,6 @@ import com.tealium.core.validation.ConnectivityValidator
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
-import com.tealium.dispatcher.TealiumEvent
 import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -62,7 +61,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     private val databaseHelper: DatabaseHelper
     private val eventRouter = EventDispatcher()
     private val sessionManager = SessionManager(config, eventRouter)
-    private lateinit var activityObserverListener: TealiumActivityObserverListener
+    private lateinit var activityObserverListener: DeepLinkHandler
 
     // Are publicly accessible, therefore need to be initialized on creation.
     /**
@@ -214,7 +213,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
                 eventRouter)
         eventRouter.subscribe(dispatchRouter)
         eventRouter.subscribe(dispatchStore)
-        activityObserverListener = TealiumActivityObserverListener(context, backgroundScope)
+        activityObserverListener = DeepLinkHandler(context)
         eventRouter.subscribe(activityObserverListener)
         onInstanceReady()
     }

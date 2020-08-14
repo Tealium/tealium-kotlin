@@ -7,7 +7,7 @@ import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.persistence.DataLayer
 import com.tealium.core.persistence.Expiry
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
 import junit.framework.Assert.*
 import kotlinx.coroutines.delay
@@ -80,7 +80,7 @@ class TealiumTests {
         val context = mockk<TealiumContext>()
         every { context.config } returns configWithDeepLinkingEnabled
         every { context.dataLayer } returns mockDataLayer
-        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+        val mockActivityObserverListener = DeepLinkHandler(context)
 
         val builder = Uri.Builder()
         val queryParams = mapOf<String, Any>("_dfgsdftwet" to "sdgfdgfdfg",
@@ -109,7 +109,7 @@ class TealiumTests {
         val context = mockk<TealiumContext>()
         every { context.config } returns configWithDeepLinkingDisabled
         every { context.dataLayer } returns mockDataLayer
-        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+        val mockActivityObserverListener = DeepLinkHandler(context)
 
         val builder = Uri.Builder()
         val queryParams = mapOf<String, Any>("_dfgsdftwet" to "sdgfdgfdfg",
@@ -142,7 +142,7 @@ class TealiumTests {
         val context = mockk<TealiumContext>()
         every { context.config } returns configWithDeepLinkingEnabled
         every { context.dataLayer } returns mockDataLayer
-        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+        val mockActivityObserverListener = DeepLinkHandler(context)
 
         val builder = Uri.Builder()
         val queryParams = mapOf<String, Any>("_dfgsdftwet" to "sdgfdgfdfg",
@@ -175,7 +175,7 @@ class TealiumTests {
         val context = mockk<TealiumContext>()
         every { context.config } returns configWithQRTraceEnabled
         every { context.dataLayer } returns mockDataLayer
-        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+        val mockActivityObserverListener = DeepLinkHandler(context)
 
         val builder = Uri.Builder()
         val traceId = "abc123"
@@ -206,7 +206,7 @@ class TealiumTests {
         every { context.config } returns configWithQRTraceEnabled
         every { context.dataLayer } returns mockDataLayer
         every {context.tealium } returns mockTealium
-        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+        val mockActivityObserverListener = DeepLinkHandler(context)
 
         val builder = Uri.Builder()
         val traceId = "abc123"
@@ -236,10 +236,10 @@ class TealiumTests {
         val context = mockk<TealiumContext>()
         every { context.config } returns configWithQRTraceEnabled
         every { context.dataLayer } returns mockDataLayer
-        every { context.track(EventDispatch("kill_visitor_session")) } just Runs
+        every { context.track(TealiumEvent("kill_visitor_session")) } just Runs
 
         runBlocking {
-            val mockActivityObserverListener = TealiumActivityObserverListener(context, this)
+            val mockActivityObserverListener = DeepLinkHandler(context)
 
 
             val builder = Uri.Builder()
@@ -278,7 +278,7 @@ class TealiumTests {
         val context = mockk<TealiumContext>()
         every { context.config } returns configWithQRTraceDisabled
         every { context.dataLayer } returns mockDataLayer
-        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+        val mockActivityObserverListener = DeepLinkHandler(context)
 
         val builder = Uri.Builder()
         val traceId = "abc123"
@@ -308,7 +308,7 @@ class TealiumTests {
         val context = mockk<TealiumContext>()
         every { context.config } returns configWithQRTraceEnabled
         every { context.dataLayer } returns mockDataLayer
-        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+        val mockActivityObserverListener = DeepLinkHandler(context)
         mockActivityObserverListener.joinTrace("abc123")
         verify(exactly = 1) { mockDataLayer.putString("cp.trace_id", "abc123", Expiry.SESSION) }
     }
@@ -318,7 +318,7 @@ class TealiumTests {
         val context = mockk<TealiumContext>()
         every { context.config } returns configWithQRTraceEnabled
         every { context.dataLayer } returns mockDataLayer
-        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+        val mockActivityObserverListener = DeepLinkHandler(context)
         mockActivityObserverListener.leaveTrace()
         verify(exactly = 1) { mockDataLayer.remove("cp.trace_id") }
     }
@@ -328,8 +328,8 @@ class TealiumTests {
         val context = mockk<TealiumContext>()
         every { context.config } returns configWithQRTraceEnabled
         every { context.dataLayer } returns mockDataLayer
-        every { context.track(EventDispatch("kill_visitor_session")) } just Runs
-        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+        every { context.track(TealiumEvent("kill_visitor_session")) } just Runs
+        val mockActivityObserverListener = DeepLinkHandler(context)
         mockActivityObserverListener.killTraceVisitorSession()
 
         verify(exactly = 1) {

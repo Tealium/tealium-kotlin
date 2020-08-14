@@ -4,14 +4,9 @@ import android.app.Activity
 import android.net.Uri
 import com.tealium.core.messaging.ActivityObserverListener
 import com.tealium.core.persistence.Expiry
-import com.tealium.dispatcher.EventDispatch
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.launch
-import java.util.concurrent.Executors
+import com.tealium.dispatcher.TealiumEvent
 
-class TealiumActivityObserverListener(private val context: TealiumContext,
-                                      private val scope: CoroutineScope = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())): ActivityObserverListener {
+class DeepLinkHandler(private val context: TealiumContext): ActivityObserverListener {
 
     /**
      * Adds the supplied Trace ID to the data layer for the current session.
@@ -33,7 +28,7 @@ class TealiumActivityObserverListener(private val context: TealiumContext,
      * or reset the session ID).
      */
     fun killTraceVisitorSession() {
-        val dispatch = EventDispatch(eventName = CoreConstant.KILL_VISITOR_SESSION,
+        val dispatch = TealiumEvent(eventName = CoreConstant.KILL_VISITOR_SESSION,
                 data = hashMapOf(CoreConstant.KILL_VISITOR_SESSION_EVENT_KEY to  CoreConstant.KILL_VISITOR_SESSION))
         context.track(dispatch)
     }
