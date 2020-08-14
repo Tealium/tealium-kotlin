@@ -1,6 +1,8 @@
 package com.tealium.dispatcher
 
 import java.util.*
+import com.tealium.core.CoreConstant
+import com.tealium.core.DispatchType
 
 data class EventDispatch(var eventName: String) : Dispatch {
 

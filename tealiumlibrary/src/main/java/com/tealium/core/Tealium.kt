@@ -19,7 +19,6 @@ import com.tealium.core.validation.ConnectivityValidator
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
-import com.tealium.dispatcher.EventDispatch
 import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -310,9 +309,8 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
      * Kills the visitor session remotely to test end of session events (does not terminate the SDK session
      * or reset the session ID).
      */
+    @Suppress("unused")
     fun killTraceVisitorSession() {
-        val dispatch = EventDispatch(eventName = CoreConstant.KILL_VISITOR_SESSION,
-                data = hashMapOf(CoreConstant.KILL_VISITOR_SESSION_EVENT_KEY to  CoreConstant.KILL_VISITOR_SESSION))
-        track(dispatch)
+        activityObserverListener.killTraceVisitorSession()
     }
 }

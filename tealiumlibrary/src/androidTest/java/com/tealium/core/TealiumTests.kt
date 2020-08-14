@@ -7,6 +7,7 @@ import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.persistence.DataLayer
 import com.tealium.core.persistence.Expiry
+import com.tealium.dispatcher.EventDispatch
 import io.mockk.*
 import junit.framework.Assert.*
 import kotlinx.coroutines.delay
@@ -51,11 +52,7 @@ class TealiumTests {
     @Before
     fun setUp() {
         mockDataLayer = mockk(relaxed = true)
-        runBlocking {
-            tealium = Tealium("name", configWithNoModules)
-            delay(100)
-        }
-
+        tealium = Tealium("name", configWithNoModules)
         mockTealium = spyk(tealium)
     }
 
@@ -200,7 +197,7 @@ class TealiumTests {
             delay(100)
         }
 
-        verify(exactly = 1) { mockDataLayer.putString("tealium_trace_id", traceId, Expiry.SESSION) }
+        verify(exactly = 1) { mockDataLayer.putString(CoreConstant.TRACE_ID, traceId, Expiry.SESSION) }
     }
 
     @Test
@@ -237,11 +234,10 @@ class TealiumTests {
     @Test
     fun testKillVisitorSessionFromActivityResume() {
         val context = mockk<TealiumContext>()
-        val mockTealium = mockk<Tealium>()
         every { context.config } returns configWithQRTraceEnabled
         every { context.dataLayer } returns mockDataLayer
-        every {context.tealium } returns mockTealium
-        every { mockTealium.killTraceVisitorSession() } just Runs
+        every { context.track(EventDispatch("kill_visitor_session")) } just Runs
+
         runBlocking {
             val mockActivityObserverListener = TealiumActivityObserverListener(context, this)
 
@@ -267,7 +263,13 @@ class TealiumTests {
                 delay(100)
             }
 
-            verify(exactly = 1) { mockTealium.killTraceVisitorSession() }
+            verify(exactly = 1) {
+                context.track(
+                        withArg { dispatch ->
+                            assertEquals("kill_visitor_session", dispatch["tealium_event"])
+                            assertEquals("kill_visitor_session", dispatch["event"])
+                        })
+            }
         }
     }
 
@@ -308,7 +310,7 @@ class TealiumTests {
         every { context.dataLayer } returns mockDataLayer
         val mockActivityObserverListener = TealiumActivityObserverListener(context)
         mockActivityObserverListener.joinTrace("abc123")
-        verify(exactly = 1) { mockDataLayer.putString("tealium_trace_id", "abc123", Expiry.SESSION) }
+        verify(exactly = 1) { mockDataLayer.putString("cp.trace_id", "abc123", Expiry.SESSION) }
     }
 
     @Test
@@ -318,17 +320,23 @@ class TealiumTests {
         every { context.dataLayer } returns mockDataLayer
         val mockActivityObserverListener = TealiumActivityObserverListener(context)
         mockActivityObserverListener.leaveTrace()
-        verify(exactly = 1) { mockDataLayer.remove("tealium_trace_id") }
+        verify(exactly = 1) { mockDataLayer.remove("cp.trace_id") }
     }
 
     @Test
     fun testKillVisitorSessionTriggersTrackCall() {
-        mockTealium.killTraceVisitorSession()
+        val context = mockk<TealiumContext>()
+        every { context.config } returns configWithQRTraceEnabled
+        every { context.dataLayer } returns mockDataLayer
+        every { context.track(EventDispatch("kill_visitor_session")) } just Runs
+        val mockActivityObserverListener = TealiumActivityObserverListener(context)
+        mockActivityObserverListener.killTraceVisitorSession()
+
         verify(exactly = 1) {
-            mockTealium.track(
+            context.track(
                     withArg { dispatch ->
-                        assertEquals("kill_visitor_session", dispatch.get("tealium_event"))
-                        assertEquals("kill_visitor_session", dispatch.get("event"))
+                        assertEquals("kill_visitor_session", dispatch["tealium_event"])
+                        assertEquals("kill_visitor_session", dispatch["event"])
                     })
         }
     }

@@ -1,5 +1,7 @@
 package com.tealium.lifecycle
 
+import com.tealium.core.CoreConstant
+import com.tealium.core.DispatchType
 import com.tealium.dispatcher.Dispatch
 import java.util.*
 
