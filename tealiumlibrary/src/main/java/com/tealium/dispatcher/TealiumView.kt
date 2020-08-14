@@ -1,22 +1,22 @@
 package com.tealium.dispatcher
 
-import java.util.*
 import com.tealium.core.CoreConstant
 import com.tealium.core.DispatchType
+import java.util.*
 
-data class EventDispatch(var eventName: String) : Dispatch {
+data class TealiumView(var viewName: String) : Dispatch {
 
     override val id: String = UUID.randomUUID().toString()
     private var mutableMap: MutableMap<String, Any> = mutableMapOf()
 
     init {
-        mutableMap[CoreConstant.TEALIUM_EVENT_TYPE] = DispatchType.EVENT
-        mutableMap[CoreConstant.TEALIUM_EVENT] = eventName
+        mutableMap[CoreConstant.TEALIUM_EVENT_TYPE] = DispatchType.VIEW
+        mutableMap[CoreConstant.TEALIUM_EVENT] = viewName
     }
 
-    constructor(eventName: String, data: Map<String, Any>? = null) : this(eventName) {
-        data?.forEach {
-            mutableMap[it.key]= it.value
+    constructor(viewName: String, data: Map<String, Any>? = null) : this(viewName) {
+        data?.forEach { (key, value) ->
+            mutableMap.getOrPut(key) { value }
         }
     }
 

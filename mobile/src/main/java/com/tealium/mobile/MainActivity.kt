@@ -5,10 +5,9 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.tealium.core.Tealium
-import com.tealium.dispatcher.EventDispatch
-import com.tealium.dispatcher.ViewDispatch
+import com.tealium.dispatcher.TealiumEvent
+import com.tealium.dispatcher.TealiumView
 import com.tealium.fragments.*
-import com.tealium.mobile.R
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,12 +41,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
             onTrack()
         }
 
-        val viewDispatch = ViewDispatch("MAIN ACTIVITY")
+        val viewDispatch = TealiumView("MAIN ACTIVITY")
         tealium.track(viewDispatch)
     }
 
     private fun onTrack() {
-        val eventDispatch = EventDispatch( "event1", mutableMapOf("key1" to "value1", "key2" to 2))
+        val eventDispatch = TealiumEvent( "event1", mutableMapOf("key1" to "value1", "key2" to 2))
 
         tealium.track(eventDispatch)
     }

@@ -11,8 +11,7 @@ import com.tealium.core.validation.DispatchValidator
 import com.tealium.core.messaging.*
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
-import com.tealium.dispatcher.DispatcherListener
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.TealiumEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -114,7 +113,7 @@ class TagManagementDispatcher(private val context: TealiumContext,
     override fun onUserConsentPreferencesUpdated(userConsentPreferences: UserConsentPreferences, policy: ConsentManagementPolicy) {
         if (!policy.cookieUpdateRequired) return
 
-        val dispatch = EventDispatch(policy.cookieUpdateEventName, policy.policyStatusInfo())
+        val dispatch = TealiumEvent(policy.cookieUpdateEventName, policy.policyStatusInfo())
         dispatch.addAll(mapOf(CoreConstant.TEALIUM_EVENT_TYPE to policy.cookieUpdateEventName))
 
         track(dispatch)
