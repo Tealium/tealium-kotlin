@@ -130,12 +130,13 @@ class TagManagementDispatcherTest {
     fun dispatchReadyCreateWebViewClient() {
         val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks)
         tagManagementDispatcher.webViewLoader = mockWebViewLoader
+        every { mockWebViewLoader.initializeWebView() } just Runs
         every { mockWebViewLoader.isWebViewLoaded.get() } returns false
         every { mockWebViewLoader.createWebViewClient() } returns mockk()
 
         val dispatch = EventDispatch("test", mapOf("key" to "value"))
         tagManagementDispatcher.onDispatchReady(dispatch)
 
-        verify { tagManagementDispatcher.webViewLoader.createWebViewClient() }
+        coVerify { mockWebViewLoader.initializeWebView() }
     }
 }

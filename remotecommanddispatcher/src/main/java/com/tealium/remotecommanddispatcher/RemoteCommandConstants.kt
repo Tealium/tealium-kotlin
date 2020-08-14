@@ -1,10 +1,5 @@
 package com.tealium.remotecommanddispatcher
 
-object RemoteCommandType {
-    const val WEBVIEW = "webview"
-    const val JSON = "json"
-}
-
 object Settings {
     const val DLE_PREFIX = "https://tags.tiqcdn.com/dle"
 

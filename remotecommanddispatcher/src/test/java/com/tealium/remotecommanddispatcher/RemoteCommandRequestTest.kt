@@ -1,5 +1,7 @@
 package com.tealium.remotecommanddispatcher
 
+import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
+import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 import junit.framework.Assert
 import org.json.JSONException
 import org.json.JSONObject
@@ -86,7 +88,7 @@ class RemoteCommandRequestTest {
 
     @Test
     fun jsonRemoteCommandValidRequest() {
-        val command = object : RemoteCommand("jsonTest", "Testing json requests", RemoteCommandType.JSON, filename = "abc1234.json") {
+        val command = object : JsonRemoteCommand("jsonTest", "Testing json requests", filename = "abc1234.json") {
             override fun onInvoke(response: Response) { // do nothing
             }
         }
@@ -99,7 +101,7 @@ class RemoteCommandRequestTest {
 
     @Test
     fun jsonRemoteCommandInvalidName() {
-        val command = object : RemoteCommand("testCommand", "Testing json requests", RemoteCommandType.JSON, filename = "abc1234.json") {
+        val command = object : JsonRemoteCommand("testCommand", "Testing json requests", filename = "abc1234.json") {
             override fun onInvoke(response: Response) { // do nothing
             }
         }
@@ -112,7 +114,7 @@ class RemoteCommandRequestTest {
 
     @Test
     fun jsonRemoteCommand() {
-        val command = object : RemoteCommand("testCommand", "Testing json requests", RemoteCommandType.JSON, filename = "abc1234.json") {
+        val command = object : JsonRemoteCommand("testCommand", "Testing json requests", filename = "abc1234.json") {
             override fun onInvoke(response: Response) { // do nothing
             }
         }

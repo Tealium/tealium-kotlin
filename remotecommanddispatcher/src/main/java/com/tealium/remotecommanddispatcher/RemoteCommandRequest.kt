@@ -1,6 +1,7 @@
 package com.tealium.remotecommanddispatcher
 
 import com.tealium.core.Logger
+import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
 import java.net.URLDecoder
@@ -11,17 +12,13 @@ import java.util.regex.Pattern
  * The object used to request a remote command to the remote command dispatcher.
  * A response object must be set in order for the command to be invoked.
  */
-data class RemoteCommandRequest(var commandId: String? = null,
-                                var payload: JSONObject = JSONObject(), // comes from tiq or payload of track call when using json rc
-                                var response: Response? = null) {
+class RemoteCommandRequest(var commandId: String? = null,
+                           var payload: JSONObject = JSONObject(), // comes from tiq or payload of track call when using json rc
+                           var response: RemoteCommand.Response? = null) {
 
     companion object {
         fun jsonRequest(remoteCommand: RemoteCommand, mappedPayload: JSONObject): RemoteCommandRequest {
-            return RemoteCommandRequest().apply {
-                commandId = remoteCommand.commandId
-                payload = mappedPayload
-                response = Response(remoteCommand.commandId, requestPayload = mappedPayload)
-            }
+            return RemoteCommandRequest(remoteCommand.commandId, mappedPayload, RemoteCommand.Response(remoteCommand.commandId, requestPayload = mappedPayload))
         }
 
         fun tagManagementRequest(request: String): RemoteCommandRequest? {
@@ -41,7 +38,7 @@ data class RemoteCommandRequest(var commandId: String? = null,
                 val decodedJson: String
 
                 try {
-                    decodedJson  = URLDecoder.decode(encodedJSONSuffix, "UTF-8").toString()
+                    decodedJson = URLDecoder.decode(encodedJSONSuffix, "UTF-8").toString()
                 } catch (ex: UnsupportedEncodingException) {
                     Logger.dev(BuildConfig.TAG, "Invalid encoding for request arguments: $encodedJSONSuffix")
                     return null
@@ -71,8 +68,8 @@ data class RemoteCommandRequest(var commandId: String? = null,
             return remoteCommandRequest
         }
 
-        private fun createResponse(commandName: String, id: String?, args: JSONObject): Response {
-            return object : Response(commandName, id, args) {
+        private fun createResponse(commandName: String, responseId: String?, requestPayload: JSONObject): RemoteCommand.Response {
+            return object : RemoteCommand.Response(commandName, responseId, requestPayload) {
                 override fun send() {
                     responseId?.let {
                         body?.let {
@@ -105,4 +102,6 @@ data class RemoteCommandRequest(var commandId: String? = null,
 
         private val PROTOCOL_PREFIX = Pattern.compile("^$TEALIUM_PREFIX.+", Pattern.CASE_INSENSITIVE);
     }
+
+
 }

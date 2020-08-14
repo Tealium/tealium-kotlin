@@ -1,7 +1,5 @@
 package com.tealium.lifecycle
 
-import com.tealium.core.CoreConstant
-import com.tealium.core.DispatchType
 import com.tealium.dispatcher.Dispatch
 import java.util.*
 
@@ -13,7 +11,6 @@ data class LifecycleDispatch(var lifecycleName: String) : Dispatch {
     init {
         mutableMap[CoreConstant.TEALIUM_EVENT] = lifecycleName
         mutableMap[CoreConstant.TEALIUM_EVENT_TYPE] = DispatchType.EVENT
-        mutableMap[CoreConstant.TEALIUM_EVENT_NAME] = lifecycleName
     }
 
     constructor(lifecycleName: String, data: Map<String, Any>? = null) : this(lifecycleName) {

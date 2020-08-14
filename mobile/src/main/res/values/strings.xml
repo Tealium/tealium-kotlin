@@ -2,11 +2,11 @@
     <string name="app_name">Tealium Kotlin Example</string>
     <string name="track">Track</string>
     <string name="consented">Consented</string>
-    <string name="notConsented">Not Consented</string>
+    <string name="not_consented">Not Consented</string>
     <string name="unknown">Unknown</string>
-    <string name="resetConsent">Reset</string>
-    <string name="moduleName">Module Name</string>
-    <string name="fetchProfile">Fetch Profile</string>
+    <string name="reset_consent">Reset</string>
+    <string name="module_name">Module Name</string>
+    <string name="fetch_profile">Fetch Profile</string>
     <string name="visitor_profile">Visitor Profile</string>
     <string name="kill_trace">Kill Trace</string>
     <string name="track_item">Track Item</string>
