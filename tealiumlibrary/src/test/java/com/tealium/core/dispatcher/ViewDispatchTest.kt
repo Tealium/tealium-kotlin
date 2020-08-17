@@ -1,5 +1,7 @@
 package com.tealium.core.dispatcher
 
+import com.tealium.core.CoreConstant
+import com.tealium.core.DispatchType
 import com.tealium.dispatcher.TealiumView
 import org.junit.Test
 

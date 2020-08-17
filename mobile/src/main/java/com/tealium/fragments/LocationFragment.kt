@@ -29,7 +29,7 @@ class LocationFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         button_startLocation.setOnClickListener {
-           TealiumHelper.instance.location?.startLocationTracking(true, 5000)
+//           TealiumHelper.instance.location?.startLocationTracking(true, 5000)
         }
     }
 

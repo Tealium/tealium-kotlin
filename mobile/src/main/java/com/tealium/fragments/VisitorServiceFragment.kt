@@ -28,7 +28,7 @@ class VisitorServiceFragment : Fragment() {
     private fun onFetchProfile() {
         GlobalScope.launch {
             println("fetch profile")
-            TealiumHelper.instance.visitorService?.requestVisitorProfile()
+//            TealiumHelper.instance.visitorService?.requestVisitorProfile()
         }
     }
 }
