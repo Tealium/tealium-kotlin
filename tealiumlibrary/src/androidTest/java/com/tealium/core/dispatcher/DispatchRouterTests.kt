@@ -16,7 +16,7 @@ import com.tealium.core.validation.ConnectivityValidator
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
@@ -67,7 +67,7 @@ class DispatchRouterTests {
     fun setUp() {
         MockKAnnotations.init(this)
 
-        eventDispatch =  EventDispatch("TestEvent")
+        eventDispatch =  TealiumEvent("TestEvent")
         eventDispatchList = mutableListOf<Dispatch>(eventDispatch, eventDispatch)
 
         // Some default answers to get the Dispatch through the entire system.
@@ -254,11 +254,11 @@ class DispatchRouterTests {
     }
 
     @Test
-    fun testIsQueuedWhenOneReturnsTrue() = runBlocking  {
+    fun testIsQueuedWhenOneReturnsTrue() {
         every { validator.shouldQueue(eventDispatch) } returns true
         dispatchRouter.track(eventDispatch)
 
-        coVerify(timeout = 1500) {
+        coVerify(timeout = 1000) {
             collector.collect()
             transformer.transform(eventDispatch)
             validator.shouldDrop(eventDispatch)

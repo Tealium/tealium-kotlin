@@ -51,7 +51,7 @@ class HttpClientListenerTest {
         httpClient.post("test", urlString, false)
 
         verify {
-            mockNetworkClientListener.onNetworkError("Invalid URL: $urlString.")
+            mockNetworkClientListener.onNetworkError(any())
         }
         confirmVerified(mockNetworkClientListener)
     }

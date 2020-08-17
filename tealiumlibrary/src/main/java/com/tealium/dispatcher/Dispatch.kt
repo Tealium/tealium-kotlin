@@ -34,7 +34,7 @@ interface Dispatch {
     }
 
     fun encode(jsonStringer: JSONStringer, key: String, value: Any) {
-        (value as? Object)?.let {
+        (value as? Any)?.let {
             jsonStringer.key(key)
             jsonStringer.value(it)
         }

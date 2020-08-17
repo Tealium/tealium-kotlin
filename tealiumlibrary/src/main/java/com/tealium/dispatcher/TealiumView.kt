@@ -1,17 +1,14 @@
 package com.tealium.dispatcher
 
-import com.tealium.core.CoreConstant
-import com.tealium.core.DispatchType
 import java.util.*
 
-data class ViewDispatch(var viewName: String) : Dispatch {
+data class TealiumView(var viewName: String) : Dispatch {
 
     override val id: String = UUID.randomUUID().toString()
     override var timestamp: Long? = System.currentTimeMillis()
     private var mutableMap: MutableMap<String, Any> = mutableMapOf()
 
     init {
-        mutableMap[CoreConstant.SCREEN_TITLE] = viewName
         mutableMap[CoreConstant.TEALIUM_EVENT_TYPE] = DispatchType.VIEW
         mutableMap[CoreConstant.TEALIUM_EVENT] = viewName
     }
