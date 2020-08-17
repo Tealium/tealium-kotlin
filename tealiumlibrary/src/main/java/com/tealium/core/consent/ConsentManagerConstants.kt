@@ -12,3 +12,8 @@ object ConsentManagerConstants {
     const val GRANT_PARTIAL_CONSENT = "grant_partial_consent"
     const val DECLINE_CONSENT = "decline_consent"
 }
+
+object ConsentManagerSPKey {
+    const val STATUS = "status"
+    const val CATEGORIES = "categories"
+}
