@@ -4,10 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-//import com.tealium.core.Tealium
-import com.tealium.library.*
-//import com.tealium.dispatcher.TealiumEvent
-import com.tealium.dispatcher.TealiumView
 import com.tealium.fragments.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
@@ -19,8 +15,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
         private val TAG = MainActivity::class.qualifiedName
     }
 
-    private val tealium: Tealium
-        get() = TealiumHelper.instance
+//    private val tealium: Tealium
+//        get() = TealiumHelper.instance
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate")
@@ -42,9 +38,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
             onTrack()
         }
 
-//        val viewDispatch = TealiumView("MAIN ACTIVITY")
-//        tealium.track(viewDispatch)
-        tealium.trackView("MAIN ACTIVITY", null)
+            TealiumHelper.trackView("MAIN ACTIVITY", null)
     }
 
     private fun onTrack() {
