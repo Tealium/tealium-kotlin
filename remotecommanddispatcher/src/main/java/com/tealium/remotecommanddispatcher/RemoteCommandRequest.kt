@@ -102,6 +102,4 @@ class RemoteCommandRequest(var commandId: String? = null,
 
         private val PROTOCOL_PREFIX = Pattern.compile("^$TEALIUM_PREFIX.+", Pattern.CASE_INSENSITIVE);
     }
-
-
 }
