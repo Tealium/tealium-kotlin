@@ -285,7 +285,7 @@ class DataLayerStoreTests {
 
         repeat (defaultCacheSize + 5) {
             val entry = HostedDataLayerEntry("entry$it",
-                    System.currentTimeMillis() - it * 10,
+                    System.currentTimeMillis() - ((defaultCacheSize + 5) * 100) + it * 10,
                         JSONObject("{}")
                     )
             store.insert(entry)
