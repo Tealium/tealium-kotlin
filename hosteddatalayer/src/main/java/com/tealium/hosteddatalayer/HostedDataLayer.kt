@@ -1,7 +1,7 @@
 package com.tealium.hosteddatalayer
 
+import CoreConstant.TEALIUM_EVENT
 import com.tealium.core.*
-import com.tealium.core.CoreConstant.TEALIUM_EVENT
 import com.tealium.core.network.*
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
