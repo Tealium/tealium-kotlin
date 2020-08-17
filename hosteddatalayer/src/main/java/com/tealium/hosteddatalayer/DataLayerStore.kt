@@ -137,7 +137,7 @@ class DataLayerStore(config: TealiumConfig,
 
     private fun filesSortedByAge(): Array<File> {
         return hdlDirectory.listFiles()?.also { file ->
-            file.sortByDescending { it.lastModified() }
+            file.sortBy { it.lastModified() }
         } ?: emptyArray()
     }
 
