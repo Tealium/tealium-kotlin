@@ -4,7 +4,7 @@ import com.tealium.core.TealiumConfig
 import com.tealium.core.network.Connectivity
 import com.tealium.core.network.HttpClient
 import com.tealium.dispatcher.Dispatch
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import junit.framework.Assert.*
@@ -16,7 +16,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 class HostedDataLayerTests {
@@ -47,7 +46,7 @@ class HostedDataLayerTests {
     fun setUp() {
         MockKAnnotations.init(this)
 
-        mockDispatch = spyk(EventDispatch("event_name"))
+        mockDispatch = spyk(TealiumEvent("event_name"))
 
         // reasonable defaults
         every { mockConfig.accountName } returns "account"
@@ -154,7 +153,7 @@ class HostedDataLayerTests {
 
     @Test
     fun merge_MergesValues() = runBlocking {
-        val dispatch = EventDispatch("event_name", mapOf("lookup_key" to "12345"))
+        val dispatch = TealiumEvent("event_name", mapOf("lookup_key" to "12345"))
         every { mockStore.contains("12345") } returns true
         every { mockStore.get("12345") } returns HostedDataLayerEntry("12345",
                 100,
