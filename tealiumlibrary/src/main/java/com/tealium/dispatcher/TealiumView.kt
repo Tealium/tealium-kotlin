@@ -1,7 +1,5 @@
 package com.tealium.dispatcher
 
-import com.tealium.core.CoreConstant
-import com.tealium.core.DispatchType
 import java.util.*
 
 data class TealiumView(var viewName: String) : Dispatch {
