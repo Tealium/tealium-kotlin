@@ -7,19 +7,25 @@ import android.os.SystemClock
 import android.view.View
 import android.webkit.*
 import com.tealium.core.Logger
+import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
-import com.tealium.core.settings.LibrarySettings
+import com.tealium.core.messaging.NewSessionListener
+import com.tealium.core.messaging.SessionStartedListener
 import com.tealium.core.network.ConnectivityRetriever
+import com.tealium.core.settings.LibrarySettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 class WebViewLoader(private val context: TealiumContext,
                     private val urlString: String,
-                    private val afterDispatchSendCallbacks: AfterDispatchSendCallbacks) : LibrarySettingsUpdatedListener {
+                    private val afterDispatchSendCallbacks: AfterDispatchSendCallbacks)
+    : LibrarySettingsUpdatedListener,
+        SessionStartedListener {
 
     val connectivityRetriever = ConnectivityRetriever(context.config.application)
     val isWebViewLoaded = AtomicBoolean(false)
@@ -27,6 +33,9 @@ class WebViewLoader(private val context: TealiumContext,
     private var isWifiOnlySending = false
     private var timeoutInterval = -1
     private val scope = CoroutineScope(Dispatchers.Main)
+    private val backgroundScope = CoroutineScope(Dispatchers.IO)
+    private var sessionId: Long = INVALID_SESSION_ID
+    private val shouldRegisterSession = AtomicBoolean(false)
 
     @Volatile
     lateinit var webView: WebView
@@ -73,6 +82,8 @@ class WebViewLoader(private val context: TealiumContext,
                     Logger.dev(BuildConfig.TAG, "Error loading URL $url in WebView $view")
                     return
                 }
+
+                registerNewSessionIfNeeded(sessionId)
 
                 // Run JS evaluation here
                 view?.loadUrl("javascript:(function(){\n" +
@@ -244,5 +255,40 @@ class WebViewLoader(private val context: TealiumContext,
         loadUrlToWebView()
         isWifiOnlySending = settings.wifiOnly
         timeoutInterval = settings.refreshInterval
+    }
+
+    override fun onSessionStarted(sessionId: Long) {
+        this.sessionId = sessionId
+        shouldRegisterSession.set(true)
+
+        registerNewSessionIfNeeded(sessionId)
+    }
+
+    private fun registerNewSessionIfNeeded(sessionId: Long) {
+        if (sessionId == INVALID_SESSION_ID) {
+            return
+        }
+
+        if (connectivityRetriever.isConnected() &&
+                shouldRegisterSession.compareAndSet(PageStatus.LOADED_SUCCESS, false)) {
+            backgroundScope.launch {
+                val url = createSessionUrl(context.config, sessionId)
+                Logger.dev(BuildConfig.TAG, "Registering new Tag Management session - $url")
+                context.httpClient.get(url)
+            }
+        }
+    }
+
+    companion object {
+        const val SESSION_URL_TEMPLATE = "https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=%s/%s/%s&cb=%s"
+        const val INVALID_SESSION_ID = -1L
+
+        fun createSessionUrl(config: TealiumConfig, sessionId: Long): String {
+            return String.format(Locale.ROOT, SESSION_URL_TEMPLATE,
+                    config.accountName,
+                    config.profileName,
+                    sessionId,
+                    sessionId)
+        }
     }
 }

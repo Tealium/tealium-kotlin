@@ -6,6 +6,7 @@ import android.os.Looper
 import android.os.SystemClock
 import com.tealium.core.*
 import com.tealium.core.messaging.ActivityObserverListener
+import com.tealium.dispatcher.TealiumEvent
 import java.lang.UnsupportedOperationException
 
 /**
@@ -62,7 +63,7 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
 
     private fun trackLaunchEvent(timestamp: Long, data: Map<String, Any>? = null) {
         val isFirstLaunch = lifecycleService.isFirstLaunch(timestamp)
-        val currentVersion = getPacakageContext().versionName?.toString() ?: ""
+        val currentVersion = getPackageContext().versionName?.toString() ?: ""
         val didUpdate = lifecycleService.didUpdate(timestamp, currentVersion)
 
         lifecycleSharedPreferences.incrementLaunch()
@@ -89,7 +90,7 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
             state[LifecycleStateKey.LIFECYCLE_ISFIRSTLAUNCHUPDATE] = (true).toString()
         }
 
-        val dispatch = LifecycleDispatch("launch", state)
+        val dispatch = TealiumEvent("launch", state)
         context.track(dispatch)
     }
 
@@ -106,7 +107,7 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
         onForegrounding(LifecycleEvent.WAKE, state, timestamp)
         lifecycleSharedPreferences.lastLifecycleEvent = LifecycleEvent.WAKE
 
-        val dispatch = LifecycleDispatch("wake", state)
+        val dispatch = TealiumEvent("wake", state)
         context.track(dispatch)
     }
 
@@ -130,7 +131,7 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
 
         lifecycleSharedPreferences.setLastSleep(timestamp)
 
-        val dispatch = LifecycleDispatch("sleep", state)
+        val dispatch = TealiumEvent("sleep", state)
         context.track(dispatch)
     }
 
@@ -160,7 +161,7 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
         }
     }
 
-    private fun getPacakageContext(): PackageInfo {
+    private fun getPackageContext(): PackageInfo {
         val packageName = config.application.packageName
         return config.application.packageManager.getPackageInfo(packageName, 0)
     }

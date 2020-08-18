@@ -7,7 +7,7 @@ import com.tealium.dispatcher.BatchDispatch
 import com.tealium.dispatcher.BatchDispatch.Companion.KEY_EVENTS
 import com.tealium.dispatcher.BatchDispatch.Companion.KEY_SHARED
 import com.tealium.dispatcher.Dispatch
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.TealiumEvent
 import junit.framework.Assert.*
 import org.junit.Assert
 import org.junit.Test
@@ -71,7 +71,7 @@ class BatchDispatchTests {
             data["shared_key"] = "unique_value_$it" // shared key but unique values.
             data["unique_key_$it"] = "unique_value_$it" // unique keys, unique values.
 
-            dispatches.add(EventDispatch("event_$it", data))
+            dispatches.add(TealiumEvent("event_$it", data))
         }
 
         return dispatches
