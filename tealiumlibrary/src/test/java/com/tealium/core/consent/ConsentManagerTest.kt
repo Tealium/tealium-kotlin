@@ -2,7 +2,6 @@ package com.tealium.core.consent
 
 import android.app.Application
 import android.content.SharedPreferences
-import com.google.common.collect.ContiguousSet
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.messaging.EventRouter

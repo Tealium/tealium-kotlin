@@ -106,41 +106,34 @@ class WebViewLoaderTest {
     }
 
     @Test
-    fun newSession_IsRegisteredWhenWebViewIsLoaded() {
-        webViewLoader = spyk(WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks),
-                recordPrivateCalls = true)
-        every { webViewLoader.isWebViewLoaded.get() } returns true
+    fun newSession_IsRegisteredWhenWebViewIsLoaded() = runBlocking {
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks)
+        webViewLoader.isWebViewLoaded.set(true)
         webViewLoader.onSessionStarted(12345L)
 
-        coVerify {
+        coVerify(exactly = 1, timeout = 100) {
            mockHttpClient.get("https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=test/profile/12345&cb=12345")
         }
     }
 
     @Test
     fun newSession_IsNotRegisteredWhenWebViewIsNotLoaded() = runBlocking {
-        webViewLoader = spyk(WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks),
-                recordPrivateCalls = true)
-        val webViewLoaded = mockk<AtomicBoolean>()
-        every { webViewLoader.isWebViewLoaded } returns webViewLoaded
-        every { webViewLoaded.get() } returns false
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks)
+        webViewLoader.isWebViewLoaded.set(false)
         webViewLoader.onSessionStarted(12345L)
 
-        coVerify {
-            mockHttpClient.get("https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=test/profile/12345&cb=12345")
+        coVerify(exactly = 0, timeout = 100) {
+            mockHttpClient.get(any())
         }
     }
 
     @Test
     fun newSession_IsNotRegisteredWhenSessionIdIsInvalid() = runBlocking {
-        webViewLoader = spyk(WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks),
-                recordPrivateCalls = true)
-        val webViewLoaded = mockk<AtomicBoolean>()
-        every { webViewLoader.isWebViewLoaded } returns webViewLoaded
-        every { webViewLoaded.get() } returns true
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks)
+        webViewLoader.isWebViewLoaded.set(true)
         webViewLoader.onSessionStarted(WebViewLoader.INVALID_SESSION_ID)
 
-        coVerify(exactly = 0) {
+        coVerify(exactly = 0, timeout = 100) {
             mockHttpClient.get("https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=test/profile/12345&cb=12345")
         }
     }
@@ -148,15 +141,11 @@ class WebViewLoaderTest {
     @Test
     fun newSession_IsNotRegisteredWhenNoConnectivity() {
         every { anyConstructed<ConnectivityRetriever>().isConnected() } returns false
-        webViewLoader = spyk(WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks),
-                recordPrivateCalls = true)
-        val webViewLoaded = mockk<AtomicBoolean>()
-        every { webViewLoader.isWebViewLoaded } returns webViewLoaded
-        every { webViewLoaded.get() } returns true
-
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks)
+        webViewLoader.isWebViewLoaded.set(true)
         webViewLoader.onSessionStarted(WebViewLoader.INVALID_SESSION_ID)
 
-        coVerify(exactly = 0) {
+        coVerify(exactly = 0, timeout = 100) {
             mockHttpClient.get("https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=test/profile/12345&cb=12345")
         }
     }
