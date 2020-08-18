@@ -5,6 +5,8 @@ import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
+import com.tealium.hosteddatalayer.HostedDataLayer
+import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
 import com.tealium.lifecycle.Lifecycle
 import com.tealium.location.Location
 import com.tealium.tagmanagementdispatcher.TagManagement
@@ -21,11 +23,12 @@ object TealiumHelper {
                 "tealiummobile",
                 "location",
                 Environment.DEV,
-                modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService),
+                modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement)
         ).apply {
             collectors.add(Collectors.Location)
             useRemoteLibrarySettings = true
+            hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
         }
 
         instance = Tealium("instance_1", config) {
