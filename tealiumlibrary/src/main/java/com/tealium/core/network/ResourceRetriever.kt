@@ -32,7 +32,7 @@ class ResourceRetriever(private val config: TealiumConfig,
      * be retried. Max is 5.
      *
      */
-    val maxRetries = 5
+    var maxRetries = 5
 
     @Volatile
     private var lastFetchTimestamp: Long? = null
