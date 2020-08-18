@@ -1,6 +1,6 @@
 package com.tealium.remotecommanddispatcher
 
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.TealiumEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -9,7 +9,7 @@ class RemoteCommandParserTest {
 
     @Test
     fun mapDispatchValidResultantMap() {
-        val dispatch = EventDispatch(
+        val dispatch = TealiumEvent(
                 "test_dispatch",
                 mapOf("product_id" to arrayListOf("ABC123"),
                         "product_name" to arrayListOf("milk chocolate"),
@@ -68,7 +68,7 @@ class RemoteCommandParserTest {
 
     @Test
     fun mapDispatchWithDotParamsResultantMap() {
-        val dispatch = EventDispatch(
+        val dispatch = TealiumEvent(
                 "test_dot_dispatch",
                 mapOf("content" to "someContent",
                         "content_type" to "someContentType",
@@ -123,7 +123,7 @@ class RemoteCommandParserTest {
 
     @Test
     fun mapDispatchWithSingleObjectMapping() {
-        val dispatch = EventDispatch(
+        val dispatch = TealiumEvent(
                 "level_up",
                 mapOf("level" to 19))
         val eventKey = "event"
@@ -139,7 +139,7 @@ class RemoteCommandParserTest {
 
     @Test
     fun mapDispatchWithMultipleObjectMappings() {
-        val dispatch = EventDispatch(
+        val dispatch = TealiumEvent(
                 "level_up",
                 mapOf("level" to 19,
                         "product_availability" to "In Stock"))
@@ -158,7 +158,7 @@ class RemoteCommandParserTest {
 
     @Test
     fun mapDispatchWithObjectMappingsAndExtraProperties() {
-        val dispatch = EventDispatch(
+        val dispatch = TealiumEvent(
                 "purchase",
                 mapOf("order_total" to 5,
                         "order_currency" to "USD",
@@ -187,7 +187,7 @@ class RemoteCommandParserTest {
 
     @Test
     fun mapDispatchWithMultipleDotParams() {
-        val dispatch = EventDispatch(
+        val dispatch = TealiumEvent(
                 "purchase",
                 mapOf("order_total" to 5,
                         "order_currency" to "USD",

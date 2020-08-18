@@ -48,7 +48,7 @@ class HttpClientListenerTest {
         every { mockNetworkClientListener.onNetworkError(any()) } just Runs
 
         val urlString = "invalid_url"
-        httpClient.post("test", urlString, false, null)
+        httpClient.post("test", urlString, false)
 
         verify {
             mockNetworkClientListener.onNetworkError(any())
