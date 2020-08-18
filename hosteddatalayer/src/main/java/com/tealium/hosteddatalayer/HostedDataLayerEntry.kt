@@ -27,6 +27,7 @@ data class HostedDataLayerEntry(val id: String,
 
         fun toFile(dir: File, dataLayer: HostedDataLayerEntry): File {
             return File(dir, "${dataLayer.id}${DataLayerStore.JSON_FILE_EXTENSION}").also {
+                it.writeText(dataLayer.data.toString(), Charsets.UTF_8)
                 it.setLastModified(dataLayer.lastUpdated)
             }
         }

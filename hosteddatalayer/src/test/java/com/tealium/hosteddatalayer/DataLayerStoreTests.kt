@@ -282,10 +282,10 @@ class DataLayerStoreTests {
     fun size_doesNotExceedMax_AndRemovesOldest(){
         store.clear()
         assertEquals(0, store.count())
-
+        val firstFileTimestamp = System.currentTimeMillis() - ((defaultCacheSize + 5) * 10000)
         repeat (defaultCacheSize + 5) {
             val entry = HostedDataLayerEntry("entry$it",
-                    System.currentTimeMillis() - ((defaultCacheSize + 5) * 100) + it * 10,
+                     firstFileTimestamp + it * 1000,
                         JSONObject("{}")
                     )
             store.insert(entry)

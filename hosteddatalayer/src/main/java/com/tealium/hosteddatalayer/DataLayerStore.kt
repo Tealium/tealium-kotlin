@@ -86,8 +86,7 @@ class DataLayerStore(config: TealiumConfig,
             removeOldestDataLayer()
         }
 
-        val file = HostedDataLayerEntry.toFile(hdlDirectory, item)
-        file.writeText(item.data.toString(), Charsets.UTF_8)
+        HostedDataLayerEntry.toFile(hdlDirectory, item)
         cache(item.id, item)
     }
 
