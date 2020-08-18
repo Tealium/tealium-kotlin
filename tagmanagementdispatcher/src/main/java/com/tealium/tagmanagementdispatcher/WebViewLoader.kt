@@ -266,7 +266,8 @@ class WebViewLoader(private val context: TealiumContext,
         }
 
         if (connectivityRetriever.isConnected() &&
-                shouldRegisterSession.compareAndSet(PageStatus.LOADED_SUCCESS, false)) {
+                isWebViewLoaded.get() == PageStatus.LOADED_SUCCESS &&
+                shouldRegisterSession.compareAndSet(true, false)) {
             backgroundScope.launch {
                 val url = createSessionUrl(context.config, sessionId)
                 Logger.dev(BuildConfig.TAG, "Registering new Tag Management session - $url")

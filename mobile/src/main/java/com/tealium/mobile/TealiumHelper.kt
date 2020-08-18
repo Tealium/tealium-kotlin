@@ -28,7 +28,6 @@ object TealiumHelper {
                 "tealiummobile",
                 "android",
                 Environment.DEV,
-                dataSourceId = "",
                 modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement)
         ).apply {
