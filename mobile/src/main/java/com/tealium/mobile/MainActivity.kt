@@ -1,8 +1,9 @@
 package com.tealium.mobile
 
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-
+import androidx.fragment.app.Fragment
 import com.tealium.core.Tealium
 import com.tealium.dispatcher.TealiumEvent
 import com.tealium.dispatcher.TealiumView

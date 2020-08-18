@@ -47,6 +47,7 @@ class RemoteCommandConfigRetrieverTests {
     fun remoteCommandConfigValidLoadFromAsset() {
         every { mockLoader.loadFromAsset(any()) } returns null
         coEvery { mockNetworkClient.get(any()) } returns null
+        // initialize RemoteCommandConfigRetriever
         val configRetriever = RemoteCommandConfigRetriever(config, "testCommandId", filename = "testFileName", client = mockNetworkClient, loader = mockLoader, backgroundScope = mockScope)
         val config = configRetriever.remoteCommandConfig
 
@@ -59,6 +60,7 @@ class RemoteCommandConfigRetrieverTests {
     fun remoteCommandConfigValidLoadFromCache() = runBlocking {
         every { mockLoader.loadFromFile(any()) } returns null
         coEvery { mockNetworkClient.get(any()) } returns null
+        // initialize RemoteCommandConfigRetriever
         val configRetriever = RemoteCommandConfigRetriever(config, "testCommandId", remoteUrl = "testRemoteUrl", client = mockNetworkClient, loader = mockLoader, backgroundScope = this)
         val config = configRetriever.remoteCommandConfig
 

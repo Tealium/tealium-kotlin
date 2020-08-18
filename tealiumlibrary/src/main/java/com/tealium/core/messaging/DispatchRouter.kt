@@ -4,7 +4,10 @@ import com.tealium.core.Collector
 import com.tealium.core.settings.LibrarySettingsManager
 import com.tealium.core.Logger
 import com.tealium.core.consent.ConsentManagementPolicy
+import com.tealium.core.consent.ConsentManager
+import com.tealium.core.consent.ConsentStatus
 import com.tealium.core.consent.UserConsentPreferences
+import com.tealium.core.network.Connectivity
 import com.tealium.core.persistence.DispatchStorage
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
@@ -18,6 +21,8 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
                               private val validators: Set<DispatchValidator>,
                               private val dispatchStore: DispatchStorage,
                               private val librarySettingsManager: LibrarySettingsManager,
+                              private val connectivity: Connectivity,
+                              private val consentManager: ConsentManager,
                               private val eventRouter: EventRouter)
     : ValidationChangedListener,
         UserConsentPreferencesUpdatedListener {
@@ -25,6 +30,7 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
     private val scope = CoroutineScope(coroutineDispatcher)
     private val settings
         get() = librarySettingsManager.librarySettings
+
     /**
      * Entry point for all dispatch tracking. Contains business logic for passing dispatches through
      * the system, and informs any [Listener] instances registered with the [EventRouter]
@@ -90,7 +96,12 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
                     if (override != null && override.isInstance(validator)) {
                         false
                     } else validator.shouldQueue(dispatch).also { queueing ->
-                        if (queueing) Logger.qa(BuildConfig.TAG, "Queueing dispatch requested by: ${validator.name}")
+                        if (queueing) {
+                            Logger.qa(BuildConfig.TAG, "Queueing dispatch requested by: ${validator.name}")
+                            if (validator.name == "BATCHING_VALIDATOR") {
+                                attemptSendRemoteCommand(dispatch)
+                            }
+                        }
                     }
         }
     }
@@ -111,6 +122,8 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
      * Pops all currently queued items off the queue, and adds the [dispatch] if one is supplied.
      */
     fun dequeue(dispatch: Dispatch?): List<Dispatch> {
+        // check if remote commands should be triggered, only on incoming dispatch
+        attemptSendRemoteCommand(dispatch)
         var queue = dispatchStore.dequeue(-1)
         dispatch?.let {
             queue = queue.plus(it)
@@ -149,6 +162,29 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
     }
 
     /**
+     * If batching is enabled, attempt to send remote commands. If Consent Manager
+     * is enabled, verify consent is granted. If disabled, check connectivity.
+     */
+    private fun attemptSendRemoteCommand(dispatch: Dispatch?) {
+        if (settings.batching.batchSize > 1) {
+            dispatch?.let {
+                when (consentManager.enabled) {
+                    true -> {
+                        if (consentManager.userConsentStatus == ConsentStatus.CONSENTED && connectivity.isConnected()) {
+                            eventRouter.onProcessRemoteCommand(it)
+                        }
+                    }
+                    false -> {
+                        if (connectivity.isConnected()) {
+                            eventRouter.onProcessRemoteCommand(it)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Executes each [DispatchValidator.shouldQueue] method again to see if it is safe to send any
      * queued dispatches. If so, then they will be dequeued and dispatched.
      */
@@ -158,6 +194,12 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
         if (!shouldQueue(null, override)) {
             val dispatches = dequeue(null)
             sendDispatches(dispatches)
+
+            if (dispatches.count() > 1) {
+                dispatches.forEach {
+                    attemptSendRemoteCommand(it)
+                }
+            }
         }
     }
 

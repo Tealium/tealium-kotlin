@@ -3,9 +3,11 @@ package com.tealium.core.dispatcher
 import com.tealium.core.Collector
 import com.tealium.core.settings.LibrarySettingsManager
 import com.tealium.core.Logger
+import com.tealium.core.consent.ConsentManager
 import com.tealium.core.messaging.DispatchRouter
 import com.tealium.core.messaging.EventDispatcher
 import com.tealium.core.messaging.EventRouter
+import com.tealium.core.network.Connectivity
 import com.tealium.core.settings.Batching
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.persistence.DispatchStorage
@@ -51,6 +53,12 @@ class DispatchRouterTests {
     @MockK
     private lateinit var librarySettingsManager: LibrarySettingsManager
 
+    @MockK
+    private lateinit var connectivity: Connectivity
+
+    @MockK
+    private lateinit var consentManager: ConsentManager
+
     val coroutineDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     val eventDispatch = TealiumEvent("TestEvent")
     val eventDispatchList = mutableListOf<Dispatch>(eventDispatch, eventDispatch)
@@ -91,6 +99,8 @@ class DispatchRouterTests {
                 setOf(validator, validator2, batchingValidator, connectivityValidator),
                 dispatchStore,
                 librarySettingsManager,
+                connectivity,
+                consentManager,
                 eventRouter)
     }
 

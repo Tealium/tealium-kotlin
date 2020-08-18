@@ -52,7 +52,7 @@ class RemoteCommandConfigRetriever(private val config: TealiumConfig,
                 Logger.dev(BuildConfig.TAG, "Loaded remote command settings from cache")
             }
             backgroundScope.launch {
-                fetchRemoteSettings(it)
+                fetchRemoteSettings()
             }
             cachedSettings
         } ?: RemoteCommandConfig()
@@ -72,7 +72,7 @@ class RemoteCommandConfigRetriever(private val config: TealiumConfig,
         }
     }
 
-    private suspend fun fetchRemoteSettings(url: String) = coroutineScope {
+    private suspend fun fetchRemoteSettings() = coroutineScope {
         if (job?.isActive == false || job == null) {
             job = async {
                 if (isActive) {

@@ -58,7 +58,7 @@ repositories {
 //            release(MavenPublication) {
 //                from components.release
 //                groupId = 'com.tealium'
-//                artifactId = 'kotlin-remote-commands'
+//                artifactId = 'kotlin-remote-command-dispatcher'
 //            }
 //        }
 //        repositories {

@@ -212,6 +212,8 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
                 modules.getModulesForType(DispatchValidator::class.java),
                 dispatchStore,
                 librarySettingsManager,
+                connectivity,
+                consentManager,
                 eventRouter)
         eventRouter.subscribe(dispatchRouter)
         eventRouter.subscribe(dispatchStore)
@@ -236,7 +238,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
         return setOf<DispatchValidator>(
                 BatteryValidator(config, librarySettingsManager.librarySettings, events),
                 ConnectivityValidator(connectivity, librarySettingsManager.librarySettings),
-                BatchingValidator(config, dispatchStore, librarySettingsManager.librarySettings, eventRouter)
+                BatchingValidator(dispatchStore, librarySettingsManager.librarySettings, eventRouter)
         ).union(customValidators)
     }
 
