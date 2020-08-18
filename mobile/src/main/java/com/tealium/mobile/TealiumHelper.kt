@@ -8,11 +8,13 @@ import com.tealium.core.consent.consentManagerPolicy
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.lifecycle.Lifecycle
+import com.tealium.location.Location
 import com.tealium.remotecommanddispatcher.*
 import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
 import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 import com.tealium.tagmanagementdispatcher.TagManagement
 import com.tealium.visitorservice.VisitorProfile
+import com.tealium.visitorservice.VisitorService
 import com.tealium.visitorservice.VisitorServiceDelegate
 import com.tealium.visitorservice.visitorService
 
@@ -25,11 +27,12 @@ object TealiumHelper {
                 "android",
                 Environment.DEV,
                 dataSourceId = "",
-                modules = mutableSetOf(Modules.Lifecycle),
-                dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
+                modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService),
+                dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement)
         ).apply {
-//            useRemoteLibrarySettings = true
-            consentManagerPolicy = ConsentPolicy.GDPR
+            collectors.add(Collectors.Location)
+            useRemoteLibrarySettings = true
+//            hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
         }
 
         instance = Tealium("instance_1", config) {
