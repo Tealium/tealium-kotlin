@@ -8,6 +8,4 @@ object TealiumCollectorConstants {
     const val TEALIUM_VISITOR_ID = "tealium_visitor_id"
     const val TEALIUM_LIBRARY_NAME_KEY_NAME = "tealium_library_name"
     const val TEALIUM_LIBRARY_VERSION_KEY_NAME = "tealium_library_version"
-    const val TEALIUM_LIBRARY_NAME = "android-kotlin"
-    const val TEALIUM_LIBRARY_VERSION = "0.1.0"
 }
