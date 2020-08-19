@@ -7,7 +7,7 @@ import com.tealium.core.JsonUtils
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.network.NetworkClient
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.TealiumEvent
 import com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand
 import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
 import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
@@ -56,7 +56,7 @@ class RemoteCommandDispatcherTests {
         every { mockRemoteCommandConfig.apiCommands?.get("event_test") } returns "test_command"
 
         remoteCommandDispatcher.add(jsonCommand)
-        val dispatch = EventDispatch("event_test", mapOf("key1" to "value1", "key2" to "value2"))
+        val dispatch = TealiumEvent("event_test", mapOf("key1" to "value1", "key2" to "value2"))
         remoteCommandDispatcher.onProcessRemoteCommand(dispatch)
 
         verify { jsonCommand.invoke(any()) }
