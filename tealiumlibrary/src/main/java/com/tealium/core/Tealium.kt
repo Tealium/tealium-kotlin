@@ -1,5 +1,7 @@
 package com.tealium.core
 
+import android.content.SharedPreferences
+import android.util.Log
 import com.tealium.core.collection.SessionCollector
 import com.tealium.core.collection.TealiumCollector
 import com.tealium.core.consent.ConsentManager
@@ -23,9 +25,11 @@ import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.collections.ArrayList
 
 /**
  * @param key - uniquely identifies this Tealium instance.
@@ -121,7 +125,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
         activityObserver = ActivityObserver(config, eventRouter)
         databaseHelper = DatabaseHelper(config)
         dataLayer = PersistentStorage(databaseHelper, "datalayer")
-
+        migratePersistentStorage()
         visitorId = getOrCreateVisitorId()
         consentManager = ConsentManager(config, eventRouter, visitorId, librarySettingsManager.librarySettings)
 
@@ -312,5 +316,56 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     @Suppress("unused")
     fun killTraceVisitorSession() {
         activityObserverListener.killTraceVisitorSession()
+    }
+
+    /**
+     * Migrates persistent data from the Tealium Android (Java) library if present
+     * */
+    private fun migratePersistentStorage() {
+        val hashCode = (config.accountName + '.' +
+                    config.profileName + '.' +
+                    config.environment.environment).hashCode()
+        val legacySharedPreferences = config.application.getSharedPreferences("tealium.datasources.${Integer.toHexString(hashCode)}", 0)
+        if (legacySharedPreferences.all.isEmpty()) {
+            return
+        }
+        legacySharedPreferences.all.forEach { item ->
+            val key = item.key
+            val value = item.value
+
+            (value as? String)?.let {
+                dataLayer.putString(key, it, Expiry.FOREVER)
+            }
+            (value as? Boolean)?.let {
+                dataLayer.putBoolean(key, it, Expiry.FOREVER)
+            }?:
+            (value as? Double)?.let {
+                dataLayer.putDouble(key, it, Expiry.FOREVER)
+            }?:
+            (value as? Int)?.let {
+                dataLayer.putInt(key, it, Expiry.FOREVER)
+            }?:
+            (value as? Long)?.let {
+                dataLayer.putLong(key, it, Expiry.FOREVER)
+            }?:
+            if (value is Set<*>) {
+                value.firstOrNull()?.let {
+                    when(it) {
+                        is String -> {
+                            val stringArray: MutableList<String> = ArrayList<String>()
+                            value.forEach { anyValue ->
+                                anyValue?.let { stringValue ->
+                                    if (stringValue is String) {
+                                        stringArray.add(stringValue)
+                                    }
+                                }
+                            }
+                            dataLayer.putStringArray(key, stringArray.toTypedArray())
+                        }
+                    }
+                }
+            }
+        }
+        legacySharedPreferences.edit().clear().apply()
     }
 }
