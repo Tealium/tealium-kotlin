@@ -1,7 +1,6 @@
 package com.tealium.mobile
 
 import android.app.Application
-import android.util.Log
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
 import com.tealium.core.validation.DispatchValidator

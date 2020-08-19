@@ -1,5 +1,6 @@
 package com.tealium.core.messaging
 
+import android.app.Activity
 import com.tealium.core.Module
 import com.tealium.core.consent.ConsentManagementPolicy
 import com.tealium.core.consent.UserConsentPreferences
@@ -111,26 +112,26 @@ class EventDispatcher : EventRouter {
         }
     }
 
-    override fun onActivityPaused() {
+    override fun onActivityPaused(activity: Activity?) {
         listeners.forEach {
             when (it) {
-                is ActivityObserverListener -> it.onActivityPaused()
+                is ActivityObserverListener -> it.onActivityPaused(activity)
             }
         }
     }
 
-    override fun onActivityResumed() {
+    override fun onActivityResumed(activity: Activity?) {
         listeners.forEach {
             when (it) {
-                is ActivityObserverListener -> it.onActivityResumed()
+                is ActivityObserverListener -> it.onActivityResumed(activity)
             }
         }
     }
 
-    override fun onActivityStopped(isChangingConfiguration: Boolean) {
+    override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
         listeners.forEach {
             when (it) {
-                is ActivityObserverListener -> it.onActivityStopped(isChangingConfiguration)
+                is ActivityObserverListener -> it.onActivityStopped(activity, isChangingConfiguration)
             }
         }
     }

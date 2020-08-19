@@ -19,7 +19,6 @@ import com.tealium.core.validation.ConnectivityValidator
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
-import com.tealium.dispatcher.TealiumEvent
 import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -62,6 +61,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     private val databaseHelper: DatabaseHelper
     private val eventRouter = EventDispatcher()
     private val sessionManager = SessionManager(config, eventRouter)
+    private lateinit var activityObserverListener: DeepLinkHandler
 
     // Are publicly accessible, therefore need to be initialized on creation.
     /**
@@ -119,7 +119,6 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     init {
         librarySettingsManager = LibrarySettingsManager(config, networkClient, eventRouter = eventRouter, backgroundScope = backgroundScope)
         activityObserver = ActivityObserver(config, eventRouter)
-
         databaseHelper = DatabaseHelper(config)
         dataLayer = PersistentStorage(databaseHelper, "datalayer")
 
@@ -134,7 +133,6 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
         logger = Logger
         eventRouter.subscribe(Logger)
         eventRouter.subscribe(sessionManager)
-
         // Initialize everything else in the background.
         backgroundScope.launch {
             bootstrap()
@@ -173,7 +171,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
             }
         }
     }
-
+    @Suppress("unused")
     fun sendQueuedDispatches() {
         if (librarySettingsManager.librarySettings.disableLibrary) {
             Logger.qa(BuildConfig.TAG, "Library is disabled. Cannot dispatch queued events.")
@@ -220,7 +218,8 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
                 eventRouter)
         eventRouter.subscribe(dispatchRouter)
         eventRouter.subscribe(dispatchStore)
-
+        activityObserverListener = DeepLinkHandler(context)
+        eventRouter.subscribe(activityObserverListener)
         onInstanceReady()
     }
 
@@ -292,5 +291,31 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
                 track(queuedDispatch)
             }
         }
+    }
+
+    /**
+     * Adds the supplied Trace ID to the data layer for the current session.
+     */
+    @Suppress("unused")
+    fun joinTrace(id: String) {
+        activityObserverListener.joinTrace(id)
+    }
+
+    /**
+     * Removes the Trace ID from the data layer if present
+     */
+    @Suppress("unused")
+    fun leaveTrace() {
+        activityObserverListener.leaveTrace()
+    }
+
+
+    /**
+     * Kills the visitor session remotely to test end of session events (does not terminate the SDK session
+     * or reset the session ID).
+     */
+    @Suppress("unused")
+    fun killTraceVisitorSession() {
+        activityObserverListener.killTraceVisitorSession()
     }
 }

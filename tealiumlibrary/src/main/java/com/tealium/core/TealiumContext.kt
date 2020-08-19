@@ -14,7 +14,7 @@ data class TealiumContext(val config: TealiumConfig,
                           val dataLayer: DataLayer,
                           val httpClient: NetworkClient,
                           val events: Subscribable,
-                          private val tealium: Tealium) {
+                          val tealium: Tealium) {
 
     /**
      * Can be used by modules outside of the core to send tracking requests on this Tealium instance.

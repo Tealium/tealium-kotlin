@@ -1,5 +1,6 @@
 package com.tealium.core.validation
 
+import android.app.Activity
 import com.tealium.core.messaging.ActivityObserverListener
 import com.tealium.core.messaging.EventRouter
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
@@ -35,18 +36,18 @@ internal class BatchingValidator(private val dispatchStorage: DispatchStorage,
         batchSettings = settings.batching
     }
 
-    override fun onActivityResumed() {
+    override fun onActivityResumed(activity: Activity?) {
         ++activityCount
     }
 
-    override fun onActivityStopped(isChangingConfiguration: Boolean) {
+    override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
         --activityCount
         if (activityCount == 0 && !isChangingConfiguration) {
             eventRouter.onRevalidate(BatchingValidator::class.java)
         }
     }
 
-    override fun onActivityPaused() {
+    override fun onActivityPaused(activity: Activity?) {
         // do nothing
     }
 }
