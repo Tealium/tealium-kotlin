@@ -60,6 +60,7 @@ interface DispatchDroppedListener : Listener {
  */
 interface RemoteCommandListener : Listener {
     fun onRemoteCommandSend(url: String)
+    fun onProcessRemoteCommand(dispatch: Dispatch)
 }
 
 /**

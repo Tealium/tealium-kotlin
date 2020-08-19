@@ -5,9 +5,12 @@ import com.tealium.core.Collector
 import com.tealium.core.settings.LibrarySettingsManager
 import com.tealium.core.Logger
 import com.tealium.core.Transformer
+import com.tealium.core.consent.ConsentManager
+import com.tealium.core.consent.ConsentStatus
 import com.tealium.core.messaging.DispatchRouter
 import com.tealium.core.messaging.EventDispatcher
 import com.tealium.core.messaging.EventRouter
+import com.tealium.core.network.Connectivity
 import com.tealium.core.settings.Batching
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.persistence.DispatchStorage
@@ -56,6 +59,12 @@ class DispatchRouterTests {
     @MockK
     private lateinit var librarySettingsManager: LibrarySettingsManager
 
+    @MockK
+    private lateinit var connectivity: Connectivity
+
+    @MockK
+    private lateinit var consentManager: ConsentManager
+
     val coroutineDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     lateinit var eventDispatch : Dispatch
     lateinit var eventDispatchList : List<Dispatch>
@@ -94,11 +103,16 @@ class DispatchRouterTests {
 
         coEvery { librarySettingsManager.fetchLibrarySettings() } just Runs
         every { librarySettingsManager.librarySettings } returns librarySettings
+        excludeRecords { librarySettingsManager.librarySettings }
         every { dispatchStore.dequeue(-1) } returns eventDispatchList
 
         mockkStatic(Log::class)
         every { Log.i(any(), any()) } returns 0
         every { Log.e(any(), any()) } returns 0
+
+        every { consentManager.enabled } returns true
+        every { consentManager.userConsentStatus } returns ConsentStatus.CONSENTED
+        every { connectivity.isConnected() } returns true
 
         eventRouter = spyk(EventDispatcher())
         eventRouter.subscribe(dispatcher)
@@ -109,6 +123,8 @@ class DispatchRouterTests {
                 setOf(validator, validator2, batchingValidator, connectivityValidator),
                 dispatchStore,
                 librarySettingsManager,
+                connectivity,
+                consentManager,
                 eventRouter)
     }
 
@@ -207,7 +223,7 @@ class DispatchRouterTests {
         every { validator.shouldDrop(eventDispatch) } returns true
         dispatchRouter.track(eventDispatch)
 
-        coVerify {
+        coVerify(timeout = 1000) {
             collector.collect()
             transformer.transform(eventDispatch)
             validator.shouldDrop(eventDispatch)
@@ -242,6 +258,7 @@ class DispatchRouterTests {
             collector.collect()
             transformer.transform(eventDispatch)
             validator.shouldDrop(eventDispatch)
+            eventRouter.onDispatchReady(eventDispatch)
             validator.shouldQueue(eventDispatch)
             dispatchStore.enqueue(eventDispatch)
             eventRouter.onDispatchQueued(eventDispatch)
@@ -262,6 +279,7 @@ class DispatchRouterTests {
             collector.collect()
             transformer.transform(eventDispatch)
             validator.shouldDrop(eventDispatch)
+            eventRouter.onDispatchReady(eventDispatch)
             validator.shouldQueue(eventDispatch)
             dispatchStore.enqueue(eventDispatch)
             eventRouter.onDispatchQueued(eventDispatch)
@@ -318,7 +336,7 @@ class DispatchRouterTests {
         every { batching.batchSize } returns 5
         dispatchRouter.track(eventDispatch)
 
-        coVerify {
+        coVerify(timeout = 1000) {
             collector.collect()
             transformer.transform(eventDispatch)
             validator.shouldQueue(eventDispatch)

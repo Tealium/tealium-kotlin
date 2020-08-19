@@ -4,7 +4,7 @@ object TagManagementConstants {
     const val EVENT = "event"
 }
 
-object RemoteCommand {
+object TagManagementRemoteCommand {
     const val PREFIX = "tealium://"
     const val TIQ_CONFIG = "remote_command_config_tiq"
 }

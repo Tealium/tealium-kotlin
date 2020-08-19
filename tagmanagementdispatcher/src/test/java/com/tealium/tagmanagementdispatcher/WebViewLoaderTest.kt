@@ -52,7 +52,7 @@ class WebViewLoaderTest {
 
 
     @Before
-    fun setup() {
+    fun setUp() {
         MockKAnnotations.init(this)
         Dispatchers.setMain(mainThreadSurrogate)
 

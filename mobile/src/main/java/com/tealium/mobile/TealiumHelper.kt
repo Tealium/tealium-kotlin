@@ -3,12 +3,17 @@ package com.tealium.mobile
 import android.app.Application
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
+import com.tealium.core.consent.ConsentPolicy
+import com.tealium.core.consent.consentManagerPolicy
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.hosteddatalayer.HostedDataLayer
 import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
 import com.tealium.lifecycle.Lifecycle
 import com.tealium.location.Location
+import com.tealium.remotecommanddispatcher.*
+import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
+import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 import com.tealium.tagmanagementdispatcher.TagManagement
 import com.tealium.visitorservice.VisitorProfile
 import com.tealium.visitorservice.VisitorService
@@ -21,7 +26,7 @@ object TealiumHelper {
     fun init(application: Application) {
         val config = TealiumConfig(application,
                 "tealiummobile",
-                "location",
+                "android",
                 Environment.DEV,
                 modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement)
@@ -38,6 +43,21 @@ object TealiumHelper {
                     Logger.dev("--", "did update vp with $visitorProfile")
                 }
             }
+
+            remoteCommands?.add(localJsonCommand)
+            remoteCommands?.add(webViewRemoteCommand)
+        }
+    }
+
+    val webViewRemoteCommand = object : RemoteCommand("bgcolor", "testing Webview RCs") {
+        override fun onInvoke(response: Response) {
+            Logger.dev(BuildConfig.TAG, "ResponsePayload for webView RemoteCommand ${response.requestPayload}")
+        }
+    }
+
+    val localJsonCommand = object : JsonRemoteCommand("localJsonCommand", "testingRCs", filename = "remoteCommand.json") {
+        override fun onInvoke(response: Response) {
+            Logger.dev(BuildConfig.TAG, "ResponsePayload for local JSON RemoteCommand ${response.requestPayload}")
         }
     }
 

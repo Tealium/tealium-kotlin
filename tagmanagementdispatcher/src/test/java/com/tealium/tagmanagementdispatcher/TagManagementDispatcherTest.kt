@@ -47,7 +47,7 @@ class TagManagementDispatcherTest {
     private val mainThreadSurrogate = newSingleThreadContext("UI thread")
 
     @Before
-    fun setup() {
+    fun setUp() {
         MockKAnnotations.init(this)
         Dispatchers.setMain(mainThreadSurrogate)
 
@@ -148,8 +148,6 @@ class TagManagementDispatcherTest {
         val dispatch = TealiumEvent("test", mapOf("key" to "value"))
         tagManagementDispatcher.onDispatchReady(dispatch)
 
-        verify {
-            mockWebViewLoader.initializeWebView()
-        }
+        coVerify { mockWebViewLoader.initializeWebView() }
     }
 }

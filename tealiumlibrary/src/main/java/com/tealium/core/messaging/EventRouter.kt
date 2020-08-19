@@ -96,6 +96,14 @@ class EventDispatcher : EventRouter {
         }
     }
 
+    override fun onProcessRemoteCommand(dispatch: Dispatch) {
+        listeners.forEach {
+            when (it) {
+                is RemoteCommandListener -> it.onProcessRemoteCommand(dispatch)
+            }
+        }
+    }
+
     override fun onRemoteCommandSend(url: String) {
         listeners.forEach {
             when (it) {

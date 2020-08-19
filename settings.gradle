@@ -1,2 +1,2 @@
-include ':mobile', ':tealiumlibrary', ':collectdispatcher', ':tagmanagementdispatcher', ':lifecycle', ':visitorservice', ':installreferrer', ':location'
+include ':mobile', ':tealiumlibrary', ':collectdispatcher', ':tagmanagementdispatcher', ':lifecycle', ':visitorservice', ':installreferrer', ':location', ':remotecommanddispatcher'
 include ':hosteddatalayer'

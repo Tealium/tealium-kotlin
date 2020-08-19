@@ -105,10 +105,6 @@ class WebViewLoader(private val context: TealiumContext,
                         "    if(f>=0){\n" +
                         "        payload.trace_id = document.cookie.substring(f+9).split(';')[0];\n" +
                         "    }\n" +
-                        // Remote Command _config command
-                        "    window.open('tealium://_config?request=' + encodeURIComponent(JSON.stringify({\n" +
-                        "        payload : payload\n" +
-                        "    })), '_self');\n" +
                         "})()"
                 )
             }
@@ -181,9 +177,9 @@ class WebViewLoader(private val context: TealiumContext,
             }
 
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                context.config.options[RemoteCommand.TIQ_CONFIG].let {
+                context.config.options[TagManagementRemoteCommand.TIQ_CONFIG].let {
                     url?.let {
-                        if (url.startsWith(RemoteCommand.PREFIX)) {
+                        if (url.startsWith(TagManagementRemoteCommand.PREFIX)) {
                             afterDispatchSendCallbacks.sendRemoteCommand(url)
                         }
                     }

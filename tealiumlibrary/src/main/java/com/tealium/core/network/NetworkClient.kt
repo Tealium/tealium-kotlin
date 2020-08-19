@@ -1,7 +1,5 @@
 package com.tealium.core.network
 
-import org.json.JSONObject
-
 interface NetworkClientListener {
     fun onNetworkResponse(status: Int, response: String)
 

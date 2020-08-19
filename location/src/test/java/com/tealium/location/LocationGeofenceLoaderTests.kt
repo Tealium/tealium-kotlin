@@ -18,7 +18,7 @@ import org.robolectric.annotation.Config
 class LocationGeofenceLoaderTests {
 
     @Before
-    fun setup() {
+    fun setUp() {
         MockKAnnotations.init(this)
     }
 
