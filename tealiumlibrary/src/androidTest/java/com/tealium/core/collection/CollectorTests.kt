@@ -121,6 +121,8 @@ class CollectorTestsAndroid {
         assertEquals(config.environment.environment, data[TealiumCollectorConstants.TEALIUM_ENVIRONMENT])
         assertEquals(config.dataSourceId, data[TealiumCollectorConstants.TEALIUM_DATASOURCE_ID])
         assertEquals("visitor_id", data[TealiumCollectorConstants.TEALIUM_VISITOR_ID])
+        assertEquals(TealiumCollectorConstants.TEALIUM_LIBRARY_VERSION, data[TealiumCollectorConstants.TEALIUM_LIBRARY_VERSION_KEY_NAME])
+        assertEquals(TealiumCollectorConstants.TEALIUM_LIBRARY_NAME, data[TealiumCollectorConstants.TEALIUM_LIBRARY_NAME_KEY_NAME])
 
         every { config.dataSourceId } returns null
         data = tealiumCollector.collect()
