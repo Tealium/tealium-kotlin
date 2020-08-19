@@ -1,5 +1,6 @@
 package com.tealium.remotecommanddispatcher.remotecommands
 
+import com.tealium.internal.tagbridge.RemoteCommand
 import com.tealium.remotecommanddispatcher.RemoteCommandConfigRetriever
 
 abstract class JsonRemoteCommand(var name: String,

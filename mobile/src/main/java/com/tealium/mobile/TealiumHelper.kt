@@ -8,9 +8,9 @@ import com.tealium.core.consent.consentManagerPolicy
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.lifecycle.Lifecycle
-import com.tealium.remotecommanddispatcher.*
-import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
-import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
+//import com.tealium.remotecommanddispatcher.*
+//import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
+//import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 import com.tealium.tagmanagementdispatcher.TagManagement
 import com.tealium.visitorservice.VisitorProfile
 import com.tealium.visitorservice.VisitorServiceDelegate
@@ -26,7 +26,7 @@ object TealiumHelper {
                 Environment.DEV,
                 dataSourceId = "",
                 modules = mutableSetOf(Modules.Lifecycle),
-                dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
+                dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement)//, Dispatchers.RemoteCommands)
         ).apply {
 //            useRemoteLibrarySettings = true
             consentManagerPolicy = ConsentPolicy.GDPR
@@ -40,22 +40,22 @@ object TealiumHelper {
                 }
             }
 
-            remoteCommands?.add(localJsonCommand)
-            remoteCommands?.add(webViewRemoteCommand)
+//            remoteCommands?.add(localJsonCommand)
+//            remoteCommands?.add(webViewRemoteCommand)
         }
     }
 
-    val webViewRemoteCommand = object : RemoteCommand("bgcolor", "testing Webview RCs") {
-        override fun onInvoke(response: Response) {
-            Logger.dev(BuildConfig.TAG, "ResponsePayload for webView RemoteCommand ${response.requestPayload}")
-        }
-    }
-
-    val localJsonCommand = object : JsonRemoteCommand("localJsonCommand", "testingRCs", filename = "remoteCommand.json") {
-        override fun onInvoke(response: Response) {
-            Logger.dev(BuildConfig.TAG, "ResponsePayload for local JSON RemoteCommand ${response.requestPayload}")
-        }
-    }
+//    val webViewRemoteCommand = object : RemoteCommand("bgcolor", "testing Webview RCs") {
+//        override fun onInvoke(response: Response) {
+//            Logger.dev(BuildConfig.TAG, "ResponsePayload for webView RemoteCommand ${response.requestPayload}")
+//        }
+//    }
+//
+//    val localJsonCommand = object : JsonRemoteCommand("localJsonCommand", "testingRCs", filename = "remoteCommand.json") {
+//        override fun onInvoke(response: Response) {
+//            Logger.dev(BuildConfig.TAG, "ResponsePayload for local JSON RemoteCommand ${response.requestPayload}")
+//        }
+//    }
 
     val customValidator: DispatchValidator by lazy {
         object : DispatchValidator {

@@ -3,6 +3,7 @@ package com.tealium.remotecommanddispatcher.remotecommands
 import android.net.Uri
 import com.tealium.core.Logger
 import com.tealium.core.network.*
+import com.tealium.internal.tagbridge.RemoteCommand
 import com.tealium.remotecommanddispatcher.BuildConfig
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
@@ -75,7 +76,7 @@ class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME,
             } catch (e: Exception) {
                 Logger.dev(BuildConfig.TAG, "Unknown exception occurred")
                 response.apply {
-                    status = Response.STATUS_EXCEPTION_THROWN
+                    status = 555 // TODO - make public Response.STATUS_EXCEPTION_THROWN
                     body = e.toString()
                 }
                 response.send()

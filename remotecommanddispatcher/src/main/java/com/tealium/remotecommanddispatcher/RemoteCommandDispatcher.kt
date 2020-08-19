@@ -8,9 +8,11 @@ import com.tealium.core.network.NetworkClient
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
 import com.tealium.dispatcher.DispatcherListener
+import com.tealium.internal.tagbridge.RemoteCommand
+import com.tealium.internal.tagbridge.RemoteCommandRequest
 import com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand
 import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
-import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
+//import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 
 interface RemoteCommandDispatcherListener : DispatcherListener {
 }
@@ -32,18 +34,18 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     fun add(remoteCommand: RemoteCommand) {
         when (remoteCommand) {
             is JsonRemoteCommand -> {
-                jsonCommands[remoteCommand.commandId] = remoteCommand
+                jsonCommands[remoteCommand.name] = remoteCommand
                 remoteCommand.filename?.let {
-                    remoteCommand.remoteCommandConfigRetriever = RemoteCommandConfigRetriever(context.config, remoteCommand.commandId, filename = it)
+                    remoteCommand.remoteCommandConfigRetriever = RemoteCommandConfigRetriever(context.config, remoteCommand.name, filename = it)
                 } ?: run {
                     remoteCommand.remoteUrl?.let {
-                        remoteCommand.remoteCommandConfigRetriever = RemoteCommandConfigRetriever(context.config, remoteCommand.commandId, remoteUrl = it)
+                        remoteCommand.remoteCommandConfigRetriever = RemoteCommandConfigRetriever(context.config, remoteCommand.name, remoteUrl = it)
                     } ?: run {
-                        Logger.dev(BuildConfig.TAG, "No filename or remote url found for JSON Remote command: ${remoteCommand.commandId}")
+                        Logger.dev(BuildConfig.TAG, "No filename or remote url found for JSON Remote command: ${remoteCommand.name}")
                     }
                 }
             }
-            else -> webViewCommands[remoteCommand.commandId] = remoteCommand
+            else -> webViewCommands[remoteCommand.toString()] = remoteCommand
         }
     }
 
@@ -124,7 +126,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     }
 
     override fun onRemoteCommandSend(url: String) {
-        val request = RemoteCommandRequest.tagManagementRequest(url)
+        val request = RemoteCommandRequest(url)
         request?.let {
             invokeTagManagementRequest(it)
         }
