@@ -37,21 +37,21 @@ class ConsentFragment : Fragment() {
     }
 
     private fun onConsented() {
-//       TealiumHelper.instance.consentManager.userConsentStatus = ConsentStatus.CONSENTED
+       TealiumHelper.instance.consentManager.userConsentStatus = ConsentStatus.CONSENTED
     }
 
     private fun onNotConsented() {
-//       TealiumHelper.instance.consentManager.userConsentStatus = ConsentStatus.NOT_CONSENTED
+       TealiumHelper.instance.consentManager.userConsentStatus = ConsentStatus.NOT_CONSENTED
     }
 
     private fun onResetConsentStatus() {
-//       TealiumHelper.instance.consentManager.reset()
+       TealiumHelper.instance.consentManager.reset()
     }
 
     private fun onCategoriesButton() {
-//       TealiumHelper.instance.consentManager.userConsentCategories = setOf(
-//                ConsentCategory.ANALYTICS,
-//                ConsentCategory.BIG_DATA
-//        )
+       TealiumHelper.instance.consentManager.userConsentCategories = setOf(
+                ConsentCategory.ANALYTICS,
+                ConsentCategory.BIG_DATA
+        )
     }
 }
