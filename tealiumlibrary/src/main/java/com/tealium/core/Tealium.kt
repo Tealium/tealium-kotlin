@@ -62,7 +62,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     private val databaseHelper: DatabaseHelper
     private val eventRouter = EventDispatcher()
     private val sessionManager = SessionManager(config, eventRouter)
-    private lateinit var activityObserverListener: DeepLinkHandler
+    private lateinit var deepLinkHandler: DeepLinkHandler
 
     // Are publicly accessible, therefore need to be initialized on creation.
     /**
@@ -154,6 +154,10 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
             return
         }
 
+        if (dispatch.timestamp == null) {
+            dispatch.timestamp = System.currentTimeMillis()
+        }
+
         when (initialized.get()) {
             true -> {
                 // needs to be done once we're fully initialised, else Session events might be missed
@@ -208,14 +212,15 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
 
         dispatchRouter = DispatchRouter(singleThreadedBackground,
                 modules.getModulesForType(Collector::class.java),
+                modules.getModulesForType(Transformer::class.java),
                 modules.getModulesForType(DispatchValidator::class.java),
                 dispatchStore,
                 librarySettingsManager,
                 eventRouter)
         eventRouter.subscribe(dispatchRouter)
         eventRouter.subscribe(dispatchStore)
-        activityObserverListener = DeepLinkHandler(context)
-        eventRouter.subscribe(activityObserverListener)
+        deepLinkHandler = DeepLinkHandler(context)
+        eventRouter.subscribe(deepLinkHandler)
         onInstanceReady()
     }
 
@@ -294,7 +299,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
      */
     @Suppress("unused")
     fun joinTrace(id: String) {
-        activityObserverListener.joinTrace(id)
+        deepLinkHandler.joinTrace(id)
     }
 
     /**
@@ -302,7 +307,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
      */
     @Suppress("unused")
     fun leaveTrace() {
-        activityObserverListener.leaveTrace()
+        deepLinkHandler.leaveTrace()
     }
 
 
@@ -312,7 +317,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
      */
     @Suppress("unused")
     fun killTraceVisitorSession() {
-        activityObserverListener.killTraceVisitorSession()
+        deepLinkHandler.killTraceVisitorSession()
     }
 
     /**
