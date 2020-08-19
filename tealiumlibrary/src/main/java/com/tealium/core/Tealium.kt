@@ -1,7 +1,5 @@
 package com.tealium.core
 
-import android.content.SharedPreferences
-import android.util.Log
 import com.tealium.core.collection.SessionCollector
 import com.tealium.core.collection.TealiumCollector
 import com.tealium.core.consent.ConsentManager
@@ -25,7 +23,6 @@ import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
@@ -125,7 +122,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
         activityObserver = ActivityObserver(config, eventRouter)
         databaseHelper = DatabaseHelper(config)
         dataLayer = PersistentStorage(databaseHelper, "datalayer")
-        migratePersistentStorage()
+        migratePersistentData()
         visitorId = getOrCreateVisitorId()
         consentManager = ConsentManager(config, eventRouter, visitorId, librarySettingsManager.librarySettings)
 
@@ -321,7 +318,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     /**
      * Migrates persistent data from the Tealium Android (Java) library if present
      * */
-    private fun migratePersistentStorage() {
+    private fun migratePersistentData() {
         val hashCode = (config.accountName + '.' +
                     config.profileName + '.' +
                     config.environment.environment).hashCode()
