@@ -1,5 +1,6 @@
 package com.tealium.core
 
+import android.app.Activity
 import com.tealium.core.messaging.ActivityObserverListener
 import com.tealium.core.messaging.EventRouter
 import com.tealium.dispatcher.Dispatch
@@ -59,15 +60,15 @@ class SessionManager(config: TealiumConfig,
         currentSession.lastEventTime = getTimestamp()
     }
 
-    override fun onActivityPaused() {
+    override fun onActivityPaused(activity: Activity?) {
         Session.writeToSharedPreferences(sessionPreferences, currentSession)
     }
 
-    override fun onActivityResumed() {
+    override fun onActivityResumed(activity: Activity?) {
         // nothing to do.
     }
 
-    override fun onActivityStopped(isChangingConfiguration: Boolean) {
+    override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
         // nothing to do.
     }
 
