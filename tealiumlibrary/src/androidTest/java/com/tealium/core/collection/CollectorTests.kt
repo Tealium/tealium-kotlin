@@ -22,6 +22,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
+import com.tealium.tealiumlibrary.BuildConfig
 
 @RunWith(AndroidJUnit4::class)
 class CollectorTestsAndroid {
@@ -121,6 +122,8 @@ class CollectorTestsAndroid {
         assertEquals(config.environment.environment, data[TealiumCollectorConstants.TEALIUM_ENVIRONMENT])
         assertEquals(config.dataSourceId, data[TealiumCollectorConstants.TEALIUM_DATASOURCE_ID])
         assertEquals("visitor_id", data[TealiumCollectorConstants.TEALIUM_VISITOR_ID])
+        assertEquals(BuildConfig.LIBRARY_VERSION, data[TealiumCollectorConstants.TEALIUM_LIBRARY_VERSION])
+        assertEquals(BuildConfig.LIBRARY_NAME, data[TealiumCollectorConstants.TEALIUM_LIBRARY_NAME])
 
         every { config.dataSourceId } returns null
         data = tealiumCollector.collect()
