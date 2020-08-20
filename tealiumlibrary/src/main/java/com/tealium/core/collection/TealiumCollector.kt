@@ -29,8 +29,8 @@ class TealiumCollector(private val context: TealiumContext) : Collector, Tealium
                 TealiumCollectorConstants.TEALIUM_ENVIRONMENT to environment,
                 TealiumCollectorConstants.TEALIUM_DATASOURCE_ID to (dataSource ?: ""),
                 TealiumCollectorConstants.TEALIUM_VISITOR_ID to context.visitorId,
-                TealiumCollectorConstants.TEALIUM_LIBRARY_NAME_KEY_NAME to BuildConfig.LIBRARY_NAME,
-                TealiumCollectorConstants.TEALIUM_LIBRARY_VERSION_KEY_NAME to BuildConfig.LIBRARY_VERSION
+                TealiumCollectorConstants.TEALIUM_LIBRARY_NAME to BuildConfig.LIBRARY_NAME,
+                TealiumCollectorConstants.TEALIUM_LIBRARY_VERSION to BuildConfig.LIBRARY_VERSION
         )
     }
 
