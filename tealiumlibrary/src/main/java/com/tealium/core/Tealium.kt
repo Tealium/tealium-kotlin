@@ -26,7 +26,6 @@ import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.collections.ArrayList
 
 /**
  * @param key - uniquely identifies this Tealium instance.
@@ -335,36 +334,16 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
             val key = item.key
             val value = item.value
 
-            (value as? String)?.let {
-                dataLayer.putString(key, it, Expiry.FOREVER)
-            }
-            (value as? Boolean)?.let {
-                dataLayer.putBoolean(key, it, Expiry.FOREVER)
-            }?:
-            (value as? Double)?.let {
-                dataLayer.putDouble(key, it, Expiry.FOREVER)
-            }?:
-            (value as? Int)?.let {
-                dataLayer.putInt(key, it, Expiry.FOREVER)
-            }?:
-            (value as? Long)?.let {
-                dataLayer.putLong(key, it, Expiry.FOREVER)
-            }?:
-            if (value is Set<*>) {
-                value.firstOrNull()?.let {
-                    when(it) {
-                        is String -> {
-                            val stringArray: MutableList<String> = ArrayList<String>()
-                            value.forEach { anyValue ->
-                                anyValue?.let { stringValue ->
-                                    if (stringValue is String) {
-                                        stringArray.add(stringValue)
-                                    }
-                                }
-                            }
-                            dataLayer.putStringArray(key, stringArray.toTypedArray())
-                        }
-                    }
+            when (value) {
+                is String -> dataLayer.putString(key, value, Expiry.FOREVER)
+                is Boolean -> dataLayer.putBoolean(key, value, Expiry.FOREVER)
+                is Float -> dataLayer.putDouble(key, value.toDouble(), Expiry.FOREVER)
+                is Double -> dataLayer.putDouble(key, value, Expiry.FOREVER)
+                is Int -> dataLayer.putInt(key, value, Expiry.FOREVER)
+                is Long -> dataLayer.putLong(key, value, Expiry.FOREVER)
+                is Set<*> -> {
+                    val list = value.filterIsInstance<String>()
+                    dataLayer.putStringArray(key, list.toTypedArray(), Expiry.FOREVER)
                 }
             }
         }

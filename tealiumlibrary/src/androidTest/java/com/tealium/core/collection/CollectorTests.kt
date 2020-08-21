@@ -1,6 +1,7 @@
 package com.tealium.core.collection
 
 import AppCollectorConstants
+import AppCollectorConstants.APP_UUID
 import ConnectivityCollectorConstants
 import DeviceCollectorConstants
 import TealiumCollectorConstants
@@ -13,9 +14,7 @@ import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.network.ConnectivityRetriever
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.spyk
+import com.tealium.core.persistence.DataLayer
 import junit.framework.TestCase.*
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -23,11 +22,13 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
 import com.tealium.tealiumlibrary.BuildConfig
+import io.mockk.*
 
 @RunWith(AndroidJUnit4::class)
 class CollectorTestsAndroid {
 
     val tealiumContext = mockk<TealiumContext>()
+    val dataLayer = mockk<DataLayer>()
     val account = "teal-account"
     val profile = "teal-profile"
     val environment = Environment.DEV
@@ -44,11 +45,12 @@ class CollectorTestsAndroid {
                 environment, dataSourceId = dataSource))
 
         every { tealiumContext.config } returns config
+        every { tealiumContext.dataLayer } returns dataLayer
     }
 
     @Test
     fun testAppCollector() = runBlocking {
-        val appCollector = AppCollector(context.applicationContext)
+        val appCollector = AppCollector(context.applicationContext, tealiumContext.dataLayer)
         val data = appCollector.collect()
         assertNotNull(data[AppCollectorConstants.APP_NAME])
         assertNotNull(data[AppCollectorConstants.APP_BUILD])
@@ -146,6 +148,22 @@ class CollectorTestsAndroid {
         assertEquals("-8", data[TimeCollectorConstants.TIMESTAMP_OFFSET])
         assertEquals(946684800L, data[TimeCollectorConstants.TIMESTAMP_UNIX])
         assertEquals(946684800000L, data[TimeCollectorConstants.TIMESTAMP_UNIX_MILLISECONDS])
+    }
+
+    @Test
+    fun testAppUuid_GetsReturnedWhenNotNull() {
+        every { dataLayer.getString(APP_UUID) } returns "my_uuid"
+        val appCollector = AppCollector(context.applicationContext, tealiumContext.dataLayer)
+        assertEquals("my_uuid", appCollector.appUuid)
+    }
+
+    @Test
+    fun testAppUuid_GetsGeneratedWhenNull() {
+        every { dataLayer.getString(APP_UUID) } returns null
+        every { dataLayer.putString(any(), any(), any()) } just Runs
+        val appCollector = AppCollector(context.applicationContext, tealiumContext.dataLayer)
+        assertNotNull(appCollector.appUuid)
+        assertEquals(36, appCollector.appUuid.length)
     }
 
     @Test

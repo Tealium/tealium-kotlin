@@ -1,13 +1,18 @@
 package com.tealium.core.collection
 
+import AppCollectorConstants.APP_UUID
 import android.app.ActivityManager
 import android.app.Service
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.os.Process
 import com.tealium.core.*
+import com.tealium.core.persistence.DataLayer
+import com.tealium.core.persistence.Expiry
+import java.util.*
 
 interface AppData : Collector {
+    val appUuid: String
     val appRdns: String
     val appName: String
     val appBuild: String
@@ -15,7 +20,7 @@ interface AppData : Collector {
     val appMemoryUsage: Long
 }
 
-class AppCollector(private val context: Context) : Collector, AppData {
+class AppCollector(private val context: Context, private val dataLayer: DataLayer) : Collector, AppData {
 
     override val name: String
         get() = "APP_COLLECTOR"
@@ -23,6 +28,13 @@ class AppCollector(private val context: Context) : Collector, AppData {
 
     private val activityManager = context.applicationContext.getSystemService(Service.ACTIVITY_SERVICE) as ActivityManager
 
+    override val appUuid: String
+        get() {
+            return dataLayer.getString(APP_UUID)
+                    ?: UUID.randomUUID().toString().also {
+                        dataLayer.putString(APP_UUID, it, Expiry.FOREVER)
+                    }
+        }
     override val appRdns: String = context.applicationContext.packageName
     override val appName: String = if (context.applicationInfo.labelRes != 0) context.getString(context.applicationInfo.labelRes) else ""
     override val appBuild: String = getPackageContext().versionName?.toString() ?: ""
@@ -57,7 +69,7 @@ class AppCollector(private val context: Context) : Collector, AppData {
     companion object: CollectorFactory {
 
         override fun create(context: TealiumContext): Collector {
-            return AppCollector(context.config.application)
+            return AppCollector(context.config.application, context.dataLayer)
         }
     }
 }
