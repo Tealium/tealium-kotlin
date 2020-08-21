@@ -4,6 +4,8 @@ import android.app.Application
 import android.content.SharedPreferences
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
+import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
+import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
 import com.tealium.core.messaging.EventRouter
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -42,9 +44,9 @@ class ConsentManagerTest {
         every { sharedPreferences.edit() } returns editor
         every { editor.apply() } just Runs
 
-        every { sharedPreferences.getString(ConsentManagerConstants.CONSENT_STATUS, "unknown") } returns "unknown"
-        every { sharedPreferences.getStringSet(ConsentManagerConstants.CONSENT_CATEGORIES, null) } returns null
-        every { editor.putString(ConsentManagerConstants.CONSENT_STATUS, "unknown") } returns editor
+        every { sharedPreferences.getString(KEY_STATUS, "unknown") } returns "unknown"
+        every { sharedPreferences.getStringSet(KEY_CATEGORIES, null) } returns null
+        every { editor.putString(KEY_STATUS, "unknown") } returns editor
 
         config = TealiumConfig(context, "test", "profile", Environment.QA)
         consentManager = ConsentManager(config, eventRouter, "visitor1234567890", mockk())
@@ -77,9 +79,9 @@ class ConsentManagerTest {
 
     @Test
     fun consentManagerNotConsentedNullConsentCategories() {
-        every { editor.putString(ConsentManagerConstants.CONSENT_STATUS, "notConsented") } returns editor
+        every { editor.putString(KEY_STATUS, "notConsented") } returns editor
         every { sharedPreferences.getString(any(), any()) } returns "notConsented"
-        every { editor.putStringSet(ConsentManagerConstants.CONSENT_CATEGORIES, null) } returns editor
+        every { editor.putStringSet(KEY_CATEGORIES, null) } returns editor
         every { editor.remove(any()) } returns editor
         consentManager.userConsentStatus = ConsentStatus.NOT_CONSENTED
         assertEquals(ConsentStatus.NOT_CONSENTED, consentManager.userConsentStatus)
@@ -88,10 +90,10 @@ class ConsentManagerTest {
 
     @Test
     fun consentManagerSetSingleCategorySetsConsented() {
-        every { editor.putString(ConsentManagerConstants.CONSENT_STATUS, "consented") } returns editor
+        every { editor.putString(KEY_STATUS, "consented") } returns editor
         every { sharedPreferences.getString(any(), any()) } returns "consented"
-        every { sharedPreferences.getStringSet(ConsentManagerConstants.CONSENT_CATEGORIES, null) } returns setOf("engagement")
-        every { editor.putStringSet(ConsentManagerConstants.CONSENT_CATEGORIES, setOf("engagement")) } returns editor
+        every { sharedPreferences.getStringSet(KEY_CATEGORIES, null) } returns setOf("engagement")
+        every { editor.putStringSet(KEY_CATEGORIES, setOf("engagement")) } returns editor
         consentManager.userConsentCategories = setOf(ConsentCategory.ENGAGEMENT)
         assertEquals(ConsentStatus.CONSENTED, consentManager.userConsentStatus)
         assertTrue(consentManager.userConsentCategories?.contains(ConsentCategory.ENGAGEMENT)!!)
@@ -99,9 +101,9 @@ class ConsentManagerTest {
 
     @Test
     fun consentManagerSetCategoryNullSetsConsentStatusNotConsented() {
-        every { editor.putString(ConsentManagerConstants.CONSENT_STATUS, "notConsented") } returns editor
+        every { editor.putString(KEY_STATUS, "notConsented") } returns editor
         every { sharedPreferences.getString(any(), any()) } returns "notConsented"
-        every { editor.putStringSet(ConsentManagerConstants.CONSENT_CATEGORIES, null) } returns editor
+        every { editor.putStringSet(KEY_CATEGORIES, null) } returns editor
         every { editor.remove(any()) } returns editor
         consentManager.userConsentCategories = null
         assertEquals(ConsentStatus.NOT_CONSENTED, consentManager.userConsentStatus)
@@ -110,9 +112,9 @@ class ConsentManagerTest {
 
     @Test
     fun consentManagerSetCategoryNullSetsConsentStatusUnknown() {
-        every { editor.putString(ConsentManagerConstants.CONSENT_STATUS, "unknown") } returns editor
+        every { editor.putString(KEY_STATUS, "unknown") } returns editor
         every { sharedPreferences.getString(any(), any()) } returns "unknown"
-        every { editor.putStringSet(ConsentManagerConstants.CONSENT_CATEGORIES, null) } returns editor
+        every { editor.putStringSet(KEY_CATEGORIES, null) } returns editor
         every { editor.remove(any()) } returns editor
         consentManager.userConsentStatus = ConsentStatus.UNKNOWN
         assertEquals(ConsentStatus.UNKNOWN, consentManager.userConsentStatus)
@@ -121,10 +123,10 @@ class ConsentManagerTest {
 
     @Test
     fun setUserConsentStatusConsentedSetsAllCategories() {
-        every { editor.putString(ConsentManagerConstants.CONSENT_STATUS, "consented") } returns editor
-        every { editor.putStringSet(ConsentManagerConstants.CONSENT_CATEGORIES, ConsentCategory.ALL.map { it.value }.toMutableSet()) } returns editor
+        every { editor.putString(KEY_STATUS, "consented") } returns editor
+        every { editor.putStringSet(KEY_CATEGORIES, ConsentCategory.ALL.map { it.value }.toMutableSet()) } returns editor
         every { sharedPreferences.getString(any(), any()) } returns "consented"
-        every { sharedPreferences.getStringSet(ConsentManagerConstants.CONSENT_CATEGORIES, null) } returns ConsentCategory.ALL.map { it.value }.toMutableSet()
+        every { sharedPreferences.getStringSet(KEY_CATEGORIES, null) } returns ConsentCategory.ALL.map { it.value }.toMutableSet()
         consentManager.userConsentStatus = ConsentStatus.CONSENTED
         assertEquals(ConsentStatus.CONSENTED, consentManager.userConsentStatus)
         assertEquals(15, consentManager.userConsentCategories?.count())
@@ -132,7 +134,7 @@ class ConsentManagerTest {
 
     @Test
     fun resetUserConsentPreferencesSuccess() {
-        every { editor.putStringSet(ConsentManagerConstants.CONSENT_CATEGORIES, null) } returns editor
+        every { editor.putStringSet(KEY_CATEGORIES, null) } returns editor
         every { editor.remove(any()) } returns editor
         consentManager.reset()
         assertEquals(ConsentStatus.UNKNOWN, consentManager.userConsentStatus)
@@ -141,10 +143,10 @@ class ConsentManagerTest {
 
     @Test
     fun userPreferencesUpdateListener_Called() {
-        every { editor.putString(ConsentManagerConstants.CONSENT_STATUS, "consented") } returns editor
+        every { editor.putString(KEY_STATUS, "consented") } returns editor
         every { sharedPreferences.getString(any(), any()) } returns "consented"
-        every { sharedPreferences.getStringSet(ConsentManagerConstants.CONSENT_CATEGORIES, null) } returns setOf("engagement")
-        every { editor.putStringSet(ConsentManagerConstants.CONSENT_CATEGORIES, setOf("engagement")) } returns editor
+        every { sharedPreferences.getStringSet(KEY_CATEGORIES, null) } returns setOf("engagement")
+        every { editor.putStringSet(KEY_CATEGORIES, setOf("engagement")) } returns editor
         consentManager = ConsentManager(config, eventRouter, "", mockk(), ConsentPolicy.GDPR)
         consentManager.userConsentCategories = setOf(ConsentCategory.ENGAGEMENT)
 
@@ -156,10 +158,10 @@ class ConsentManagerTest {
 
     @Test
     fun userPreferencesUpdateListener_NotCalled() {
-        every { editor.putString(ConsentManagerConstants.CONSENT_STATUS, "consented") } returns editor
+        every { editor.putString(KEY_STATUS, "consented") } returns editor
         every { sharedPreferences.getString(any(), any()) } returns "consented"
-        every { sharedPreferences.getStringSet(ConsentManagerConstants.CONSENT_CATEGORIES, null) } returns setOf("engagement")
-        every { editor.putStringSet(ConsentManagerConstants.CONSENT_CATEGORIES, setOf("engagement")) } returns editor
+        every { sharedPreferences.getStringSet(KEY_CATEGORIES, null) } returns setOf("engagement")
+        every { editor.putStringSet(KEY_CATEGORIES, setOf("engagement")) } returns editor
         consentManager.userConsentCategories = setOf(ConsentCategory.ENGAGEMENT)
 
         // no policy == no updates.

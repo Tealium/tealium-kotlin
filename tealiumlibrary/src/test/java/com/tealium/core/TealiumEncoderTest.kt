@@ -1,6 +1,5 @@
 package com.tealium.core
 
-import CoreConstant
 import com.tealium.dispatcher.TealiumView
 import junit.framework.Assert.assertTrue
 import org.junit.Test

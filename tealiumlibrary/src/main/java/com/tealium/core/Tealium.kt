@@ -61,7 +61,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     private val databaseHelper: DatabaseHelper
     private val eventRouter = EventDispatcher()
     private val sessionManager = SessionManager(config, eventRouter)
-    private lateinit var activityObserverListener: DeepLinkHandler
+    private lateinit var deepLinkHandler: DeepLinkHandler
 
     // Are publicly accessible, therefore need to be initialized on creation.
     /**
@@ -121,7 +121,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
         activityObserver = ActivityObserver(config, eventRouter)
         databaseHelper = DatabaseHelper(config)
         dataLayer = PersistentStorage(databaseHelper, "datalayer")
-
+        migratePersistentData()
         visitorId = getOrCreateVisitorId()
         consentManager = ConsentManager(config, eventRouter, visitorId, librarySettingsManager.librarySettings)
 
@@ -220,8 +220,8 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
                 eventRouter)
         eventRouter.subscribe(dispatchRouter)
         eventRouter.subscribe(dispatchStore)
-        activityObserverListener = DeepLinkHandler(context)
-        eventRouter.subscribe(activityObserverListener)
+        deepLinkHandler = DeepLinkHandler(context)
+        eventRouter.subscribe(deepLinkHandler)
         onInstanceReady()
     }
 
@@ -300,7 +300,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
      */
     @Suppress("unused")
     fun joinTrace(id: String) {
-        activityObserverListener.joinTrace(id)
+        deepLinkHandler.joinTrace(id)
     }
 
     /**
@@ -308,7 +308,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
      */
     @Suppress("unused")
     fun leaveTrace() {
-        activityObserverListener.leaveTrace()
+        deepLinkHandler.leaveTrace()
     }
 
 
@@ -318,6 +318,37 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
      */
     @Suppress("unused")
     fun killTraceVisitorSession() {
-        activityObserverListener.killTraceVisitorSession()
+        deepLinkHandler.killTraceVisitorSession()
+    }
+
+    /**
+     * Migrates persistent data from the Tealium Android (Java) library if present
+     * */
+    private fun migratePersistentData() {
+        val hashCode = (config.accountName + '.' +
+                    config.profileName + '.' +
+                    config.environment.environment).hashCode()
+        val legacySharedPreferences = config.application.getSharedPreferences("tealium.datasources.${Integer.toHexString(hashCode)}", 0)
+        if (legacySharedPreferences.all.isEmpty()) {
+            return
+        }
+        legacySharedPreferences.all.forEach { item ->
+            val key = item.key
+            val value = item.value
+
+            when (value) {
+                is String -> dataLayer.putString(key, value, Expiry.FOREVER)
+                is Boolean -> dataLayer.putBoolean(key, value, Expiry.FOREVER)
+                is Float -> dataLayer.putDouble(key, value.toDouble(), Expiry.FOREVER)
+                is Double -> dataLayer.putDouble(key, value, Expiry.FOREVER)
+                is Int -> dataLayer.putInt(key, value, Expiry.FOREVER)
+                is Long -> dataLayer.putLong(key, value, Expiry.FOREVER)
+                is Set<*> -> {
+                    val list = value.filterIsInstance<String>()
+                    dataLayer.putStringArray(key, list.toTypedArray(), Expiry.FOREVER)
+                }
+            }
+        }
+        legacySharedPreferences.edit().clear().apply()
     }
 }

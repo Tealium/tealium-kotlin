@@ -7,6 +7,8 @@ import com.tealium.core.consent.ConsentPolicy
 import com.tealium.core.consent.consentManagerPolicy
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
+import com.tealium.dispatcher.TealiumEvent
+import com.tealium.dispatcher.TealiumView
 import com.tealium.hosteddatalayer.HostedDataLayer
 import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
 import com.tealium.lifecycle.Lifecycle
@@ -59,6 +61,16 @@ object TealiumHelper {
         override fun onInvoke(response: Response) {
             Logger.dev(BuildConfig.TAG, "ResponsePayload for local JSON RemoteCommand ${response.requestPayload}")
         }
+    }
+
+    fun trackView(name: String, data: Map<String, Any>?) {
+        val viewDispatch = TealiumView(name, data)
+        instance.track(viewDispatch)
+    }
+
+    fun trackEvent(name: String, data: Map<String, Any>?) {
+        val eventDispatch = TealiumEvent(name, data)
+        instance.track(eventDispatch)
     }
 
     val customValidator: DispatchValidator by lazy {
