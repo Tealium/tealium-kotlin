@@ -1,8 +1,8 @@
 package com.tealium.core.consent
 import android.content.SharedPreferences
 import com.tealium.core.TealiumConfig
-import com.tealium.core.consent.ConsentManagerSPKey.STATUS
-import com.tealium.core.consent.ConsentManagerSPKey.CATEGORIES
+import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
+import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
 
 /**
  * This class is responsible for the persistence of consent preferences as defined by [ConsentStatus]
@@ -15,19 +15,19 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
     var consentStatus: ConsentStatus = ConsentStatus.UNKNOWN
         get() {
             return ConsentStatus.consentStatus(
-                    sharedPreferences.getString(STATUS, ConsentStatus.default().value)!!
+                    sharedPreferences.getString(KEY_STATUS, ConsentStatus.default().value)!!
             )
         }
         set(value) {
             field = value
             sharedPreferences.edit()
-                    .putString(STATUS, field.value)
+                    .putString(KEY_STATUS, field.value)
                     .apply()
         }
 
     var consentCategories: Set<ConsentCategory>? = null
         get() {
-            return sharedPreferences.getStringSet(CATEGORIES, null)?.let {
+            return sharedPreferences.getStringSet(KEY_CATEGORIES, null)?.let {
                 ConsentCategory.consentCategories(it.filterNotNull().toSet())
             }
         }
@@ -35,10 +35,10 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
             field = value
             value?.let { categories ->
                 sharedPreferences.edit()
-                        .putStringSet(CATEGORIES, categories.map { category -> category.value }.toSet())
+                        .putStringSet(KEY_CATEGORIES, categories.map { category -> category.value }.toSet())
                         .apply()
             } ?: run {
-                sharedPreferences.edit().remove(CATEGORIES).apply()
+                sharedPreferences.edit().remove(KEY_CATEGORIES).apply()
             }
         }
 
