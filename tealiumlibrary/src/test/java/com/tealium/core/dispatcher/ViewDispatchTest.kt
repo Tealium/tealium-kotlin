@@ -2,7 +2,6 @@ package com.tealium.core.dispatcher
 
 import com.tealium.dispatcher.TealiumView
 import org.junit.Test
-
 import org.junit.Assert.*
 
 class ViewDispatchTest {

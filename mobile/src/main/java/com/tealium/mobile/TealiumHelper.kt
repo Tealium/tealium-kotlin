@@ -7,7 +7,13 @@ import com.tealium.core.consent.ConsentPolicy
 import com.tealium.core.consent.consentManagerPolicy
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
+import com.tealium.hosteddatalayer.HostedDataLayer
+import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
+import com.tealium.internal.tagbridge.RemoteCommand
 import com.tealium.lifecycle.Lifecycle
+import com.tealium.remotecommanddispatcher.RemoteCommands
+import com.tealium.remotecommanddispatcher.remoteCommands
+import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
 //import com.tealium.remotecommanddispatcher.*
 //import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
 //import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
@@ -21,15 +27,14 @@ object TealiumHelper {
 
     fun init(application: Application) {
         val config = TealiumConfig(application,
-                "tealiummobile",
-                "android",
+                "services-christina",
+                "firebase",
                 Environment.DEV,
-                dataSourceId = "",
-                modules = mutableSetOf(Modules.Lifecycle),
-                dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement)//, Dispatchers.RemoteCommands)
+                modules = mutableSetOf(Modules.Lifecycle),//, Modules.VisitorService, Modules.HostedDataLayer),
+                dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
-//            useRemoteLibrarySettings = true
-            consentManagerPolicy = ConsentPolicy.GDPR
+            useRemoteLibrarySettings = true
+            hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
         }
 
         instance = Tealium("instance_1", config) {
@@ -40,22 +45,22 @@ object TealiumHelper {
                 }
             }
 
-//            remoteCommands?.add(localJsonCommand)
-//            remoteCommands?.add(webViewRemoteCommand)
+            remoteCommands?.add(localJsonCommand)
+            remoteCommands?.add(webViewRemoteCommand)
         }
     }
 
-//    val webViewRemoteCommand = object : RemoteCommand("bgcolor", "testing Webview RCs") {
-//        override fun onInvoke(response: Response) {
-//            Logger.dev(BuildConfig.TAG, "ResponsePayload for webView RemoteCommand ${response.requestPayload}")
-//        }
-//    }
-//
-//    val localJsonCommand = object : JsonRemoteCommand("localJsonCommand", "testingRCs", filename = "remoteCommand.json") {
-//        override fun onInvoke(response: Response) {
-//            Logger.dev(BuildConfig.TAG, "ResponsePayload for local JSON RemoteCommand ${response.requestPayload}")
-//        }
-//    }
+    val webViewRemoteCommand = object : RemoteCommand("bgcolor", "testing Webview RCs") {
+        override fun onInvoke(response: Response) {
+            Logger.dev(BuildConfig.TAG, "ResponsePayload for webView RemoteCommand ${response.requestPayload}")
+        }
+    }
+
+    val localJsonCommand = object : JsonRemoteCommand("localJsonCommand", "testingRCs", filename = "remoteCommand.json") {
+        override fun onInvoke(response: Response) {
+            Logger.dev(BuildConfig.TAG, "ResponsePayload for local JSON RemoteCommand ${response.requestPayload}")
+        }
+    }
 
     val customValidator: DispatchValidator by lazy {
         object : DispatchValidator {

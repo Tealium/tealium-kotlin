@@ -18,11 +18,11 @@ class ActivityObserver(config: TealiumConfig, val eventRouter: EventRouter) {
     private fun createActivityLifecycleCallbacks(): Application.ActivityLifecycleCallbacks {
         return object : Application.ActivityLifecycleCallbacks {
             override fun onActivityPaused(activity: Activity?) {
-                eventRouter.onActivityPaused()
+                eventRouter.onActivityPaused(activity)
             }
 
             override fun onActivityResumed(activity: Activity?) {
-                eventRouter.onActivityResumed()
+                eventRouter.onActivityResumed(activity)
             }
 
             override fun onActivityStarted(activity: Activity?) {
@@ -38,7 +38,7 @@ class ActivityObserver(config: TealiumConfig, val eventRouter: EventRouter) {
             }
 
             override fun onActivityStopped(activity: Activity?) {
-                eventRouter.onActivityStopped(activity?.isChangingConfigurations ?: false)
+                eventRouter.onActivityStopped(activity, activity?.isChangingConfigurations ?: false)
             }
 
             override fun onActivityCreated(activity: Activity?, savedInstanceState: Bundle?) {

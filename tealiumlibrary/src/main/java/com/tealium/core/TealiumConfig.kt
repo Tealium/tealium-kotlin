@@ -73,6 +73,16 @@ class TealiumConfig @JvmOverloads constructor(val application: Application,
      */
     var overrideLibrarySettingsUrl: String? = null
 
+    /**
+     * Set to false to disable deep link tracking.
+     */
+    var deepLinkTrackingEnabled: Boolean = true
+
+    /**
+     * Set to false to disable the QR code trace feature.
+     */
+    var qrTraceEnabled: Boolean = true
+
     init {
         tealiumDirectory.mkdirs()
     }

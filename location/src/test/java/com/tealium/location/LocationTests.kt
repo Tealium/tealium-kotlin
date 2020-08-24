@@ -97,7 +97,7 @@ class LocationTests {
         location = LocationManager(tealiumContext)
 
         every { mockFusedLocationProviderClient.lastLocation } returns LocationTask(mockLocation)
-        every { location.lastLocation() } returns mockLocation
+        every { mockLocationClient.lastLocation } returns LocationTask(mockLocation)
 
         val lastLocation = location.lastLocation()
 
@@ -132,7 +132,7 @@ class LocationTests {
         location = LocationManager(tealiumContext)
 
         every { mockFusedLocationProviderClient.lastLocation } returns LocationTask(mockLocation)
-        every { location.lastLocation() } returns null
+        every { mockLocationClient.lastLocation } returns null
 
         val lastLocation = location.lastLocation()
 

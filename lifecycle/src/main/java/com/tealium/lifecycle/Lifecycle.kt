@@ -1,5 +1,6 @@
 package com.tealium.lifecycle
 
+import android.app.Activity
 import android.content.pm.PackageInfo
 import android.os.Handler
 import android.os.Looper
@@ -166,7 +167,7 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
         return config.application.packageManager.getPackageInfo(packageName, 0)
     }
 
-    override fun onActivityResumed() {
+    override fun onActivityResumed(activity: Activity?) {
         if (!isAutoTracking) {
             return
         }
@@ -188,7 +189,7 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
         }
     }
 
-    override fun onActivityPaused() {
+    override fun onActivityPaused(activity: Activity?) {
         if (!isAutoTracking) {
             return
         }
@@ -207,7 +208,7 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
         }, LifecycleDefaults.SLEEP_THRESHOLD)
     }
 
-    override fun onActivityStopped(isChangingConfiguration: Boolean) {
+    override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
         // do nothing
     }
 

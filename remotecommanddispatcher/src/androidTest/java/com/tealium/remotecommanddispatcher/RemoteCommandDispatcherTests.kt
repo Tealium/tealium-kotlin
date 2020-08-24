@@ -3,14 +3,13 @@ package com.tealium.remotecommanddispatcher
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
-import com.tealium.core.JsonUtils
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.network.NetworkClient
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.TealiumEvent
+import com.tealium.internal.tagbridge.RemoteCommand
 import com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand
 import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
-import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import junit.framework.Assert
@@ -47,7 +46,7 @@ class RemoteCommandDispatcherTests {
     fun validAddAndProcessJsonRemoteCommand() {
         val remoteCommandDispatcher = RemoteCommandDispatcher(tealiumContext, mockk(), mockNetworkClient)
         val jsonCommand = mockk<JsonRemoteCommand>()
-        every { jsonCommand.commandId } returns "123"
+        every { jsonCommand.commandName } returns "123"
         every { jsonCommand.filename } returns null
         every { jsonCommand.remoteUrl } returns null
         every { jsonCommand.invoke(any()) } just Runs
@@ -56,7 +55,7 @@ class RemoteCommandDispatcherTests {
         every { mockRemoteCommandConfig.apiCommands?.get("event_test") } returns "test_command"
 
         remoteCommandDispatcher.add(jsonCommand)
-        val dispatch = EventDispatch("event_test", mapOf("key1" to "value1", "key2" to "value2"))
+        val dispatch = TealiumEvent("event_test", mapOf("key1" to "value1", "key2" to "value2"))
         remoteCommandDispatcher.onProcessRemoteCommand(dispatch)
 
         verify { jsonCommand.invoke(any()) }
@@ -65,7 +64,7 @@ class RemoteCommandDispatcherTests {
     @Test
     fun validAddAndProcessWebViewRemoteCommand() {
         val remoteCommandDispatcher = RemoteCommandDispatcher(tealiumContext, mockk(), mockNetworkClient)
-        val webViewCommand = spyk<RemoteCommand>(object : RemoteCommand("testWebViewCommand") {
+        val webViewCommand = spyk<RemoteCommand>(object : RemoteCommand("testWebViewCommand", null) {
             override fun onInvoke(response: Response) { // invoke block
             }
         })
@@ -78,14 +77,14 @@ class RemoteCommandDispatcherTests {
 
     @Test
     fun httpRemoteCommandValid() {
-        val remoteCommand = object : RemoteCommand("_http", description = "Perform a native HTTP operation") {
+        val remoteCommand = object : RemoteCommand("_http", "Perform a native HTTP operation") {
             override fun onInvoke(response: Response) { // invoke block
             }
         }
 
         val httpRemoteCommand = HttpRemoteCommand(mockNetworkClient)
 
-        Assert.assertEquals(remoteCommand.commandId, httpRemoteCommand.commandId)
+        Assert.assertEquals(remoteCommand.commandName, httpRemoteCommand.commandName)
         Assert.assertEquals(remoteCommand.description, httpRemoteCommand.description)
     }
 }

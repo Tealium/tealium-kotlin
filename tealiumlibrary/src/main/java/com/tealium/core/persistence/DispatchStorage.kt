@@ -1,5 +1,7 @@
 package com.tealium.core.persistence
 
+import com.tealium.core.collection.TimeCollector
+import com.tealium.core.collection.TimeData
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.dispatcher.Dispatch
@@ -88,7 +90,7 @@ internal class DispatchStorage(dbHelper: DatabaseHelper,
                 dispatch.id,
                 JSONObject(payload),
                 null,
-                payload["tealium_timestamp"] as? Long
+                dispatch.timestamp
         )
     }
 
