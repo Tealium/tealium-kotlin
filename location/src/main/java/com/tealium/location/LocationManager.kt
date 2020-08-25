@@ -2,8 +2,9 @@ package com.tealium.location
 
 import android.content.Intent
 import android.location.Location
+import android.os.Build
 import com.tealium.core.*
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.TealiumEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -76,6 +77,30 @@ class LocationManager(private val context: TealiumContext) :
     }
 
     /**
+     * Remove a geofence by name if it exists
+     */
+    fun removeGeofence(name: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            allGeofenceLocations.removeIf {
+                it.name == name
+            }
+        } else {
+            allGeofenceLocations.filter {
+                it.name == name
+            }.forEach {
+                allGeofenceLocations.remove(it)
+            }
+        }
+    }
+
+    /**
+     * Remove all geofences from allGeofencesLocations
+     */
+    fun removeAll() {
+        allGeofenceLocations.clear()
+    }
+
+    /**
      * Returns last location latitude
      */
     fun lastLocationLatitude(): Double? {
@@ -100,7 +125,8 @@ class LocationManager(private val context: TealiumContext) :
      * Returns the last known location.
      */
     fun lastLocation(): Location? {
-        return locationProviderClientLoader.locationClient.lastLocation.result
+        return locationProviderClientLoader.lastLocation
+//        return locationProviderClientLoader.locationClient.lastLocation.result
     }
 
     private fun loadGeofenceAsset() {
@@ -146,7 +172,7 @@ class LocationManager(private val context: TealiumContext) :
         }
 
         fun sendGeofenceEvent(geofenceName: String, transitionType: String) {
-            val dispatch = EventDispatch(transitionType,
+            val dispatch = TealiumEvent(transitionType,
                     mapOf(GeofenceEventConstants.GEOFENCE_NAME to geofenceName,
                             GeofenceEventConstants.GEOFENCE_TRANSITION_TYPE to transitionType))
             tealiumContext.track(dispatch)

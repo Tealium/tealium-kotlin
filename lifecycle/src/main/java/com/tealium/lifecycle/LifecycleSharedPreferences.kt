@@ -19,9 +19,9 @@ internal class LifecycleSharedPreferences(config: TealiumConfig) {
     var lastWake: String? = null
 
     var currentAppVersion: String?
-        get() { return lifecycleSharedPreferences.getString("current_app_version", null) }
+        get() { return lifecycleSharedPreferences.getString("app_version", null) }
         set(value) { lifecycleSharedPreferences.edit()
-                .putString("current_app_version", value)
+                .putString("app_version", value)
                 .apply()
         }
 
@@ -172,6 +172,6 @@ internal class LifecycleSharedPreferences(config: TealiumConfig) {
     }
 
     private fun sharedPreferencesName(config: TealiumConfig): String {
-        return "tealium.lifecycle.${Integer.toHexString((config.accountName + config.profileName + config.environment).hashCode())}"
+        return "tealium.lifecycle.${Integer.toHexString((config.accountName + config.profileName + config.environment.environment).hashCode())}"
     }
 }

@@ -36,7 +36,7 @@ class LifecycleTest {
     lateinit var lifecycle: Lifecycle
 
     @Before
-    fun setup() {
+    fun setUp() {
         MockKAnnotations.init(this)
         tealium = mockk<Tealium>()
         every { tealium.track(any()) } returns mockk()

@@ -44,7 +44,7 @@ class LocationTests {
     private val mainThreadSurrogate = newSingleThreadContext("UI thread")
 
     @Before
-    fun setup() {
+    fun setUp() {
         MockKAnnotations.init(this)
         Dispatchers.setMain(mainThreadSurrogate)
 
@@ -62,6 +62,11 @@ class LocationTests {
 
         mockkStatic(LocationServices::class)
         every { LocationServices.getFusedLocationProviderClient(any()) } returns mockFusedLocationProviderClient
+    }
+
+    @After
+    fun tearDown() {
+        location.removeAll()
     }
 
     @Test
@@ -92,7 +97,7 @@ class LocationTests {
         location = LocationManager(tealiumContext)
 
         every { mockFusedLocationProviderClient.lastLocation } returns LocationTask(mockLocation)
-        every { location.lastLocation() } returns mockLocation
+        every { mockLocationClient.lastLocation } returns LocationTask(mockLocation)
 
         val lastLocation = location.lastLocation()
 
@@ -127,7 +132,7 @@ class LocationTests {
         location = LocationManager(tealiumContext)
 
         every { mockFusedLocationProviderClient.lastLocation } returns LocationTask(mockLocation)
-        every { location.lastLocation() } returns null
+        every { mockLocationClient.lastLocation } returns null
 
         val lastLocation = location.lastLocation()
 
@@ -223,6 +228,34 @@ class LocationTests {
     }
 
     @Test
+    fun removeGeofenceWithValidInputs() {
+        val mockLocationClient = mockkClass(FusedLocationProviderClient::class)
+        every { mockLocationClient.requestLocationUpdates(any(), any(), any()) } returns mockk()
+
+        config.options[LOCATION_CLIENT] = mockLocationClient
+
+        tealiumContext = TealiumContext(config, "", mockk(), mockk(), mockk(), mockk(), tealium)
+
+        every { mockContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) } returns PackageManager.PERMISSION_GRANTED
+        every { mockContext.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) } returns PackageManager.PERMISSION_GRANTED
+
+        location = LocationManager(tealiumContext)
+
+        val name = "test_geofence"
+        val latitude = 0.0
+        val longitude = 0.0
+        val radius = 100
+        val expireTime = 100
+        val loiterTime = 0
+        val triggerEnter = true
+        val triggerExit = false
+        location.addGeofence(name, latitude, longitude, radius, expireTime, loiterTime, triggerEnter, triggerExit)
+        location.removeGeofence(name)
+
+        Assert.assertEquals(0, location.allGeofenceNames()?.size)
+    }
+
+    @Test
     fun createAndAddNewGeofenceWithInvalidInputs() {
         val mockLocationClient = mockkClass(FusedLocationProviderClient::class)
         every { mockLocationClient.requestLocationUpdates(any(), any(), any()) } returns mockk()
@@ -247,6 +280,6 @@ class LocationTests {
 
         location.addGeofence(name, latitude, longitude, radius, expireTime, loiterTime, triggerEnter, triggerExit)
 
-        Assert.assertEquals(location.allGeofenceNames()?.size, 0)
+        Assert.assertEquals(0, location.allGeofenceNames()?.size)
     }
 }

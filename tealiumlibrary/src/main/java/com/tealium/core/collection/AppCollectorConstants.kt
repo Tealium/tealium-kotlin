@@ -1,6 +1,7 @@
 @file:JvmName("Constants")
 
 object AppCollectorConstants {
+    const val APP_UUID = "app_uuid"
     const val APP_RDNS = "app_rdns"
     const val APP_NAME = "app_name"
     const val APP_BUILD = "app_build"

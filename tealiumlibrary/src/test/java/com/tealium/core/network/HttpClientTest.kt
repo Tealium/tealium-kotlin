@@ -200,25 +200,6 @@ class HttpClientTest {
     }
 
     @Test
-    fun getJsonReturnsNullMalformedJson() = runBlocking {
-        every { mockConnectivity.isConnected() } returns true
-        mockWebServer = MockWebServer()
-        mockWebServer.enqueue(MockResponse()
-                .setResponseCode(200)
-                .setBody("hello=world"))    // malformed json
-        mockWebServer.start(port)
-
-        val urlString = "http://localhost:$port"
-        mockWebServer.url(urlString)
-
-        val json = httpClient.get(urlString)
-        assertNull(json)
-
-        val request = mockWebServer.takeRequest()
-        assertEquals("GET / HTTP/1.1", request.requestLine)
-    }
-
-    @Test
     fun getJsonReturnsNullNoConnection() = runBlocking {
         every { mockConnectivity.isConnected() } returns false
         mockWebServer = MockWebServer()

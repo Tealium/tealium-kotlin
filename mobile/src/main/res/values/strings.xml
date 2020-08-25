@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">tealium-kotlin-builder</string>
+    <string name="app_name">Tealium Kotlin Example</string>
     <string name="track">Track</string>
     <string name="consented">Consented</string>
     <string name="not_consented">Not Consented</string>
@@ -13,4 +13,5 @@
     <string name="interfaces">Interfaces</string>
     <string name="messengers">Messengers</string>
     <string name="categories">Categories</string>
+    <string name="clear_cache">Clear Cache</string>
 </resources>

@@ -4,7 +4,7 @@ import com.tealium.core.messaging.EventRouter
 import com.tealium.core.settings.Batching
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.persistence.DispatchStorage
-import com.tealium.dispatcher.EventDispatch
+import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertTrue
@@ -13,7 +13,7 @@ import org.junit.Test
 
 class BatchingValidatorTests {
 
-    private val dispatch = EventDispatch("", emptyMap())
+    private val dispatch = TealiumEvent("", emptyMap())
     private lateinit var mockStore: DispatchStorage
     private lateinit var mockSettings: LibrarySettings
     private lateinit var batchSettings: Batching
@@ -85,14 +85,14 @@ class BatchingValidatorTests {
         // simulates a 2 activity app
         batchingValidator.onActivityResumed()       // activity count = 1
         batchingValidator.onActivityResumed()       // activity count = 2
-        batchingValidator.onActivityStopped(false)  // activity count = 1
+        batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = 1
         verify(exactly = 0) {
             mockEventRouter.onRevalidate(any())
         }
 
         batchingValidator.onActivityResumed()       // activity count = 2
-        batchingValidator.onActivityStopped(false)  // activity count = 1
-        batchingValidator.onActivityStopped(false)  // activity count = 0
+        batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = 1
+        batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = 0
         verify(exactly = 1) {
             mockEventRouter.onRevalidate(any())
         }
@@ -111,20 +111,20 @@ class BatchingValidatorTests {
         // simulates a 2 activity app
         batchingValidator.onActivityResumed()       // activity count = 1
         batchingValidator.onActivityResumed()       // activity count = 2
-        batchingValidator.onActivityStopped(false)  // activity count = 1
+        batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = 1
         verify(exactly = 0) {
             mockEventRouter.onRevalidate(any())
         }
 
         // change configuration (screen rotation) causes "stopped" to called prior to "resumed".
-        batchingValidator.onActivityStopped(true)   // activity count = 0
+        batchingValidator.onActivityStopped( isChangingConfiguration = true)   // activity count = 0
         batchingValidator.onActivityResumed()       // activity count = 1
         verify(exactly = 0) {
             mockEventRouter.onRevalidate(any())
         }
 
         // backgrounding
-        batchingValidator.onActivityStopped(false)  // activity count = 1
+        batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = 1
         verify(exactly = 1) {
             mockEventRouter.onRevalidate(any())
         }
