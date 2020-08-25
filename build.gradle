@@ -21,9 +21,12 @@ buildscript {
 
 allprojects {
     repositories {
-        mavenLocal()
+//        mavenLocal()
         google()
         jcenter()
+
+        //testing Remote commands
+        maven { url: "https://maven.tealiumiq.com/android/releases/remotecommandtest/" }
     }
 }
 
