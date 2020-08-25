@@ -1,41 +1,87 @@
 package com.tealium.crashreporter
 
-import com.tealium.crashreporter.CrashReporter.Tracker
-import com.tealium.internal.data.Dispatch
-import com.tealium.internal.listeners.ActivityResumeListener
-import com.tealium.internal.listeners.DisableListener
-import com.tealium.internal.listeners.PopulateDispatchListener
-import com.tealium.library.DataSources
-import com.tealium.library.Tealium
+import android.content.SharedPreferences
+import com.tealium.core.*
 
 /**
  * Crash Reporter module for tracking crash data. When used, this module populates
  * <i>crash_*</i> attributes defined in {@link com.tealium.library.DataSources.Key}.
  */
-class CrashReporter (config: Tealium.Config, tracker: Tracker, truncateStackTrace: Boolean) : Thread.UncaughtExceptionHandler {
+class CrashReporter (private val context: TealiumContext) : Module {
+    private val CRASH_COUNT = "crash_count"
 
-    const val CRASH_COUNT =  "crash_count"
+    private var sharedPreferences: SharedPreferences
+    // ? in constructor?
+    private lateinit var config: TealiumConfig
+    private var truncateCrashStackTraces: Boolean = false
+    private lateinit var originalExceptionHandler: Thread.UncaughtExceptionHandler
 
-    val mOriginalExceptionHandler: Thread.UncaughtExceptionHandler
-    val mListener: TealiumListener
-    val mTracker: Tracker
-    val mTruncateCrashStackTraces: Boolean
-    val mSharedPreferences: SharedPreferences
-    val mCrashCount: Int
+    private var crashCount: Int = 0
 
     init {
-        mTracker = tracker
-        mTruncateCrashStackTraces = truncateStackTrace
-        mListener = TealiumListener()
-        config.getEventListeners().add(mListener)
+        val sharedPrefsName: String = getSharedPreferencesName(config)
 
-        val sharedPrefsName = getSharedPreferencesName(config)
-
-        mSharedPreferences = config.getApplication()
+        sharedPreferences = config.application
                 .getSharedPreferences(sharedPrefsName, 0)
-        mCrashCount = mSharedPreferences.getInt(CRASH_COUNT, 0)
 
-        mOriginalExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
-        Thread.setDefaultUncaughtExceptionHandler(this)
+        originalExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
+
     }
+
+    /**
+     * Handler invoked when a Thread abruptly terminates due to an uncaught exception.
+     *
+     * @param thread
+     * @param ex
+     */
+    fun uncaughtException(thread: Thread, ex: Throwable) {
+        val crash: Crash = Crash(thread, ex)
+        saveCrashData(crash)
+        incrementCrashCount()
+        if (originalExceptionHandler != null) {
+            originalExceptionHandler.uncaughtException(thread, ex)
+        }
+    }
+
+    fun incrementCrashCount() {
+        sharedPreferences.edit()
+                .putInt(CRASH_COUNT, ++crashCount)
+                .commit()
+    }
+
+    fun saveCrashData(crash: Crash) {
+        sharedPreferences.edit()
+                .putString("cause", crash.exceptionCause)
+                .putString("name", crash.exceptionName)
+                .putString("id", crash.uUid)
+                .putString("thread", Crash.getThreadData(crash, truncateCrashStackTraces))
+                .commit()
+    }
+
+    private fun getSharedPreferencesName(config: TealiumConfig): String {
+        return "tealium.crash." + config.accountName + config.profileName + config.environment.toString()
+    }
+
+
+
+    companion object : ModuleFactory {
+        const val MODULE_NAME = "CRASHREPORTER"
+
+        override fun create(context: TealiumContext): Module {
+            return CrashReporter(context)
+        }
+
+    }
+
+    override val name: String = MODULE_NAME
+    override var enabled: Boolean = true
 }
+
+val Modules.CrashFactory: ModuleFactory
+    get() = com.tealium.crashreporter.CrashReporter
+
+/**
+ * Returns the Lifecycle module for this Tealium instance.
+ */
+val Tealium.crashreporter: CrashReporter?
+    get() = modules.getModule(CrashReporter::class.java)
