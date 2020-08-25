@@ -3,10 +3,6 @@ package com.tealium.crashreporter
 import android.content.SharedPreferences
 import com.tealium.core.*
 
-/**
- * Crash Reporter module for tracking crash data. When used, this module populates
- * <i>crash_*</i> attributes defined in {@link com.tealium.library.DataSources.Key}.
- */
 class CrashReporter (private val context: TealiumContext) : Module {
     private val CRASH_COUNT = "crash_count"
 
