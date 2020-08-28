@@ -22,6 +22,48 @@ data class CurrentVisit(
 
     companion object {
 
+        fun toJson(currentVisit: CurrentVisit): JSONObject {
+            val json = JSONObject()
+
+            currentVisit.dates?.let {
+                json.put(KEY_DATES, JSONObject(it))
+            }
+
+            currentVisit.booleans?.let {
+                json.put(KEY_FLAGS, JSONObject(it))
+            }
+
+            currentVisit.arraysOfBooleans?.let {
+                json.put(KEY_FLAG_LISTS, JSONObject(it))
+            }
+
+            currentVisit.numbers?.let {
+                json.put(KEY_METRICS, JSONObject(it))
+            }
+
+            currentVisit.arraysOfNumbers?.let {
+                json.put(KEY_METRIC_LISTS, JSONObject(it))
+            }
+
+            currentVisit.tallies?.let {
+                json.put(KEY_METRIC_SETS, JSONObject(it))
+            }
+
+            currentVisit.strings?.let {
+                json.put(KEY_PROPERTIES, JSONObject(it))
+            }
+
+            currentVisit.arraysOfStrings?.let {
+                json.put(KEY_PROPERTY_LISTS, JSONObject(it))
+            }
+
+            currentVisit.setsOfStrings?.let {
+                json.put(KEY_PROPERTY_SETS, JSONObject(it))
+            }
+
+            return json
+        }
+
         fun fromJson(json: JSONObject): CurrentVisit {
             return CurrentVisit().apply {
                 createdAt = json.optLong(KEY_CREATED_AT)

@@ -1,58 +1,29 @@
 package com.tealium.visitorservice
 
 import com.tealium.core.*
-import com.tealium.core.network.ResourceRetriever
-import com.tealium.tealiumlibrary.BuildConfig
-import org.json.JSONObject
-import kotlin.properties.Delegates
-
-interface VisitorServiceDelegate {
-    fun didUpdate(visitorProfile: VisitorProfile)
-}
 
 /**
  * The VisitorService module is responsible for fetching updates to a VisitorProfile, and notifying
  * delegates that there have been updates.
  */
-class VisitorService(private val context: TealiumContext,
-                     var delegate: VisitorServiceDelegate? = null) : Module {
+class VisitorService(context: TealiumContext) : Module {
 
-    override val name: String
-        get() = "VISITOR_SERVICE"
-
+    override val name: String = MODULE_NAME
     override var enabled: Boolean = true
 
-    private val visitorId: String = context.visitorId
-
-    private val urlString: String
-        get() = context.config.overrideVisitorServiceUrl
-                ?: "https://visitor-service.tealiumiq.com/${context.config.accountName}/${context.config.profileName}/${visitorId}"
-
-    private val resourceRetriever: ResourceRetriever
+    private val visitorProfileManager = VisitorProfileManager(context)
 
     init {
-        resourceRetriever = ResourceRetriever(context.config, urlString, context.httpClient)
-        resourceRetriever.useIfModifed = false
+        context.events.subscribe(visitorProfileManager)
     }
 
-    private var visitorProfile: VisitorProfile by Delegates.observable(
-            initialValue = VisitorProfile(),
-            onChange = { _, _, new ->
-                delegate?.didUpdate(new)
-            }
-    )
+    val visitorProfile: VisitorProfile
+        get() = visitorProfileManager.visitorProfile
 
     /**
      * Retrieves the latest VisitorProfile. If there are updates then the delegate will be informed.
      */
-    suspend fun requestVisitorProfile() {
-        Logger.dev(BuildConfig.TAG, "Fetching visitor profile for $visitorId.")
-        val json = resourceRetriever.fetch()
-        json?.let {
-            Logger.dev(BuildConfig.TAG, "Fetched visitor profile: $it.")
-            visitorProfile = VisitorProfile.fromJson(JSONObject(it))
-        }
-    }
+    suspend fun requestVisitorProfile() = visitorProfileManager.requestVisitorProfile()
 
     companion object : ModuleFactory {
         const val MODULE_NAME = "VISITOR_SERVICE"

@@ -3,8 +3,6 @@ package com.tealium.mobile
 import android.app.Application
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
-import com.tealium.core.consent.ConsentPolicy
-import com.tealium.core.consent.consentManagerPolicy
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
@@ -19,8 +17,7 @@ import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 import com.tealium.tagmanagementdispatcher.TagManagement
 import com.tealium.visitorservice.VisitorProfile
 import com.tealium.visitorservice.VisitorService
-import com.tealium.visitorservice.VisitorServiceDelegate
-import com.tealium.visitorservice.visitorService
+import com.tealium.visitorservice.VisitorUpdatedListener
 
 object TealiumHelper {
     lateinit var instance: Tealium
@@ -40,11 +37,11 @@ object TealiumHelper {
 
         instance = Tealium("instance_1", config) {
             consentManager.enabled = true
-            visitorService?.delegate = object : VisitorServiceDelegate {
-                override fun didUpdate(visitorProfile: VisitorProfile) {
+            events.subscribe(object : VisitorUpdatedListener {
+                override fun onVisitorUpdated(visitorProfile: VisitorProfile) {
                     Logger.dev("--", "did update vp with $visitorProfile")
                 }
-            }
+            })
 
             remoteCommands?.add(localJsonCommand)
             remoteCommands?.add(webViewRemoteCommand)

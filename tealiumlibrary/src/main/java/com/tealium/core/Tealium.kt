@@ -193,7 +193,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
 
         dispatchSendCallbacks = DispatchSendCallbacks(eventRouter) // required by dispatchers.
 
-        context = TealiumContext(config, visitorId, logger, dataLayer, networkClient, events, this)
+        context = TealiumContext(config, visitorId, logger, dataLayer, networkClient, events as MessengerService, this)
         collectors = mutableSetOf(TealiumCollector(context), SessionCollector(session.id), dataLayer).union(initializeCollectors(config.collectors))
         validators = initializeValidators(config.validators)
         dispatchers = initializeDispatchers(config.dispatchers)
