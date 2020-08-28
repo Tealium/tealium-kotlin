@@ -46,7 +46,7 @@ class InstallReferrerTests {
     @Test
     fun installReferrerInfoAddedToDataLayer() = runBlocking {
         InstallReferrer(tealiumContext)
-        val data = tealium.dataLayer.getAll()
+        val data = tealium.dataLayer.all()
         delay(500)
         assertNotNull(data[InstallReferrerConstants.KEY_INSTALL_REFERRER])
         assertNotNull(data[InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP])
@@ -65,7 +65,7 @@ class InstallReferrerTests {
         tealium.dataLayer.remove(InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP)
         tealium.dataLayer.remove(InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP)
 
-        val data = tealium.dataLayer.getAll()
+        val data = tealium.dataLayer.all()
         delay(500)
         assertNull(data[InstallReferrerConstants.KEY_INSTALL_REFERRER])
         assertNull(data[InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP])
