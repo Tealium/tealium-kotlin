@@ -6,15 +6,10 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
-data class Crash (val thread: Thread, val exception: Throwable) {
-
-    val exceptionCause: String? = exception.javaClass.name
-    val exceptionName: String? = exception.message
-    val uUid: String? = null
-    val threadState: String? = thread.state.toString()
-    val threadNumber: String? = thread.id.toString()
-    val threadId: String? = thread.name
-    val threadPriority: String? = thread.priority.toString()
+data class Crash (val thread: Thread, val exception: Throwable, val exceptionCause: String = exception.javaClass.name,
+                  val exceptionName: String = exception.message.toString(), val uUid: String = java.util.UUID.randomUUID().toString(),
+                  val threadState: String = thread.state.toString(), val threadNumber: String = thread.id.toString(),
+                  val threadId: String = thread.name.toString(), val threadPriority: String = thread.priority.toString()) {
 
     companion object {
 
