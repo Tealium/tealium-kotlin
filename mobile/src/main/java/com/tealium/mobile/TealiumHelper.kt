@@ -13,6 +13,7 @@ import com.tealium.hosteddatalayer.HostedDataLayer
 import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
 import com.tealium.lifecycle.Lifecycle
 import com.tealium.location.Location
+import com.tealium.crashreporter.CrashReporter
 import com.tealium.remotecommanddispatcher.*
 import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
 import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
@@ -30,7 +31,7 @@ object TealiumHelper {
                 "tealiummobile",
                 "android",
                 Environment.DEV,
-                modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer),
+                modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer, Modules.CrashReporter),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement)
         ).apply {
             collectors.add(Collectors.Location)

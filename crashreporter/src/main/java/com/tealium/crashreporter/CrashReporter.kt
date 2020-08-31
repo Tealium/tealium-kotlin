@@ -4,10 +4,11 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.SharedPreferences
 import com.tealium.core.*
+import com.tealium.core.messaging.ActivityObserverListener
 import com.tealium.dispatcher.TealiumEvent
 import java.util.*
 
-class CrashReporter (private val context: TealiumContext) : Module {
+class CrashReporter (private val context: TealiumContext) : Module, ActivityObserverListener {
 
     private val sharedPrefsName: String = getSharedPreferencesName(context.config)
     private val sharedPreferences: SharedPreferences = context.config.application.getSharedPreferences(sharedPrefsName, 0)
@@ -16,8 +17,6 @@ class CrashReporter (private val context: TealiumContext) : Module {
     private val originalExceptionHandler: Thread.UncaughtExceptionHandler? = Thread.getDefaultUncaughtExceptionHandler()
 
     private var crashCount: Int = 0
-
-
 
     private fun getBuildId(): String {
         sharedPreferences.getString(CRASH_BUILD_ID, null)?.let {
@@ -52,10 +51,22 @@ class CrashReporter (private val context: TealiumContext) : Module {
      * @param ex
      */
     fun uncaughtException(thread: Thread, ex: Throwable) {
-        val crash: Crash = Crash(thread, ex)
+        val crash = Crash(thread, ex)
         saveCrashData(crash)
         incrementCrashCount()
         originalExceptionHandler?.uncaughtException(thread, ex)
+    }
+
+    override fun onActivityPaused(activity: Activity?) {
+        // Do nothing
+    }
+
+    override fun onActivityResumed(activity: Activity?) {
+        sendCrashData()
+    }
+
+    override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
+        // Do nothing
     }
 
     private fun sendCrashData() {
@@ -132,7 +143,7 @@ class CrashReporter (private val context: TealiumContext) : Module {
     override var enabled: Boolean = true
 }
 
-val Modules.CrashFactory: ModuleFactory
+val Modules.CrashReporter: ModuleFactory
     get() = com.tealium.crashreporter.CrashReporter
 
 /**
