@@ -8,10 +8,10 @@ import com.tealium.core.network.NetworkClient
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
 import com.tealium.dispatcher.DispatcherListener
-import com.tealium.internal.tagbridge.RemoteCommand
-import com.tealium.internal.tagbridge.RemoteCommandRequest
 import com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand
 import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
+import com.tealium.remotecommands.RemoteCommand
+import com.tealium.remotecommands.RemoteCommandRequest
 import java.util.*
 
 //import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
@@ -86,9 +86,9 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
             loadHttpCommand(id)
             webViewCommands[id]?.let { command ->
                 Logger.dev(BuildConfig.TAG, "Detected Remote Command $id with payload ${request.response?.requestPayload}")
-                request.response?.javascriptResponse?.let { js ->
-                    afterDispatchSendCallbacks.onEvaluateJavascript(js)
-                }
+//                request.response?.javascriptResponse?.let { js ->
+//                    afterDispatchSendCallbacks.onEvaluateJavascript(js)
+//                }
                 command.invoke(request)
             } ?: run {
                 Logger.dev(BuildConfig.TAG, "" +
@@ -109,6 +109,9 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
                 // map the dispatch with the lookup
                 val mappedDispatch = RemoteCommandParser.mapDispatch(dispatch, mappings)
                 val eventName = dispatch[CoreConstant.TEALIUM_EVENT] as? String
+                config.apiConfig?.get("config")?.let {
+                    mappedDispatch[Settings.CONFIG] = it
+                }
                 config.apiCommands?.get(eventName)?.let {
                     mappedDispatch[Settings.COMMAND_NAME] = it
                 } ?: run {
@@ -127,11 +130,9 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
         }
     }
 
-    override fun onRemoteCommandSend(url: String) {
-        val request = RemoteCommandRequest(url)
-        request?.let {
-            invokeTagManagementRequest(it)
-        }
+    override fun onRemoteCommandSend(handler: RemoteCommand.ResponseHandler, url: String) {
+        val request = RemoteCommandRequest(handler, url)
+        invokeTagManagementRequest(request)
     }
 
     override suspend fun onDispatchSend(dispatch: Dispatch) {

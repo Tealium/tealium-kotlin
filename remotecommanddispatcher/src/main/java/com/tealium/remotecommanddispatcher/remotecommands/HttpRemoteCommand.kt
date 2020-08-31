@@ -3,8 +3,8 @@ package com.tealium.remotecommanddispatcher.remotecommands
 import android.net.Uri
 import com.tealium.core.Logger
 import com.tealium.core.network.*
-import com.tealium.internal.tagbridge.RemoteCommand
 import com.tealium.remotecommanddispatcher.BuildConfig
+import com.tealium.remotecommands.RemoteCommand
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking

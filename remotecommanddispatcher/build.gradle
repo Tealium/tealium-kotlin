@@ -33,11 +33,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation project(':tealiumlibrary')
-//    TODO: REMOVE for production. Test with local aar - S3 cache sucks
-//    api (name:'remotecommands-debug', ext:'aar')
-
-    api 'com.tealium:remotecommands:0.0.1'
+    api project(':tealiumlibrary')
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_core_version"

@@ -7,6 +7,7 @@ import com.tealium.core.consent.UserConsentPreferences
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
+import com.tealium.remotecommands.RemoteCommand
 
 interface EventRouter :
         DispatchReadyListener,
@@ -104,10 +105,10 @@ class EventDispatcher : EventRouter {
         }
     }
 
-    override fun onRemoteCommandSend(url: String) {
+    override fun onRemoteCommandSend(handler: RemoteCommand.ResponseHandler, url: String) {
         listeners.forEach {
             when (it) {
-                is RemoteCommandListener -> it.onRemoteCommandSend(url)
+                is RemoteCommandListener -> it.onRemoteCommandSend(handler, url)
             }
         }
     }

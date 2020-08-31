@@ -9,11 +9,11 @@ import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.hosteddatalayer.HostedDataLayer
 import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
-import com.tealium.internal.tagbridge.RemoteCommand
 import com.tealium.lifecycle.Lifecycle
 import com.tealium.remotecommanddispatcher.RemoteCommands
 import com.tealium.remotecommanddispatcher.remoteCommands
 import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
+import com.tealium.remotecommands.RemoteCommand
 //import com.tealium.remotecommanddispatcher.*
 //import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
 //import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
