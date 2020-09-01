@@ -48,12 +48,8 @@ dependencies {
 }
 
 repositories {
-    mavenLocal()
     mavenCentral()
     maven { url "https://kotlin.bintray.com/kotlinx" }
-//    flatDir {
-//        dirs 'libs'
-//    }
 }
 
 //afterEvaluate {
@@ -62,7 +58,7 @@ repositories {
 //            release(MavenPublication) {
 //                from components.release
 //                groupId = 'com.tealium'
-//                artifactId = 'kotlin-remote-command-dispatcher'
+//                artifactId = 'kotlin-remotecommand-dispatcher'
 //            }
 //        }
 //        repositories {
