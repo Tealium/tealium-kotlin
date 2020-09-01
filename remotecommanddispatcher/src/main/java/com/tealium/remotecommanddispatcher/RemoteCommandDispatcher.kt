@@ -86,9 +86,6 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
             loadHttpCommand(id)
             webViewCommands[id]?.let { command ->
                 Logger.dev(BuildConfig.TAG, "Detected Remote Command $id with payload ${request.response?.requestPayload}")
-//                request.response?.javascriptResponse?.let { js ->
-//                    afterDispatchSendCallbacks.onEvaluateJavascript(js)
-//                }
                 command.invoke(request)
             } ?: run {
                 Logger.dev(BuildConfig.TAG, "" +

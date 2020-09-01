@@ -50,5 +50,4 @@ dependencies {
     implementation project(':visitorservice:')
     implementation project(':hosteddatalayer')
     implementation project(':remotecommanddispatcher')
-
 }

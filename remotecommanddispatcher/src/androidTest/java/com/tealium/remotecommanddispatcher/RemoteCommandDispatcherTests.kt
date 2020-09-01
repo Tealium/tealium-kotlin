@@ -7,9 +7,9 @@ import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.network.NetworkClient
 import com.tealium.dispatcher.TealiumEvent
-import com.tealium.internal.tagbridge.RemoteCommand
 import com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand
 import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
+import com.tealium.remotecommands.RemoteCommand
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import junit.framework.Assert
@@ -70,7 +70,7 @@ class RemoteCommandDispatcherTests {
         })
 
         remoteCommandDispatcher.add(webViewCommand)
-        remoteCommandDispatcher.onRemoteCommandSend("tealium://testWebViewCommand?request={\"config\":{\"response_id\":\"123\"}, \"payload\":{\"hello\": \"world\"}}")
+        remoteCommandDispatcher.onRemoteCommandSend(createResponseHandler(),"tealium://testWebViewCommand?request={\"config\":{\"response_id\":\"123\"}, \"payload\":{\"hello\": \"world\"}}")
 
         verify { webViewCommand.invoke(any()) }
     }
@@ -86,5 +86,11 @@ class RemoteCommandDispatcherTests {
 
         Assert.assertEquals(remoteCommand.commandName, httpRemoteCommand.commandName)
         Assert.assertEquals(remoteCommand.description, httpRemoteCommand.description)
+    }
+
+    private fun createResponseHandler(): RemoteCommand.ResponseHandler {
+        return RemoteCommand.ResponseHandler {
+            // do nothing
+        }
     }
 }

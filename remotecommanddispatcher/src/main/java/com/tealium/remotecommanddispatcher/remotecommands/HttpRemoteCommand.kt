@@ -76,7 +76,7 @@ class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME,
             } catch (e: Exception) {
                 Logger.dev(BuildConfig.TAG, "Unknown exception occurred")
                 response.apply {
-                    status = 555 // TODO - make public Response.STATUS_EXCEPTION_THROWN
+                    status = Response.STATUS_EXCEPTION_THROWN
                     body = e.toString()
                 }
                 response.send()
