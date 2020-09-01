@@ -41,14 +41,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
             onTrack()
         }
 
-        val viewDispatch = TealiumView("MAIN ACTIVITY")
-        tealium.track(viewDispatch)
+        TealiumHelper.trackView("MAIN ACTIVITY", null)
     }
 
     private fun onTrack() {
-        val eventDispatch = TealiumEvent( "event1", mutableMapOf("key1" to "value1", "key2" to 2))
+        TealiumHelper.trackEvent("event1",  mapOf("key1" to "value1", "key2" to 2))
 
-        tealium.track(eventDispatch)
     }
 
     override fun onModuleSelected(moduleName: String) {

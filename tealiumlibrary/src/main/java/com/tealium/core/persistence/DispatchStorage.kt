@@ -1,7 +1,5 @@
 package com.tealium.core.persistence
 
-import com.tealium.core.collection.TimeCollector
-import com.tealium.core.collection.TimeData
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.dispatcher.Dispatch

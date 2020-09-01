@@ -226,7 +226,7 @@ class KeyValueStorageTests {
         storage.putLongArray("long_array", arrayOf(2L))
         storage.putBooleanArray("boolean_array", arrayOf(true))
 
-        val map = storage.getAll()
+        val map = storage.all()
         assertEquals("String", map["string"])
         assertEquals(1, map["int"])
         assertEquals(2.0, map["double"])
@@ -334,7 +334,7 @@ class KeyValueStorageTests {
         assertNull(storage.getBoolean("expired_boolean_1"))
         assertNull(storage.getBoolean("expired_boolean_2"))
 
-        val map = storage.getAll()
+        val map = storage.all()
         assertTrue(map["non_expired_boolean"] as Boolean)
         assertNull(map["expired_boolean_1"])
         assertNull(map["expired_boolean_2"])
@@ -368,7 +368,7 @@ class KeyValueStorageTests {
         storage.putDouble("forever_item", Double.MAX_VALUE, Expiry.FOREVER)
         storage.putLong("timed_item", Long.MIN_VALUE, Expiry.afterTimeUnit(10, TimeUnit.MINUTES))
 
-        var allItems = storage.getAll()
+        var allItems = storage.all()
         assertTrue(allItems.containsKey("session_item_1"))
         assertTrue(allItems.containsKey("session_item_2"))
         assertTrue(allItems.containsKey("forever_item"))
@@ -376,7 +376,7 @@ class KeyValueStorageTests {
 
         (storage as PersistentStorage).onNewSession(123L)
 
-        allItems = storage.getAll()
+        allItems = storage.all()
         assertFalse(allItems.containsKey("session_item_1"))
         assertFalse(allItems.containsKey("session_item_2"))
         assertTrue(allItems.containsKey("forever_item"))
