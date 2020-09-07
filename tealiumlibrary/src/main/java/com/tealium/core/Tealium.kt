@@ -53,9 +53,9 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     private val activityObserver: ActivityObserver
     // Only instantiates if there is an event triggered before the modules are initialized.
     private val dispatchBufferDelegate = lazy {
-        InMemoryPersistence()
+        LinkedList<Dispatch>()
     }
-    private val dispatchBuffer: Persistence by dispatchBufferDelegate
+    private val dispatchBuffer: Queue<Dispatch> by dispatchBufferDelegate
 
     // Dependencies for publicly accessible objects.
     private val databaseHelper: DatabaseHelper
@@ -167,7 +167,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
             }
             false -> {
                 logger.dev(BuildConfig.TAG, "Instance not yet initialized; buffering.")
-                dispatchBuffer.enqueue(dispatch)
+                dispatchBuffer.add(dispatch)
             }
         }
     }
@@ -286,11 +286,13 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
 
         logger.qa(BuildConfig.TAG, "Tealium instance initialized with the following modules: $modules")
 
-        if (dispatchBufferDelegate.isInitialized() && dispatchBuffer.count > 0) {
+        if (dispatchBufferDelegate.isInitialized() && dispatchBuffer.size > 0) {
             logger.dev(BuildConfig.TAG, "Dispatching buffered events.")
 
-            dispatchBuffer.dequeue().forEach { queuedDispatch ->
-                track(queuedDispatch)
+            while (!dispatchBuffer.isEmpty()) {
+                dispatchBuffer.poll()?.let { queuedDispatch ->
+                    track(queuedDispatch)
+                }
             }
         }
     }

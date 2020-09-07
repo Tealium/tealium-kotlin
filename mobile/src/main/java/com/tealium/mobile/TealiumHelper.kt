@@ -1,6 +1,7 @@
 package com.tealium.mobile
 
 import android.app.Application
+import android.os.Bundle
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
 import com.tealium.core.consent.ConsentPolicy
