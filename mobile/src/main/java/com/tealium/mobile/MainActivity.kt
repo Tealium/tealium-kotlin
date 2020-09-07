@@ -55,6 +55,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
             "Visitor Service" -> VisitorServiceFragment()
             "Location" -> LocationFragment()
             "Hosted Data Layer" -> HostedDataLayerFragment()
+            "Crash Reporter" -> CrashReporterFragment()
             else -> null
         }
         fragment?.let {

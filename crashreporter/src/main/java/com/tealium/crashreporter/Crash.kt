@@ -33,7 +33,7 @@ data class Crash (val thread: Thread, val exception: Throwable, val exceptionCau
                 threadData.put(KEY_THREAD_NUMBER, crash.threadNumber)
                 threadData.put(KEY_THREAD_ID, crash.threadId)
                 threadData.put(KEY_THREAD_PRIORITY, crash.threadPriority)
-                threadData.put(KEY_THREAD_STACK, Crash.getStackData(crash, truncateStackTrace))
+                threadData.put(KEY_THREAD_STACK, getStackData(crash, truncateStackTrace))
             } catch (ex: JSONException) {
                 Log.e(BuildConfig.TAG, ex.message)
             }

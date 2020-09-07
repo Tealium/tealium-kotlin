@@ -149,5 +149,5 @@ val Modules.CrashReporter: ModuleFactory
 /**
  * Returns the CrashReporter module for this Tealium instance.
  */
-val Tealium.crashreporter: CrashReporter?
+val Tealium.crashReporter: CrashReporter?
     get() = modules.getModule(CrashReporter::class.java)
