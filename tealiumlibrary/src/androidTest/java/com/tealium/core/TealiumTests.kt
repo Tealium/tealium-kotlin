@@ -341,4 +341,66 @@ class TealiumTests {
         }
     }
 
+    @Test
+    fun testCompanion_CreateAndGet() {
+        val instance = Tealium.create("instance_1", configWithNoModules)
+        assertSame(instance, Tealium["instance_1"])
+        assertSame(instance, Tealium.get("instance_1"))
+    }
+
+    @Test
+    fun testCompanion_CreateAndDestroy() {
+        val instance = Tealium.create("instance_1", configWithNoModules)
+        assertSame(instance, Tealium["instance_1"])
+        assertSame(instance, Tealium.get("instance_1"))
+
+        Tealium.destroy("instance_1")
+        assertNull(Tealium["instance_1"])
+        assertNull(Tealium.get("instance_1"))
+    }
+
+    @Test
+    fun testCompanion_CreateMultipleWithSameConfig() {
+        val instance = Tealium.create("instance_1", configWithNoModules)
+        val instance2 = Tealium.create("instance_2", configWithNoModules)
+        assertSame(instance, Tealium["instance_1"])
+        assertSame(instance, Tealium.get("instance_1"))
+        assertSame(instance2, Tealium["instance_2"])
+        assertSame(instance2, Tealium.get("instance_2"))
+
+        Tealium.destroy("instance_1")
+        assertNull(Tealium["instance_1"])
+        assertNull(Tealium.get("instance_1"))
+
+        assertNotNull(Tealium["instance_2"])
+        assertNotNull(Tealium.get("instance_2"))
+    }
+
+    @Test
+    fun testCompanion_CreateMultipleWithDifferentConfig() {
+        val instance = Tealium.create("instance_1", configWithNoModules)
+        val instance2 = Tealium.create("instance_2", TealiumConfig(application, "test2", "test2", Environment.DEV))
+        assertSame(instance, Tealium["instance_1"])
+        assertSame(instance, Tealium.get("instance_1"))
+        assertSame(instance2, Tealium["instance_2"])
+        assertSame(instance2, Tealium.get("instance_2"))
+
+        Tealium.destroy("instance_1")
+        assertNull(Tealium["instance_1"])
+        assertNull(Tealium.get("instance_1"))
+
+        assertNotNull(Tealium["instance_2"])
+        assertNotNull(Tealium.get("instance_2"))
+    }
+
+    @Test
+    fun testCompanion_NamesReturnsAllNames() {
+        val instance = Tealium.create("instance_1", configWithNoModules)
+        val instance2 = Tealium.create("instance_2", TealiumConfig(application, "test2", "test2", Environment.DEV))
+        val names = Tealium.names()
+
+        assertEquals(2, names.size)
+        assertTrue(names.contains("instance_1"))
+        assertTrue(names.contains("instance_2"))
+    }
 }

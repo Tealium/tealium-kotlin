@@ -23,6 +23,7 @@ import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
+import java.lang.ref.WeakReference
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
@@ -352,5 +353,34 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
             }
         }
         legacySharedPreferences.edit().clear().apply()
+    }
+
+    private fun shutdown() {
+        initialized.set(false)
+        eventRouter.onInstanceShutdown(key, WeakReference(this))
+
+    }
+
+    companion object {
+        private val instances = mutableMapOf<String, Tealium>()
+
+        fun create(name: String, config: TealiumConfig, onReady: (Tealium.() -> Unit)? = null): Tealium {
+            val instance = Tealium(name, config, onReady)
+            instances[name] = instance
+            return instance
+        }
+
+        fun destroy(name: String) {
+            instances[name]?.shutdown()
+            instances.remove(name)
+        }
+
+        operator fun get(name: String) : Tealium? {
+            return instances[name]
+        }
+
+        fun names(): Set<String> {
+            return instances.keys
+        }
     }
 }
