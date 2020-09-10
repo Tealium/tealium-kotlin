@@ -90,15 +90,10 @@ class DeviceCollector private constructor(context: Context) : Collector, DeviceD
     }
 
     companion object : CollectorFactory {
+        @Volatile private var instance: Collector? = null
 
-        private lateinit var applicationContext: Context
-        private val instance: Collector by lazy {
-            DeviceCollector(applicationContext)
-        }
-
-        override fun create(context: TealiumContext): Collector {
-            applicationContext = context.config.application.applicationContext
-            return instance
+        override fun create(context: TealiumContext): Collector = instance ?: synchronized(this){
+            instance ?: DeviceCollector(context.config.application).also { instance = it }
         }
     }
 }

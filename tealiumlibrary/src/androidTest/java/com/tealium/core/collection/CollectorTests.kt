@@ -179,4 +179,19 @@ class CollectorTestsAndroid {
             assertNotNull(factory.create(tealiumContext))
         }
     }
+
+    @Test
+    fun testSingletonsCreateOnlyOneInstance() {
+        val connectivityCollector1 = ConnectivityCollector.create(tealiumContext)
+        val connectivityCollector2 = ConnectivityCollector.create(tealiumContext)
+        assertSame(connectivityCollector1, connectivityCollector2)
+
+        val deviceCollector1 = DeviceCollector.create(tealiumContext)
+        val deviceCollector2 = DeviceCollector.create(tealiumContext)
+        assertSame(deviceCollector1, deviceCollector2)
+
+        val timeCollector1 = TimeCollector.create(tealiumContext)
+        val timeCollector2 = TimeCollector.create(tealiumContext)
+        assertSame(deviceCollector1, deviceCollector2)
+    }
 }

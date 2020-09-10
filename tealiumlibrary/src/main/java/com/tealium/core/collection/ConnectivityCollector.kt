@@ -4,6 +4,7 @@ import android.app.Service
 import android.content.Context
 import android.telephony.TelephonyManager
 import com.tealium.core.*
+import com.tealium.core.network.Connectivity
 import com.tealium.core.network.ConnectivityRetriever
 
 interface ConnectivityData : Collector {
@@ -13,7 +14,7 @@ interface ConnectivityData : Collector {
     val carrierMnc: String
 }
 
-class ConnectivityCollector(context: Context, val connectivityRetriever: ConnectivityRetriever) : Collector, ConnectivityData {
+class ConnectivityCollector(context: Context, private val connectivityRetriever: Connectivity) : Collector, ConnectivityData {
 
     override val name: String
         get() = "CONNECTIVITY_COLLECTOR"
@@ -38,11 +39,13 @@ class ConnectivityCollector(context: Context, val connectivityRetriever: Connect
     }
 
     companion object : CollectorFactory {
-        override fun create(context: TealiumContext): Collector {
-            return ConnectivityCollector(
+        @Volatile private var instance: ConnectivityCollector? = null
+
+        override fun create(context: TealiumContext): Collector = instance ?: synchronized(this) {
+            instance ?: ConnectivityCollector(
                     context.config.application.applicationContext,
-                    ConnectivityRetriever(context.config.application)
-            )
+                    ConnectivityRetriever.getInstance(context.config.application)
+            ).also { instance = it }
         }
     }
 }
