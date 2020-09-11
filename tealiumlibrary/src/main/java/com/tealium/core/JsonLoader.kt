@@ -30,7 +30,7 @@ interface Loader {
     fun loadFromUrl(url: URL): Any?
 }
 
-class JsonLoader(val application: Application) : Loader {
+class JsonLoader private constructor(val application: Application) : Loader {
 
     override fun loadFromFile(file: File): String? {
         return if (file.exists()) {
@@ -79,4 +79,11 @@ class JsonLoader(val application: Application) : Loader {
         return true
     }
 
+    companion object {
+        @Volatile private var instance: JsonLoader? = null
+
+        fun getInstance(application: Application): JsonLoader = instance ?: synchronized(this) {
+            instance ?: JsonLoader(application).also { instance = it }
+        }
+    }
 }

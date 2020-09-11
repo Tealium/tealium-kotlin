@@ -27,7 +27,7 @@ class LocationManager(private val context: TealiumContext) :
 
     private val locationProviderClientLoader = FusedLocationProviderClientLoader(context)
     private val scope = CoroutineScope(Dispatchers.IO)
-    private val jsonLoader = JsonLoader(context.config.application)
+    private val jsonLoader = JsonLoader.getInstance(context.config.application)
 
     init {
         loadGeofenceAsset()
