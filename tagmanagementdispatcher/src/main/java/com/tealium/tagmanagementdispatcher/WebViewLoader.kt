@@ -15,6 +15,7 @@ import com.tealium.core.messaging.SessionStartedListener
 import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.remotecommands.RemoteCommand
+import com.tealium.remotecommands.RemoteCommandRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -181,7 +182,7 @@ class WebViewLoader(private val context: TealiumContext,
                 context.config.options[TagManagementRemoteCommand.TIQ_CONFIG].let {
                     url?.let {
                         if (url.startsWith(TagManagementRemoteCommand.PREFIX)) {
-                            afterDispatchSendCallbacks.sendRemoteCommand(createResponseHandler(), url)
+                            afterDispatchSendCallbacks.sendRemoteCommand(RemoteCommandRequest(createResponseHandler(), url))
                         }
                     }
                 }

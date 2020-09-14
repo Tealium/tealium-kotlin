@@ -12,9 +12,6 @@ import com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand
 import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandRequest
-import java.util.*
-
-//import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 
 interface RemoteCommandDispatcherListener : DispatcherListener {
 }
@@ -94,19 +91,13 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
         }
     }
 
-    private fun invokeJsonRequest(request: RemoteCommandRequest) {
-        jsonCommands.forEach { (key, command) ->
-            command.invoke(request)
-        }
-    }
-
     private fun parseJsonRemoteCommand(remoteCommand: JsonRemoteCommand, dispatch: Dispatch) {
         remoteCommand.remoteCommandConfigRetriever?.remoteCommandConfig?.let { config ->
             config.mappings?.let { mappings ->
                 // map the dispatch with the lookup
                 val mappedDispatch = RemoteCommandParser.mapDispatch(dispatch, mappings)
                 val eventName = dispatch[CoreConstant.TEALIUM_EVENT] as? String
-                config.apiConfig?.get("config")?.let {
+                config.apiConfig?.let {
                     mappedDispatch[Settings.CONFIG] = it
                 }
                 config.apiCommands?.get(eventName)?.let {
@@ -116,7 +107,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
                 }
 
                 Logger.dev(BuildConfig.TAG, "Processing Remote Command: ${remoteCommand.commandName} with command name: ${mappedDispatch[Settings.COMMAND_NAME]}")
-                invokeJsonRequest(RemoteCommandRequest(remoteCommand.commandName, JsonUtils.jsonFor(mappedDispatch)))
+                remoteCommand.invoke(RemoteCommandRequest(remoteCommand.commandName, JsonUtils.jsonFor(mappedDispatch)))
             }
         }
     }
@@ -127,8 +118,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
         }
     }
 
-    override fun onRemoteCommandSend(handler: RemoteCommand.ResponseHandler, url: String) {
-        val request = RemoteCommandRequest(handler, url)
+    override fun onRemoteCommandSend(request: RemoteCommandRequest) {
         invokeTagManagementRequest(request)
     }
 
