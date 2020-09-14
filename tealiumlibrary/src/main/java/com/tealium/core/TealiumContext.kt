@@ -1,6 +1,6 @@
 package com.tealium.core
 
-import com.tealium.core.messaging.Subscribable
+import com.tealium.core.messaging.MessengerService
 import com.tealium.core.persistence.DataLayer
 import com.tealium.core.network.NetworkClient
 import com.tealium.dispatcher.Dispatch
@@ -13,7 +13,7 @@ data class TealiumContext(val config: TealiumConfig,
                           val log: Logging,
                           val dataLayer: DataLayer,
                           val httpClient: NetworkClient,
-                          val events: Subscribable,
+                          val events: MessengerService,
                           val tealium: Tealium) {
 
     /**

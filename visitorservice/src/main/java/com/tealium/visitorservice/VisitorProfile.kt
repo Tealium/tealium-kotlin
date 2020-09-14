@@ -40,6 +40,60 @@ data class VisitorProfile(
         var currentVisit: CurrentVisit? = null) {
 
     companion object {
+        fun toJson(visitorProfile: VisitorProfile): JSONObject {
+            val json = JSONObject()
+
+            visitorProfile.audiences?.let {
+                json.put(KEY_AUDIENCES, JSONObject(it))
+            }
+
+            visitorProfile.badges?.let {
+                json.put(KEY_BADGES, JSONObject(it))
+            }
+
+            visitorProfile.dates?.let {
+                json.put(KEY_DATES, JSONObject(it))
+            }
+
+            visitorProfile.booleans?.let {
+                json.put(KEY_FLAGS, JSONObject(it))
+            }
+
+            visitorProfile.arraysOfBooleans?.let {
+                json.put(KEY_FLAG_LISTS, JSONObject(it))
+            }
+
+            visitorProfile.numbers?.let {
+                json.put(KEY_METRICS, JSONObject(it))
+            }
+
+            visitorProfile.arraysOfNumbers?.let {
+                json.put(KEY_METRIC_LISTS, JSONObject(it))
+            }
+
+            visitorProfile.tallies?.let {
+                json.put(KEY_METRIC_SETS, JSONObject(it))
+            }
+
+            visitorProfile.strings?.let {
+                json.put(KEY_PROPERTIES, JSONObject(it))
+            }
+
+            visitorProfile.arraysOfStrings?.let {
+                json.put(KEY_PROPERTY_LISTS, JSONObject(it))
+            }
+
+            visitorProfile.setsOfStrings?.let {
+                json.put(KEY_PROPERTY_SETS, JSONObject(it))
+            }
+
+            visitorProfile.currentVisit?.let {
+                json.put(KEY_CURRENT_VISIT, CurrentVisit.toJson(it))
+            }
+
+            return json
+        }
+
         fun fromJson(json: JSONObject): VisitorProfile {
             val visitorProfile = VisitorProfile()
 

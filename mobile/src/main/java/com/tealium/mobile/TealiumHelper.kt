@@ -13,8 +13,8 @@ import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.tagmanagementdispatcher.TagManagement
 import com.tealium.visitorservice.VisitorProfile
-import com.tealium.visitorservice.VisitorServiceDelegate
-import com.tealium.visitorservice.visitorService
+import com.tealium.visitorservice.VisitorService
+import com.tealium.visitorservice.VisitorUpdatedListener
 
 object TealiumHelper {
     lateinit var instance: Tealium
@@ -33,11 +33,11 @@ object TealiumHelper {
 
         instance = Tealium("instance_1", config) {
             consentManager.enabled = true
-            visitorService?.delegate = object : VisitorServiceDelegate {
-                override fun didUpdate(visitorProfile: VisitorProfile) {
+            events.subscribe(object : VisitorUpdatedListener {
+                override fun onVisitorUpdated(visitorProfile: VisitorProfile) {
                     Logger.dev("--", "did update vp with $visitorProfile")
                 }
-            }
+            })
 
             remoteCommands?.add(localJsonCommand)
             remoteCommands?.add(webViewRemoteCommand)
@@ -54,6 +54,16 @@ object TealiumHelper {
         override fun onInvoke(response: Response) {
             Logger.dev(BuildConfig.TAG, "ResponsePayload for local JSON RemoteCommand ${response.requestPayload}")
         }
+    }
+
+    fun trackView(name: String, data: Map<String, Any>?) {
+        val viewDispatch = TealiumView(name, data)
+        instance.track(viewDispatch)
+    }
+
+    fun trackEvent(name: String, data: Map<String, Any>?) {
+        val eventDispatch = TealiumEvent(name, data)
+        instance.track(eventDispatch)
     }
 
     val customValidator: DispatchValidator by lazy {

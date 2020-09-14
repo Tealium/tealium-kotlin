@@ -210,7 +210,7 @@ interface DataLayer : Collector {
      *
      * @return a map of all key/value pairs, else an empty map.
      */
-    fun getAll(): Map<String, Any>
+    fun all(): Map<String, Any>
 
     /**
      * Removes the value for the given key.
@@ -243,7 +243,7 @@ interface DataLayer : Collector {
     fun getExpiry(key: String): Expiry?
 
     override suspend fun collect(): Map<String, Any> {
-        return getAll()
+        return all()
     }
 }
 
