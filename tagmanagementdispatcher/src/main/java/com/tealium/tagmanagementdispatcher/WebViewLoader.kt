@@ -214,18 +214,18 @@ class WebViewLoader(private val context: TealiumContext,
 
     private fun createResponseHandler(): RemoteCommand.ResponseHandler {
         return object: RemoteCommand.ResponseHandler {
-            override fun onHandle(p0: RemoteCommand.Response?) {
+            override fun onHandle(response: RemoteCommand.Response?) {
                 var js = ""
-                p0?.id?.let {
-                    p0.body?.let {
+                response?.id?.let {
+                    response.body?.let {
                         js = "try {" +
-                                "	utag.mobile.remote_api.response[\"${p0.commandId}\"][\"${p0.id}\"](${p0.status}, ${JSONObject.quote(p0.body)});" +
+                                "	utag.mobile.remote_api.response[\"${response.commandId}\"][\"${response.id}\"](${response.status}, ${JSONObject.quote(response.body)});" +
                                 "} catch(err) {" +
                                 "	console.error(err);" +
                                 "};"
                     } ?: run {
                         js = "try {" +
-                                "	utag.mobile.remote_api.response[\"${p0.commandId}\"][\"${p0.id}\"](${p0.status});" +
+                                "	utag.mobile.remote_api.response[\"${response.commandId}\"][\"${response.id}\"](${response.status});" +
                                 "} catch(err) {" +
                                 "	console.error(err);" +
                                 "};"
