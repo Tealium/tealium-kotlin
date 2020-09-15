@@ -1,9 +1,8 @@
 package com.tealium.core.consent
-
-import com.tealium.core.consent.ConsentManagerConstants.CONSENT_CATEGORIES
-import com.tealium.core.consent.ConsentManagerConstants.CONSENT_STATUS
 import android.content.SharedPreferences
 import com.tealium.core.TealiumConfig
+import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
+import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
 
 /**
  * This class is responsible for the persistence of consent preferences as defined by [ConsentStatus]
@@ -16,19 +15,19 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
     var consentStatus: ConsentStatus = ConsentStatus.UNKNOWN
         get() {
             return ConsentStatus.consentStatus(
-                    sharedPreferences.getString(CONSENT_STATUS, ConsentStatus.default().value)!!
+                    sharedPreferences.getString(KEY_STATUS, ConsentStatus.default().value)!!
             )
         }
         set(value) {
             field = value
             sharedPreferences.edit()
-                    .putString(CONSENT_STATUS, field.value)
+                    .putString(KEY_STATUS, field.value)
                     .apply()
         }
 
     var consentCategories: Set<ConsentCategory>? = null
         get() {
-            return sharedPreferences.getStringSet(CONSENT_CATEGORIES, null)?.let {
+            return sharedPreferences.getStringSet(KEY_CATEGORIES, null)?.let {
                 ConsentCategory.consentCategories(it.filterNotNull().toSet())
             }
         }
@@ -36,10 +35,10 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
             field = value
             value?.let { categories ->
                 sharedPreferences.edit()
-                        .putStringSet(CONSENT_CATEGORIES, categories.map { category -> category.value }.toSet())
+                        .putStringSet(KEY_CATEGORIES, categories.map { category -> category.value }.toSet())
                         .apply()
             } ?: run {
-                sharedPreferences.edit().remove(CONSENT_CATEGORIES).apply()
+                sharedPreferences.edit().remove(KEY_CATEGORIES).apply()
             }
         }
 
@@ -54,6 +53,6 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
     }
 
     private fun sharedPreferencesName(config: TealiumConfig): String {
-        return "tealium.consentpreferences." + Integer.toHexString((config.accountName + config.profileName + config.environment).hashCode())
+        return "tealium.userconsentpreferences." + Integer.toHexString((config.accountName + config.profileName + config.environment.environment).hashCode())
     }
 }
