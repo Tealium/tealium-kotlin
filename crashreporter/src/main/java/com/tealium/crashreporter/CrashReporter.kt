@@ -89,7 +89,7 @@ class CrashReporter (private val context: TealiumContext) : Module, ActivityObse
                 .putString(CRASH_EXCEPTION_NAME, crash.exceptionName)
                 .putString(CRASH_UUID, crash.uUid)
                 .putString(CRASH_THREADS, Crash.getThreadData(crash, truncateCrashStackTraces))
-                .commit()
+                .apply()
     }
 
     private fun readSavedCrashData(): MutableMap<String, Any>? {
