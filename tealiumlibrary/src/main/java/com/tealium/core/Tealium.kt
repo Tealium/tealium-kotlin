@@ -189,7 +189,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
      * Reports as ready once it's completed by calling [onInstanceReady].
      */
     private fun bootstrap() {
-        connectivity = ConnectivityRetriever(config.application)
+        connectivity = ConnectivityRetriever.getInstance(config.application)
         dispatchStore = DispatchStorage(databaseHelper, "dispatches")
 
         dispatchSendCallbacks = DispatchSendCallbacks(eventRouter) // required by dispatchers.

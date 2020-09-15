@@ -4,8 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import com.tealium.dispatcher.Dispatch
-import com.tealium.core.validation.DispatchValidator
+import android.os.Build
 
 interface Connectivity {
     fun isConnected(): Boolean
@@ -15,13 +14,16 @@ interface Connectivity {
     fun connectionType(): String
 }
 
-class ConnectivityRetriever(val context: Application): Connectivity {
+class ConnectivityRetriever private constructor(val context: Application): Connectivity {
 
     private val connectivityManager: ConnectivityManager
         get() = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     private val activeNetworkCapabilities: NetworkCapabilities?
-        get() = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+            } else null
+
 
     override fun connectionType(): String {
         return activeNetworkCapabilities?.let {
@@ -46,5 +48,11 @@ class ConnectivityRetriever(val context: Application): Connectivity {
 
     companion object {
         const val UNKNOWN_CONNECTIVITY = "unknown"
+
+        @Volatile private var instance: ConnectivityRetriever? = null
+
+        fun getInstance(application: Application) = instance ?: synchronized(this){
+            instance ?: ConnectivityRetriever(application).also { instance = it }
+        }
     }
 }

@@ -18,7 +18,7 @@ import java.util.zip.GZIPOutputStream
 import javax.net.ssl.HttpsURLConnection
 
 class HttpClient(var config: TealiumConfig,
-                 override var connectivity: Connectivity = ConnectivityRetriever(config.application),
+                 override var connectivity: Connectivity = ConnectivityRetriever.getInstance(config.application),
                  override var networkClientListener: NetworkClientListener? = null) : NetworkClient {
 
     private val dateFormat: SimpleDateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.ROOT)

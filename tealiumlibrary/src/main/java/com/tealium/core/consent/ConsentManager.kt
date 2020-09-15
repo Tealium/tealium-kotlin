@@ -27,7 +27,7 @@ class ConsentManager(private val config: TealiumConfig,
 
     private val consentLoggingUrl = config.consentManagerLoggingUrl
             ?: "https://collect.tealiumiq.com/event"
-    private val connectivity = ConnectivityRetriever(config.application)
+    private val connectivity = ConnectivityRetriever.getInstance(config.application)
     private val consentSharedPreferences = ConsentSharedPreferences(config)
     private val consentManagementPolicy: ConsentManagementPolicy?
     private val httpClient: NetworkClient by lazy { HttpClient(config, connectivity) }

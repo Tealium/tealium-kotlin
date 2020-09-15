@@ -13,7 +13,7 @@ import org.json.JSONObject
  */
 class HostedDataLayer(private val config: TealiumConfig,
                       private val dataLayerStorage: DataLayerStorage = DataLayerStore(config),
-                      private val httpClient: NetworkClient = HttpClient(config, connectivity = ConnectivityRetriever(config.application)))
+                      private val httpClient: NetworkClient = HttpClient(config, connectivity = ConnectivityRetriever.getInstance(config.application)))
     : Module, Transformer, DispatchValidator {
 
     override val name: String
