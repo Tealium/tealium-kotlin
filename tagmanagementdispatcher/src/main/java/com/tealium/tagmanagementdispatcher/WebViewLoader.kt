@@ -11,13 +11,15 @@ import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
-import com.tealium.core.messaging.NewSessionListener
 import com.tealium.core.messaging.SessionStartedListener
 import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.settings.LibrarySettings
+import com.tealium.remotecommands.RemoteCommand
+import com.tealium.remotecommands.RemoteCommandRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -180,7 +182,7 @@ class WebViewLoader(private val context: TealiumContext,
                 context.config.options[TagManagementRemoteCommand.TIQ_CONFIG].let {
                     url?.let {
                         if (url.startsWith(TagManagementRemoteCommand.PREFIX)) {
-                            afterDispatchSendCallbacks.sendRemoteCommand(url)
+                            afterDispatchSendCallbacks.sendRemoteCommand(RemoteCommandRequest(createResponseHandler(), url))
                         }
                     }
                 }
@@ -206,6 +208,33 @@ class WebViewLoader(private val context: TealiumContext,
                 isWebViewLoaded.set(PageStatus.LOADED_ERROR)
                 initializeWebView()
                 return true
+            }
+        }
+    }
+
+    private fun createResponseHandler(): RemoteCommand.ResponseHandler {
+        return object: RemoteCommand.ResponseHandler {
+            override fun onHandle(response: RemoteCommand.Response?) {
+                var js = ""
+                response?.id?.let {
+                    response.body?.let {
+                        js = "try {" +
+                                "	utag.mobile.remote_api.response[\"${response.commandId}\"][\"${response.id}\"](${response.status}, ${JSONObject.quote(response.body)});" +
+                                "} catch(err) {" +
+                                "	console.error(err);" +
+                                "};"
+                    } ?: run {
+                        js = "try {" +
+                                "	utag.mobile.remote_api.response[\"${response.commandId}\"][\"${response.id}\"](${response.status});" +
+                                "} catch(err) {" +
+                                "	console.error(err);" +
+                                "};"
+                    }
+                }
+
+                if (js.isNotEmpty()) {
+                    afterDispatchSendCallbacks.onEvaluateJavascript(js)
+                }
             }
         }
     }
