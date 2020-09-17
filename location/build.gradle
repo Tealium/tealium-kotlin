@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'maven-publish'
 
-version = '0.1.0'
+version = '0.1.1'
 
 android {
     compileSdkVersion 29
@@ -52,15 +52,15 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
 
-//afterEvaluate {
-//    publishing {
-//        publications {
-//            release(MavenPublication) {
-//                from components.release
-//                groupId = 'com.tealium'
-//                artifactId = 'kotlin-location'
-//            }
-//        }
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.tealium'
+                artifactId = 'kotlin-location'
+            }
+        }
 //        repositories {
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
@@ -70,5 +70,5 @@ dependencies {
 //                }
 //            }
 //        }
-//    }
-//}
+    }
+}
