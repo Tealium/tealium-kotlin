@@ -3,7 +3,6 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'maven-publish'
 
-group = 'com.tealium'
 version = '0.1.1'
 
 android {
@@ -55,6 +54,7 @@ afterEvaluate {
         publications {
             release(MavenPublication) {
                 from components.release
+                groupId = 'com.tealium'
                 artifactId = 'kotlin-tagmanagement-dispatcher'
             }
         }
