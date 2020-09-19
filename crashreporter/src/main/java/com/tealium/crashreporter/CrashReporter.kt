@@ -82,7 +82,6 @@ class CrashReporter (private val context: TealiumContext) : Module, ActivityObse
         }
     }
 
-    @SuppressLint("ApplySharedPref")
     fun saveCrashData(crash: Crash) {
         sharedPreferences.edit()
                 .putString(CRASH_EXCEPTION_CAUSE, crash.exceptionCause)
@@ -92,7 +91,7 @@ class CrashReporter (private val context: TealiumContext) : Module, ActivityObse
                 .apply()
     }
 
-    private fun readSavedCrashData(): MutableMap<String, Any>? {
+    fun readSavedCrashData(): MutableMap<String, Any>? {
         val crashData = mutableMapOf<String, Any>()
 
         sharedPreferences.getString(CRASH_EXCEPTION_CAUSE, null)?.let {
@@ -114,14 +113,13 @@ class CrashReporter (private val context: TealiumContext) : Module, ActivityObse
         return "tealium.crash." + config.accountName + config.profileName + config.environment.toString()
     }
 
-    @SuppressLint("ApplySharedPref")
     fun clearSavedCrashData() {
         sharedPreferences.edit()
                 .remove(CRASH_EXCEPTION_CAUSE)
                 .remove(CRASH_EXCEPTION_NAME)
                 .remove(CRASH_UUID)
                 .remove(CRASH_THREADS)
-                .commit()
+                .apply()
     }
 
     companion object : ModuleFactory {

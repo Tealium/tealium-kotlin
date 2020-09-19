@@ -11,3 +11,4 @@
     - Visitor Service
     - Remote Commands
     - Hosted Data Layer
+    - Crash Reporter
