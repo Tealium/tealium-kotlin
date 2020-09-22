@@ -27,7 +27,7 @@ class LocationManager(private val context: TealiumContext) :
 
     private val locationProviderClientLoader = FusedLocationProviderClientLoader(context)
     private val scope = CoroutineScope(Dispatchers.IO)
-    private val jsonLoader = JsonLoader(context.config.application)
+    private val jsonLoader = JsonLoader.getInstance(context.config.application)
 
     init {
         loadGeofenceAsset()
@@ -126,7 +126,6 @@ class LocationManager(private val context: TealiumContext) :
      */
     fun lastLocation(): Location? {
         return locationProviderClientLoader.lastLocation
-//        return locationProviderClientLoader.locationClient.lastLocation.result
     }
 
     private fun loadGeofenceAsset() {
@@ -161,21 +160,29 @@ class LocationManager(private val context: TealiumContext) :
     }
 
     companion object : CollectorFactory {
-        private lateinit var tealiumContext: TealiumContext
+        @Volatile private var instance: LocationManager? = null
+        private val contexts = mutableListOf<TealiumContext>()
 
         val activeGeofences = mutableSetOf<String>()
         val allGeofenceLocations = mutableSetOf<GeofenceLocation>()
 
         override fun create(context: TealiumContext): Collector {
-            tealiumContext = context
-            return LocationManager(context)
+            contexts.add(context)
+
+            return instance ?: synchronized(this) {
+                instance ?: LocationManager(context).also {
+                    instance = it
+                }
+            }
         }
 
         fun sendGeofenceEvent(geofenceName: String, transitionType: String) {
             val dispatch = TealiumEvent(transitionType,
                     mapOf(GeofenceEventConstants.GEOFENCE_NAME to geofenceName,
                             GeofenceEventConstants.GEOFENCE_TRANSITION_TYPE to transitionType))
-            tealiumContext.track(dispatch)
+            for (context in contexts) {
+                context.track(dispatch)
+            }
         }
 
         fun fetchLocationIntent(context: TealiumContext): Intent {
