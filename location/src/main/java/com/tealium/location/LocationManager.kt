@@ -126,7 +126,6 @@ class LocationManager(private val context: TealiumContext) :
      */
     fun lastLocation(): Location? {
         return locationProviderClientLoader.lastLocation
-//        return locationProviderClientLoader.locationClient.lastLocation.result
     }
 
     private fun loadGeofenceAsset() {

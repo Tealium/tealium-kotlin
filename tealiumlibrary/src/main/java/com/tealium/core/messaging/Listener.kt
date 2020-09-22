@@ -6,6 +6,8 @@ import com.tealium.core.consent.UserConsentPreferences
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
+import com.tealium.remotecommands.RemoteCommand
+import com.tealium.remotecommands.RemoteCommandRequest
 import java.util.*
 
 /**
@@ -59,7 +61,7 @@ interface DispatchDroppedListener : Listener {
  * Executes when a Remote Command execution is required from an external module.
  */
 interface RemoteCommandListener : Listener {
-    fun onRemoteCommandSend(url: String)
+    fun onRemoteCommandSend(request: RemoteCommandRequest)
     fun onProcessRemoteCommand(dispatch: Dispatch)
 }
 
