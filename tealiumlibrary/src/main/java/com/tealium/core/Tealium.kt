@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @param config - the object that defines how to appropriately configure this instance.
  * @param onReady - completion block that signifies when this instance has completed finished initializing.
  */
-class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConfig, private val onReady: (Tealium.() -> Unit)? = null) {
+class Tealium private constructor(val key: String, val config: TealiumConfig, private val onReady: (Tealium.() -> Unit)? = null) {
 
     private val singleThreadedBackground = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     private val backgroundScope = CoroutineScope(singleThreadedBackground)
@@ -52,6 +52,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     private val networkClient: NetworkClient = HttpClient(config)
     private val librarySettingsManager: LibrarySettingsManager
     private val activityObserver: ActivityObserver
+
     // Only instantiates if there is an event triggered before the modules are initialized.
     private val dispatchBufferDelegate = lazy {
         LinkedList<Dispatch>()
@@ -172,6 +173,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
             }
         }
     }
+
     @Suppress("unused")
     fun sendQueuedDispatches() {
         if (librarySettingsManager.librarySettings.disableLibrary) {
@@ -314,7 +316,6 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
         deepLinkHandler.leaveTrace()
     }
 
-
     /**
      * Kills the visitor session remotely to test end of session events (does not terminate the SDK session
      * or reset the session ID).
@@ -329,8 +330,8 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
      * */
     private fun migratePersistentData() {
         val hashCode = (config.accountName + '.' +
-                    config.profileName + '.' +
-                    config.environment.environment).hashCode()
+                config.profileName + '.' +
+                config.environment.environment).hashCode()
         val legacySharedPreferences = config.application.getSharedPreferences("tealium.datasources.${Integer.toHexString(hashCode)}", 0)
         if (legacySharedPreferences.all.isEmpty()) {
             return
@@ -355,6 +356,10 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
         legacySharedPreferences.edit().clear().apply()
     }
 
+    /**
+     * Returns this instance to an uninitialized state and triggers the shutdown handler for any
+     * modules that need to take action when shutting down.
+     */
     private fun shutdown() {
         initialized.set(false)
         eventRouter.onInstanceShutdown(key, WeakReference(this))
@@ -364,23 +369,36 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     companion object {
         private val instances = mutableMapOf<String, Tealium>()
 
+        /**
+         * Creates a Tealium instance, and stores it for future use retrievable using the provided
+         * [name].
+         */
         fun create(name: String, config: TealiumConfig, onReady: (Tealium.() -> Unit)? = null): Tealium {
             val instance = Tealium(name, config, onReady)
             instances[name] = instance
             return instance
         }
 
+        /**
+         * Removes the instance stored at the given [name].
+         */
         fun destroy(name: String) {
             instances[name]?.shutdown()
             instances.remove(name)
         }
 
-        operator fun get(name: String) : Tealium? {
+        /**
+         * Returns the [Tealium] instance stored at the given [name], otherwise null.
+         */
+        operator fun get(name: String): Tealium? {
             return instances[name]
         }
 
+        /**
+         * Returns the names of each of the stored [Tealium] instances.
+         */
         fun names(): Set<String> {
-            return instances.keys
+            return instances.keys.toSet()
         }
     }
 }
