@@ -1,4 +1,8 @@
 # Change Log
+- 0.1.2 Sept 2020
+  - Tealium multi-instance management added
+  - Some utilities/modules updated to better support multiple instances
+
 - 0.1.1 Sept 2020
   - Maven dependency fix
   - Additional Dispatch payload logging
