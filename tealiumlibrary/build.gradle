@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'maven-publish'
 
-version = '0.1.0'
+version = '0.1.1'
 
 android {
     compileSdkVersion 29
@@ -63,15 +63,15 @@ repositories {
     maven { url "https://kotlin.bintray.com/kotlinx" }
 }
 
-//afterEvaluate {
-//    publishing {
-//        publications {
-//            release(MavenPublication) {
-//                from components.release
-//                groupId = 'com.tealium'
-//                artifactId = 'kotlin-core'
-//            }
-//        }
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.tealium'
+                artifactId = 'kotlin-core'
+            }
+        }
 //        repositories {
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
@@ -81,5 +81,5 @@ repositories {
 //                }
 //            }
 //        }
-//    }
-//}
+    }
+}

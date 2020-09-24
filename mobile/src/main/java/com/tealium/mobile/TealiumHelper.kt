@@ -20,8 +20,7 @@ import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
 import com.tealium.tagmanagementdispatcher.TagManagement
 import com.tealium.visitorservice.VisitorProfile
 import com.tealium.visitorservice.VisitorService
-import com.tealium.visitorservice.VisitorServiceDelegate
-import com.tealium.visitorservice.visitorService
+import com.tealium.visitorservice.VisitorUpdatedListener
 
 object TealiumHelper {
 
@@ -46,11 +45,12 @@ object TealiumHelper {
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
-            visitorService?.delegate = object : VisitorServiceDelegate {
-                override fun didUpdate(visitorProfile: VisitorProfile) {
+            consentManager.enabled = true
+            events.subscribe(object : VisitorUpdatedListener {
+                override fun onVisitorUpdated(visitorProfile: VisitorProfile) {
                     Logger.dev("--", "did update vp with $visitorProfile")
                 }
-            }
+            })
 
             remoteCommands?.add(localJsonCommand)
             remoteCommands?.add(webViewRemoteCommand)
