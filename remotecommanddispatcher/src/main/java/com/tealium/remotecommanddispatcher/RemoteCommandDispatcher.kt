@@ -9,6 +9,7 @@ import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
 import com.tealium.dispatcher.DispatcherListener
 import com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand
+import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandRequest
 
@@ -22,38 +23,22 @@ interface RemoteCommandDispatcherListener : DispatcherListener {
 class RemoteCommandDispatcher(private val context: TealiumContext,
                               private val client: NetworkClient = HttpClient(context.config)) : Dispatcher, RemoteCommandListener {
 
-//    private val webViewCommands = mutableMapOf<String, RemoteCommand>()
-//    private val jsonCommands = mutableMapOf<String, RemoteCommand>()
     private val allRemoteCommands = mutableMapOf<String, RemoteCommand>()
-    //do i need this? where else to store RC Config? RemoteCommandConfigStore? Dunno yet.
-    private val jsonCommands = mutableMapOf<RemoteCommand, RemoteCommandConfig>()
+    private val jsonCommands = mutableMapOf<String, JsonRemoteCommand>()
 
     /**
      * Adds remote commands to be evaluated when triggered
      */
-    fun add(remoteCommand: RemoteCommand, fileName: String? = null, remoteUrl: String? = null) {
-        allRemoteCommands[remoteCommand.commandName] = remoteCommand
-
-        if (!fileName.isNullOrEmpty() || !remoteUrl.isNullOrEmpty()) {
-            val config = fetch(remoteCommand.commandName, fileName, remoteUrl)
-            jsonCommands[remoteCommand] = config
+    fun add(remoteCommand: RemoteCommand, filename: String? = null, remoteUrl: String? = null) {
+        if (!filename.isNullOrEmpty() || !remoteUrl.isNullOrEmpty()) {
+            jsonCommands[remoteCommand.commandName] = JsonRemoteCommand(remoteCommand.commandName,
+                    remoteCommand.description,
+                    filename = filename,
+                    remoteUrl = remoteUrl
+            )
         }
 
-//        when (remoteCommand) {
-//            is JsonRemoteCommand -> {
-//                jsonCommands[remoteCommand.commandName] = remoteCommand
-//                remoteCommand.filename?.let {
-//                    remoteCommand.remoteCommandConfigRetriever = RemoteCommandConfigRetriever(context.config, remoteCommand.commandName, filename = it)
-//                } ?: run {
-//                    remoteCommand.remoteUrl?.let {
-//                        remoteCommand.remoteCommandConfigRetriever = RemoteCommandConfigRetriever(context.config, remoteCommand.commandName, remoteUrl = it)
-//                    } ?: run {
-//                        Logger.dev(BuildConfig.TAG, "No filename or remote url found for JSON Remote command: ${remoteCommand.commandName}")
-//                    }
-//                }
-//            }
-//            else ->
-//        }
+        allRemoteCommands[remoteCommand.commandName] = remoteCommand;
     }
 
     /**
@@ -62,8 +47,8 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
      * @param commandId id of command to be removed
      */
     fun remove(commandId: String) {
-        val command = allRemoteCommands.remove(commandId)
-        jsonCommands.remove(command)
+        allRemoteCommands.remove(commandId)
+        jsonCommands.remove(commandId)
     }
 
     /**
@@ -100,15 +85,15 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     }
 
     private fun parseJsonRemoteCommand(remoteCommand: RemoteCommand, dispatch: Dispatch) {
-        jsonCommands[remoteCommand]?.let {remoteCommandConfig ->
-            remoteCommandConfig.mappings?.let { mappings ->
+        jsonCommands[remoteCommand.commandName]?.remoteCommandConfigRetriever?.remoteCommandConfig.let { config ->
+            config?.mappings?.let { mappings ->
                 // map the dispatch with the lookup
                 val mappedDispatch = RemoteCommandParser.mapDispatch(dispatch, mappings)
                 val eventName = dispatch[CoreConstant.TEALIUM_EVENT] as? String
-                remoteCommandConfig.apiConfig?.let {
+                config.apiConfig?.let {
                     mappedDispatch[Settings.CONFIG] = it
                 }
-                remoteCommandConfig.apiCommands?.get(eventName)?.let {
+                config.apiCommands?.get(eventName)?.let {
                     mappedDispatch[Settings.COMMAND_NAME] = it
                 } ?: run {
                     return
@@ -120,18 +105,11 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
         }
     }
 
-    // should I retrieve config this way instead? I'd have to store
-    // names/id of json remote commands somewhere
-    private fun fetch(commandName: String, fileName: String? = null, remoteUrl: String? = null): RemoteCommandConfig {
-
-        //needs filename or remote url
-         val retriever = RemoteCommandConfigRetriever(context.config, commandName, filename = fileName, remoteUrl = remoteUrl)
-        return retriever.remoteCommandConfig
-    }
-
     override fun onProcessRemoteCommand(dispatch: Dispatch) {
         allRemoteCommands.forEach { (key, command) ->
-            parseJsonRemoteCommand(command, dispatch)
+            if (jsonCommands.containsKey(command.commandName)) {
+                parseJsonRemoteCommand(command, dispatch)
+            }
         }
     }
 

@@ -40,7 +40,7 @@ object TealiumHelper {
                 }
             })
 
-            remoteCommands?.add(localJsonCommand)
+            remoteCommands?.add(localJsonCommand, filename = "remoteCommand.json")
             remoteCommands?.add(webViewRemoteCommand)
         }
     }
@@ -51,7 +51,7 @@ object TealiumHelper {
         }
     }
 
-    val localJsonCommand = object : JsonRemoteCommand("localJsonCommand", "testingRCs", filename = "remoteCommand.json") {
+    val localJsonCommand = object : RemoteCommand("localJsonCommand", "testingRCs") {
         override fun onInvoke(response: Response) {
             Logger.dev(BuildConfig.TAG, "ResponsePayload for local JSON RemoteCommand ${response.requestPayload}")
         }
