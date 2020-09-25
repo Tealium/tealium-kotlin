@@ -31,10 +31,11 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
      */
     fun add(remoteCommand: RemoteCommand, filename: String? = null, remoteUrl: String? = null) {
         if (!filename.isNullOrEmpty() || !remoteUrl.isNullOrEmpty()) {
-            jsonCommands[remoteCommand.commandName] = JsonRemoteCommand(remoteCommand.commandName,
-                    remoteCommand.description,
+            jsonCommands[remoteCommand.commandName] = JsonRemoteCommand(
+                    remoteCommand.commandName,
                     filename = filename,
-                    remoteUrl = remoteUrl
+                    remoteUrl = remoteUrl,
+                    remoteCommandConfigRetriever = RemoteCommandConfigRetriever(context.config, remoteCommand.commandName, filename = filename, remoteUrl = remoteUrl)
             )
         }
 
@@ -119,7 +120,9 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
 
     override suspend fun onDispatchSend(dispatch: Dispatch) {
         allRemoteCommands.forEach { (key, command) ->
-            parseJsonRemoteCommand(command, dispatch)
+            if (jsonCommands.containsKey(command.commandName)) {
+                parseJsonRemoteCommand(command, dispatch)
+            }
         }
     }
 

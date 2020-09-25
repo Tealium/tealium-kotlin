@@ -11,7 +11,6 @@ import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
 import com.tealium.lifecycle.Lifecycle
 import com.tealium.remotecommanddispatcher.RemoteCommands
 import com.tealium.remotecommanddispatcher.remoteCommands
-import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.tagmanagementdispatcher.TagManagement
 import com.tealium.visitorservice.VisitorProfile
@@ -22,8 +21,8 @@ object TealiumHelper {
 
     fun init(application: Application) {
         val config = TealiumConfig(application,
-                "tealiummobile",
-                "android",
+                "services-christina",
+                "firebase",
                 Environment.DEV,
                 modules = mutableSetOf(Modules.Lifecycle),//, Modules.VisitorService, Modules.HostedDataLayer),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
