@@ -30,11 +30,11 @@ interface Loader {
     fun loadFromUrl(url: URL): Any?
 }
 
-class JsonLoader private constructor(val application: Application) : Loader {
+class JsonLoader(val application: Application) : Loader {
 
     override fun loadFromFile(file: File): String? {
         return if (file.exists()) {
-           file.readText(Charsets.UTF_8)
+            file.readText(Charsets.UTF_8)
         } else {
             Logger.dev(BuildConfig.TAG, "File not found (${file.name})")
             null
@@ -80,7 +80,8 @@ class JsonLoader private constructor(val application: Application) : Loader {
     }
 
     companion object {
-        @Volatile private var instance: JsonLoader? = null
+        @Volatile
+        private var instance: JsonLoader? = null
 
         fun getInstance(application: Application): JsonLoader = instance ?: synchronized(this) {
             instance ?: JsonLoader(application).also { instance = it }

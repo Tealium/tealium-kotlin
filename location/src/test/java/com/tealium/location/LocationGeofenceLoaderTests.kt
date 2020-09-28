@@ -114,7 +114,7 @@ class LocationGeofenceLoaderTests {
         val app = RuntimeEnvironment.application
         Assert.assertNotNull(app)
 
-        val assetLoader = JsonLoader.getInstance(app)
+        val assetLoader = JsonLoader(app)
         val jsonString = assetLoader.loadFromAsset("validGeofence.json")
 
         val geofenceLocationResult = GeofenceLocation.jsonArrayToGeofenceLocation(JSONArray(jsonString))
@@ -126,7 +126,7 @@ class LocationGeofenceLoaderTests {
         val app = RuntimeEnvironment.application
         Assert.assertNotNull(app)
 
-        val assetLoader = JsonLoader.getInstance(app)
+        val assetLoader = JsonLoader(app)
         val jsonString = assetLoader.loadFromAsset("invalidGeofence.json")
 
         val geofenceLocationResult = GeofenceLocation.jsonArrayToGeofenceLocation(JSONArray(jsonString))
@@ -138,7 +138,7 @@ class LocationGeofenceLoaderTests {
         val app = RuntimeEnvironment.application
         Assert.assertNotNull(app)
 
-        val assetLoader = JsonLoader.getInstance(app)
+        val assetLoader = JsonLoader(app)
         val jsonString = assetLoader.loadFromAsset("validAndInvalidGeofence.json")
 
         val geofenceObj1 = GeofenceLocation.create("Tealium_asset1", 59.4610304, -9.9707625, 100, -1, 0, true, true)
