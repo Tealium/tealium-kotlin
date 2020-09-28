@@ -101,7 +101,8 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
                 }
 
                 Logger.dev(BuildConfig.TAG, "Processing Remote Command: ${remoteCommand.commandName} with command name: ${mappedDispatch[Settings.COMMAND_NAME]}")
-                remoteCommand.invoke(RemoteCommandRequest(remoteCommand.commandName, JsonUtils.jsonFor(mappedDispatch)))
+                val request = RemoteCommandRequest(remoteCommand.commandName, JsonUtils.jsonFor(mappedDispatch))
+                remoteCommand.invoke(request)
             }
         }
     }
