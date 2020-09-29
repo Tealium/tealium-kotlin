@@ -21,8 +21,8 @@ object TealiumHelper {
 
     fun init(application: Application) {
         val config = TealiumConfig(application,
-                "services-christina",
-                "firebase",
+                "tealiummobile",
+                "android",
                 Environment.DEV,
                 modules = mutableSetOf(Modules.Lifecycle),//, Modules.VisitorService, Modules.HostedDataLayer),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
