@@ -9,7 +9,6 @@ import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
 import com.tealium.dispatcher.DispatcherListener
 import com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand
-import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandRequest
 
@@ -21,25 +20,14 @@ interface RemoteCommandDispatcherListener : DispatcherListener {
  * Tag Management or JSON-controlled
  */
 class RemoteCommandDispatcher(private val context: TealiumContext,
-                              private val client: NetworkClient = HttpClient(context.config)) : Dispatcher, RemoteCommandListener {
-
-    private val allRemoteCommands = mutableMapOf<String, RemoteCommand>()
-    private val jsonCommands = mutableMapOf<String, JsonRemoteCommand>()
+                              private val client: NetworkClient = HttpClient(context.config),
+                              private val manager: CommandsManager = RemoteCommandsManager(context.config)) : Dispatcher, RemoteCommandListener {
 
     /**
      * Adds remote commands to be evaluated when triggered
      */
     fun add(remoteCommand: RemoteCommand, filename: String? = null, remoteUrl: String? = null) {
-        if (!filename.isNullOrEmpty() || !remoteUrl.isNullOrEmpty()) {
-            jsonCommands[remoteCommand.commandName] = JsonRemoteCommand(
-                    remoteCommand.commandName,
-                    filename = filename,
-                    remoteUrl = remoteUrl,
-                    remoteCommandConfigRetriever = RemoteCommandConfigRetriever(context.config, remoteCommand.commandName, filename = filename, remoteUrl = remoteUrl)
-            )
-        }
-
-        allRemoteCommands[remoteCommand.commandName] = remoteCommand;
+        manager.add(remoteCommand, filename, remoteUrl)
     }
 
     /**
@@ -48,16 +36,14 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
      * @param commandId id of command to be removed
      */
     fun remove(commandId: String) {
-        allRemoteCommands.remove(commandId)
-        jsonCommands.remove(commandId)
+        manager.remove(commandId)
     }
 
     /**
      * Removes all remote commands
      */
     fun removeAll() {
-        allRemoteCommands.clear()
-        jsonCommands.clear()
+        manager.removeAll()
     }
 
     private fun loadHttpCommand(id: String): RemoteCommand? {
@@ -67,7 +53,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
         }
 
         httpRemoteCommand?.let {
-            allRemoteCommands[HttpRemoteCommand.NAME] = httpRemoteCommand
+            manager.add(httpRemoteCommand)
         }
         return httpRemoteCommand
     }
@@ -75,7 +61,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     private fun invokeTagManagementRequest(request: RemoteCommandRequest?) {
         request?.commandId?.let { id ->
             loadHttpCommand(id)
-            allRemoteCommands[id]?.let { command ->
+            manager.retrieve(id)?.let { command ->
                 Logger.dev(BuildConfig.TAG, "Detected Remote Command $id with payload ${request.response?.requestPayload}")
                 command.invoke(request)
             } ?: run {
@@ -86,7 +72,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     }
 
     private fun parseJsonRemoteCommand(remoteCommand: RemoteCommand, dispatch: Dispatch) {
-        jsonCommands[remoteCommand.commandName]?.remoteCommandConfigRetriever?.remoteCommandConfig.let { config ->
+        manager.getRemoteCommandConfig(remoteCommand.commandName)?.remoteCommandConfig.let { config ->
             config?.mappings?.let { mappings ->
                 // map the dispatch with the lookup
                 val mappedDispatch = RemoteCommandParser.mapDispatch(dispatch, mappings)
@@ -108,10 +94,8 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     }
 
     override fun onProcessRemoteCommand(dispatch: Dispatch) {
-        allRemoteCommands.forEach { (key, command) ->
-            if (jsonCommands.containsKey(command.commandName)) {
-                parseJsonRemoteCommand(command, dispatch)
-            }
+        manager.getJsonRemoteCommands().forEach { jsonCommand ->
+            parseJsonRemoteCommand(jsonCommand, dispatch)
         }
     }
 
@@ -120,10 +104,8 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     }
 
     override suspend fun onDispatchSend(dispatch: Dispatch) {
-        allRemoteCommands.forEach { (key, command) ->
-            if (jsonCommands.containsKey(command.commandName)) {
-                parseJsonRemoteCommand(command, dispatch)
-            }
+        manager.getJsonRemoteCommands().forEach { jsonCommand ->
+            parseJsonRemoteCommand(jsonCommand, dispatch)
         }
     }
 

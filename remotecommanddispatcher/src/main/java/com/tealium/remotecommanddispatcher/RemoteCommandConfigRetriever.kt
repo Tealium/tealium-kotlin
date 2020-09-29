@@ -12,6 +12,10 @@ import org.json.JSONObject
 import java.io.File
 import java.lang.Exception
 
+interface RemoteCommandConfigRetrieverFactory {
+    fun retrieveConfig(config: TealiumConfig, commandId: String, filename: String?,remoteUrl: String?) : RemoteCommandConfigRetriever
+}
+
 class RemoteCommandConfigRetriever(private val config: TealiumConfig,
                                    private val commandId: String,
                                    private val filename: String? = null,
