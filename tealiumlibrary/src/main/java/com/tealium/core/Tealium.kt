@@ -19,6 +19,7 @@ import com.tealium.core.validation.ConnectivityValidator
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
+import com.tealium.dispatcher.GenericDispatch
 import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -155,21 +156,19 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
             return
         }
 
-        if (dispatch.timestamp == null) {
-            dispatch.timestamp = System.currentTimeMillis()
-        }
+        val dispatchCopy = GenericDispatch(dispatch)
 
         when (initialized.get()) {
             true -> {
                 // needs to be done once we're fully initialised, else Session events might be missed
                 // by any modules that listen. we should consider changing the implementation of [Dispatch]
                 // to keep track of the time it was created, so we can use that.
-                sessionManager.track(dispatch)
-                dispatchRouter.track(dispatch)
+                sessionManager.track(dispatchCopy)
+                dispatchRouter.track(dispatchCopy)
             }
             false -> {
                 logger.dev(BuildConfig.TAG, "Instance not yet initialized; buffering.")
-                dispatchBuffer.add(dispatch)
+                dispatchBuffer.add(dispatchCopy)
             }
         }
     }
