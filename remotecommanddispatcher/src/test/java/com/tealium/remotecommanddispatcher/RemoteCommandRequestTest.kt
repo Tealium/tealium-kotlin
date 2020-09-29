@@ -2,9 +2,9 @@ package com.tealium.remotecommanddispatcher
 
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandRequest
-import junit.framework.Assert
 import org.json.JSONException
 import org.json.JSONObject
+import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
