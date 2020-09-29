@@ -158,10 +158,6 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
 
         val dispatchCopy = GenericDispatch(dispatch)
 
-        if (dispatchCopy.timestamp == null) {
-            dispatchCopy.timestamp = System.currentTimeMillis()
-        }
-
         when (initialized.get()) {
             true -> {
                 // needs to be done once we're fully initialised, else Session events might be missed

@@ -3,7 +3,7 @@ package com.tealium.dispatcher
 internal class GenericDispatch(dispatch: Dispatch) : Dispatch {
 
     override val id: String = dispatch.id
-    override var timestamp: Long? = dispatch.timestamp
+    override var timestamp: Long? = dispatch.timestamp ?: System.currentTimeMillis()
 
     private val payload = shallowCopy(dispatch.payload())
 
