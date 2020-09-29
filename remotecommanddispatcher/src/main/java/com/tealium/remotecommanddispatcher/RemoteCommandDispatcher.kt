@@ -61,7 +61,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     private fun invokeTagManagementRequest(request: RemoteCommandRequest?) {
         request?.commandId?.let { id ->
             loadHttpCommand(id)
-            manager.retrieve(id)?.let { command ->
+            manager.getRemoteCommand(id)?.let { command ->
                 Logger.dev(BuildConfig.TAG, "Detected Remote Command $id with payload ${request.response?.requestPayload}")
                 command.invoke(request)
             } ?: run {
@@ -72,7 +72,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     }
 
     private fun parseJsonRemoteCommand(remoteCommand: RemoteCommand, dispatch: Dispatch) {
-        manager.getRemoteCommandConfig(remoteCommand.commandName)?.remoteCommandConfig.let { config ->
+        manager.getJsonRemoteCommandConfig(remoteCommand.commandName)?.remoteCommandConfig.let { config ->
             config?.mappings?.let { mappings ->
                 // map the dispatch with the lookup
                 val mappedDispatch = RemoteCommandParser.mapDispatch(dispatch, mappings)
@@ -87,8 +87,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
                 }
 
                 Logger.dev(BuildConfig.TAG, "Processing Remote Command: ${remoteCommand.commandName} with command name: ${mappedDispatch[Settings.COMMAND_NAME]}")
-                val request = RemoteCommandRequest(remoteCommand.commandName, JsonUtils.jsonFor(mappedDispatch))
-                remoteCommand.invoke(request)
+                remoteCommand.invoke(RemoteCommandRequest(remoteCommand.commandName, JsonUtils.jsonFor(mappedDispatch)))
             }
         }
     }

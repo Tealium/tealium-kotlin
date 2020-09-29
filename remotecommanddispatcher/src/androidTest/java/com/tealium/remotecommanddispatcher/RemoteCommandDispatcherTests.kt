@@ -55,7 +55,7 @@ class RemoteCommandDispatcherTests {
         })
 
         every { mockRemoteCommandsManager.add(any(), any(), any()) } just Runs
-        every { mockRemoteCommandsManager.getRemoteCommandConfig(any()) } returns remoteCommandConfigRetriever
+        every { mockRemoteCommandsManager.getJsonRemoteCommandConfig(any()) } returns remoteCommandConfigRetriever
         every { mockRemoteCommandsManager.getJsonRemoteCommands() } returns listOf(remoteCommand)
         every { remoteCommandConfigRetriever.remoteCommandConfig } returns remoteCommandConfig
 
