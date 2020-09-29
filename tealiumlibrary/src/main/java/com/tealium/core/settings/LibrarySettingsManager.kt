@@ -14,7 +14,7 @@ import kotlin.properties.Delegates
 
 class LibrarySettingsManager(private val config: TealiumConfig,
                              networkClient: NetworkClient,
-                             private var loader: Loader = JsonLoader(config.application),
+                             private var loader: Loader = JsonLoader.getInstance(config.application),
                              private var eventRouter: EventRouter,
                              private val backgroundScope: CoroutineScope) {
 

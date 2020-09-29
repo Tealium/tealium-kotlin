@@ -3,6 +3,9 @@ package com.tealium.mobile
 import android.app.Application
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
+import com.tealium.core.consent.ConsentPolicy
+import com.tealium.core.consent.consentManagerEnabled
+import com.tealium.core.consent.consentManagerPolicy
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
@@ -20,7 +23,6 @@ import com.tealium.visitorservice.VisitorService
 import com.tealium.visitorservice.VisitorUpdatedListener
 
 object TealiumHelper {
-    lateinit var instance: Tealium
 
     fun init(application: Application) {
         val config = TealiumConfig(application,
@@ -33,9 +35,16 @@ object TealiumHelper {
             collectors.add(Collectors.Location)
             useRemoteLibrarySettings = true
             hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
+
+            // Uncomment to enable Consent Management
+            // consentManagerEnabled = true
+            // and, uncomment one of the following lines to set the appropriate Consent Policy
+            // consentManagerPolicy = ConsentPolicy.GDPR
+            // consentManagerPolicy = ConsentPolicy.CCPA
+
         }
 
-        instance = Tealium("instance_1", config) {
+        Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
             consentManager.enabled = true
             events.subscribe(object : VisitorUpdatedListener {
                 override fun onVisitorUpdated(visitorProfile: VisitorProfile) {
@@ -62,12 +71,12 @@ object TealiumHelper {
 
     fun trackView(name: String, data: Map<String, Any>?) {
         val viewDispatch = TealiumView(name, data)
-        instance.track(viewDispatch)
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.track(viewDispatch)
     }
 
     fun trackEvent(name: String, data: Map<String, Any>?) {
         val eventDispatch = TealiumEvent(name, data)
-        instance.track(eventDispatch)
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.track(eventDispatch)
     }
 
     val customValidator: DispatchValidator by lazy {

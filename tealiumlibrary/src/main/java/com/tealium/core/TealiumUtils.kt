@@ -3,7 +3,7 @@ package com.tealium.core
 import android.content.Context
 import android.os.Looper
 
-class TealiumUtils {
+class TealiumUtils private constructor() {
 
     companion object {
         fun isMainThread(): Boolean {

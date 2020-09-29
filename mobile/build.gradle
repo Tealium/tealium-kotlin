@@ -12,6 +12,7 @@ android {
         versionCode 1
         versionName "1.0"
         buildConfigField 'String', 'TAG', "\"App\""
+        buildConfigField 'String', 'TEALIUM_INSTANCE', "\"main\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

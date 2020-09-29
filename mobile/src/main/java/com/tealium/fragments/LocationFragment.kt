@@ -9,10 +9,10 @@ import android.view.ViewGroup
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.tealium.core.Tealium
 import com.tealium.location.location
-import com.tealium.mobile.TealiumHelper
+import com.tealium.mobile.BuildConfig
 import com.tealium.mobile.R
-import com.tealium.visitorservice.visitorService
 import kotlinx.android.synthetic.main.fragment_location.*
 
 class LocationFragment : Fragment() {
@@ -29,18 +29,18 @@ class LocationFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         button_startLocation.setOnClickListener {
-           TealiumHelper.instance.location?.startLocationTracking(true, 5000)
+            Tealium[BuildConfig.TEALIUM_INSTANCE]?.location?.startLocationTracking(true, 5000)
         }
     }
 
     private fun requestLocationPermission() {
         activity?.let {
             if (ContextCompat.checkSelfPermission(it.applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(it, Array<String>(1){Manifest.permission.ACCESS_FINE_LOCATION}, FINE_LOCATION_REQUEST_CODE)
+                ActivityCompat.requestPermissions(it, Array<String>(1) { Manifest.permission.ACCESS_FINE_LOCATION }, FINE_LOCATION_REQUEST_CODE)
             }
 
             if (ContextCompat.checkSelfPermission(it.applicationContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(it, Array<String>(1){Manifest.permission.ACCESS_COARSE_LOCATION}, COARSE_LOCATION_REQUEST_CODE)
+                ActivityCompat.requestPermissions(it, Array<String>(1) { Manifest.permission.ACCESS_COARSE_LOCATION }, COARSE_LOCATION_REQUEST_CODE)
             }
         }
     }

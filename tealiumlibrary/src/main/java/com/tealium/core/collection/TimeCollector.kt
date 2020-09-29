@@ -52,8 +52,10 @@ class TimeCollector : Collector, TimeData {
     }
 
     companion object : CollectorFactory {
-        override fun create(context: TealiumContext): Collector {
-            return TimeCollector()
+        @Volatile private var instance: TimeCollector? = null
+
+        override fun create(context: TealiumContext): Collector = instance ?: synchronized(this) {
+            instance ?: TimeCollector()
         }
     }
 }
