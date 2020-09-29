@@ -1,11 +1,10 @@
 package com.tealium.remotecommanddispatcher
 
-import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandRequest
-import junit.framework.Assert
 import org.json.JSONException
 import org.json.JSONObject
+import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -92,11 +91,11 @@ class RemoteCommandRequestTest {
 
     @Test
     fun jsonRemoteCommandValidRequest() {
-        val command = object : JsonRemoteCommand("jsonTest", "Testing json requests", filename = "abc1234.json") {
+        val command = object : RemoteCommand("jsonTest", "Testing json requests") {
             override fun onInvoke(response: Response) { // do nothing
             }
         }
-        val request = RemoteCommandRequest(command.id, JSONObject())
+        val request = RemoteCommandRequest(command.commandName, JSONObject())
 
         Assert.assertEquals("jsonTest".toLowerCase(Locale.ROOT), request.commandId)
         Assert.assertNotNull(request.payload)
@@ -105,11 +104,11 @@ class RemoteCommandRequestTest {
 
     @Test
     fun jsonRemoteCommandInvalidName() {
-        val command = object : JsonRemoteCommand("testCommand", "Testing json requests", filename = "abc1234.json") {
+        val command = object : RemoteCommand("testCommand", "Testing json requests") {
             override fun onInvoke(response: Response) { // do nothing
             }
         }
-        val request = RemoteCommandRequest(command.id, JSONObject())
+        val request = RemoteCommandRequest(command.commandName, JSONObject())
 
         Assert.assertEquals("testCommand".toLowerCase(Locale.ROOT), request.commandId)
         Assert.assertNotNull(request.payload)
@@ -118,11 +117,11 @@ class RemoteCommandRequestTest {
 
     @Test
     fun jsonRemoteCommand() {
-        val command = object : JsonRemoteCommand("testCommand", "Testing json requests", filename = "abc1234.json") {
+        val command = object : RemoteCommand("testCommand", "Testing json requests") {
             override fun onInvoke(response: Response) { // do nothing
             }
         }
-        val request = RemoteCommandRequest(command.id, JSONObject())
+        val request = RemoteCommandRequest(command.commandName, JSONObject())
 
         Assert.assertEquals("testCommand".toLowerCase(Locale.ROOT), request.commandId)
         Assert.assertNotNull(request.payload)
