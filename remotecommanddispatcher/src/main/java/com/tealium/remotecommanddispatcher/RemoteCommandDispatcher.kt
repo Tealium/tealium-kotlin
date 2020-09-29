@@ -24,14 +24,20 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
                               private val manager: CommandsManager = RemoteCommandsManager(context.config)) : Dispatcher, RemoteCommandListener {
 
     /**
-     * Adds remote commands to be evaluated when triggered
+     * Adds Remote Commands to be evaluated when triggered. If adding a JSON-controlled
+     * Remote Command, provide either a filename or a remote URL where the JSON config
+     * is located.
+     *
+     * @param remoteCommand command to be added to dispatcher
+     * @param filename Optional filename for JSON controlled Remote Commands
+     * @param remoteUrl Optional remote URL for JSON controlled Remote Commands
      */
     fun add(remoteCommand: RemoteCommand, filename: String? = null, remoteUrl: String? = null) {
         manager.add(remoteCommand, filename, remoteUrl)
     }
 
     /**
-     * Remove remote command from being processed
+     * Remove Remote Command from being processed.
      *
      * @param commandId id of command to be removed
      */
@@ -40,7 +46,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     }
 
     /**
-     * Removes all remote commands
+     * Removes all Remote Commands.
      */
     fun removeAll() {
         manager.removeAll()
@@ -72,7 +78,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     }
 
     private fun parseJsonRemoteCommand(remoteCommand: RemoteCommand, dispatch: Dispatch) {
-        manager.getJsonRemoteCommandConfig(remoteCommand.commandName)?.remoteCommandConfig.let { config ->
+        manager.getRemoteCommandConfigRetriever(remoteCommand.commandName)?.remoteCommandConfig.let { config ->
             config?.mappings?.let { mappings ->
                 // map the dispatch with the lookup
                 val mappedDispatch = RemoteCommandParser.mapDispatch(dispatch, mappings)

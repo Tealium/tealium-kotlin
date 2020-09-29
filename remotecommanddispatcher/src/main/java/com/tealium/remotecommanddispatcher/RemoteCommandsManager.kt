@@ -1,7 +1,6 @@
 package com.tealium.remotecommanddispatcher
 
 import com.tealium.core.TealiumConfig
-import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
 import com.tealium.remotecommands.RemoteCommand
 
 interface CommandsManager {
@@ -9,24 +8,18 @@ interface CommandsManager {
     fun remove(commandId: String)
     fun removeAll()
     fun getRemoteCommand(commandId: String): RemoteCommand?
-    fun getJsonRemoteCommandConfig(commandId: String): RemoteCommandConfigRetriever?
+    fun getRemoteCommandConfigRetriever(commandId: String): RemoteCommandConfigRetriever?
     fun getJsonRemoteCommands(): List<RemoteCommand>
-
 }
 
 class RemoteCommandsManager(private val config: TealiumConfig) : CommandsManager {
     private val allCommands = mutableMapOf<String, RemoteCommand>()
-    private val jsonCommands = mutableMapOf<String, JsonRemoteCommand>()
+    private val commandsConfigRetriever = mutableMapOf<String, RemoteCommandConfigRetriever>()
 
     override fun add(remoteCommand: RemoteCommand, filename: String?, remoteUrl: String?) {
         allCommands[remoteCommand.commandName] = remoteCommand
         if (!filename.isNullOrEmpty() || !remoteUrl.isNullOrEmpty()) {
-            jsonCommands[remoteCommand.commandName] = JsonRemoteCommand(
-                    config,
-                    remoteCommand.commandName,
-                    filename, remoteUrl,
-                    RemoteCommandConfigRetriever(config, remoteCommand.commandName, filename, remoteUrl)
-            )
+            commandsConfigRetriever[remoteCommand.commandName] = RemoteCommandConfigRetriever(config, remoteCommand.commandName, filename, remoteUrl)
         }
     }
 
@@ -42,13 +35,13 @@ class RemoteCommandsManager(private val config: TealiumConfig) : CommandsManager
         return allCommands[commandId]
     }
 
-    override fun getJsonRemoteCommandConfig(commandId: String): RemoteCommandConfigRetriever? {
-        return jsonCommands[commandId]?.remoteCommandConfigRetriever
+    override fun getRemoteCommandConfigRetriever(commandId: String): RemoteCommandConfigRetriever? {
+        return commandsConfigRetriever[commandId]
     }
 
     override fun getJsonRemoteCommands(): List<RemoteCommand> {
         val jsonRemoteCommands = mutableListOf<RemoteCommand>()
-        jsonCommands.forEach { (key, command) ->
+        commandsConfigRetriever.forEach { (key, command) ->
             allCommands[key]?.let {
                 jsonRemoteCommands.add(it)
             }
