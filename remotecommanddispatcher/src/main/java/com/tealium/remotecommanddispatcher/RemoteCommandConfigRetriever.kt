@@ -17,7 +17,7 @@ class RemoteCommandConfigRetriever(private val config: TealiumConfig,
                                    private val filename: String? = null,
                                    private val remoteUrl: String? = null,
                                    private val client: NetworkClient = HttpClient(config),
-                                   private val loader: Loader = JsonLoader(config.application),
+                                   private val loader: Loader = JsonLoader.getInstance(config.application),
                                    private val backgroundScope: CoroutineScope = CoroutineScope(Dispatchers.Default)) {
 
 

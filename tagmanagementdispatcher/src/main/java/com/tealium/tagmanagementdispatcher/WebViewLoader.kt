@@ -12,6 +12,7 @@ import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
 import com.tealium.core.messaging.SessionStartedListener
+import com.tealium.core.network.Connectivity
 import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.remotecommands.RemoteCommand
@@ -25,11 +26,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class WebViewLoader(private val context: TealiumContext,
                     private val urlString: String,
-                    private val afterDispatchSendCallbacks: AfterDispatchSendCallbacks)
+                    private val afterDispatchSendCallbacks: AfterDispatchSendCallbacks,
+                    private val connectivityRetriever: Connectivity = ConnectivityRetriever.getInstance(context.config.application))
     : LibrarySettingsUpdatedListener,
         SessionStartedListener {
 
-    val connectivityRetriever = ConnectivityRetriever(context.config.application)
     val isWebViewLoaded = AtomicBoolean(false)
     var lastUrlLoadTimestamp = Long.MIN_VALUE
     private var isWifiOnlySending = false

@@ -37,7 +37,7 @@ interface Logging {
     fun prod(tag: String, msg: String)
 }
 
-class Logger(val config: TealiumConfig) {
+class Logger private constructor(val config: TealiumConfig) {
 
     val context: Context = config.application
 

@@ -8,7 +8,7 @@ interface Encoder {
     fun encode(config: TealiumConfig): String
 }
 
-class TealiumEncoder {
+class TealiumEncoder private constructor() {
 
     companion object: Encoder {
         const val encoding = "UTF-8"

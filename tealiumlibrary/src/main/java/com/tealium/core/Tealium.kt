@@ -19,10 +19,12 @@ import com.tealium.core.validation.ConnectivityValidator
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
+import com.tealium.dispatcher.GenericDispatch
 import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
+import java.lang.ref.WeakReference
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
@@ -32,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @param config - the object that defines how to appropriately configure this instance.
  * @param onReady - completion block that signifies when this instance has completed finished initializing.
  */
-class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConfig, private val onReady: (Tealium.() -> Unit)? = null) {
+class Tealium private constructor(val key: String, val config: TealiumConfig, private val onReady: (Tealium.() -> Unit)? = null) {
 
     private val singleThreadedBackground = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     private val backgroundScope = CoroutineScope(singleThreadedBackground)
@@ -51,11 +53,12 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
     private val networkClient: NetworkClient = HttpClient(config)
     private val librarySettingsManager: LibrarySettingsManager
     private val activityObserver: ActivityObserver
+
     // Only instantiates if there is an event triggered before the modules are initialized.
     private val dispatchBufferDelegate = lazy {
-        InMemoryPersistence()
+        LinkedList<Dispatch>()
     }
-    private val dispatchBuffer: Persistence by dispatchBufferDelegate
+    private val dispatchBuffer: Queue<Dispatch> by dispatchBufferDelegate
 
     // Dependencies for publicly accessible objects.
     private val databaseHelper: DatabaseHelper
@@ -153,24 +156,23 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
             return
         }
 
-        if (dispatch.timestamp == null) {
-            dispatch.timestamp = System.currentTimeMillis()
-        }
+        val dispatchCopy = GenericDispatch(dispatch)
 
         when (initialized.get()) {
             true -> {
                 // needs to be done once we're fully initialised, else Session events might be missed
                 // by any modules that listen. we should consider changing the implementation of [Dispatch]
                 // to keep track of the time it was created, so we can use that.
-                sessionManager.track(dispatch)
-                dispatchRouter.track(dispatch)
+                sessionManager.track(dispatchCopy)
+                dispatchRouter.track(dispatchCopy)
             }
             false -> {
                 logger.dev(BuildConfig.TAG, "Instance not yet initialized; buffering.")
-                dispatchBuffer.enqueue(dispatch)
+                dispatchBuffer.add(dispatchCopy)
             }
         }
     }
+
     @Suppress("unused")
     fun sendQueuedDispatches() {
         if (librarySettingsManager.librarySettings.disableLibrary) {
@@ -188,7 +190,7 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
      * Reports as ready once it's completed by calling [onInstanceReady].
      */
     private fun bootstrap() {
-        connectivity = ConnectivityRetriever(config.application)
+        connectivity = ConnectivityRetriever.getInstance(config.application)
         dispatchStore = DispatchStorage(databaseHelper, "dispatches")
 
         dispatchSendCallbacks = DispatchSendCallbacks(eventRouter) // required by dispatchers.
@@ -286,11 +288,13 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
 
         logger.qa(BuildConfig.TAG, "Tealium instance initialized with the following modules: $modules")
 
-        if (dispatchBufferDelegate.isInitialized() && dispatchBuffer.count > 0) {
+        if (dispatchBufferDelegate.isInitialized() && dispatchBuffer.size > 0) {
             logger.dev(BuildConfig.TAG, "Dispatching buffered events.")
 
-            dispatchBuffer.dequeue().forEach { queuedDispatch ->
-                track(queuedDispatch)
+            while (!dispatchBuffer.isEmpty()) {
+                dispatchBuffer.poll()?.let { queuedDispatch ->
+                    track(queuedDispatch)
+                }
             }
         }
     }
@@ -311,7 +315,6 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
         deepLinkHandler.leaveTrace()
     }
 
-
     /**
      * Kills the visitor session remotely to test end of session events (does not terminate the SDK session
      * or reset the session ID).
@@ -326,8 +329,8 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
      * */
     private fun migratePersistentData() {
         val hashCode = (config.accountName + '.' +
-                    config.profileName + '.' +
-                    config.environment.environment).hashCode()
+                config.profileName + '.' +
+                config.environment.environment).hashCode()
         val legacySharedPreferences = config.application.getSharedPreferences("tealium.datasources.${Integer.toHexString(hashCode)}", 0)
         if (legacySharedPreferences.all.isEmpty()) {
             return
@@ -350,5 +353,51 @@ class Tealium @JvmOverloads constructor(val key: String, val config: TealiumConf
             }
         }
         legacySharedPreferences.edit().clear().apply()
+    }
+
+    /**
+     * Returns this instance to an uninitialized state and triggers the shutdown handler for any
+     * modules that need to take action when shutting down.
+     */
+    private fun shutdown() {
+        initialized.set(false)
+        eventRouter.onInstanceShutdown(key, WeakReference(this))
+
+    }
+
+    companion object {
+        private val instances = mutableMapOf<String, Tealium>()
+
+        /**
+         * Creates a Tealium instance, and stores it for future use retrievable using the provided
+         * [name].
+         */
+        fun create(name: String, config: TealiumConfig, onReady: (Tealium.() -> Unit)? = null): Tealium {
+            val instance = Tealium(name, config, onReady)
+            instances[name] = instance
+            return instance
+        }
+
+        /**
+         * Removes the instance stored at the given [name].
+         */
+        fun destroy(name: String) {
+            instances[name]?.shutdown()
+            instances.remove(name)
+        }
+
+        /**
+         * Returns the [Tealium] instance stored at the given [name], otherwise null.
+         */
+        operator fun get(name: String): Tealium? {
+            return instances[name]
+        }
+
+        /**
+         * Returns the names of each of the stored [Tealium] instances.
+         */
+        fun names(): Set<String> {
+            return instances.keys.toSet()
+        }
     }
 }
