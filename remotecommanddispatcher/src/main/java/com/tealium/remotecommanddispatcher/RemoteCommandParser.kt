@@ -32,28 +32,30 @@ class RemoteCommandParser {
             lookup.forEach { (key, value) ->
                 payload[key]?.let { payloadValue ->
                     lookup[key]?.let { lookupValue ->
-                        val objectRow = splitKeys(lookupValue, payloadValue, lookup)
-                        val objectKey = objectRow.second
-                        objectKey?.let {
-                            if (temp.containsKey(it)) {
-                                // object key is already in the map, append to the same key
-                                (temp[it] as? MutableMap<*, *>)?.let { objectMap ->
-                                    // create a map with a String key. This will throw an exception if the JSON mapping file does not use a String as a key.
-                                    val oMap = objectMap.entries.associate { entry -> entry.key as String to entry.value }.toMutableMap()
-                                    (objectRow.first[objectKey] as? Map<*, *>)?.let {
-                                        it.entries.associate { entry -> entry.key as String to entry.value } // as String }
-                                    }?.forEach { (kk, vv) ->
-                                        // add mapped values from splitKeys to the temporary oMap
-                                        oMap[kk] = vv
-                                        // append to the same key (e.g. "event")
-                                        temp[objectKey] = oMap
+                        checkAndSplitDestinationList(lookupValue).forEach { valuesList ->
+                            val objectRow = splitKeys(valuesList, payloadValue, lookup)
+                            val objectKey = objectRow.second
+                            objectKey?.let {
+                                if (temp.containsKey(it)) {
+                                    // object key is already in the map, append to the same key
+                                    (temp[it] as? MutableMap<*, *>)?.let { objectMap ->
+                                        // create a map with a String key. This will throw an exception if the JSON mapping file does not use a String as a key.
+                                        val oMap = objectMap.entries.associate { entry -> entry.key as String to entry.value }.toMutableMap()
+                                        (objectRow.first[objectKey] as? Map<*, *>)?.let {
+                                            it.entries.associate { entry -> entry.key as String to entry.value } // as String }
+                                        }?.forEach { (kk, vv) ->
+                                            // add mapped values from splitKeys to the temporary oMap
+                                            oMap[kk] = vv
+                                            // append to the same key (e.g. "event")
+                                            temp[objectKey] = oMap
+                                        }
                                     }
+                                } else {
+                                    temp.putAll(objectRow.first)
                                 }
-                            } else {
+                            } ?: run {
                                 temp.putAll(objectRow.first)
                             }
-                        } ?: run {
-                            temp.putAll(objectRow.first)
                         }
                     }
                 }
@@ -87,6 +89,19 @@ class RemoteCommandParser {
             }
 
             return Pair(result, objectKey)
+        }
+
+        /**
+         * Checks for multi-destination lookup values and returns a list of destinations to be mapped
+         * If lookup value in JSON was "event.destination1, event.destination2",
+         * method returns listOf("event.destination1", "event.destination2")
+         */
+        private fun checkAndSplitDestinationList(lookupValue: String): List<String> {
+            if (lookupValue.contains(",")) {
+                return lookupValue.split(",").map { it -> it.trim() }
+            }
+
+            return listOf(lookupValue)
         }
     }
 }

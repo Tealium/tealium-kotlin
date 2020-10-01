@@ -59,17 +59,17 @@ class RemoteCommandParserTest {
                 "event_name" to "ecommerce_purchase",
                 "tax" to "1.99", "shipping" to "5.00",
                 "command_name" to "test_dispatch")
-        val testOutput = RemoteCommandParser.mapDispatch(dispatch, lookup)
-
-        assertEquals(expectedMap, testOutput)
-        assertTrue(testOutput.containsKey("command_name"))
-        assertEquals(dispatch.eventName, testOutput["command_name"])
+        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        println("result: $result")
+        assertEquals(expectedMap, result)
+        assertTrue(result.containsKey("command_name"))
+        assertEquals(dispatch.eventName, result["command_name"])
     }
 
     @Test
     fun mapDispatchWithDotParamsResultantMap() {
         val dispatch = TealiumEvent(
-                "test_dot_dispatch",
+                "purchase",
                 mapOf("content" to "someContent",
                         "content_type" to "someContentType",
                         "coupon" to "someCoupon",
@@ -89,7 +89,6 @@ class RemoteCommandParserTest {
                         "order_id" to "ABC123",
                         "order_total" to 20.00,
                         "event_title" to "order",
-                        "tealium_event" to "purchase",
                         "customer_id" to "cust1234"))
         val lookup = mapOf("content" to "content",
                 "content_type" to "content_type",
@@ -114,11 +113,127 @@ class RemoteCommandParserTest {
                 "customer_id" to "user.user_id")
 
         val expectedMap = mapOf("purchase" to mapOf("coupon" to "someCoupon"))
-        val testOutput = RemoteCommandParser.mapDispatch(dispatch, lookup)
-        assertTrue(testOutput.containsKey("command_name"))
-        assertEquals("purchase", testOutput["command_name"])
-        assertTrue(testOutput.containsKey("purchase"))
-        assertEquals(expectedMap, testOutput["purchase"])
+        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        println("result: $result")
+        assertTrue(result.containsKey("command_name"))
+        assertEquals("purchase", result["command_name"])
+        assertTrue(result.containsKey("purchase"))
+        assertEquals(expectedMap, result["purchase"])
+    }
+
+    @Test
+    fun mapDispatchWithListDestinationsAndDotParamsResultantMap() {
+        val dispatch = TealiumEvent(
+                "purchase",
+                mapOf("content" to "someContent",
+                        "content_type" to "someContentType",
+                        "coupon" to "someCoupon",
+                        "product_brand" to arrayOf("someBrand"),
+                        "product_category" to arrayOf("someCategory"),
+                        "product_id" to arrayOf("someId"),
+                        "product_list" to arrayOf("someList"),
+                        "product_location_id" to "someLocationId",
+                        "product_name" to arrayOf("someName"),
+                        "product_variant" to arrayOf("someVariant"),
+                        "campaign_medium" to "someMedium",
+                        "product_unit_price" to arrayOf(0.00),
+                        "product_quantity" to arrayOf(1),
+                        "search_keyword" to "someSearchTerm",
+                        "order_shipping_amount" to 5.00,
+                        "order_tax_amount" to 3.00,
+                        "order_id" to "ABC123",
+                        "order_total" to 20.00,
+                        "event_title" to "order",
+                        "customer_id" to "cust1234"))
+        val lookup = mapOf("content" to "content",
+                "content_type" to "content_type",
+                "coupon" to "purchase.coupon, event.discount_code",
+                "product_brand" to "item_brand",
+                "product_category" to "item_category",
+                "product_id" to "item_id",
+                "product_list" to "item_list",
+                "product_location_id" to "item_location_id",
+                "product_name" to "item_name",
+                "product_variant" to "item_variant",
+                "campaign_medium" to "medium",
+                "product_unit_price" to "price",
+                "product_quantity" to "quantity",
+                "search_keyword" to "search_term",
+                "order_shipping_amount" to "purchase.shipping",
+                "order_tax_amount" to "purchase.tax",
+                "order_id" to "purchase.transaction_id",
+                "order_total" to "purchase.value",
+                "event_title" to "event_name",
+                "tealium_event" to "command_name",
+                "customer_id" to "user.user_id")
+
+        val expectedMap = mapOf("purchase" to mapOf("coupon" to "someCoupon"), "event" to mapOf("discount_code" to "someCoupon"))
+        val expectedEventMap = mapOf("discount_code" to "someCoupon")
+        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        println("result: $result")
+        assertTrue(result.containsKey("command_name"))
+        assertEquals("purchase", result["command_name"])
+
+        assertTrue(result.containsKey("purchase"))
+        assertEquals(expectedMap, result["purchase"])
+
+        assertTrue(result.containsKey("event"))
+        assertEquals(expectedEventMap, result["event"])
+    }
+
+    @Test
+    fun mapDispatchWithListDestinationsParamsResultantMap() {
+        val dispatch = TealiumEvent(
+                "test_event",
+                mapOf("content" to "someContent",
+                        "content_type" to "someContentType",
+                        "coupon" to "someCoupon",
+                        "product_brand" to arrayOf("someBrand"),
+                        "product_category" to arrayOf("someCategory"),
+                        "product_id" to arrayOf("someId"),
+                        "product_list" to arrayOf("someList"),
+                        "product_location_id" to "someLocationId",
+                        "product_name" to arrayOf("someName"),
+                        "product_variant" to arrayOf("someVariant"),
+                        "campaign_medium" to "someMedium",
+                        "product_unit_price" to arrayOf(0.00),
+                        "product_quantity" to arrayOf(1),
+                        "search_keyword" to "someSearchTerm",
+                        "order_shipping_amount" to 5.00,
+                        "order_tax_amount" to 3.00,
+                        "order_id" to "ABC123",
+                        "order_total" to 20.00,
+                        "event_title" to "order",
+                        "customer_id" to "cust1234"))
+        val lookup = mapOf("content" to "content",
+                "content_type" to "content_type",
+                "coupon" to "coupon, discount_code",
+                "product_brand" to "event.item_brand",
+                "product_category" to "event.item_category",
+                "product_id" to "event.item_id",
+                "product_list" to "event.item_list",
+                "product_location_id" to "event.item_location_id",
+                "product_name" to "event.item_name",
+                "product_variant" to "event.item_variant",
+                "campaign_medium" to "event.medium",
+                "product_unit_price" to "event.price",
+                "product_quantity" to "event.quantity",
+                "search_keyword" to "event.search_term",
+                "order_shipping_amount" to "purchase.shipping",
+                "order_tax_amount" to "purchase.tax",
+                "order_id" to "purchase.transaction_id",
+                "order_total" to "purchase.value",
+                "event_title" to "event_name",
+                "tealium_event" to "command_name",
+                "customer_id" to "user.user_id")
+
+        val expectedMap = mapOf("coupon" to "someCoupon", "discount_code" to "someCoupon")
+        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        println("result: $result")
+        assertTrue(result.containsKey("command_name"))
+        assertEquals("test_event", result["command_name"])
+        assertEquals(expectedMap["coupon"], result["coupon"])
+        assertEquals(expectedMap["discount_code"], result["discount_code"])
     }
 
     @Test
@@ -129,7 +244,7 @@ class RemoteCommandParserTest {
         val eventKey = "event"
         val lookup = mapOf("level" to "$eventKey.fb_level")
         val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
-
+        println("result: $result")
         assertTrue(result.containsKey(eventKey))
         assertEquals(1, result.keys.count())
         (result[eventKey] as? Map<*, *>)?.let {
@@ -172,7 +287,7 @@ class RemoteCommandParserTest {
                 "product_color" to "$purchasePropertiesKey.fb_product_color"
         )
         val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
-        println(result)
+        println("result: $result")
         assertTrue(result.containsKey(purchaseKey))
         assertTrue(result.containsKey(purchasePropertiesKey))
 
@@ -201,7 +316,7 @@ class RemoteCommandParserTest {
                 "product_color" to "$purchasePropertiesKey.fb_product_color"
         )
         val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
-        println(result)
+        println("result: $result")
         assertTrue(result.containsKey(purchaseKey))
         assertTrue(result.containsKey(purchasePropertiesKey))
 
