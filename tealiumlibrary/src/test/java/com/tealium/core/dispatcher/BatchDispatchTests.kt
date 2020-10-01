@@ -11,7 +11,10 @@ import com.tealium.dispatcher.TealiumEvent
 import junit.framework.Assert.*
 import org.junit.Assert
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class BatchDispatchTests {
 
     @Test

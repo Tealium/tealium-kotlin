@@ -1,10 +1,16 @@
 package com.tealium.core.persistence
 
+import android.os.Build
 import junit.framework.Assert.assertEquals
 import org.json.JSONObject
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [Build.VERSION_CODES.P])
 class SerializationTests  {
 
     private lateinit var item: PersistentItem<*>

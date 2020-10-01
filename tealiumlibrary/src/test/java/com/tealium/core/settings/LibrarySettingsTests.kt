@@ -4,7 +4,10 @@ import com.tealium.core.LogLevel
 import junit.framework.Assert.assertEquals
 import org.json.JSONObject
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class LibrarySettingsTests {
 
     @Test

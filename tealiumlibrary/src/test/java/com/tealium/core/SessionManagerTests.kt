@@ -11,8 +11,11 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.io.File
 
+@RunWith(RobolectricTestRunner::class)
 class SessionManagerTests {
 
     @MockK
@@ -72,10 +75,11 @@ class SessionManagerTests {
     }
 
     @Test
-    fun testNewSessionMethodProvidesNewSession() {
+    fun testNewSessionMethodProvidesNewSession() = runBlocking {
         sessionManager = SessionManager(config, eventRouter)
 
         val session = sessionManager.currentSession
+        delay(100)
         val newSession = sessionManager.newSession()
         assertNotSame(session, newSession)
         assertNotEquals(session.id, newSession.id)

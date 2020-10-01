@@ -4,7 +4,10 @@ import com.tealium.dispatcher.Dispatch
 import io.mockk.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class EventRouterTests {
 
     private lateinit var eventRouter: EventRouter

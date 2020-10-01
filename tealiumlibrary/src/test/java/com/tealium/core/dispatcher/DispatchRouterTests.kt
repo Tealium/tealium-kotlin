@@ -28,8 +28,11 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.Executors
 
+@RunWith(RobolectricTestRunner::class)
 class DispatchRouterTests {
 
     private lateinit var dispatchRouter: DispatchRouter
