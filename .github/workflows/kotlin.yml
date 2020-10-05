@@ -5,8 +5,8 @@ on:
     branches: [ "feature/test-migration" ]
 
 jobs:
-  setup:
-    name: Sets Up the Build Server
+  test:
+    name: Run Unit Tests
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v1
@@ -16,19 +16,9 @@ jobs:
           java-version: 1.8
       - name: Set up gradle wrapper
         run: gradle wrapper
-  test:
-    needs: setup
-    name: Run Unit Tests
-    runs-on: macos-latest
-    steps:
       - name: Unit tests
         run: bash ./gradlew test --stacktrace --warning-mode all
-  androidTest:
-    needs: setup
-    name: Run Instrumented Unit Tests
-    runs-on: macos-latest
-    steps:
-      - name: Run on Emulator
+      - name: Instrumented Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
@@ -42,7 +32,7 @@ jobs:
 
     # Create APK. To download APK file, click on Artifacts within the Actions tab
   apk:
-    needs: setup
+    needs: test
     name: Generate APK
     runs-on: macos-latest
     steps:
