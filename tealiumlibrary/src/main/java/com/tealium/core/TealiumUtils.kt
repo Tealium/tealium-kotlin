@@ -10,10 +10,10 @@ class TealiumUtils private constructor() {
             return Looper.getMainLooper() == Looper.myLooper()
         }
 
-        fun getAppVersion(context: Context): String {
-            val packageName = context.packageName
-            val packageInfo = context.packageManager.getPackageInfo(packageName, 0)
-            return packageInfo.versionName
-        }
+//        fun getAppVersion(context: Context): String {
+//            val packageName = context.packageName
+//            val packageInfo = context.packageManager.getPackageInfo(packageName, 0)
+//            return packageInfo.versionName
+//        }
     }
 }
