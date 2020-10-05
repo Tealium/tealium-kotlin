@@ -12,6 +12,7 @@ import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
 import com.tealium.core.messaging.SessionStartedListener
+import com.tealium.core.messaging.ValidationChangedMessenger
 import com.tealium.core.network.Connectivity
 import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.settings.LibrarySettings
@@ -87,6 +88,7 @@ class WebViewLoader(private val context: TealiumContext,
                 }
 
                 registerNewSessionIfNeeded(sessionId)
+                context.events.send(ValidationChangedMessenger())
 
                 // Run JS evaluation here
                 view?.loadUrl("javascript:(function(){\n" +
