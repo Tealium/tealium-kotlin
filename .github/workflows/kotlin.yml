@@ -26,6 +26,7 @@ jobs:
   androidTest:
     needs: setup
     name: Run Instrumented Unit Tests
+    runs-on: macos-latest
     steps:
       - name: Run on Emulator
         uses: reactivecircus/android-emulator-runner@v2
