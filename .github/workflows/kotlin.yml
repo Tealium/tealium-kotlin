@@ -20,21 +20,24 @@ jobs:
     needs: setup
     name: Run Unit Tests
     runs-on: macos-latest
+    steps:
       - name: Unit tests
         run: bash ./gradlew test --stacktrace --warning-mode all
   androidTest:
     needs: setup
     name: Run Instrumented Unit Tests
-    uses: reactivecircus/android-emulator-runner@v2
-    with:
-      api-level: 29
-      arch: x86
-      profile: Nexus 6
-      avd-name: test
-      emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-      disable-animations: true
-      script: ./gradlew tealiumlibrary:connectedCheck
-      # TODO: instrumented tests need fixing, testing with just the tealiumlibrary module for now
+    steps:
+      - name: Run on Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          arch: x86
+          profile: Nexus 6
+          avd-name: test
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: ./gradlew tealiumlibrary:connectedCheck
+          # TODO: instrumented tests need fixing, testing with just the tealiumlibrary module for now
 
     # Create APK. To download APK file, click on Artifacts within the Actions tab
   apk:
