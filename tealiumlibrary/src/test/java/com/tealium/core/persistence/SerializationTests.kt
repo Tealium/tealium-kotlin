@@ -58,7 +58,7 @@ class SerializationTests  {
 
         assertEquals(key, item.key)
         assertEquals("100.1", item.serialize())
-        assertEquals(value, PersistentDouble.deserialize("100.1"))
+        assertEquals(value, PersistentDouble.deserialize("100.1"), 0.0)
         assertEquals(timestamp, item.timestamp)
     }
 
