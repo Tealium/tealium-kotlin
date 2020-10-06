@@ -1,6 +1,7 @@
 package com.tealium.core.collection
 
 import android.app.Application
+import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
@@ -14,10 +15,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
 class ConnectivityCollectorTests {
 
     @MockK
@@ -27,10 +25,9 @@ class ConnectivityCollectorTests {
     lateinit var dataLayer: DataLayer
 
     @MockK
-    lateinit var context: Application
-
-    @MockK
     lateinit var config: TealiumConfig
+
+    lateinit var context: Application
 
     val account = "teal-account"
     val profile = "teal-profile"
@@ -40,13 +37,13 @@ class ConnectivityCollectorTests {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
+        context = ApplicationProvider.getApplicationContext()
 
         every { config.accountName } returns account
         every { config.profileName } returns profile
         every { config.environment } returns environment
         every { config.dataSourceId } returns dataSource
         every { config.application } returns context
-        every { context.applicationContext } returns context
         every { tealiumContext.config } returns config
         every { tealiumContext.dataLayer } returns dataLayer
     }

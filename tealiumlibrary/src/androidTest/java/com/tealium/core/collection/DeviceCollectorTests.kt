@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.Service
 import android.app.UiModeManager
 import android.view.WindowManager
+import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
@@ -16,10 +17,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
 class DeviceCollectorTests {
 
     @MockK
@@ -29,10 +27,9 @@ class DeviceCollectorTests {
     lateinit var dataLayer: DataLayer
 
     @MockK
-    lateinit var context: Application
-
-    @MockK
     lateinit var config: TealiumConfig
+
+    lateinit var context: Application
 
     val account = "teal-account"
     val profile = "teal-profile"
@@ -42,18 +39,15 @@ class DeviceCollectorTests {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
+        context = ApplicationProvider.getApplicationContext()
 
         every { config.accountName } returns account
         every { config.profileName } returns profile
         every { config.environment } returns environment
         every { config.dataSourceId } returns dataSource
         every { config.application } returns context
-        every { context.applicationContext } returns context
         every { tealiumContext.config } returns config
         every { tealiumContext.dataLayer } returns dataLayer
-
-        every { context.getSystemService(Service.WINDOW_SERVICE) } returns mockk<WindowManager>()
-        every { context.getSystemService(Service.UI_MODE_SERVICE) } returns mockk<UiModeManager>()
     }
 
     @Test

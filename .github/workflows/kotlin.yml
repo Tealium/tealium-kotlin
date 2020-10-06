@@ -19,8 +19,8 @@ jobs:
           java-version: 1.8
       - name: Set up gradle wrapper
         run: gradle wrapper
-#      - name: Unit tests
-#        run: bash ./gradlew test
+      - name: Unit tests
+        run: ./run_tests.sh
       - name: Instrumented Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -29,9 +29,10 @@ jobs:
           profile: Nexus 6
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./gradlew tealiumlibrary:connectedCheck
+          script: ./run_instrumented_tests.sh
           # TODO: instrumented tests need fixing, testing with just the tealiumlibrary module for now
-
+      - name: Test Coverage
+        run: ./verify_coverage.sh
     # Create APK. To download APK file, click on Artifacts within the Actions tab
   apk:
     needs: test

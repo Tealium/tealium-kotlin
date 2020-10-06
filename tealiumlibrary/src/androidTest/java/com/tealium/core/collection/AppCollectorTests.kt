@@ -2,6 +2,7 @@ package com.tealium.core.collection
 
 import AppCollectorConstants.APP_UUID
 import android.app.Application
+import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
@@ -15,10 +16,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
 class AppCollectorTests {
 
     @MockK
@@ -28,37 +26,33 @@ class AppCollectorTests {
     lateinit var dataLayer: DataLayer
 
     @MockK
-    lateinit var context: Application
-
-    @MockK
     lateinit var config: TealiumConfig
+
+    lateinit var context: Application
 
     val account = "teal-account"
     val profile = "teal-profile"
     val environment = Environment.DEV
     val dataSource = "teal-data-source"
 
-
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
-        
+        context = ApplicationProvider.getApplicationContext()
         every { config.accountName } returns account
         every { config.profileName } returns profile
         every { config.environment } returns environment
         every { config.dataSourceId } returns dataSource
         every { config.application } returns context
-        every { context.applicationContext } returns context
         every { tealiumContext.config } returns config
         every { tealiumContext.dataLayer } returns dataLayer
     }
 
     @Test
     fun testAppCollector() = runBlocking {
-        every { dataLayer.getString(APP_UUID) } returns "ABCD-12345-ABCD-12345"
         val appCollector = AppCollector(context, tealiumContext.dataLayer)
         val data = appCollector.collect()
-        assertEquals("ABCD-12345-ABCD-12345", data[APP_UUID])
+
         assertNotNull(data[AppCollectorConstants.APP_NAME])
         assertNotNull(data[AppCollectorConstants.APP_BUILD])
         assertNotNull(data[AppCollectorConstants.APP_VERSION])
