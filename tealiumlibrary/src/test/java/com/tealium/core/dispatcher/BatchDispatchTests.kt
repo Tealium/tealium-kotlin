@@ -8,8 +8,8 @@ import com.tealium.dispatcher.BatchDispatch.Companion.KEY_EVENTS
 import com.tealium.dispatcher.BatchDispatch.Companion.KEY_SHARED
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
-import junit.framework.Assert.*
 import org.junit.Assert
+import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner

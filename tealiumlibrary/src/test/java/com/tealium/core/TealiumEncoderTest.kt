@@ -1,7 +1,7 @@
 package com.tealium.core
 
 import com.tealium.dispatcher.TealiumView
-import junit.framework.Assert.assertTrue
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TealiumEncoderTest {

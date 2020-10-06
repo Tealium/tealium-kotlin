@@ -23,9 +23,9 @@ import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
-import junit.framework.Assert.*
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -135,7 +135,7 @@ class DispatchRouterTests {
     fun testIsCollected() {
         dispatchRouter.track(eventDispatch)
 
-        coVerify {
+        coVerify (timeout = 1000) {
             collector.collect()
         }
         assertTrue(eventDispatch["key"] == "value")
@@ -156,7 +156,7 @@ class DispatchRouterTests {
         assertNull(eventDispatch["transformed"])
         dispatchRouter.track(eventDispatch)
 
-        coVerify {
+        coVerify (timeout = 1000) {
             transformer.transform(eventDispatch)
         }
         assertTrue(eventDispatch["transformed"] == "value")
@@ -168,7 +168,7 @@ class DispatchRouterTests {
         every { transformer.enabled } returns false
         dispatchRouter.track(eventDispatch)
 
-        coVerify(exactly = 0) {
+        coVerify(timeout = 1000, exactly = 0) {
             transformer.transform(eventDispatch)
         }
         // still null
@@ -180,12 +180,12 @@ class DispatchRouterTests {
         every { validator.enabled } returns false
         dispatchRouter.track(eventDispatch)
 
-        coVerify(exactly = 0) {
+        coVerify(timeout = 1000, exactly = 0) {
             validator.shouldQueue(eventDispatch)
             validator.shouldDrop(eventDispatch)
         }
 
-        coVerify(exactly = 1, timeout = 500) {
+        coVerify(exactly = 1, timeout = 1000) {
             validator2.shouldQueue(eventDispatch)
             validator2.shouldDrop(eventDispatch)
         }
@@ -196,7 +196,7 @@ class DispatchRouterTests {
         every { dispatcher.enabled } returns false
         dispatchRouter.track(eventDispatch)
 
-        coVerify(exactly = 0) {
+        coVerify(timeout = 1000, exactly = 0) {
             dispatcher.onDispatchSend(eventDispatch)
             dispatcher.onBatchDispatchSend(eventDispatchList)
         }
@@ -208,7 +208,7 @@ class DispatchRouterTests {
         every { validator2.shouldDrop(eventDispatch) } returns true
         dispatchRouter.track(eventDispatch)
 
-        coVerify {
+        coVerify (timeout = 1000) {
             collector.collect()
             transformer.transform(eventDispatch)
             validator.shouldDrop(eventDispatch)
@@ -323,7 +323,7 @@ class DispatchRouterTests {
         every { batching.batchSize } returns 1
         dispatchRouter.track(eventDispatch)
 
-        coVerify {
+        coVerify (timeout = 1000) {
             collector.collect()
             transformer.transform(eventDispatch)
             validator.shouldDrop(eventDispatch)
@@ -361,7 +361,7 @@ class DispatchRouterTests {
         val twoBatches = listOf<Dispatch>(eventDispatch, eventDispatch, eventDispatch, eventDispatch, eventDispatch)
         dispatchRouter.sendDispatches(twoBatches)
 
-        coVerify(exactly = 3, timeout = 500) {
+        coVerify(exactly = 3, timeout = 1000) {
             librarySettingsManager.fetchLibrarySettings()
         }
     }
