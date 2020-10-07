@@ -13,8 +13,8 @@ function updatedModules() {
         updated_modules=${updated_modules}" "${module_name}
       fi
     fi
-#  done < <(git diff --name-only origin/feature/test-migration)
-  done < <(git diff --name-only "origin/$GITHUB_BASE_REF") # <- GITHUB_BASE_REF should be the branch we're merging into.
+  done < <(git diff --name-only "origin/$GITHUB_BASE_REF")
+  # GITHUB_BASE_REF should be the branch we're merging into.
 
   echo "Found changes to the following modules "
 

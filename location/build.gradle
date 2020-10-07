@@ -104,8 +104,8 @@ task jacocoTestReport(type: JacocoReport) {
         html.enabled = true
     }
 
-//    println "setting sourceDirectories $mainSrc"
-//    println "setting sourceDirectories $debugTree"
+    println "setting mainSrc dir: $mainSrc"
+    println "setting debugTree dir: $debugTree"
     sourceDirectories.setFrom(files([mainSrc]))
     classDirectories.setFrom(files([debugTree]))
 
