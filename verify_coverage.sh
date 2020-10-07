@@ -1,3 +1,4 @@
+#!/bin/bash
 
 . updated_modules.sh
 updatedModules
