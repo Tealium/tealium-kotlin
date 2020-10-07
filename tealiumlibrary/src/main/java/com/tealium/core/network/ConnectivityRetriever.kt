@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.os.Build.VERSION_CODES.M
 
 interface Connectivity {
     fun isConnected(): Boolean
@@ -20,7 +21,7 @@ class ConnectivityRetriever private constructor(val context: Application): Conne
         get() = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     private val activeNetworkCapabilities: NetworkCapabilities?
-        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        get() = if (Build.VERSION.SDK_INT >= M) {
                 connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
             } else null
 
@@ -49,10 +50,40 @@ class ConnectivityRetriever private constructor(val context: Application): Conne
     companion object {
         const val UNKNOWN_CONNECTIVITY = "unknown"
 
-        @Volatile private var instance: ConnectivityRetriever? = null
+        @Volatile private var instance: Connectivity? = null
 
         fun getInstance(application: Application) = instance ?: synchronized(this){
-            instance ?: ConnectivityRetriever(application).also { instance = it }
+            instance ?: if (Build.VERSION.SDK_INT >= M) {
+                ConnectivityRetriever(application)
+            } else {
+                LegacyConnectivityRetriever(application)
+            }.also { instance = it }
+        }
+    }
+}
+
+private class LegacyConnectivityRetriever(private val context: Application): Connectivity {
+
+    private val connectivityManager: ConnectivityManager
+        get() = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+    override fun isConnected(): Boolean {
+        return connectivityManager.activeNetworkInfo?.isConnected ?: false
+    }
+
+    override fun isConnectedWifi(): Boolean {
+        return connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI)?.isConnected ?:
+        connectivityManager.allNetworks.fold(false) { input, network ->
+            input || (connectivityManager.getNetworkInfo(network)?.isConnected ?: false)
+        }
+        ?: false
+    }
+
+    override fun connectionType(): String {
+        return when {
+            isConnectedWifi() -> "wifi"
+            isConnected() -> "cellular"
+            else -> "none"
         }
     }
 }
