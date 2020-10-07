@@ -79,9 +79,13 @@ afterEvaluate {
 
 apply plugin: "jacoco"
 
-//tasks.withType(Test) {
-//    jacoco.includeNoLocationClasses = true
-//}
+jacoco {
+    toolVersion = "0.8.5"
+}
+
+tasks.withType(Test) {
+    jacoco.includeNoLocationClasses = true
+}
 //
 //// Files with such regex patterns are to be excluded
 def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*',

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+pwd
+
 # Get a list of all available gradle tasks
 function updatedModules() {
   local AVAILABLE_TASKS
