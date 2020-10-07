@@ -5,7 +5,6 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
-import android.os.Build.VERSION_CODES.M
 
 interface Connectivity {
     fun isConnected(): Boolean
@@ -21,10 +20,9 @@ class ConnectivityRetriever private constructor(val context: Application): Conne
         get() = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     private val activeNetworkCapabilities: NetworkCapabilities?
-        get() = if (Build.VERSION.SDK_INT >= M) {
+        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
             } else null
-
 
     override fun connectionType(): String {
         return activeNetworkCapabilities?.let {
@@ -53,7 +51,7 @@ class ConnectivityRetriever private constructor(val context: Application): Conne
         @Volatile private var instance: Connectivity? = null
 
         fun getInstance(application: Application) = instance ?: synchronized(this){
-            instance ?: if (Build.VERSION.SDK_INT >= M) {
+            instance ?: if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 ConnectivityRetriever(application)
             } else {
                 LegacyConnectivityRetriever(application)
@@ -62,7 +60,7 @@ class ConnectivityRetriever private constructor(val context: Application): Conne
     }
 }
 
-private class LegacyConnectivityRetriever(private val context: Application): Connectivity {
+class LegacyConnectivityRetriever(private val context: Application): Connectivity {
 
     private val connectivityManager: ConnectivityManager
         get() = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
