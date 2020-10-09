@@ -52,21 +52,16 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
         manager.removeAll()
     }
 
-    private fun loadHttpCommand(id: String): RemoteCommand? {
-        var httpRemoteCommand: RemoteCommand? = null
-        if (HttpRemoteCommand.NAME == id) {
-            httpRemoteCommand = HttpRemoteCommand(client)
+    private fun loadHttpCommand(): RemoteCommand? {
+        return manager.getRemoteCommand(HttpRemoteCommand.NAME) ?: HttpRemoteCommand(client).also {
+            manager.add(it)
         }
-
-        httpRemoteCommand?.let {
-            manager.add(httpRemoteCommand)
-        }
-        return httpRemoteCommand
     }
 
     private fun invokeTagManagementRequest(request: RemoteCommandRequest?) {
         request?.commandId?.let { id ->
-            loadHttpCommand(id)
+            if (id == HttpRemoteCommand.NAME) loadHttpCommand()
+
             manager.getRemoteCommand(id)?.let { command ->
                 Logger.dev(BuildConfig.TAG, "Detected Remote Command $id with payload ${request.response?.requestPayload}")
                 command.invoke(request)

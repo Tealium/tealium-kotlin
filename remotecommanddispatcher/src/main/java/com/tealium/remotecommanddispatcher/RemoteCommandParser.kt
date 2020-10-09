@@ -8,17 +8,6 @@ class RemoteCommandParser {
 
         fun mapDispatch(dispatch: Dispatch, lookup: Map<String, String>): MutableMap<String, Any> {
             val mappedDispatch = mapPayload(dispatch.payload(), lookup)
-            mappedDispatch.forEach { (key, value) ->
-                if (value is Map<*, *>) {
-                    (value as? Map<String, Any>)?.let { nestedMap ->
-                        if (mapPayload(nestedMap, lookup).count() == 0) {
-                            mappedDispatch[key] = nestedMap
-                        } else {
-                            mappedDispatch[key] = mapPayload(nestedMap, lookup)
-                        }
-                    }
-                }
-            }
             return mappedDispatch
         }
 
