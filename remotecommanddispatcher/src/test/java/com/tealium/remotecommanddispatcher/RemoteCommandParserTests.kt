@@ -59,7 +59,7 @@ class RemoteCommandParserTest {
                 "event_name" to "ecommerce_purchase",
                 "tax" to "1.99", "shipping" to "5.00",
                 "command_name" to "test_dispatch")
-        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        val result = RemoteCommandParser.mapPayload(dispatch.payload(), lookup)
         println("result: $result")
         assertEquals(expectedMap, result)
         assertTrue(result.containsKey("command_name"))
@@ -117,8 +117,8 @@ class RemoteCommandParserTest {
                 "tax" to 3.00,
                 "transaction_id" to "ABC123",
                 "value" to 20.00
-                )
-        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        )
+        val result = RemoteCommandParser.mapPayload(dispatch.payload(), lookup)
         println("result: $result")
         assertTrue(result.containsKey("command_name"))
         assertEquals("purchase", result["command_name"])
@@ -180,7 +180,7 @@ class RemoteCommandParserTest {
         )
         val expectedEventMap = mapOf("discount_code" to "someCoupon")
         val expectedUserMap = mapOf("user_id" to "cust1234")
-        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        val result = RemoteCommandParser.mapPayload(dispatch.payload(), lookup)
         println("result: $result")
         assertTrue(result.containsKey("command_name"))
         assertEquals("purchase", result["command_name"])
@@ -242,7 +242,7 @@ class RemoteCommandParserTest {
                 "customer_id" to "user.user_id")
 
         val expectedMap = mapOf("coupon" to "someCoupon", "discount_code" to "someCoupon")
-        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        val result = RemoteCommandParser.mapPayload(dispatch.payload(), lookup)
         println("result: $result")
         assertTrue(result.containsKey("command_name"))
         assertEquals("test_event", result["command_name"])
@@ -257,7 +257,7 @@ class RemoteCommandParserTest {
                 mapOf("level" to 19))
         val eventKey = "event"
         val lookup = mapOf("level" to "$eventKey.fb_level")
-        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        val result = RemoteCommandParser.mapPayload(dispatch.payload(), lookup)
         println("result: $result")
         assertTrue(result.containsKey(eventKey))
         assertEquals(1, result.keys.count())
@@ -276,7 +276,7 @@ class RemoteCommandParserTest {
         val lookup = mapOf("level" to "$eventKey.fb_level",
                 "product_availability" to "$eventKey.fb_product_availability")
 
-        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        val result = RemoteCommandParser.mapPayload(dispatch.payload(), lookup)
         println("result: $result")
         assertTrue(result.containsKey(eventKey))
         (result[eventKey] as? Map<*, *>)?.let {
@@ -300,7 +300,7 @@ class RemoteCommandParserTest {
                 "order_currency" to "$purchaseKey.fb_purchase_currency",
                 "product_color" to "$purchasePropertiesKey.fb_product_color"
         )
-        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        val result = RemoteCommandParser.mapPayload(dispatch.payload(), lookup)
         println("result: $result")
         assertTrue(result.containsKey(purchaseKey))
         assertTrue(result.containsKey(purchasePropertiesKey))
@@ -329,7 +329,7 @@ class RemoteCommandParserTest {
                 "order_currency" to "$purchaseKey.fb_purchase_currency",
                 "product_color" to "$purchasePropertiesKey.fb_product_color"
         )
-        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        val result = RemoteCommandParser.mapPayload(dispatch.payload(), lookup)
         println("result: $result")
         assertTrue(result.containsKey(purchaseKey))
         assertTrue(result.containsKey(purchasePropertiesKey))
@@ -357,7 +357,7 @@ class RemoteCommandParserTest {
                 "current_level" to "$eventKey.current_level",
                 "high_score" to "$eventKey.high_score,$propertiesKey.high_score"
         )
-        val result = RemoteCommandParser.mapDispatch(dispatch, lookup)
+        val result = RemoteCommandParser.mapPayload(dispatch.payload(), lookup)
         println("result: $result")
         assertTrue(result.containsKey(eventKey))
         assertTrue(result.containsKey(propertiesKey))

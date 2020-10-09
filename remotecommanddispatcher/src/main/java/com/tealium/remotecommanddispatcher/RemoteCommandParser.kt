@@ -1,23 +1,18 @@
 package com.tealium.remotecommanddispatcher
 
 import com.tealium.core.Logger
-import com.tealium.dispatcher.Dispatch
 
 class RemoteCommandParser {
     companion object {
-
-        fun mapDispatch(dispatch: Dispatch, lookup: Map<String, String>): MutableMap<String, Any> {
-            val mappedDispatch = mapPayload(dispatch.payload(), lookup)
-            return mappedDispatch
-        }
 
         /**
          * Creates new command dictionary from the dispatch payload and lookup table.
          * Only maps keys that are in the lookup, everything else in the payload is not mapped.
          *
          */
-        private fun mapPayload(payload: Map<String, Any>, lookup: Map<String, String>): MutableMap<String, Any> {
-            val temp = mutableMapOf<String, Any>()
+//        fun mapDispatch(dispatch: Dispatch, lookup: Map<String, String>): MutableMap<String, Any> {
+        fun mapPayload(payload: Map<String, Any>, lookup: Map<String, String>): MutableMap<String, Any> {
+            val mappedDispatch = mutableMapOf<String, Any>()
             lookup.forEach { (key, value) ->
                 payload[key]?.let { payloadValue ->
                     lookup[key]?.let { lookupValue ->
@@ -25,9 +20,9 @@ class RemoteCommandParser {
                             val objectRow = splitKeys(valuesList, payloadValue, lookup)
                             val objectKey = objectRow.second
                             objectKey?.let {
-                                if (temp.containsKey(it)) {
+                                if (mappedDispatch.containsKey(it)) {
                                     // object key is already in the map, append to the same key
-                                    (temp[it] as? MutableMap<*, *>)?.let { objectMap ->
+                                    (mappedDispatch[it] as? MutableMap<*, *>)?.let { objectMap ->
                                         // create a map with a String key. This will throw an exception if the JSON mapping file does not use a String as a key.
                                         val oMap = objectMap.entries.associate { entry -> entry.key as String to entry.value }.toMutableMap()
                                         (objectRow.first[objectKey] as? Map<*, *>)?.let {
@@ -36,21 +31,21 @@ class RemoteCommandParser {
                                             // add mapped values from splitKeys to the temporary oMap
                                             oMap[kk] = vv
                                             // append to the same key (e.g. "event")
-                                            temp[objectKey] = oMap
+                                            mappedDispatch[objectKey] = oMap
                                         }
                                     }
                                 } else {
-                                    temp.putAll(objectRow.first)
+                                    mappedDispatch.putAll(objectRow.first)
                                 }
                             } ?: run {
-                                temp.putAll(objectRow.first)
+                                mappedDispatch.putAll(objectRow.first)
                             }
                         }
                     }
                 }
             }
 
-            return temp
+            return mappedDispatch
         }
 
         /**

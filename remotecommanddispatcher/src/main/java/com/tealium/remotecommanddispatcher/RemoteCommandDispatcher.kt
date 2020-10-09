@@ -76,7 +76,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
         manager.getRemoteCommandConfigRetriever(remoteCommand.commandName)?.remoteCommandConfig.let { config ->
             config?.mappings?.let { mappings ->
                 // map the dispatch with the lookup
-                val mappedDispatch = RemoteCommandParser.mapDispatch(dispatch, mappings)
+                val mappedDispatch = RemoteCommandParser.mapPayload(dispatch.payload(), mappings)
                 val eventName = dispatch[CoreConstant.TEALIUM_EVENT] as? String
                 config.apiConfig?.let {
                     mappedDispatch.putAll(it)
