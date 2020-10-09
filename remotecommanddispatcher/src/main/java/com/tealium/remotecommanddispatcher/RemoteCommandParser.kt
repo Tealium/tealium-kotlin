@@ -10,9 +10,8 @@ class RemoteCommandParser {
          * Only maps keys that are in the lookup, everything else in the payload is not mapped.
          *
          */
-//        fun mapDispatch(dispatch: Dispatch, lookup: Map<String, String>): MutableMap<String, Any> {
         fun mapPayload(payload: Map<String, Any>, lookup: Map<String, String>): MutableMap<String, Any> {
-            val mappedDispatch = mutableMapOf<String, Any>()
+            val mappedPayload = mutableMapOf<String, Any>()
             lookup.forEach { (key, value) ->
                 payload[key]?.let { payloadValue ->
                     lookup[key]?.let { lookupValue ->
@@ -20,9 +19,9 @@ class RemoteCommandParser {
                             val objectRow = splitKeys(valuesList, payloadValue, lookup)
                             val objectKey = objectRow.second
                             objectKey?.let {
-                                if (mappedDispatch.containsKey(it)) {
+                                if (mappedPayload.containsKey(it)) {
                                     // object key is already in the map, append to the same key
-                                    (mappedDispatch[it] as? MutableMap<*, *>)?.let { objectMap ->
+                                    (mappedPayload[it] as? MutableMap<*, *>)?.let { objectMap ->
                                         // create a map with a String key. This will throw an exception if the JSON mapping file does not use a String as a key.
                                         val oMap = objectMap.entries.associate { entry -> entry.key as String to entry.value }.toMutableMap()
                                         (objectRow.first[objectKey] as? Map<*, *>)?.let {
@@ -31,21 +30,21 @@ class RemoteCommandParser {
                                             // add mapped values from splitKeys to the temporary oMap
                                             oMap[kk] = vv
                                             // append to the same key (e.g. "event")
-                                            mappedDispatch[objectKey] = oMap
+                                            mappedPayload[objectKey] = oMap
                                         }
                                     }
                                 } else {
-                                    mappedDispatch.putAll(objectRow.first)
+                                    mappedPayload.putAll(objectRow.first)
                                 }
                             } ?: run {
-                                mappedDispatch.putAll(objectRow.first)
+                                mappedPayload.putAll(objectRow.first)
                             }
                         }
                     }
                 }
             }
 
-            return mappedDispatch
+            return mappedPayload
         }
 
         /**
