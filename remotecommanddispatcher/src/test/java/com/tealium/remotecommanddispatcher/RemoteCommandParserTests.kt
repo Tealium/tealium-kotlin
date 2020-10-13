@@ -346,7 +346,7 @@ class RemoteCommandParserTest {
     @Test
     fun mapDispatchWithMultipleDotParamsWithSameNameSourceAndDestinations() {
         val dispatch = TealiumEvent(
-                "user_evenet",
+                "user_event",
                 mapOf("event_name" to "level_up",
                         "current_level" to 10,
                         "high_score" to 5000))
