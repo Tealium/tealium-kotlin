@@ -1,7 +1,5 @@
 package com.tealium.remotecommanddispatcher
 
-import com.tealium.core.Logger
-
 class RemoteCommandParser {
     companion object {
 
@@ -16,20 +14,19 @@ class RemoteCommandParser {
                 payload[lookupKey]?.let { payloadValue ->
                     checkAndSplitDestinationList(lookupDestination).forEach { destinations ->
                         val objectRow = splitKeys(destinations, payloadValue)
-                        val objectKey = objectRow.second
-                        objectKey?.let {
-                            if (mappedPayload.containsKey(it)) {
+                        objectRow.second?.let { objectKey ->
+                            if (mappedPayload.containsKey(objectKey)) {
                                 // object key is already in the map, append to the same key
-                                (mappedPayload[it] as? MutableMap<*, *>)?.let { objectMap ->
+                                (mappedPayload[objectKey] as? MutableMap<*, *>)?.let { objectMap ->
                                     // create a map with a String key. This will throw an exception if the JSON mapping file does not use a String as a key.
                                     val oMap = objectMap.entries.associate { entry -> entry.key.toString() to entry.value }.toMutableMap()
-                                    (objectRow.first[it] as? Map<*, *>)?.let {
-                                        it.entries.associate { entry -> entry.key.toString() to entry.value } // as String }
+                                    (objectRow.first[objectKey] as? Map<*, *>)?.let {
+                                        it.entries.associate { entry -> entry.key.toString() to entry.value }
                                     }?.forEach { (kk, vv) ->
                                         // add mapped values from splitKeys to the temporary oMap
                                         oMap[kk] = vv
                                         // append to the same key (e.g. "event")
-                                        mappedPayload[it] = oMap
+                                        mappedPayload[objectKey] = oMap
                                     }
                                 }
                             } else {
