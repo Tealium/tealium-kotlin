@@ -1,4 +1,10 @@
 # Change Log
+- 1.0.0 Oct. 2020
+    - New and improved modular Tealium Kotlin for Android
+    - Release includes modifications based on feedback
+    - JSON controlled Remote Commands
+    - Hosted Data layer support
+    
 - 0.1.2 Sept 2020
   - Tealium multi-instance management added
   - Some utilities/modules updated to better support multiple instances
