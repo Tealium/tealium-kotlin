@@ -8,8 +8,10 @@ import com.tealium.core.network.NetworkClient
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
 import com.tealium.dispatcher.DispatcherListener
+import com.tealium.dispatcher.TealiumEvent
 import com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand
 import com.tealium.remotecommands.RemoteCommand
+import com.tealium.remotecommands.RemoteCommandContext
 import com.tealium.remotecommands.RemoteCommandRequest
 
 interface RemoteCommandDispatcherListener : DispatcherListener {
@@ -33,6 +35,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
      * @param remoteUrl Optional remote URL for JSON controlled Remote Commands
      */
     fun add(remoteCommand: RemoteCommand, filename: String? = null, remoteUrl: String? = null) {
+        remoteCommand.context = createRemoteCommandContext()
         manager.add(remoteCommand, filename, remoteUrl)
     }
 
@@ -89,6 +92,21 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
 
                 Logger.dev(BuildConfig.TAG, "Processing Remote Command: ${remoteCommand.commandName} with command name: ${mappedDispatch[Settings.COMMAND_NAME]}")
                 remoteCommand.invoke(RemoteCommandRequest(remoteCommand.commandName, JsonUtils.jsonFor(mappedDispatch)))
+            }
+        }
+    }
+
+    private fun createRemoteCommandContext(): RemoteCommandContext {
+        return object : RemoteCommandContext {
+            override fun track(eventName: String, data: MutableMap<String, *>?) {
+                context.track(TealiumEvent(eventName, data as Map<String, Any>))
+            }
+
+            override fun track(eventType: String?, eventName: String, data: MutableMap<String, *>?) {
+                when (eventType) {
+                    DispatchType.EVENT -> context.track(TealiumEvent(eventName, data as Map<String, Any>))
+                    DispatchType.VIEW -> context.track(TealiumEvent(eventName, data as Map<String, Any>))
+                }
             }
         }
     }
