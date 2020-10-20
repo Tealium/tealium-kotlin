@@ -35,7 +35,9 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
      * @param remoteUrl Optional remote URL for JSON controlled Remote Commands
      */
     fun add(remoteCommand: RemoteCommand, filename: String? = null, remoteUrl: String? = null) {
-        remoteCommand.context = createRemoteCommandContext()
+        remoteCommand.context?.let {
+            remoteCommand.context = createRemoteCommandContext()
+        }
         manager.add(remoteCommand, filename, remoteUrl)
     }
 
