@@ -50,13 +50,11 @@ class ResourceRetrieverTest {
     }
 
     private suspend fun retryTester(i: Int): Int? {
-        println("attempt: $i")
         delay(if (i != 3) 1000L else 200L)
         return 100
     }
 
     private suspend fun retryTesterOptional(i: Int): Int? {
-        println("attempt: $i")
         delay(if (i != 10) 1000L else 200L)
         return null
     }

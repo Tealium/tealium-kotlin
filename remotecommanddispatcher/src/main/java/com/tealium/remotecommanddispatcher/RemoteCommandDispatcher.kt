@@ -1,5 +1,7 @@
 package com.tealium.remotecommanddispatcher
 
+import CoreConstant
+import DispatchType
 import com.tealium.core.*
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.messaging.RemoteCommandListener
@@ -35,9 +37,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
      * @param remoteUrl Optional remote URL for JSON controlled Remote Commands
      */
     fun add(remoteCommand: RemoteCommand, filename: String? = null, remoteUrl: String? = null) {
-        if (remoteCommand.context == null) {
-            remoteCommand.context = createRemoteCommandContext()
-        }
+        remoteCommand.context = remoteCommand.context ?: createRemoteCommandContext()
         manager.add(remoteCommand, filename, remoteUrl)
     }
 
