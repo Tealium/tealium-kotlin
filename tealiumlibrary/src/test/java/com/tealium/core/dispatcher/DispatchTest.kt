@@ -55,7 +55,6 @@ class DispatchTest {
         val viewDispatch = TealiumView("test", data)
 
         val result = viewDispatch.toJsonString()
-       println(result)
         // TODO: more tests for lists, arrays,. this test isn't complete itself!
     }
 }

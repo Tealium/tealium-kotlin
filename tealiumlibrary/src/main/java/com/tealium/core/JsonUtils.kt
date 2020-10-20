@@ -1,5 +1,6 @@
 package com.tealium.core
 
+import org.json.JSONArray
 import org.json.JSONObject
 
 class JsonUtils {
@@ -9,10 +10,11 @@ class JsonUtils {
         fun jsonFor(payload: Map<String, Any>): JSONObject {
             val jsonObject = JSONObject()
             payload.forEach { (key, value) ->
-                val jsonValue = if (value is Map<*, *>) {
-                    jsonFor(value as Map<String, Any>)
-                } else {
-                    value
+                val jsonValue = when (value) {
+                    is Map<*, *> -> jsonFor(value as Map<String, Any>)
+                    is Collection<*> -> JSONArray(value)
+                    is Array<*> -> JSONArray(value)
+                    else -> value
                 }
                 jsonObject.put(key, jsonValue)
             }
