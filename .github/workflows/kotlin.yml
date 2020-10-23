@@ -17,8 +17,8 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - name: Set up gradle wrapper
-        run: gradle wrapper
+#      - name: Set up gradle wrapper
+#        run: gradle wrapper
       - name: Unit tests
         run: ./run_tests.sh
       - name: Instrumented Tests
