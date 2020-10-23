@@ -59,7 +59,7 @@ task verifyTestCoverage(type: JacocoCoverageVerification) {
         rule {
             enabled = true
             element = 'PACKAGE'
-            includes = ['com.tealium']
+            includes = ['com.tealium.*']
             limit {
                 counter = 'CLASS'
                 value = 'MISSEDCOUNT'
@@ -69,7 +69,7 @@ task verifyTestCoverage(type: JacocoCoverageVerification) {
         // 2
         rule {
             element = 'PACKAGE'
-            includes = ['com.tealium']
+            includes = ['com.tealium.*']
             limit {
                 value = 'COVEREDRATIO'
                 counter = 'INSTRUCTION'

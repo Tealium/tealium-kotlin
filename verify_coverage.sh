@@ -6,16 +6,27 @@ updatedModules
 echo "Checking test coverage: "
 reportsDir="reports"
 mkdir "$reportsDir"
+
+wereFailures=0
+
 for mod in $updated_modules
 do
-  echo "./gradlew $mod:jacocoTestReport $mod:verifyTestCoverage"
-  if ./gradlew $mod:jacocoTestReport $mod":verifyTestCoverage"; then
+  echo "./gradlew $mod:jacocoTestReport"
+  ./gradlew $mod:jacocoTestReport
+
+  failed=""
+
+  echo "./gradlew $mod:verifyTestCoverage"
+  if ./gradlew $mod":verifyTestCoverage"; then
     echo "$mod Test Coverage Succeeded" >&2
   else
     echo "$mod Test Coverage failed" >&2
-
+    failed="coverage-failed-"
     #TODO: get access to the coverage stats and report
-    exit 1
+    # Uncomment to fail the workflow step.
+    #wereFailures = 1
   fi
-  zip -r "$reportsDir/${mod}.zip" "$mod/build/reports/"
+  zip -r "$reportsDir/${failed}${mod}.zip" "$mod/build/reports/"
 done
+
+exit $wereFailures

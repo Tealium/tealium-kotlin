@@ -33,7 +33,7 @@ class InstallReferrerTests {
                 account,
                 profile,
                 environment, dataSourceId = dataSource))
-        tealium = Tealium("instance_1", config)
+        tealium = Tealium.create("instance_1", config)
         tealiumContext = TealiumContext(config,
                 visitorId,
                 mockk(),
