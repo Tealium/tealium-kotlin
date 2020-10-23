@@ -9,6 +9,8 @@ function updatedModules() {
   updated_modules=""
 
   # Retrieve all the updated modules
+  echo "git diff --name-only origin/$GITHUB_BASE_REF"
+
   while read -r line; do
     module_name=${line%%/*} # Gets the first word before '/'
     # Now we check if we haven't already added this module
