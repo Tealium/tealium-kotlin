@@ -34,7 +34,7 @@ jobs:
       - name: Test Coverage
         run: ./verify_coverage.sh
       - name: Upload APK
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: Reports-API-${{ matrix.api_level }}
           path: reports/*.zip
@@ -49,8 +49,6 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - name: Set up gradle wrapper
-        run: gradle wrapper
       - name: Build debug APK
         run: bash ./gradlew assembleDebug --stacktrace --warning-mode all
       - name: Upload APK
