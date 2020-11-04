@@ -13,10 +13,9 @@ import com.tealium.dispatcher.TealiumView
 import com.tealium.hosteddatalayer.HostedDataLayer
 import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
 import com.tealium.lifecycle.Lifecycle
-import com.tealium.location.Location
-import com.tealium.remotecommanddispatcher.*
-import com.tealium.remotecommanddispatcher.remotecommands.JsonRemoteCommand
-import com.tealium.remotecommanddispatcher.remotecommands.RemoteCommand
+import com.tealium.remotecommanddispatcher.RemoteCommands
+import com.tealium.remotecommanddispatcher.remoteCommands
+import com.tealium.remotecommands.RemoteCommand
 import com.tealium.tagmanagementdispatcher.TagManagement
 import com.tealium.visitorservice.VisitorProfile
 import com.tealium.visitorservice.VisitorService
@@ -30,9 +29,8 @@ object TealiumHelper {
                 "android",
                 Environment.DEV,
                 modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer),
-                dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement)
+                dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
-            collectors.add(Collectors.Location)
             useRemoteLibrarySettings = true
             hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
 
@@ -52,7 +50,7 @@ object TealiumHelper {
                 }
             })
 
-            remoteCommands?.add(localJsonCommand)
+            remoteCommands?.add(localJsonCommand, filename = "remoteCommand.json")
             remoteCommands?.add(webViewRemoteCommand)
         }
     }
@@ -63,7 +61,7 @@ object TealiumHelper {
         }
     }
 
-    val localJsonCommand = object : JsonRemoteCommand("localJsonCommand", "testingRCs", filename = "remoteCommand.json") {
+    val localJsonCommand = object : RemoteCommand("localJsonCommand", "testingRCs") {
         override fun onInvoke(response: Response) {
             Logger.dev(BuildConfig.TAG, "ResponsePayload for local JSON RemoteCommand ${response.requestPayload}")
         }

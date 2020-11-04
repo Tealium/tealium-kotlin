@@ -6,13 +6,11 @@ import com.tealium.core.TealiumConfig
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import org.junit.Assert.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
-import java.io.File
 
 class ResourceRetrieverTest {
 
@@ -52,13 +50,11 @@ class ResourceRetrieverTest {
     }
 
     private suspend fun retryTester(i: Int): Int? {
-        println("attempt: $i")
         delay(if (i != 3) 1000L else 200L)
         return 100
     }
 
     private suspend fun retryTesterOptional(i: Int): Int? {
-        println("attempt: $i")
         delay(if (i != 10) 1000L else 200L)
         return null
     }
