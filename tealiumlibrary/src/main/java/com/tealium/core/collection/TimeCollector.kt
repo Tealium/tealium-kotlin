@@ -2,6 +2,7 @@ package com.tealium.core.collection
 
 import com.tealium.core.*
 import com.tealium.core.persistence.getTimestampMilliseconds
+import com.tealium.test.OpenForTesting
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -13,6 +14,7 @@ interface TimeData {
     val timestampUnixMilliseconds : Long
 }
 
+@OpenForTesting
 class TimeCollector : Collector, TimeData {
 
     override val name: String = "TIME_COLLECTOR"

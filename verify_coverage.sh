@@ -22,7 +22,6 @@ do
   else
     echo "$mod Test Coverage failed" >&2
     failed="coverage-failed-"
-    #TODO: get access to the coverage stats and report
     # Uncomment to fail the workflow step.
     #wereFailures = 1
   fi

@@ -6,8 +6,8 @@ updatedModules
 echo "Running instrumented unit tests: "
 for mod in $updated_modules
 do
-  echo "./gradlew $mod:connectedCheck"
-  if ./gradlew $mod":connectedCheck"; then
+  echo "./gradlew $mod:connectedDebugAndroidTest"
+  if ./gradlew $mod":connectedDebugAndroidTest"; then
     echo "$mod Instrumented Unit Test Succeeded" >&2
   else
     echo "$mod Instrumented Unit Test failed" >&2

@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'maven-publish'
+apply plugin: 'kotlin-allopen'
 apply from: '../jacoco.gradle'
 
 version = '1.0.0'
@@ -77,4 +78,8 @@ afterEvaluate {
 //            }
 //        }
     }
+}
+
+allOpen {
+    annotation 'com.tealium.test.OpenClass'
 }

@@ -36,8 +36,6 @@ class RemoteCommandConfigRetrieverTests {
         MockKAnnotations.init(this)
         context = ApplicationProvider.getApplicationContext()
 
-        mockkStatic(Log::class)
-        every { Log.v(any(), any()) } returns 0
         mockNetworkClient = mockk()
 
         config = TealiumConfig(context, "test", "profile", Environment.DEV)
