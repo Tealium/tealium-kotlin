@@ -4,6 +4,7 @@ import android.app.Application
 import com.tealium.core.collection.*
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
+import com.tealium.test.OpenForTesting
 import java.io.File
 
 enum class Environment(val environment: String) {
@@ -32,6 +33,7 @@ object Modules {
     // for extension methods to register Modules
 }
 
+@OpenForTesting
 class TealiumConfig @JvmOverloads constructor(val application: Application,
                     val accountName: String,
                     val profileName: String,

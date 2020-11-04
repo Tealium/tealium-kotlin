@@ -16,6 +16,7 @@ import io.mockk.impl.annotations.MockK
 import junit.framework.Assert
 import org.junit.Before
 import org.junit.Test
+import java.io.File
 
 class RemoteCommandDispatcherTests {
 
@@ -25,20 +26,27 @@ class RemoteCommandDispatcherTests {
     @MockK
     lateinit var mockRemoteCommandConfig: RemoteCommandConfig
 
+    @MockK
     lateinit var context: Application
+
+    @MockK
+    lateinit var mockFile: File
+
     lateinit var config: TealiumConfig
     private val tealiumContext = mockk<TealiumContext>()
 
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
-        context = ApplicationProvider.getApplicationContext()
+//        context = ApplicationProvider.getApplicationContext()
+        every { context.filesDir } returns mockFile
 
-        mockkConstructor(RemoteCommand::class)
-        every { anyConstructed<RemoteCommand>().invoke(any()) } just Runs
+//        mockkConstructor(RemoteCommand::class)
+//        every { anyConstructed<RemoteCommand>().invoke(any()) } just Runs
 
 
-        config = TealiumConfig(context, "test", "profile", Environment.DEV)
+        config = mockk()//TealiumConfig(context, "test", "profile", Environment.DEV)
+        every { config.application } returns context
         every { tealiumContext.config } returns config
 
     }
@@ -65,10 +73,13 @@ class RemoteCommandDispatcherTests {
     @Test
     fun validAddAndProcessWebViewRemoteCommand() {
         val remoteCommandDispatcher = RemoteCommandDispatcher(tealiumContext, mockk(), mockNetworkClient)
-        val webViewCommand = spyk<RemoteCommand>(object : RemoteCommand("testWebViewCommand") {
-            override fun onInvoke(response: Response) { // invoke block
-            }
-        })
+//        val webViewCommand = spyk<RemoteCommand>(object : RemoteCommand("testWebViewCommand") {
+//            override fun onInvoke(response: Response) { // invoke block
+//            }
+//        })
+        val webViewCommand = mockk<RemoteCommand>()
+        every { webViewCommand.commandId } returns "testWebViewCommand"
+        every { webViewCommand.invoke(any<RemoteCommandRequest>()) } just Runs
 
         remoteCommandDispatcher.add(webViewCommand)
         remoteCommandDispatcher.onRemoteCommandSend("tealium://testWebViewCommand?request={\"config\":{\"response_id\":\"123\"}, \"payload\":{\"hello\": \"world\"}}")

@@ -2,7 +2,7 @@ package com.tealium.core.settings
 
 import android.app.Application
 import android.util.Log
-import androidx.test.core.app.ApplicationProvider
+//import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.Loader
 import com.tealium.core.TealiumConfig
@@ -17,8 +17,11 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.io.File
 
+@RunWith(RobolectricTestRunner::class)
 class LibrarySettingsManagerTest {
 
     @MockK
@@ -32,7 +35,7 @@ class LibrarySettingsManagerTest {
     lateinit var mockScope : CoroutineScope
     @MockK
     lateinit var mockFile: File
-
+    @MockK
     lateinit var context: Application
     lateinit var config: TealiumConfig
 
@@ -55,8 +58,8 @@ class LibrarySettingsManagerTest {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
-        context = ApplicationProvider.getApplicationContext()
-
+//        context = ApplicationProvider.getApplicationContext()
+        every { context.filesDir } returns mockFile
         mockkStatic(Log::class)
         every { Log.v(any(), any()) } returns 0
         mockNetworkClient = mockk()

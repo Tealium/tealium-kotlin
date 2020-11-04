@@ -21,6 +21,7 @@ import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
 import com.tealium.dispatcher.GenericDispatch
 import com.tealium.tealiumlibrary.BuildConfig
+import com.tealium.test.OpenForTesting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
@@ -34,6 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @param config - the object that defines how to appropriately configure this instance.
  * @param onReady - completion block that signifies when this instance has completed finished initializing.
  */
+@OpenForTesting
 class Tealium private constructor(val key: String, val config: TealiumConfig, private val onReady: (Tealium.() -> Unit)? = null) {
 
     private val singleThreadedBackground = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
@@ -72,19 +74,21 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
      */
     val logger: Logging
 
+    private lateinit var _modules: ModuleManager
+
     /**
      * Provides access to the different modules that are in use, either by name or by class.
      * Note. the modules themselves are initialized on a background thread, so to safely access them
      * once they are ready, use the [onReady] completion block.
      *
      * ```
-     * Tealium("name", config) {
+     * Tealium.create("name", config) {
      *  modules.getModule(Xyz::class.java)?.doXyz()
      * }
      * ```
      */
-    lateinit var modules: ModuleManager
-        private set
+    val modules: ModuleManager
+        get() = _modules
 
     /**
      * Provides access to subscribe/unsubscribe to Tealium event listeners.
@@ -209,7 +213,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
         modulesList.filterIsInstance<Listener>().forEach {
             eventRouter.subscribe(it)
         }
-        modules = ModuleManager(modulesList)
+        _modules = ModuleManager(modulesList)
 
         dispatchRouter = DispatchRouter(singleThreadedBackground,
                 modules.getModulesForType(Collector::class.java),
