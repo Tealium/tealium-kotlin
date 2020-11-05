@@ -8,10 +8,9 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.spyk
 import io.mockk.verify
-import junit.framework.Assert
-import junit.framework.Assert.*
 import org.json.JSONObject
 import org.junit.After
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -209,7 +208,7 @@ class DataLayerStoreTests {
         try {
             store.delete(invalidFile)
         } catch (ex: Exception) {
-            Assert.fail()
+            fail()
         }
     }
 

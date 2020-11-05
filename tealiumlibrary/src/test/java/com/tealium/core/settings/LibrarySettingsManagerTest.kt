@@ -87,7 +87,7 @@ class LibrarySettingsManagerTest {
     fun librarySettingsInitialShouldLoadFromAsset() {
         config.useRemoteLibrarySettings = false
         every { mockLoader.loadFromAsset(any()) } returns null
-        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = mockScope)
+        LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = mockScope)
 
         verify {
             mockLoader.loadFromAsset(any())
@@ -99,7 +99,7 @@ class LibrarySettingsManagerTest {
         config.useRemoteLibrarySettings = true
         every { mockLoader.loadFromFile(any()) } returns null
         coEvery { mockNetworkClient.get(any()) } returns null
-        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = this)
+        LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = this)
 
         coVerify {
             mockLoader.loadFromFile(any())
