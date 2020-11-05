@@ -54,7 +54,7 @@ class InstallReferrerTests {
         assertNull(installReferrer.referrerBegin)
         assertNull(installReferrer.referrerClick)
 
-        verify (exactly = 0) {
+        verify(exactly = 0) {
             dataLayer.putString(InstallReferrerConstants.KEY_INSTALL_REFERRER, any())
             dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP, any())
             dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP, any())
@@ -92,7 +92,7 @@ class InstallReferrerTests {
 
         installReferrer.save(referrerDetails)
 
-        verify (exactly = 0) {
+        verify(exactly = 0) {
             dataLayer.putString(InstallReferrerConstants.KEY_INSTALL_REFERRER, any())
             dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP, any())
             dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP, any())

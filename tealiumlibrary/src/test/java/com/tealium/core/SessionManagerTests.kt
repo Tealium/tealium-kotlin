@@ -208,7 +208,7 @@ class SessionManagerTests {
         assertFalse(session.sessionStarted)
         assertEquals(1, session.eventCount)
 
-        repeat (5) {
+        repeat(5) {
             sessionManager.track(dispatch)
         }
         assertTrue(session.sessionStarted)

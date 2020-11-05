@@ -101,5 +101,5 @@ class ModuleManagerTests {
     }
 }
 
-private abstract class MultiModule: Collector, DispatchValidator
-private abstract class NonExistentModule: Module
+private abstract class MultiModule : Collector, DispatchValidator
+private abstract class NonExistentModule : Module

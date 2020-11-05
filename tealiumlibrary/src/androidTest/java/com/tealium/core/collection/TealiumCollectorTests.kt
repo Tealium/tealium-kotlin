@@ -7,7 +7,6 @@ import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.persistence.DataLayer
 import com.tealium.tealiumlibrary.BuildConfig
-import com.tealium.test.OpenForTesting
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -17,7 +16,6 @@ import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 
-@OpenForTesting
 class TealiumCollectorTests {
 
     @MockK

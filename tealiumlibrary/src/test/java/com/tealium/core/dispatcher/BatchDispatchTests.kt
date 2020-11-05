@@ -61,7 +61,7 @@ class BatchDispatchTests {
         repeat(count) {
             val data = mutableMapOf<String, Any>()
 
-            data[TEALIUM_ACCOUNT] =  "account"
+            data[TEALIUM_ACCOUNT] = "account"
             data[TEALIUM_PROFILE] = "profile"
             data[TEALIUM_ENVIRONMENT] = "dev"
 

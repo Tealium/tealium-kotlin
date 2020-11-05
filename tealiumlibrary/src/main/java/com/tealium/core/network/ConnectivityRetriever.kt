@@ -5,7 +5,6 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
-import com.tealium.test.OpenForTesting
 
 interface Connectivity {
     fun isConnected(): Boolean

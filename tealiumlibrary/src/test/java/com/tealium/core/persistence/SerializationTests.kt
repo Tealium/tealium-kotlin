@@ -11,7 +11,7 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [Build.VERSION_CODES.P])
-class SerializationTests  {
+class SerializationTests {
 
     private lateinit var item: PersistentItem<*>
     private val key = "key"

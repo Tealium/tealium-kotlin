@@ -120,7 +120,7 @@ class BatchingValidatorTests {
         }
 
         // change configuration (screen rotation) causes "stopped" to called prior to "resumed".
-        batchingValidator.onActivityStopped( isChangingConfiguration = true)   // activity count = 0
+        batchingValidator.onActivityStopped(isChangingConfiguration = true)   // activity count = 0
         batchingValidator.onActivityResumed()       // activity count = 1
         verify(exactly = 0) {
             mockEventRouter.onRevalidate(any())

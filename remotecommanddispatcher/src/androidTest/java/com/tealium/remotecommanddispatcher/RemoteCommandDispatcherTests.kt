@@ -1,15 +1,12 @@
 package com.tealium.remotecommanddispatcher
 
 import android.app.Application
-import androidx.test.core.app.ApplicationProvider
-import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.network.NetworkClient
 import com.tealium.dispatcher.TealiumEvent
 import com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand
 import com.tealium.remotecommands.RemoteCommand
-import com.tealium.remotecommands.RemoteCommandContext
 import com.tealium.remotecommands.RemoteCommandRequest
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -41,12 +38,7 @@ class RemoteCommandDispatcherTests {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
-//        context = ApplicationProvider.getApplicationContext()
         every { context.filesDir } returns mockFile
-
-//        mockkConstructor(RemoteCommand::class)
-//        every { anyConstructed<RemoteCommand>().invoke(any()) } just Runs
-
 
         config = mockk()//TealiumConfig(context, "test", "profile", Environment.DEV)
         every { config.application } returns context
@@ -77,9 +69,6 @@ class RemoteCommandDispatcherTests {
     fun validAddAndProcessWebViewRemoteCommand() {
         val remoteCommandDispatcher = RemoteCommandDispatcher(tealiumContext, mockNetworkClient)
         val webViewCommand = spyk(TestCommand())
-//        val webViewCommand = mockk<RemoteCommand>()
-//        every { webViewCommand.commandName } returns "testWebViewCommand"
-//        every { webViewCommand.context } returns mockk()
 
         remoteCommandDispatcher.add(webViewCommand)
         remoteCommandDispatcher.onRemoteCommandSend(RemoteCommandRequest(createResponseHandler(), "tealium://test?request={\"config\":{\"response_id\":\"123\"}, \"payload\":{\"hello\": \"world\"}}"))
@@ -107,7 +96,7 @@ class RemoteCommandDispatcherTests {
     }
 }
 
-open class TestCommand: RemoteCommand("test", "description") {
+open class TestCommand : RemoteCommand("test", "description") {
     public override fun onInvoke(p0: Response?) {
 
     }

@@ -2,7 +2,7 @@ name: Kotlin
 
 on:
   pull_request:
-    branches: [ "feature/test-migration" ]
+    branches: [ "master" ]
 
 jobs:
   test:
@@ -30,10 +30,10 @@ jobs:
           script: ./run_instrumented_tests.sh
       - name: Test Coverage
         run: ./verify_coverage.sh
-      - name: Upload APK
+      - name: Upload Reports
         uses: actions/upload-artifact@v2
         with:
-          name: Reports API ${{ matrix.api_level }}
+          name: Reports API ${{ matrix.api-level }}
           path: reports/*.zip
     # Create APK. To download APK file, click on Artifacts within the Actions tab
   apk:
