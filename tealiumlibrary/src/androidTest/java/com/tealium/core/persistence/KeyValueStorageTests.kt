@@ -3,22 +3,18 @@ package com.tealium.core.persistence
 import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.runner.AndroidJUnit4
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
-import junit.framework.Assert.*
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert
-import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
-@RunWith(AndroidJUnit4::class)
 class KeyValueStorageTests {
 
     private lateinit var dbHelper: DatabaseHelper

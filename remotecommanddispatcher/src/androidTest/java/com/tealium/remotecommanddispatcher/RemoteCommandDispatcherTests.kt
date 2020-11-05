@@ -10,7 +10,7 @@ import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandRequest
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import junit.framework.Assert
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import java.io.File
@@ -40,7 +40,7 @@ class RemoteCommandDispatcherTests {
         MockKAnnotations.init(this)
         every { context.filesDir } returns mockFile
 
-        config = mockk()//TealiumConfig(context, "test", "profile", Environment.DEV)
+        config = mockk()
         every { config.application } returns context
         every { tealiumContext.config } returns config
 
@@ -85,8 +85,8 @@ class RemoteCommandDispatcherTests {
 
         val httpRemoteCommand = HttpRemoteCommand(mockNetworkClient)
 
-        Assert.assertEquals(remoteCommand.commandName, httpRemoteCommand.commandName)
-        Assert.assertEquals(remoteCommand.description, httpRemoteCommand.description)
+        assertEquals(remoteCommand.commandName, httpRemoteCommand.commandName)
+        assertEquals(remoteCommand.description, httpRemoteCommand.description)
     }
 
     private fun createResponseHandler(): RemoteCommand.ResponseHandler {
