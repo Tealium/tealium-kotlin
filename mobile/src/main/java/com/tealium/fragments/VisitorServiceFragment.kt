@@ -28,7 +28,6 @@ class VisitorServiceFragment : Fragment() {
 
     private fun onFetchProfile() {
         GlobalScope.launch {
-            println("fetch profile")
             Tealium[BuildConfig.TEALIUM_INSTANCE]?.visitorService?.requestVisitorProfile()
         }
     }

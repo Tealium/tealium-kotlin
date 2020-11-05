@@ -78,6 +78,7 @@ class GenericDispatchTests {
         assertTrue(genericView.payload()[TEALIUM_EVENT] == "new_value_2")
     }
 
+    @Suppress("UNCHECKED_CAST")
     @Test
     fun create_PayloadUpdate_ReferenceObjectChangesDoNotAffectOriginal() {
         val view = TealiumView("view_name", mapOf(

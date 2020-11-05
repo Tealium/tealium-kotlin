@@ -2,7 +2,7 @@ name: Kotlin
 
 on:
   pull_request:
-    branches: [ "feature/test-migration" ]
+    branches: [ "master" ]
 
 jobs:
   test:
@@ -17,8 +17,6 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - name: Set up gradle wrapper
-        run: gradle wrapper
       - name: Unit tests
         run: ./run_tests.sh
       - name: Instrumented Tests
@@ -30,26 +28,37 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: ./run_instrumented_tests.sh
-          # TODO: instrumented tests need fixing, testing with just the tealiumlibrary module for now
       - name: Test Coverage
         run: ./verify_coverage.sh
+      - name: Upload Reports
+        uses: actions/upload-artifact@v2
+        with:
+          name: Reports API ${{ matrix.api-level }}
+          path: reports/*.zip
     # Create APK. To download APK file, click on Artifacts within the Actions tab
   apk:
     needs: test
     name: Generate APK
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - name: Set up JDK 1.8
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - name: Set up gradle wrapper
-        run: gradle wrapper
       - name: Build debug APK
         run: bash ./gradlew assembleDebug --stacktrace --warning-mode all
       - name: Upload APK
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: mobile
           path: mobile/build/outputs/apk/debug/mobile-debug.apk
+      - name: Send for Security Scan
+        uses: veracode/veracode-uploadandscan-action@master # Run the uploadandscan action. Inputs are described above.
+        with:
+          appname: Mobile Libraries
+          filepath: mobile/build/outputs/apk/debug/mobile-debug.apk
+          vid: ${{ secrets.VERACODE_API_ID }}
+          vkey: ${{ secrets.VERACODE_API_KEY }}
+          createsandbox: false
+          sandboxname: tealium-kotlin

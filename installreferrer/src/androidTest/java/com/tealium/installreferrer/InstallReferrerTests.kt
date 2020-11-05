@@ -1,16 +1,17 @@
 package com.tealium.installreferrer
 
 import com.tealium.core.*
-import kotlinx.coroutines.*
 import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.android.installreferrer.api.ReferrerDetails
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
+import com.tealium.core.persistence.DataLayer
+import com.tealium.core.persistence.Expiry
 import io.mockk.*
 import junit.framework.TestCase.*
-import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
 
@@ -24,6 +25,7 @@ class InstallReferrerTests {
     lateinit var tealiumContext: TealiumContext
     lateinit var config: TealiumConfig
     lateinit var context: Context
+    lateinit var dataLayer: DataLayer
     lateinit var tealium: Tealium
 
     @Before
@@ -33,42 +35,77 @@ class InstallReferrerTests {
                 account,
                 profile,
                 environment, dataSourceId = dataSource))
-        tealium = Tealium("instance_1", config)
+
+        dataLayer = mockk(relaxed = true)
         tealiumContext = TealiumContext(config,
                 visitorId,
                 mockk(),
-                tealium.dataLayer,
+                dataLayer,
                 mockk(),
                 mockk(),
-                tealium)
+                mockk())
     }
 
     @Test
-    fun installReferrerInfoAddedToDataLayer() = runBlocking {
-        InstallReferrer(tealiumContext)
-        val data = tealium.dataLayer.all()
-        delay(500)
-        assertNotNull(data[InstallReferrerConstants.KEY_INSTALL_REFERRER])
-        assertNotNull(data[InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP])
-        assertNotNull(data[InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP])
+    fun installReferrerInfoIsNullOnCreation() {
+        val installReferrer = InstallReferrer(tealiumContext)
 
-        assertTrue(data[InstallReferrerConstants.KEY_INSTALL_REFERRER] is String)
-        assertTrue(data[InstallReferrerConstants.KEY_INSTALL_REFERRER] is String)
-        assertTrue(data[InstallReferrerConstants.KEY_INSTALL_REFERRER] is String)
+        assertNull(installReferrer.referrer)
+        assertNull(installReferrer.referrerBegin)
+        assertNull(installReferrer.referrerClick)
+
+        verify(exactly = 0) {
+            dataLayer.putString(InstallReferrerConstants.KEY_INSTALL_REFERRER, any())
+            dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP, any())
+            dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP, any())
+        }
     }
 
     @Test
-    fun installReferrerInfoRemovedFromDataLayer() = runBlocking {
-        InstallReferrer(tealiumContext)
+    fun installReferrerInfoIsSaved_WhenReferrerIsNotEmpty() {
+        val installReferrer = InstallReferrer(tealiumContext)
+        val referrerDetails = mockk<ReferrerDetails>()
+        every { referrerDetails.installReferrer } returns "affiliate"
+        every { referrerDetails.installBeginTimestampSeconds } returns 100L
+        every { referrerDetails.referrerClickTimestampSeconds } returns 101L
 
-        tealium.dataLayer.remove(InstallReferrerConstants.KEY_INSTALL_REFERRER)
-        tealium.dataLayer.remove(InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP)
-        tealium.dataLayer.remove(InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP)
+        installReferrer.save(referrerDetails)
 
-        val data = tealium.dataLayer.all()
-        delay(500)
-        assertNull(data[InstallReferrerConstants.KEY_INSTALL_REFERRER])
-        assertNull(data[InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP])
-        assertNull(data[InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP])
+        verify {
+            dataLayer.putString(InstallReferrerConstants.KEY_INSTALL_REFERRER, "affiliate", Expiry.FOREVER)
+            dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP, 100L, Expiry.FOREVER)
+            dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP, 101L, Expiry.FOREVER)
+        }
+
+        assertEquals(installReferrer.referrer, "affiliate")
+        assertEquals(installReferrer.referrerBegin, 100L)
+        assertEquals(installReferrer.referrerClick, 101L)
+    }
+
+    @Test
+    fun installReferrerInfoIsNotSaved_WhenReferrerIsEmpty() {
+        val installReferrer = InstallReferrer(tealiumContext)
+        val referrerDetails = mockk<ReferrerDetails>()
+        every { referrerDetails.installReferrer } returns ""
+        every { referrerDetails.installBeginTimestampSeconds } returns 100L
+        every { referrerDetails.referrerClickTimestampSeconds } returns 101L
+
+        installReferrer.save(referrerDetails)
+
+        verify(exactly = 0) {
+            dataLayer.putString(InstallReferrerConstants.KEY_INSTALL_REFERRER, any())
+            dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP, any())
+            dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP, any())
+        }
+
+        assertNull(installReferrer.referrer)
+        assertNull(installReferrer.referrerClick)
+        assertNull(installReferrer.referrerBegin)
+    }
+
+    @Test
+    fun factoryMethodReturnsNewInstance() {
+        val installReferrer = InstallReferrer.create(context = tealiumContext)
+        assertNotNull(installReferrer)
     }
 }

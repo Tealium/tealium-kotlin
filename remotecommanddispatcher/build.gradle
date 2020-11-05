@@ -1,8 +1,10 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'maven-publish'
+apply plugin: 'kotlin-allopen'
+apply from: '../jacoco.gradle'
 
-version = '0.1.2'
+version = '1.0.0'
 
 android {
     compileSdkVersion 29
@@ -16,6 +18,7 @@ android {
         buildConfigField 'String', 'TAG', "\"Tealium-RemoteCommandDispatcher-$version\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
     }
 
     buildTypes {
@@ -25,15 +28,21 @@ android {
         }
 
         debug {
+            testCoverageEnabled true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation project(':tealiumlibrary')
+    api project(':tealiumlibrary')
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_core_version"
@@ -41,15 +50,13 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.1.0'
     testImplementation "org.robolectric:robolectric:4.3.1"
     testImplementation 'junit:junit:4.12'
+    testImplementation "io.mockk:mockk:$mockk_version"
     androidTestImplementation "io.mockk:mockk-android:$mockk_version"
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-
-}
-
-repositories {
-    mavenCentral()
-    maven { url "https://kotlin.bintray.com/kotlinx" }
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test:rules:1.2.0'
+    androidTestImplementation 'androidx.test:core:1.2.0'
+    androidTestImplementation "io.mockk:mockk-android:$mockk_version"
 }
 
 afterEvaluate {
@@ -58,7 +65,7 @@ afterEvaluate {
             release(MavenPublication) {
                 from components.release
                 groupId = 'com.tealium'
-                artifactId = 'kotlin-remote-command-dispatcher'
+                artifactId = 'kotlin-remotecommand-dispatcher'
             }
         }
 //        repositories {
@@ -71,4 +78,8 @@ afterEvaluate {
 //            }
 //        }
     }
+}
+
+allOpen {
+    annotation 'com.tealium.test.OpenClass'
 }

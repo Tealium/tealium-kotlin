@@ -46,10 +46,13 @@ class DispatchRouterTests {
 
     @RelaxedMockK
     private lateinit var validator: DispatchValidator
+
     @RelaxedMockK
     private lateinit var validator2: DispatchValidator
+
     @RelaxedMockK
     private lateinit var batchingValidator: BatchingValidator
+
     @RelaxedMockK
     private lateinit var connectivityValidator: ConnectivityValidator
 
@@ -69,8 +72,8 @@ class DispatchRouterTests {
     private lateinit var consentManager: ConsentManager
 
     val coroutineDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
-    lateinit var eventDispatch : Dispatch
-    lateinit var eventDispatchList : List<Dispatch>
+    lateinit var eventDispatch: Dispatch
+    lateinit var eventDispatchList: List<Dispatch>
 
     var batching = spyk(Batching(batchSize = 1))
     val librarySettings = LibrarySettings(batching = batching)
@@ -79,7 +82,7 @@ class DispatchRouterTests {
     fun setUp() {
         MockKAnnotations.init(this)
 
-        eventDispatch =  TealiumEvent("TestEvent")
+        eventDispatch = TealiumEvent("TestEvent")
         eventDispatchList = mutableListOf<Dispatch>(eventDispatch, eventDispatch)
 
         // Some default answers to get the Dispatch through the entire system.
@@ -135,7 +138,7 @@ class DispatchRouterTests {
     fun testIsCollected() {
         dispatchRouter.track(eventDispatch)
 
-        coVerify (timeout = 1000) {
+        coVerify(timeout = 1000) {
             collector.collect()
         }
         assertTrue(eventDispatch["key"] == "value")
@@ -156,7 +159,7 @@ class DispatchRouterTests {
         assertNull(eventDispatch["transformed"])
         dispatchRouter.track(eventDispatch)
 
-        coVerify (timeout = 1000) {
+        coVerify(timeout = 1000) {
             transformer.transform(eventDispatch)
         }
         assertTrue(eventDispatch["transformed"] == "value")
@@ -208,7 +211,7 @@ class DispatchRouterTests {
         every { validator2.shouldDrop(eventDispatch) } returns true
         dispatchRouter.track(eventDispatch)
 
-        coVerify (timeout = 1000) {
+        coVerify(timeout = 1000) {
             collector.collect()
             transformer.transform(eventDispatch)
             validator.shouldDrop(eventDispatch)
@@ -323,7 +326,7 @@ class DispatchRouterTests {
         every { batching.batchSize } returns 1
         dispatchRouter.track(eventDispatch)
 
-        coVerify (timeout = 1000) {
+        coVerify(timeout = 1000) {
             collector.collect()
             transformer.transform(eventDispatch)
             validator.shouldDrop(eventDispatch)

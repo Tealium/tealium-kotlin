@@ -6,8 +6,8 @@ import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.persistence.DispatchStorage
 import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertTrue
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -120,7 +120,7 @@ class BatchingValidatorTests {
         }
 
         // change configuration (screen rotation) causes "stopped" to called prior to "resumed".
-        batchingValidator.onActivityStopped( isChangingConfiguration = true)   // activity count = 0
+        batchingValidator.onActivityStopped(isChangingConfiguration = true)   // activity count = 0
         batchingValidator.onActivityResumed()       // activity count = 1
         verify(exactly = 0) {
             mockEventRouter.onRevalidate(any())

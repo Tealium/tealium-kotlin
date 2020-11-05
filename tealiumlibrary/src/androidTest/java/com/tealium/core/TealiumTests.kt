@@ -76,14 +76,15 @@ class TealiumTests {
     }
 
     @Test
-    fun testCallbackGetsExecuted() {
-        val block: Tealium.() -> Unit = mockk(relaxed = true)
-        every { block(hint(Tealium::class).any()) } just Runs
+    fun testCallbackGetsExecuted() = runBlocking {
+        var hasBeenCalled = false
 
-        val tealium = Tealium.create("name", configWithNoModules, block)
-
-        verify(timeout = 1000) {
-            block(tealium)
+        val tealium = Tealium.create("name", configWithNoModules) {
+            hasBeenCalled = true
+        }
+        if (!hasBeenCalled) {
+            delay(1000)
+            assertTrue(hasBeenCalled)
         }
     }
 

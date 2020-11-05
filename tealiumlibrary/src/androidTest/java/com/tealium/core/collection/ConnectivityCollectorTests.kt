@@ -5,7 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
-import com.tealium.core.network.ConnectivityRetriever
+import com.tealium.core.network.Connectivity
 import com.tealium.core.persistence.DataLayer
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -50,7 +50,7 @@ class ConnectivityCollectorTests {
 
     @Test
     fun testConnectivityCollector() = runBlocking {
-        val mockConnectivityRetriever = mockk<ConnectivityRetriever>()
+        val mockConnectivityRetriever = mockk<Connectivity>()
         every { mockConnectivityRetriever.connectionType() } returns "wifi"
         every { mockConnectivityRetriever.isConnected() } returns true
         every { mockConnectivityRetriever.isConnectedWifi() } returns true

@@ -1,9 +1,6 @@
 package com.tealium.core.collection
 
 import android.app.Application
-import android.app.Service
-import android.app.UiModeManager
-import android.view.WindowManager
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
@@ -12,7 +9,6 @@ import com.tealium.core.persistence.DataLayer
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before

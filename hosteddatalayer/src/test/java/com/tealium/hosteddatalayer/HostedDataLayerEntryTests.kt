@@ -2,9 +2,9 @@ package com.tealium.hosteddatalayer
 
 import io.mockk.MockKAnnotations
 import io.mockk.spyk
-import junit.framework.Assert.*
 import org.json.JSONObject
 import org.junit.After
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith

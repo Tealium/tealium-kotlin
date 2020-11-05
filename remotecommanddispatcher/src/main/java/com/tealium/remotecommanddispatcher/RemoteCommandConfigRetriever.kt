@@ -5,6 +5,7 @@ import com.tealium.core.*
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
 import com.tealium.core.network.ResourceRetriever
+import com.tealium.test.OpenForTesting
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers
 import org.json.JSONException
@@ -12,6 +13,7 @@ import org.json.JSONObject
 import java.io.File
 import java.lang.Exception
 
+@OpenForTesting
 class RemoteCommandConfigRetriever(private val config: TealiumConfig,
                                    private val commandId: String,
                                    private val filename: String? = null,

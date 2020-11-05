@@ -7,6 +7,7 @@ import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.persistence.DataLayer
+import com.tealium.test.OpenForTesting
 import io.mockk.MockKAnnotations
 import io.mockk.Runs
 import io.mockk.every

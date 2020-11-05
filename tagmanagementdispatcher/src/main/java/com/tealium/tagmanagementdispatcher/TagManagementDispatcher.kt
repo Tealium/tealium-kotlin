@@ -9,6 +9,8 @@ import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.messaging.DispatchReadyListener
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.core.messaging.*
+import com.tealium.core.network.Connectivity
+import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
 import com.tealium.dispatcher.TealiumEvent
@@ -20,7 +22,8 @@ import kotlinx.coroutines.launch
  * The TagManagementDispatcher allows Tealium IQ to be used within the native app.
  */
 class TagManagementDispatcher(private val context: TealiumContext,
-                              private val afterDispatchSendCallbacks: AfterDispatchSendCallbacks) :
+                              private val afterDispatchSendCallbacks: AfterDispatchSendCallbacks,
+                              connectivity: Connectivity = ConnectivityRetriever.getInstance(context.config.application)) :
         Dispatcher,
         DispatchReadyListener,
         EvaluateJavascriptListener,
@@ -39,7 +42,7 @@ class TagManagementDispatcher(private val context: TealiumContext,
                 "&sdk_session_count=true"
 
     private val scope = CoroutineScope(Dispatchers.Main)
-    internal var webViewLoader = WebViewLoader(context, urlString, afterDispatchSendCallbacks)
+    internal var webViewLoader = WebViewLoader(context, urlString, afterDispatchSendCallbacks, connectivityRetriever = connectivity)
 
     fun callRemoteCommandTags(dispatch: Dispatch) {
         val remoteCommandScript = "utag.track(\"remote_api\", ${dispatch.toJsonString()})"
