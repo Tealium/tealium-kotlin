@@ -9,10 +9,10 @@ import com.tealium.core.persistence.DataLayer
 import com.tealium.core.persistence.Expiry
 import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
-import junit.framework.Assert.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
@@ -408,8 +408,8 @@ class TealiumTests {
 
     @Test
     fun testCompanion_NamesReturnsAllNames() {
-        val instance = Tealium.create("instance_1", configWithNoModules)
-        val instance2 = Tealium.create("instance_2", TealiumConfig(application, "test2", "test2", Environment.DEV))
+        Tealium.create("instance_1", configWithNoModules)
+        Tealium.create("instance_2", TealiumConfig(application, "test2", "test2", Environment.DEV))
         val names = Tealium.names()
 
         assertTrue(names.contains("instance_1"))

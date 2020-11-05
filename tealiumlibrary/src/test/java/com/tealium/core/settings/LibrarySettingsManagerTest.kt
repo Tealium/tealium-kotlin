@@ -1,6 +1,7 @@
 package com.tealium.core.settings
 
 import android.app.Application
+import android.os.Build
 import android.util.Log
 import com.tealium.core.Environment
 import com.tealium.core.Loader
@@ -11,6 +12,7 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
@@ -18,9 +20,11 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [Build.VERSION_CODES.P])
 class LibrarySettingsManagerTest {
 
     @MockK
@@ -57,6 +61,8 @@ class LibrarySettingsManagerTest {
             "  \"log_level\": \"dev\",\n" +
             "  \"disable_library\": false\n" +
             "}"
+
+    val backgroundScope = CoroutineScope(Dispatchers.IO)
 
     @Before
     fun setUp() {
@@ -99,7 +105,7 @@ class LibrarySettingsManagerTest {
         config.useRemoteLibrarySettings = true
         every { mockLoader.loadFromFile(any()) } returns null
         coEvery { mockNetworkClient.get(any()) } returns null
-        LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = this)
+        LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
 
         coVerify {
             mockLoader.loadFromFile(any())
@@ -133,7 +139,7 @@ class LibrarySettingsManagerTest {
 
         every { mockLoader.loadFromFile(any()) } returns null
         coEvery { mockNetworkClient.get(any()) } returns null
-        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = this)
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
 
         coVerify {
             mockLoader.loadFromFile(any())
@@ -161,7 +167,7 @@ class LibrarySettingsManagerTest {
                 "}"
         config.useRemoteLibrarySettings = false
         every { mockLoader.loadFromAsset(any()) } returns jsonLibrarySettings
-        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = this)
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
 
         assertNotEquals(defaultLibrarySettings, librarySettingsManager.librarySettings)
         assertEquals(false, librarySettingsManager.librarySettings.collectDispatcherEnabled)
@@ -189,7 +195,7 @@ class LibrarySettingsManagerTest {
         config.useRemoteLibrarySettings = true
         every { mockLoader.loadFromFile(any()) } returns jsonLibrarySettings
         coEvery { mockNetworkClient.get(any()) } returns null
-        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = this)
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
 
         assertNotEquals(defaultLibrarySettings, librarySettingsManager.librarySettings)
         assertEquals(false, librarySettingsManager.librarySettings.collectDispatcherEnabled)
@@ -218,10 +224,9 @@ class LibrarySettingsManagerTest {
         config.overrideLibrarySettingsUrl = "tealium-settings.json"
         every { mockLoader.loadFromFile(any()) } returns defaultJsonLibrarySettings
         coEvery { mockNetworkClient.get(any()) } returns jsonLibrarySettings
-        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = this)
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
 
-        delay(200)
-        coVerify(exactly = 1) {
+        verify(exactly = 1, timeout = 1000) {
             mockEventRouter.onLibrarySettingsUpdated(any())
         }
 
@@ -252,10 +257,9 @@ class LibrarySettingsManagerTest {
         config.overrideLibrarySettingsUrl = "mobile.html"
         every { mockLoader.loadFromFile(any()) } returns defaultJsonLibrarySettings
         coEvery { mockNetworkClient.get(any()) } returns htmlLibrarySettings
-        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = this)
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
 
-        delay(200)
-        coVerify(exactly = 1) {
+        coVerify(exactly = 1, timeout = 1000) {
             mockEventRouter.onLibrarySettingsUpdated(any())
         }
 
@@ -283,12 +287,12 @@ class LibrarySettingsManagerTest {
                 "}"
         config.useRemoteLibrarySettings = false
         every { mockLoader.loadFromAsset(any<String>()) } returns malformedJson
-        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = this)
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
         val default = librarySettingsManager.librarySettings
 
         assertEquals(default, librarySettingsManager.librarySettings)
 
-        coVerify(timeout = 200, exactly = 0) {
+        coVerify(timeout = 500, exactly = 0) {
             mockEventRouter.onLibrarySettingsUpdated(any())
         }
     }
