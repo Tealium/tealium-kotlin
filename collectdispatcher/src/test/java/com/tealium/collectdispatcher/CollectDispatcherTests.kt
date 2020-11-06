@@ -182,8 +182,8 @@ class CollectDispatcherTests {
                 client = networkClient,
                 collectDispatchListener = listener)
 
-        networkClient.networkClientListener?.onNetworkResponse(200,"")
-        networkClient.networkClientListener?.onNetworkResponse(404,"Not Found")
+        networkClient.networkClientListener?.onNetworkResponse(200, "")
+        networkClient.networkClientListener?.onNetworkResponse(404, "Not Found")
         networkClient.networkClientListener?.onNetworkError("My Error")
 
         verify {

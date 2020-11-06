@@ -22,14 +22,12 @@ class CollectDispatcher(private val config: TealiumConfig,
         Dispatcher {
 
     val eventUrl: String
-        get() = config.overrideCollectUrl ?:
-            config.overrideCollectDomain?.let {
-                "https://$it/event"
-            } ?: COLLECT_URL
+        get() = config.overrideCollectUrl ?: config.overrideCollectDomain?.let {
+            "https://$it/event"
+        } ?: COLLECT_URL
 
     val batchEventUrl: String
-        get() = config.overrideCollectBatchUrl ?:
-        config.overrideCollectDomain?.let {
+        get() = config.overrideCollectBatchUrl ?: config.overrideCollectDomain?.let {
             "https://$it/bulk-event"
         } ?: BULK_URL
 
