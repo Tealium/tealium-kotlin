@@ -21,13 +21,13 @@ class CollectDispatcher(private val config: TealiumConfig,
                         private val collectDispatchListener: CollectDispatcherListener? = null) :
         Dispatcher {
 
-    val urlString: String
+    val eventUrl: String
         get() = config.overrideCollectUrl ?:
             config.overrideCollectDomain?.let {
                 "https://$it/event"
             } ?: COLLECT_URL
 
-    val batchUrlString: String
+    val batchEventUrl: String
         get() = config.overrideCollectBatchUrl ?:
         config.overrideCollectDomain?.let {
             "https://$it/bulk-event"
@@ -55,7 +55,7 @@ class CollectDispatcher(private val config: TealiumConfig,
         var params = encoder.encode(dispatch)
         params += "&${encoder.encode(config)}"
         Logger.dev(BuildConfig.TAG, "Sending dispatch: ${dispatch.payload()}")
-        client.post(params, urlString, false)
+        client.post(params, eventUrl, false)
     }
 
     override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {
@@ -63,7 +63,7 @@ class CollectDispatcher(private val config: TealiumConfig,
 
         val batchDispatch = BatchDispatch.create(dispatches)
         batchDispatch?.let {
-            client.post(JSONObject(batchDispatch.payload()).toString(), batchUrlString, true)
+            client.post(JSONObject(batchDispatch.payload()).toString(), batchEventUrl, true)
         }
     }
 
