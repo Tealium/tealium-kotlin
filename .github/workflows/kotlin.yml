@@ -24,7 +24,6 @@ jobs:
         with:
           api-level: ${{ matrix.api-level }}
           arch: x86
-          profile: Nexus 6
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: ./run_instrumented_tests.sh
