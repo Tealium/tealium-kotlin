@@ -237,6 +237,21 @@ class VisitorProfileManagerTest {
         }
     }
 
+    @Test
+    fun listener_IsCalled() {
+        val visitorUpdatedListener: VisitorUpdatedListener = mockk()
+        every { visitorUpdatedListener.onVisitorUpdated(any()) } just Runs
+
+        val visitorProfile = VisitorProfile()
+        val visitorUpdatedMessenger = VisitorUpdatedMessenger(visitorProfile)
+
+        visitorUpdatedMessenger.deliver(visitorUpdatedListener)
+
+        verify {
+            visitorUpdatedListener.onVisitorUpdated(visitorProfile)
+        }
+    }
+
     private val validExampleProfileString = """
         {
             "badges":{
