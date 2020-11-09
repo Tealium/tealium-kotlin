@@ -36,7 +36,7 @@ var TealiumConfig.overrideCollectUrl: String?
     }
 
 /**
- * Sets the Bulk URL to send event data to. Defaults is:
+ * Sets the Bulk URL to send event data to. Default is:
  * https://collect.tealiumiq.com/bulk-event
  */
 var TealiumConfig.overrideCollectBatchUrl: String?
