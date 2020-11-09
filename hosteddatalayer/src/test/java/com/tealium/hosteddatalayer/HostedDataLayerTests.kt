@@ -1,5 +1,7 @@
 package com.tealium.hosteddatalayer
 
+import com.tealium.core.ModuleFactory
+import com.tealium.core.Modules
 import com.tealium.core.TealiumConfig
 import com.tealium.core.network.Connectivity
 import com.tealium.core.network.HttpClient
@@ -152,6 +154,11 @@ class HostedDataLayerTests {
     }
 
     @Test
+    fun dropping_ShouldNeverDrop() {
+        assertFalse(hostedDataLayer.shouldDrop(mockDispatch))
+    }
+
+    @Test
     fun merge_MergesValues() = runBlocking {
         val dispatch = TealiumEvent("event_name", mapOf("lookup_key" to "12345"))
         every { mockStore.contains("12345") } returns true
@@ -172,5 +179,11 @@ class HostedDataLayerTests {
         verify {
             mockStore.clear()
         }
+    }
+
+    @Test
+    fun modules_PointsToCompanionFactory() {
+        assertSame(HostedDataLayer, Modules.HostedDataLayer)
+        assertTrue(HostedDataLayer is ModuleFactory)
     }
 }
