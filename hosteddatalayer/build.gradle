@@ -2,6 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'maven-publish'
+apply from: '../jacoco.gradle'
 
 version = '1.0.0'
 
@@ -29,9 +30,14 @@ android {
 
         debug {
             minifyEnabled false
+            testCoverageEnabled true
         }
     }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
@@ -45,14 +51,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     testImplementation "io.mockk:mockk:$mockk_version"
     testImplementation "org.robolectric:robolectric:4.3.1"
-    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation "org.robolectric:robolectric:4.3.1"
     androidTestImplementation 'androidx.test:runner:1.2.0'
-    androidTestImplementation 'androidx.test:rules:1.2.0'
-    androidTestImplementation 'androidx.test:core:1.2.0'
-    androidTestImplementation "io.mockk:mockk-android:$mockk_version"
-    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_core_version"
-    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
 }
 
 afterEvaluate {

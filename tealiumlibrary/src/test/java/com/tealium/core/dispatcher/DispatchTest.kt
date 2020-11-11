@@ -54,7 +54,7 @@ class DispatchTest {
         val data: MutableMap<String, Any> = mutableMapOf("key" to listOf("a", "b", "c"))
         val viewDispatch = TealiumView("test", data)
 
-        val result = viewDispatch.toJsonString()
+        viewDispatch.toJsonString()
         // TODO: more tests for lists, arrays,. this test isn't complete itself!
     }
 }

@@ -4,10 +4,12 @@ import com.tealium.core.messaging.MessengerService
 import com.tealium.core.persistence.DataLayer
 import com.tealium.core.network.NetworkClient
 import com.tealium.dispatcher.Dispatch
+import com.tealium.test.OpenForTesting
 
 /**
  * Context object passed to each [Module] during creation.
  */
+@OpenForTesting
 data class TealiumContext(val config: TealiumConfig,
                           val visitorId: String,
                           val log: Logging,

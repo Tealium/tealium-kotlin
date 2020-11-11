@@ -51,8 +51,8 @@ class LocationManagerTests {
 
     @Test
     fun create_MultipleTracksOnAll() {
-        val location1 = LocationManager.create(context)
-        val location2 = LocationManager.create(context2)
+        LocationManager.create(context)
+        LocationManager.create(context2)
 
         LocationManager.sendGeofenceEvent("fence", GeofenceTransitionType.DWELL)
         verify {
@@ -74,7 +74,7 @@ class LocationManagerTests {
         val location1 = LocationManager.create(context) as LocationManager
         val location2 = LocationManager.create(context2) as LocationManager
 
-        location1?.addGeofence("test", 1.0, 1.0, 10, 0, 10, true, true)
+        location1.addGeofence("test", 1.0, 1.0, 10, 0, 10, true, true)
         assertNotNull(location1.allGeofenceNames())
         assertEquals("test", location1.allGeofenceNames()!!.get(0))
         assertNotNull(location2.allGeofenceNames())

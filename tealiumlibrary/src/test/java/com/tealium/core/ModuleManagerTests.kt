@@ -92,7 +92,6 @@ class ModuleManagerTests {
         assertEquals(2, validators.size)
         assertTrue(validators.contains(mockValidator))
         assertTrue(validators.contains(mockMultiModule))
-
         val dispatchers = moduleManager.getModulesForType(Dispatcher::class.java)
         assertEquals(1, dispatchers.size)
         assertTrue(dispatchers.contains(mockDispatcher))
@@ -102,5 +101,5 @@ class ModuleManagerTests {
     }
 }
 
-private abstract class MultiModule: Collector, DispatchValidator
-private abstract class NonExistentModule: Module
+private abstract class MultiModule : Collector, DispatchValidator
+private abstract class NonExistentModule : Module

@@ -1,8 +1,6 @@
 package com.tealium.remotecommanddispatcher
 
 import android.app.Application
-import androidx.test.core.app.ApplicationProvider
-import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.network.NetworkClient
@@ -12,9 +10,10 @@ import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandRequest
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import junit.framework.Assert
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import java.io.File
 
 class RemoteCommandDispatcherTests {
 
@@ -24,7 +23,12 @@ class RemoteCommandDispatcherTests {
     @MockK
     lateinit var mockRemoteCommandsManager: CommandsManager
 
+    @MockK
     lateinit var context: Application
+
+    @MockK
+    lateinit var mockFile: File
+
     lateinit var config: TealiumConfig
     private val tealiumContext = mockk<TealiumContext>()
     lateinit var remoteCommandConfigRetriever: RemoteCommandConfigRetriever
@@ -34,12 +38,10 @@ class RemoteCommandDispatcherTests {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
-        context = ApplicationProvider.getApplicationContext()
+        every { context.filesDir } returns mockFile
 
-        mockkConstructor(RemoteCommand::class)
-        every { anyConstructed<RemoteCommand>().invoke(any()) } just Runs
-
-        config = TealiumConfig(context, "test", "profile", Environment.DEV)
+        config = mockk()
+        every { config.application } returns context
         every { tealiumContext.config } returns config
 
         remoteCommandConfigRetriever = mockk()
@@ -49,10 +51,7 @@ class RemoteCommandDispatcherTests {
     @Test
     fun validAddAndProcessJsonRemoteCommand() {
         val remoteCommandDispatcher = RemoteCommandDispatcher(tealiumContext, mockNetworkClient, mockRemoteCommandsManager)
-        val remoteCommand = spyk<RemoteCommand>(object : RemoteCommand("test", "testing Json") {
-            override fun onInvoke(response: Response) { // invoke block
-            }
-        })
+        val remoteCommand = spyk(TestCommand())
 
         every { mockRemoteCommandsManager.add(any(), any(), any()) } just Runs
         every { mockRemoteCommandsManager.getRemoteCommandConfigRetriever(any()) } returns remoteCommandConfigRetriever
@@ -63,21 +62,18 @@ class RemoteCommandDispatcherTests {
         val dispatch = TealiumEvent("event_test", mapOf("key1" to "value1", "key2" to "value2"))
         remoteCommandDispatcher.onProcessRemoteCommand(dispatch)
 
-        verify { remoteCommand.invoke(any()) }
+        verify { remoteCommand.onInvoke(any()) }
     }
 
     @Test
     fun validAddAndProcessWebViewRemoteCommand() {
         val remoteCommandDispatcher = RemoteCommandDispatcher(tealiumContext, mockNetworkClient)
-        val webViewCommand = spyk<RemoteCommand>(object : RemoteCommand("testWebViewCommand", null) {
-            override fun onInvoke(response: Response) { // invoke block
-            }
-        })
+        val webViewCommand = spyk(TestCommand())
 
         remoteCommandDispatcher.add(webViewCommand)
-        remoteCommandDispatcher.onRemoteCommandSend(RemoteCommandRequest(createResponseHandler(), "tealium://testWebViewCommand?request={\"config\":{\"response_id\":\"123\"}, \"payload\":{\"hello\": \"world\"}}"))
+        remoteCommandDispatcher.onRemoteCommandSend(RemoteCommandRequest(createResponseHandler(), "tealium://test?request={\"config\":{\"response_id\":\"123\"}, \"payload\":{\"hello\": \"world\"}}"))
 
-        verify { webViewCommand.invoke(any()) }
+        verify { webViewCommand.onInvoke(any()) }
     }
 
     @Test
@@ -89,13 +85,19 @@ class RemoteCommandDispatcherTests {
 
         val httpRemoteCommand = HttpRemoteCommand(mockNetworkClient)
 
-        Assert.assertEquals(remoteCommand.commandName, httpRemoteCommand.commandName)
-        Assert.assertEquals(remoteCommand.description, httpRemoteCommand.description)
+        assertEquals(remoteCommand.commandName, httpRemoteCommand.commandName)
+        assertEquals(remoteCommand.description, httpRemoteCommand.description)
     }
 
     private fun createResponseHandler(): RemoteCommand.ResponseHandler {
         return RemoteCommand.ResponseHandler {
             // do nothing
         }
+    }
+}
+
+open class TestCommand : RemoteCommand("test", "description") {
+    public override fun onInvoke(p0: Response?) {
+
     }
 }

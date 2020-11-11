@@ -1,6 +1,8 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'maven-publish'
+apply plugin: 'kotlin-allopen'
+apply from: '../jacoco.gradle'
 
 version = '1.0.0'
 
@@ -26,9 +28,15 @@ android {
         }
 
         debug {
+            testCoverageEnabled true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
@@ -42,6 +50,8 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.1.0'
     testImplementation "org.robolectric:robolectric:4.3.1"
     testImplementation 'junit:junit:4.12'
+    testImplementation "io.mockk:mockk:$mockk_version"
+    androidTestImplementation "io.mockk:mockk-android:$mockk_version"
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test:rules:1.2.0'
@@ -68,4 +78,8 @@ afterEvaluate {
 //            }
 //        }
     }
+}
+
+allOpen {
+    annotation 'com.tealium.test.OpenClass'
 }
