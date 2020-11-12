@@ -10,15 +10,14 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 
-class ModuleTests {
+class HostedDatalayerInstrumentedTests {
 
     val application = ApplicationProvider.getApplicationContext<Application>()
 
     @Test
     fun extension_ModuleFactoryReturnsModule() = runBlocking {
         val config = TealiumConfig(application, "tealiummobile", "test", Environment.DEV)
-        config.modules.add(HostedDataLayer
-        )
+        config.modules.add(HostedDataLayer)
         val tealium = Tealium.create("test", config)
         delay(1500)
         assertNotNull(tealium.hostedDataLayer)
