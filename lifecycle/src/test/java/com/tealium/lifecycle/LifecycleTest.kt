@@ -6,8 +6,6 @@ import android.content.pm.PackageInfo
 import com.tealium.core.*
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -354,12 +352,11 @@ class LifecycleTest {
             mockLifecycleSharedPreferences.lastLifecycleEvent = LifecycleEvent.PAUSE
         }
 
-        //delay(LifecycleDefaults.SLEEP_THRESHOLD + 500)
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
         verify {
             tealium.track(match {
-//                it[LifecycleStateKey.AUTOTRACKED] == true && // should be included, but needs fix
-                        it[LifecycleStateKey.LIFECYCLE_TYPE] == LifecycleEvent.SLEEP
+                it[LifecycleStateKey.AUTOTRACKED] == true &&
+                it[LifecycleStateKey.LIFECYCLE_TYPE] == LifecycleEvent.SLEEP
             })
         }
     }

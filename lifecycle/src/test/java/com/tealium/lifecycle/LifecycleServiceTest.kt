@@ -2,7 +2,6 @@ package com.tealium.lifecycle
 
 import io.mockk.MockKAnnotations
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.verify
 import org.junit.Assert.assertFalse
