@@ -36,11 +36,16 @@ internal class TimedEventsManager(private val context: TealiumContext) : TimedEv
     }
 
     private fun startTimedEvent(name: String, timestamp: Long, data: Map<String, Any>?): Long? {
-        if (_timedEvents.contains(name)) return null
+        if (_timedEvents.contains(name)) {
+            Logger.dev(BuildConfig.TAG, "TimedEvent (name) is already started; ignoring.")
+            return null
+        }
 
         _timedEvents[name] = TimedEvent(name,
                 timestamp,
-                data)
+                data).also {
+            Logger.dev(BuildConfig.TAG, "TimedEvent started: $it")
+        }
 
         return timestamp
     }
@@ -56,6 +61,7 @@ internal class TimedEventsManager(private val context: TealiumContext) : TimedEv
         return _timedEvents[name]?.also { event ->
             cancelTimedEvent(name)
             event.stopTime = timestamp
+            Logger.dev(BuildConfig.TAG, "TimedEvent stopped: $event")
         }
     }
 
@@ -84,6 +90,7 @@ internal class TimedEventsManager(private val context: TealiumContext) : TimedEv
 
     override suspend fun transform(dispatch: Dispatch) {
         if (triggers.isNotEmpty()) {
+            Logger.dev(BuildConfig.TAG, "Checking Timed Event Triggers.")
             triggers.forEach { trigger ->
                 _timedEvents[trigger.eventName]?.let { event ->
                     // timed event has been started, so check if it should be stopped
