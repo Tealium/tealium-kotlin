@@ -8,5 +8,6 @@ class ModuleListViewModel : ViewModel() {
             "Consent Manager",
             "Hosted Data Layer",
             "Location",
+            "Timed Events",
             "Visitor Service")
 }

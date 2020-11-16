@@ -14,4 +14,10 @@
     <string name="messengers">Messengers</string>
     <string name="categories">Categories</string>
     <string name="clear_cache">Clear Cache</string>
+    <string name="timed_events_status_template_start">%s: Timer Started</string>
+    <string name="timed_events_status_template_stop">%s: Timer Stopped (%d seconds)</string>
+    <string name="timed_events_stop">Stop Timer</string>
+    <string name="timed_events_start">Start Timer</string>
+    <string name="timed_events_event_name_hint">Timed Event Name</string>
+    <string name="timed_events_no_events">No Timed Event Running</string>
 </resources>
