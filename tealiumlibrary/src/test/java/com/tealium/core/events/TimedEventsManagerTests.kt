@@ -57,7 +57,7 @@ class TimedEventsManagerTests {
 
         val event = timedEventsManager.timedEvents.find { it.eventName == "test" }!!
         assertNotNull(event)
-        assertEquals("test", event?.eventName)
+        assertEquals("test", event.eventName)
         assertTrue(event.startTime == timestamp)
     }
 
