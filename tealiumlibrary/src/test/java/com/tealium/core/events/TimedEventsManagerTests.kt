@@ -136,17 +136,6 @@ class TimedEventsManagerTests {
     }
 
     @Test
-    fun addEventTrigger_AddsTrigger() {
-        val trigger: EventTrigger = mockk(relaxed = true)
-        every { trigger.eventName } returns "trigger_name"
-        timedEventsManager.addEventTrigger(trigger)
-
-        val foundTrigger = timedEventsManager.triggers.find { it.eventName == "trigger_name" }
-        assertNotNull(foundTrigger)
-        assertSame(trigger, foundTrigger)
-    }
-
-    @Test
     fun addEventTrigger_AddsMultiple() {
         val trigger1: EventTrigger = mockk(relaxed = true)
         every { trigger1.eventName } returns "trigger_name_1"

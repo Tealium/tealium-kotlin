@@ -6,6 +6,7 @@ import com.tealium.core.*
 import com.tealium.core.consent.ConsentPolicy
 import com.tealium.core.consent.consentManagerEnabled
 import com.tealium.core.consent.consentManagerPolicy
+import com.tealium.core.events.EventTrigger
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
@@ -40,6 +41,9 @@ object TealiumHelper {
             // consentManagerPolicy = ConsentPolicy.GDPR
             // consentManagerPolicy = ConsentPolicy.CCPA
 
+            timedEventTriggers = listOf(
+                    EventTrigger.forEventName("start_event", "end_event")
+            )
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
