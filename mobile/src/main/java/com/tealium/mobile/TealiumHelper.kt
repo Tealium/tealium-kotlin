@@ -41,7 +41,7 @@ object TealiumHelper {
             // consentManagerPolicy = ConsentPolicy.GDPR
             // consentManagerPolicy = ConsentPolicy.CCPA
 
-            timedEventTriggers = listOf(
+            timedEventTriggers = mutableListOf(
                     EventTrigger.forEventName("start_event", "end_event")
             )
         }

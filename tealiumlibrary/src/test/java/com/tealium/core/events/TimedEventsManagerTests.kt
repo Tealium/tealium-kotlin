@@ -29,7 +29,7 @@ class TimedEventsManagerTests {
         MockKAnnotations.init(this)
         every { mockContext.config } returns mockConfig
         every { mockContext.track(any()) } just Runs
-        every { mockConfig.timedEventTriggers } returns emptyList()
+        every { mockConfig.timedEventTriggers } returns mutableListOf()
 
         Logger.logLevel = LogLevel.SILENT
 
@@ -40,7 +40,7 @@ class TimedEventsManagerTests {
     fun config_TriggersGetAddedOnInit() {
         val trigger1 = createMockTrigger("trigger_1", null, true, false)
         val trigger2 = createMockTrigger("trigger_2", mapOf("extra" to "data"), false, true)
-        every { mockConfig.timedEventTriggers } returns listOf(trigger1, trigger2)
+        every { mockConfig.timedEventTriggers } returns mutableListOf(trigger1, trigger2)
 
         timedEventsManager = TimedEventsManager(mockContext)
 
