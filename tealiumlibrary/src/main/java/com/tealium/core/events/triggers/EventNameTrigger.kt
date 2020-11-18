@@ -5,7 +5,6 @@ import com.tealium.dispatcher.Dispatch
 
 internal class EventNameTrigger(val startName: String,
                                 val stopName: String,
-                                override val data: Map<String, Any>? = null,
                                 eventName: String? = null) : EventTrigger {
 
     override val eventName: String = eventName ?: "$startName::$stopName"

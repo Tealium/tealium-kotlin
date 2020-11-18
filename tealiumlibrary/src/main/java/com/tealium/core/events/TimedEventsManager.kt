@@ -104,7 +104,7 @@ internal class TimedEventsManager(private val context: TealiumContext) : TimedEv
                     // timed event not started yet, so check if it should be started
                     if (trigger.shouldStart(dispatch)) {
                         startTimedEvent(trigger.eventName, dispatch.timestamp
-                                ?: timestamp, trigger.data)
+                                ?: timestamp, null)
                     }
                 }
             }

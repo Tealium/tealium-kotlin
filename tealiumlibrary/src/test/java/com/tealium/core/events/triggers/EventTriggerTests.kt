@@ -13,7 +13,7 @@ class EventTriggerTests {
 
     @Before
     fun setUp() {
-        eventNameTrigger = EventNameTrigger("start", "stop", mapOf("extra" to "data"))
+        eventNameTrigger = EventNameTrigger("start", "stop")
     }
 
     @Test
@@ -21,7 +21,6 @@ class EventTriggerTests {
         assertEquals("start::stop", eventNameTrigger.eventName)
         assertEquals("start", eventNameTrigger.startName)
         assertEquals("stop", eventNameTrigger.stopName)
-        assertEquals(mapOf("extra" to "data"), eventNameTrigger.data)
     }
 
     @Test
@@ -97,11 +96,9 @@ class EventTriggerTests {
         val trigger1 = EventTrigger.forEventName("start", "stop", eventName = "my_event")
         assertNotNull(trigger1)
         assertEquals("my_event", trigger1.eventName)
-        assertNull(trigger1.data)
 
-        val trigger2 = EventTrigger.forEventName("start", "stop", mapOf("not" to "null"), "my_event")
+        val trigger2 = EventTrigger.forEventName("start", "stop", "my_event")
         assertNotNull(trigger2)
         assertEquals("my_event", trigger2.eventName)
-        assertNotNull(trigger2.data)
     }
 }
