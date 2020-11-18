@@ -48,11 +48,14 @@ data class TimedEvent(
             return when (isValid(timedEvent)) {
                 false -> null
                 true -> {
+                    val stopTime = timedEvent.stopTime ?: return null
+                    val duration = timedEvent.duration ?: return null
+
                     mutableMapOf(
                             KEY_TIMED_EVENT_NAME to timedEvent.eventName,
                             KEY_TIMED_EVENT_START to timedEvent.startTime,
-                            KEY_TIMED_EVENT_END to timedEvent.stopTime!!,
-                            KEY_TIMED_EVENT_DURATION to timedEvent.duration!!
+                            KEY_TIMED_EVENT_END to stopTime,
+                            KEY_TIMED_EVENT_DURATION to duration
                     ).also {
                         if (timedEvent.data != null) it.putAll(timedEvent.data)
                     }

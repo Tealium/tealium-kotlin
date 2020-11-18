@@ -10,17 +10,17 @@ import org.junit.Test
 class EventTriggerTests {
 
     private lateinit var eventNameTrigger: EventNameTrigger
+
     @Before
     fun setUp() {
-        eventNameTrigger = EventNameTrigger("triggered_event", "start", "stop", mapOf("extra" to "data"))
+        eventNameTrigger = EventNameTrigger("start", "stop")
     }
 
     @Test
     fun eventNameTrigger_CheckInit() {
-        assertEquals("triggered_event", eventNameTrigger.eventName)
+        assertEquals("start::stop", eventNameTrigger.eventName)
         assertEquals("start", eventNameTrigger.startName)
         assertEquals("stop", eventNameTrigger.stopName)
-        assertEquals(mapOf("extra" to "data"), eventNameTrigger.data)
     }
 
     @Test
@@ -37,7 +37,7 @@ class EventTriggerTests {
 
     @Test
     fun eventNameTrigger_ShouldNotStart_WhenNoTealiumEvent() {
-        val dispatch = object: Dispatch {
+        val dispatch = object : Dispatch {
             override val id: String
                 get() = ""
             override var timestamp: Long? = 1000L
@@ -71,7 +71,7 @@ class EventTriggerTests {
 
     @Test
     fun eventNameTrigger_ShouldNotStop_WhenNoTealiumEvent() {
-        val dispatch = object: Dispatch {
+        val dispatch = object : Dispatch {
             override val id: String
                 get() = ""
             override var timestamp: Long? = 1000L
@@ -93,14 +93,12 @@ class EventTriggerTests {
 
     @Test
     fun eventTrigger_CompanionShouldReturnTrigger() {
-        val trigger1 = EventTrigger.forEventName("my_event", "start", "stop")
+        val trigger1 = EventTrigger.forEventName("start", "stop", eventName = "my_event")
         assertNotNull(trigger1)
         assertEquals("my_event", trigger1.eventName)
-        assertNull(trigger1.data)
 
-        val trigger2 = EventTrigger.forEventName("my_event", "start", "stop", mapOf("not" to "null"))
+        val trigger2 = EventTrigger.forEventName("start", "stop", "my_event")
         assertNotNull(trigger2)
         assertEquals("my_event", trigger2.eventName)
-        assertNotNull(trigger2.data)
     }
 }

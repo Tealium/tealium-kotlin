@@ -29,7 +29,7 @@ class TimedEventsManagerTests {
         MockKAnnotations.init(this)
         every { mockContext.config } returns mockConfig
         every { mockContext.track(any()) } just Runs
-        every { mockConfig.timedEventTriggers } returns emptyList()
+        every { mockConfig.timedEventTriggers } returns mutableListOf()
 
         Logger.logLevel = LogLevel.SILENT
 
@@ -38,9 +38,9 @@ class TimedEventsManagerTests {
 
     @Test
     fun config_TriggersGetAddedOnInit() {
-        val trigger1 = createMockTrigger("trigger_1", null, true, false)
-        val trigger2 = createMockTrigger("trigger_2", mapOf("extra" to "data"), false, true)
-        every { mockConfig.timedEventTriggers } returns listOf(trigger1, trigger2)
+        val trigger1 = createMockTrigger("trigger_1", true, false)
+        val trigger2 = createMockTrigger("trigger_2", false, true)
+        every { mockConfig.timedEventTriggers } returns mutableListOf(trigger1, trigger2)
 
         timedEventsManager = TimedEventsManager(mockContext)
 
@@ -136,17 +136,6 @@ class TimedEventsManagerTests {
     }
 
     @Test
-    fun addEventTrigger_AddsTrigger() {
-        val trigger: EventTrigger = mockk(relaxed = true)
-        every { trigger.eventName } returns "trigger_name"
-        timedEventsManager.addEventTrigger(trigger)
-
-        val foundTrigger = timedEventsManager.triggers.find { it.eventName == "trigger_name" }
-        assertNotNull(foundTrigger)
-        assertSame(trigger, foundTrigger)
-    }
-
-    @Test
     fun addEventTrigger_AddsMultiple() {
         val trigger1: EventTrigger = mockk(relaxed = true)
         every { trigger1.eventName } returns "trigger_name_1"
@@ -205,7 +194,7 @@ class TimedEventsManagerTests {
 
     @Test
     fun transform_ChecksTriggers_AndStartsTimedEvent() = runBlocking {
-        val startTrigger: EventTrigger = createMockTrigger("test_trigger", null, true, false)
+        val startTrigger: EventTrigger = createMockTrigger("test_trigger", true, false)
 
         assertNull(timedEventsManager.triggers.find { it.eventName == startTrigger.eventName })
         assertNull(timedEventsManager.timedEvents.find { it.eventName == startTrigger.eventName })
@@ -224,7 +213,7 @@ class TimedEventsManagerTests {
 
     @Test
     fun transform_StartTime_UsesDispatchTimestamp() = runBlocking {
-        val startTrigger: EventTrigger = createMockTrigger("test_trigger", null, true, false)
+        val startTrigger: EventTrigger = createMockTrigger("test_trigger", true, false)
         timedEventsManager.addEventTrigger(startTrigger)
 
         val dispatch: Dispatch = TealiumEvent("test").apply { timestamp = 1000L }
@@ -236,7 +225,7 @@ class TimedEventsManagerTests {
 
     @Test
     fun transform_StopTime_UsesDispatchTimestamp() = runBlocking {
-        val stopTrigger: EventTrigger = createMockTrigger("test_trigger", null, false, true)
+        val stopTrigger: EventTrigger = createMockTrigger("test_trigger", false, true)
         timedEventsManager.addEventTrigger(stopTrigger)
         val startTime = timedEventsManager.startTimedEvent(stopTrigger.eventName, null)!!
 
@@ -250,7 +239,7 @@ class TimedEventsManagerTests {
 
     @Test
     fun transform_ChecksTriggers_AndStopsTimedEvent() = runBlocking {
-        val stopTrigger: EventTrigger = createMockTrigger("test_trigger", null, false, true)
+        val stopTrigger: EventTrigger = createMockTrigger("test_trigger", false, true)
         timedEventsManager.addEventTrigger(stopTrigger)
         val startTime = timedEventsManager.startTimedEvent("test_trigger", null)!!
 
@@ -266,29 +255,12 @@ class TimedEventsManagerTests {
         assertEquals(event.duration, payload[TimedEvent.KEY_TIMED_EVENT_DURATION])
     }
 
-    @Test
-    fun transform_DataGetsAddedToDispatch() = runBlocking {
-        val trigger: EventTrigger = createMockTrigger("test_trigger", mapOf("extra" to "data"), true, false)
-        timedEventsManager.addEventTrigger(trigger)
-
-        val dispatch: Dispatch = TealiumEvent("test")
-        timedEventsManager.transform(dispatch) // start it via a trigger first.
-
-        // update trigger to stop instead of start
-        every { trigger.shouldStart(any()) } returns false
-        every { trigger.shouldStop(any()) } returns true
-        timedEventsManager.transform(dispatch) // stop via a trigger after
-
-        assertEquals("data", dispatch["extra"])
-    }
-
     /**
      * Utility for mocking Triggers.
      */
-    fun createMockTrigger(eventName: String, data: Map<String, Any>?, shouldStart: Boolean, shouldStop: Boolean): EventTrigger {
+    fun createMockTrigger(eventName: String, shouldStart: Boolean, shouldStop: Boolean): EventTrigger {
         val startTrigger: EventTrigger = mockk()
         every { startTrigger.eventName } returns eventName
-        every { startTrigger.data } returns data
         every { startTrigger.shouldStart(any()) } returns shouldStart
         every { startTrigger.shouldStop(any()) } returns shouldStop
         return startTrigger

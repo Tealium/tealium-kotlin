@@ -89,7 +89,7 @@ class TealiumConfig @JvmOverloads constructor(val application: Application,
     /**
      * A list of EventTriggers for automatically starting and stopping TimedEvents.
      */
-    var timedEventTriggers: List<EventTrigger> = emptyList()
+    var timedEventTriggers: MutableList<EventTrigger> = mutableListOf()
 
     init {
         tealiumDirectory.mkdirs()

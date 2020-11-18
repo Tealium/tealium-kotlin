@@ -11,12 +11,6 @@ interface EventTrigger {
     val eventName: String
 
     /**
-     * Optional additional event data to add to the payload when the Trigger signals the event
-     * should stop timing.
-     */
-    val data: Map<String, Any>?
-
-    /**
      * Signals that the timer should begin for this named event.
      *
      * @return true if the timer should begin, otherwise false
@@ -31,8 +25,18 @@ interface EventTrigger {
     fun shouldStop(dispatch: Dispatch): Boolean
 
     companion object {
-        fun forEventName(eventName: String, startEvent: String, stopEvent: String, data: Map<String, Any>? = null): EventTrigger {
-            return EventNameTrigger(eventName, startEvent, stopEvent, data)
+
+        /**
+         * Creates an EventTrigger that uses the value of [TEALIUM_EVENT] from the [Dispatch] to
+         * start or stop a Timed Event.
+         *
+         * @param startEvent The event name that should trigger the Timed Event to be started
+         * @param stopEvent The event name that should trigger the Timed Event to be stopped
+         * @param eventName Optional - override the timed_event_name value sent when the Timed Event is stopped.
+         * Default is "$startName::$stopName"
+         */
+        fun forEventName(startEvent: String, stopEvent: String, eventName: String? = null): EventTrigger {
+            return EventNameTrigger(startEvent, stopEvent, eventName)
         }
     }
 }
