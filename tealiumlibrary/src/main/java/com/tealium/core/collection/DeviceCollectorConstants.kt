@@ -2,6 +2,8 @@
 
 object DeviceCollectorConstants {
     const val DEVICE = "device"
+    const val DEVICE_MODEL = "device_model"
+    const val DEVICE_MANUFACTURER = "device_manufacturer"
     const val DEVICE_ARCHITECTURE = "device_architecture"
     const val DEVICE_CPU_TYPE = "device_cputype"
     const val DEVICE_RESOLUTION = "device_resolution"
