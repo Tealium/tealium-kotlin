@@ -25,8 +25,6 @@
 
 -keep class kotlin.Metadata { *; }
 
--keep class com.tealium.collectdispatcher.* { *;}
-
 -keep interface com.tealium.collectdispatcher.CollectDispatcherListener { *; }
 
 -keep class com.tealium.collectdispatcher.CollectDispatcher { *; }
