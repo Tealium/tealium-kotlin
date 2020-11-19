@@ -24,14 +24,19 @@ interface VisitorUpdatedListener : ExternalListener {
     fun onVisitorUpdated(visitorProfile: VisitorProfile)
 }
 
-class VisitorProfileManager(private val context: TealiumContext,
+interface VisitorProfileManager {
+    val visitorProfile: VisitorProfile
+    suspend fun requestVisitorProfile()
+}
+
+class VisitorManager(private val context: TealiumContext,
                             private val refreshInterval: Long =
                                     context.config.visitorServiceRefreshInterval
                                             ?: DEFAULT_REFRESH_INTERVAL,
                             private val visitorServiceUrl: String =
                                     context.config.overrideVisitorServiceUrl
                                             ?: "https://visitor-service.tealiumiq.com/${context.config.accountName}/${context.config.profileName}/${context.visitorId}",
-                            private val loader: Loader = JsonLoader(context.config.application)) : DispatchSendListener, BatchDispatchSendListener {
+                            private val loader: Loader = JsonLoader(context.config.application)) : VisitorProfileManager, DispatchSendListener, BatchDispatchSendListener {
 
     private val file = File(context.config.tealiumDirectory, VISITOR_PROFILE_FILENAME)
 
@@ -39,7 +44,10 @@ class VisitorProfileManager(private val context: TealiumContext,
     private var lastUpdate: Long = -1L
     private val resourceRetriever: ResourceRetriever
 
-    var visitorProfile: VisitorProfile = loadCachedProfile() ?: VisitorProfile()
+    override val visitorProfile: VisitorProfile
+        get() = _visitorProfile
+
+    private var _visitorProfile: VisitorProfile = loadCachedProfile() ?: VisitorProfile()
         private set(value) {
             field = value
             context.events.send(VisitorUpdatedMessenger(value))
@@ -85,7 +93,7 @@ class VisitorProfileManager(private val context: TealiumContext,
         }
     }
 
-    suspend fun requestVisitorProfile() {
+    override suspend fun requestVisitorProfile() {
         // no need if it's already being updated, but we won't adhere to the refreshInterval here.
         if (isUpdating.compareAndSet(false, true)) {
             for (i in 1..5) {
@@ -99,7 +107,7 @@ class VisitorProfileManager(private val context: TealiumContext,
                     if (visitorProfile.totalEventCount != newProfile.totalEventCount) {
                         lastUpdate = System.currentTimeMillis()
                         saveVisitorProfile(newProfile)
-                        visitorProfile = newProfile
+                        _visitorProfile = newProfile
                         break
                     } else {
                         Logger.dev(BuildConfig.TAG, "Visitor Profile found but it was stale.")

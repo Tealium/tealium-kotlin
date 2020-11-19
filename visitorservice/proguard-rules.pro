@@ -26,13 +26,11 @@
 -keep class kotlin.Metadata { *; }
 
 -keep interface com.tealium.visitorservice.VisitorUpdatedListener { *; }
+-keep interface com.tealium.visitorservice.VisitorProfileManager { *; }
 
 -keep class com.tealium.visitorservice.VisitorService { *; }
+-keep class com.tealium.visitorservice.VisitorService$Companion { *; }
 -keep class com.tealium.visitorservice.VisitorServiceKt { *; }
 -keep class com.tealium.visitorservice.TealiumConfigVisitorServiceKt { *; }
 -keep class com.tealium.visitorservice.CurrentVisit { *; }
 -keep class com.tealium.visitorservice.VisitorProfile { *; }
-
--keep,allowobfuscation class com.tealium.visitorservice.VisitorProfileManager { *; }
--keep,allowobfuscation class com.tealium.visitorservice.VisitorUpdatedMessenger { *; }
-
