@@ -17,6 +17,7 @@ android {
         versionName "1.0"
 
         buildConfigField 'String', 'TAG', "\"Tealium-TagManagementDispatcher-$version\""
+        buildConfigField 'String', 'VERSION_NAME', "\"$version\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
