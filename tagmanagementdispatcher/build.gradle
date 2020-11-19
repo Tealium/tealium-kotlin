@@ -13,10 +13,9 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 1
-        versionName "1.0"
 
         buildConfigField 'String', 'TAG', "\"Tealium-TagManagementDispatcher-$version\""
+        buildConfigField 'String', 'VERSION_NAME', "\"$version\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 

@@ -15,7 +15,24 @@
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
-
+-keepparameternames
+-renamesourcefileattribute SourceFile
+-keepattributes Exceptions,InnerClasses,Signature,Deprecated,
+                SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-keep class kotlin.Metadata { *; }
+
+-keep interface com.tealium.visitorservice.VisitorUpdatedListener { *; }
+
+-keep class com.tealium.visitorservice.VisitorService { *; }
+-keep class com.tealium.visitorservice.VisitorServiceKt { *; }
+-keep class com.tealium.visitorservice.TealiumConfigVisitorServiceKt { *; }
+-keep class com.tealium.visitorservice.CurrentVisit { *; }
+-keep class com.tealium.visitorservice.VisitorProfile { *; }
+
+-keep,allowobfuscation class com.tealium.visitorservice.VisitorProfileManager { *; }
+-keep,allowobfuscation class com.tealium.visitorservice.VisitorUpdatedMessenger { *; }
+
