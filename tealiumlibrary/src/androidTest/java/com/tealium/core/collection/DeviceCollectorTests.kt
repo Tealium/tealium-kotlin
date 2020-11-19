@@ -52,6 +52,8 @@ class DeviceCollectorTests {
         val data = deviceCollector.collect()
 
         assertNotNull(data[DeviceCollectorConstants.DEVICE])
+        assertNotNull(data[DeviceCollectorConstants.DEVICE_MODEL])
+        assertNotNull(data[DeviceCollectorConstants.DEVICE_MANUFACTURER])
         assertTrue(
                 (data[DeviceCollectorConstants.DEVICE_ARCHITECTURE] as String).startsWith("64") ||
                         (data[DeviceCollectorConstants.DEVICE_ARCHITECTURE] as String).startsWith("32")
