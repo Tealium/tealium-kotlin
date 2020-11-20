@@ -95,9 +95,8 @@ internal class TimedEventsManager(private val context: TealiumContext) : TimedEv
                 _timedEvents[trigger.eventName]?.let { event ->
                     // timed event has been started, so check if it should be stopped
                     if (trigger.shouldStop(dispatch)) {
-                        stopTimedEvent(event.eventName, dispatch.timestamp ?: timestamp)
-                        TimedEvent.toMap(event)?.let {
-                            dispatch.addAll(it)
+                        stopTimedEvent(event.eventName, dispatch.timestamp ?: timestamp)?.let {
+                            sendTimedEvent(it)
                         }
                     }
                 } ?: run {

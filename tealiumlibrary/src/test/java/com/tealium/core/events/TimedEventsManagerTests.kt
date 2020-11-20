@@ -248,11 +248,48 @@ class TimedEventsManagerTests {
         val event = timedEventsManager.timedEvents.find { it.eventName == stopTrigger.eventName }!!
         timedEventsManager.transform(dispatch)
 
-        val payload = dispatch.payload()
-        assertEquals(stopTrigger.eventName, payload[TimedEvent.KEY_TIMED_EVENT_NAME])
-        assertEquals(event.startTime, payload[TimedEvent.KEY_TIMED_EVENT_START])
-        assertEquals(event.stopTime, payload[TimedEvent.KEY_TIMED_EVENT_END])
-        assertEquals(event.duration, payload[TimedEvent.KEY_TIMED_EVENT_DURATION])
+        verify {
+            mockContext.track(match {
+                it[TEALIUM_EVENT] == TimedEvent.TIMED_EVENT_NAME
+                        && it[TimedEvent.KEY_TIMED_EVENT_NAME] == "test_trigger"
+                        && it[TimedEvent.KEY_TIMED_EVENT_START] == startTime
+                        && it[TimedEvent.KEY_TIMED_EVENT_END] == startTime + 1000L
+                        && it[TimedEvent.KEY_TIMED_EVENT_DURATION] == 1000L
+            })
+        }
+    }
+
+    @Test
+    fun transform_ChecksTriggers_AndStopsMultipleTimedEvent() = runBlocking {
+        val stopTrigger1: EventTrigger = createMockTrigger("test_trigger_1", false, true)
+        val stopTrigger2: EventTrigger = createMockTrigger("test_trigger_2", false, true)
+        timedEventsManager.addEventTrigger(stopTrigger1)
+        timedEventsManager.addEventTrigger(stopTrigger2)
+        val startTime1 = timedEventsManager.startTimedEvent("test_trigger_1", null)!!
+        val startTime2 = timedEventsManager.startTimedEvent("test_trigger_2", null)!!
+
+        val dispatch: Dispatch = TealiumEvent("test").apply { timestamp = startTime1 + 1000L }
+        // fetch event before stopping
+        val event1 = timedEventsManager.timedEvents.find { it.eventName == stopTrigger1.eventName }!!
+        val event2 = timedEventsManager.timedEvents.find { it.eventName == stopTrigger2.eventName }!!
+        timedEventsManager.transform(dispatch)
+
+        verify {
+            mockContext.track(match {
+                it[TEALIUM_EVENT] == TimedEvent.TIMED_EVENT_NAME
+                        && it[TimedEvent.KEY_TIMED_EVENT_NAME] == "test_trigger_1"
+                        && it[TimedEvent.KEY_TIMED_EVENT_START] == event1.startTime
+                        && it[TimedEvent.KEY_TIMED_EVENT_END] == event1.stopTime
+                        && it[TimedEvent.KEY_TIMED_EVENT_DURATION] == event1.duration
+            })
+            mockContext.track(match {
+                it[TEALIUM_EVENT] == TimedEvent.TIMED_EVENT_NAME
+                        && it[TimedEvent.KEY_TIMED_EVENT_NAME] == "test_trigger_2"
+                        && it[TimedEvent.KEY_TIMED_EVENT_START] == event2.startTime
+                        && it[TimedEvent.KEY_TIMED_EVENT_END] == event2.stopTime
+                        && it[TimedEvent.KEY_TIMED_EVENT_DURATION] == event2.duration
+            })
+        }
     }
 
     /**
