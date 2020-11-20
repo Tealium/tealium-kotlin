@@ -15,7 +15,17 @@
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
-
+-keepparameternames
+-renamesourcefileattribute SourceFile
+-keepattributes Exceptions,InnerClasses,Signature,Deprecated,
+                SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-keep class kotlin.Metadata { *; }
+
+-keep class com.tealium.location.LocationManager { *; }
+-keep class com.tealium.location.LocationManager$Companion { *; }
+-keep class com.tealium.location.LocationManagerKt { *; }
+-keep class com.tealium.location.TealiumConfigLocationKt { *; }
