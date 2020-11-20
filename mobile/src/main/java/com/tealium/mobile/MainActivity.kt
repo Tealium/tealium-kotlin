@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
             "Consent Manager" -> ConsentFragment()
             "Visitor Service" -> VisitorServiceFragment()
             "Location" -> LocationFragment()
+            "Timed Events" -> TimedEventsFragment()
             "Hosted Data Layer" -> HostedDataLayerFragment()
             else -> null
         }
