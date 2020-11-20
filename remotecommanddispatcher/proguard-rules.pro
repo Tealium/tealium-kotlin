@@ -28,6 +28,7 @@
 -keep class com.tealium.remotecommanddispatcher.RemoteCommandDispatcher { *; }
 -keep class com.tealium.remotecommanddispatcher.RemoteCommandDispatcher$Companion { *; }
 -keep class com.tealium.remotecommanddispatcher.RemoteCommandDispatcherKt { *; }
+-keep class com.tealium.remotecommanddispatcher.TealiumConfigRemoteCommandDispatcherKt { *; }
 
 -keep interface com.tealium.remotecommanddispatcher.CommandsManager { *; }
 -keep interface com.tealium.remotecommanddispatcher.RemoteCommandDispatcherListener { *; }
