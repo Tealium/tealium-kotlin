@@ -54,7 +54,7 @@ class FusedLocationProviderClientLoader(private val context: TealiumContext) {
                                 val distance = lastLocationResult.distanceTo(location)
 
                                 if (distance < 500.0) {
-                                    if (LocationManager.activeGeofences.contains(geofence.name)) {
+                                    if (!LocationManager.activeGeofences.contains(geofence.name)) {
                                         geofencesToAdd.add(geofence)
                                         Logger.dev(BuildConfig.TAG, "Geofence ${geofence.name} added to active monitoring")
                                     }
