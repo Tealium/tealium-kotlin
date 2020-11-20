@@ -88,7 +88,7 @@ class FusedLocationProviderClientLoaderTests {
     }
 
     @Test
-    fun removeGeofencefromClient_removesFromBothClientAndCompanion() {
+    fun removeGeofenceFromClient_removesFromBothClientAndCompanion() {
         fusedLocationProviderClientLoader.geofenceLocationClient = mockGeofenceLocationClient
         LocationManager.activeGeofences.add(geofenceLocation.name)
         assertTrue(LocationManager.activeGeofences.contains(geofenceLocation.name))
