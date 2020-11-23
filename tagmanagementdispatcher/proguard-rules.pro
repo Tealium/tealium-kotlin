@@ -16,6 +16,7 @@
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
 -keepparameternames
+-keeppackagenames
 -renamesourcefileattribute SourceFile
 -keepattributes Exceptions,InnerClasses,Signature,Deprecated,
                 SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
