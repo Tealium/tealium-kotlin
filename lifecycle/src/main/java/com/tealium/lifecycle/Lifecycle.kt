@@ -204,7 +204,7 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
         lastPause = SystemClock.elapsedRealtime()
 
         handler.postDelayed({
-            trackSleepEvent(System.currentTimeMillis(), null)
+            trackSleepEvent(System.currentTimeMillis(), eventData)
         }, LifecycleDefaults.SLEEP_THRESHOLD)
     }
 
