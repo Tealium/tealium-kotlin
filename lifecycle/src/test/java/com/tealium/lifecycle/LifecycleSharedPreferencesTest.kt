@@ -12,6 +12,7 @@ import io.mockk.verify
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import java.util.*
 
 class LifecycleSharedPreferencesTest {
 
@@ -32,6 +33,8 @@ class LifecycleSharedPreferencesTest {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
+        TimeZone.getTimeZone("UTC").also { TimeZone.setDefault(it) }
+
         every { mockConfig.application } returns mockApplication
         every { mockConfig.accountName } returns "account"
         every { mockConfig.profileName } returns "profile"
