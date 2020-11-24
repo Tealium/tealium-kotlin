@@ -41,6 +41,10 @@
     public protected *;
 }
 
+-keep public class com.tealium.core.events.EventTrigger$Companion {
+    public protected *;
+}
+
 # Keep all public Messaging classes/enums, except internals.
 -keep public class com.tealium.core.messaging.Messenger,
                     com.tealium.core.messaging.MessengerService {
