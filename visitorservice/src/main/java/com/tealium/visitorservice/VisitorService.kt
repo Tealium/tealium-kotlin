@@ -7,13 +7,13 @@ import com.tealium.core.*
  * delegates that there have been updates.
  */
 class VisitorService @JvmOverloads constructor(context: TealiumContext,
-                    private val visitorProfileManager: VisitorProfileManager = VisitorProfileManager(context)) : Module {
+                    private val visitorProfileManager: VisitorProfileManager = VisitorManager(context)) : Module {
 
     override val name: String = MODULE_NAME
     override var enabled: Boolean = true
 
     init {
-        context.events.subscribe(visitorProfileManager)
+        context.events.subscribe(visitorProfileManager as VisitorManager)
     }
 
     val visitorProfile: VisitorProfile

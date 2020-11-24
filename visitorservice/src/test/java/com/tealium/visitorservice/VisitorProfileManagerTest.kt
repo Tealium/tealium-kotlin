@@ -77,7 +77,7 @@ class VisitorProfileManagerTest {
     @Test
     fun persistence_IsLoadedFromDiskWhenNotNull() {
         every { mockLoader.loadFromFile(any()) } returns "{}"
-        val visitorProfileManager = VisitorProfileManager(mockContext, loader = mockLoader)
+        val visitorProfileManager = VisitorManager(mockContext, loader = mockLoader)
 
         assertNotNull(visitorProfileManager.loadCachedProfile())
         assertNotNull(visitorProfileManager.visitorProfile)
@@ -86,7 +86,7 @@ class VisitorProfileManagerTest {
     @Test
     fun persistence_ReturnsNullWhenNoFile() {
         every { mockLoader.loadFromFile(any()) } returns null
-        val visitorProfileManager = VisitorProfileManager(mockContext, loader = mockLoader)
+        val visitorProfileManager = VisitorManager(mockContext, loader = mockLoader)
 
         assertNull(visitorProfileManager.loadCachedProfile())
         assertNotNull(visitorProfileManager.visitorProfile)
@@ -94,7 +94,7 @@ class VisitorProfileManagerTest {
 
     @Test
     fun fetching_ShouldNotFetchWhenAlreadyUpdating() {
-        val visitorProfileManager = VisitorProfileManager(mockContext)
+        val visitorProfileManager = VisitorManager(mockContext)
         visitorProfileManager.isUpdating.set(true)
 
         runBlocking {
@@ -109,7 +109,7 @@ class VisitorProfileManagerTest {
     fun fetching_ShouldNotFetchWhenIntervalNotReached() {
         coEvery { mockHttpClient.get(any()) } returns validExampleProfileString
 
-        val visitorProfileManager = VisitorProfileManager(mockContext)
+        val visitorProfileManager = VisitorManager(mockContext)
 
         runBlocking {
             visitorProfileManager.onBatchDispatchSend(mockk())
@@ -125,7 +125,7 @@ class VisitorProfileManagerTest {
     fun fetching_ShouldRetryFiveTimesOnly() = runBlocking {
         coEvery { mockHttpClient.get(any()) } returnsMany listOf(null, null, "{}", "{}", validExampleProfileString, null)
 
-        val visitorProfileManager = VisitorProfileManager(mockContext)
+        val visitorProfileManager = VisitorManager(mockContext)
 
         runBlocking {
             visitorProfileManager.requestVisitorProfile()
@@ -139,7 +139,7 @@ class VisitorProfileManagerTest {
     fun fetching_ShouldBreakWhenFoundValidUpdatedProfile() = runBlocking {
         coEvery { mockHttpClient.get(any()) } returnsMany listOf(null, "{}", validExampleProfileString, null)
 
-        val visitorProfileManager = VisitorProfileManager(mockContext)
+        val visitorProfileManager = VisitorManager(mockContext)
 
         runBlocking {
             visitorProfileManager.requestVisitorProfile()
@@ -154,7 +154,7 @@ class VisitorProfileManagerTest {
         mockkObject(VisitorProfile.Companion)
         every { VisitorProfile.Companion.fromJson(any()) } returnsMany listOf(VisitorProfile(totalEventCount = 0), VisitorProfile(totalEventCount = 0))
         coEvery { mockHttpClient.get(any()) } returns validExampleProfileString
-        val visitorProfileManager = VisitorProfileManager(mockContext)
+        val visitorProfileManager = VisitorManager(mockContext)
 
         runBlocking {
             assertEquals(0, visitorProfileManager.visitorProfile.totalEventCount)
@@ -171,7 +171,7 @@ class VisitorProfileManagerTest {
         mockkObject(VisitorProfile.Companion)
         every { VisitorProfile.Companion.fromJson(any()) } returnsMany listOf(VisitorProfile(totalEventCount = 0), VisitorProfile(totalEventCount = 1))
         coEvery { mockHttpClient.get(any()) } returns validExampleProfileString
-        val visitorProfileManager = VisitorProfileManager(mockContext)
+        val visitorProfileManager = VisitorManager(mockContext)
         assertEquals(0, visitorProfileManager.visitorProfile.totalEventCount)
 
         runBlocking {
@@ -186,7 +186,7 @@ class VisitorProfileManagerTest {
     @Test
     fun updated_ShouldNotSendUpdateWhenInvalidProfile() {
         coEvery { mockHttpClient.get(any()) } returns "{}"
-        val visitorProfileManager = VisitorProfileManager(mockContext)
+        val visitorProfileManager = VisitorManager(mockContext)
         assertEquals(0, visitorProfileManager.visitorProfile.totalEventCount)
         runBlocking {
             visitorProfileManager.requestVisitorProfile()
@@ -201,7 +201,7 @@ class VisitorProfileManagerTest {
     fun config_ShouldUseConfiguredUrlWhenProvided() {
         every { mockConfig.overrideVisitorServiceUrl } returns "https://my.url.com"
         coEvery { mockHttpClient.get(any()) } returns validExampleProfileString
-        val visitorProfileManager = VisitorProfileManager(mockContext)
+        val visitorProfileManager = VisitorManager(mockContext)
 
         runBlocking {
             visitorProfileManager.requestVisitorProfile()
@@ -215,7 +215,7 @@ class VisitorProfileManagerTest {
     fun config_ShouldUseConfiguredIntervalWhenProvided() {
         every { mockConfig.visitorServiceRefreshInterval } returns 3L
         coEvery { mockHttpClient.get(any()) } returns validExampleProfileString
-        val visitorProfileManager = spyk(VisitorProfileManager(mockContext))
+        val visitorProfileManager = spyk(VisitorManager(mockContext))
 
         runBlocking {
             visitorProfileManager.onBatchDispatchSend(mockk())
