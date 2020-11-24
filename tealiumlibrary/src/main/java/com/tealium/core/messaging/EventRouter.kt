@@ -2,11 +2,14 @@ package com.tealium.core.messaging
 
 import android.app.Activity
 import com.tealium.core.Module
+import com.tealium.core.Tealium
 import com.tealium.core.consent.ConsentManagementPolicy
 import com.tealium.core.consent.UserConsentPreferences
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
+import com.tealium.remotecommands.RemoteCommandRequest
+import java.lang.ref.WeakReference
 
 interface EventRouter :
         DispatchReadyListener,
@@ -22,6 +25,7 @@ interface EventRouter :
         NewSessionListener,
         SessionStartedListener,
         UserConsentPreferencesUpdatedListener,
+        InstanceShutdownListener,
         Subscribable {
 
     fun <T : Listener> send(messenger: Messenger<T>)
@@ -104,10 +108,10 @@ class EventDispatcher : EventRouter {
         }
     }
 
-    override fun onRemoteCommandSend(url: String) {
+    override fun onRemoteCommandSend(request: RemoteCommandRequest) {
         listeners.forEach {
             when (it) {
-                is RemoteCommandListener -> it.onRemoteCommandSend(url)
+                is RemoteCommandListener -> it.onRemoteCommandSend(request)
             }
         }
     }
@@ -180,6 +184,14 @@ class EventDispatcher : EventRouter {
         listeners.forEach {
             when (it) {
                 is UserConsentPreferencesUpdatedListener -> it.onUserConsentPreferencesUpdated(userConsentPreferences, policy)
+            }
+        }
+    }
+
+    override fun onInstanceShutdown(name: String, instance: WeakReference<Tealium>) {
+        listeners.forEach {
+            when (it) {
+                is InstanceShutdownListener -> it.onInstanceShutdown(name, instance)
             }
         }
     }

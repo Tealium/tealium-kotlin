@@ -2,8 +2,9 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'maven-publish'
+apply from: '../jacoco.gradle'
 
-version = '0.1.0'
+version = '1.0.1'
 
 android {
     compileSdkVersion 29
@@ -25,8 +26,15 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {
+            testCoverageEnabled true
+        }
     }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
@@ -38,21 +46,23 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
     testImplementation 'junit:junit:4.12'
     testImplementation "io.mockk:mockk:$mockk_version"
+    testImplementation "org.robolectric:robolectric:4.3.1"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_test_version"
     androidTestImplementation 'androidx.test:runner:1.2.0'
 }
 repositories {
     mavenCentral()
 }
 
-//afterEvaluate {
-//    publishing {
-//        publications {
-//            release(MavenPublication) {
-//                from components.release
-//                groupId = 'com.tealium'
-//                artifactId = 'kotlin-collect-dispatcher'
-//            }
-//        }
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.tealium'
+                artifactId = 'kotlin-collect-dispatcher'
+            }
+        }
 //        repositories {
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
@@ -62,5 +72,5 @@ repositories {
 //                }
 //            }
 //        }
-//    }
-//}
+    }
+}

@@ -2,17 +2,19 @@ package com.tealium.core.collection
 
 import com.tealium.core.*
 import com.tealium.core.persistence.getTimestampMilliseconds
+import com.tealium.test.OpenForTesting
 import java.text.SimpleDateFormat
 import java.util.*
 
 interface TimeData {
-    val timestamp : String
-    val timestampLocal : String
-    val timestampOffset : String
-    val timestampUnix : Long
-    val timestampUnixMilliseconds : Long
+    val timestamp: String
+    val timestampLocal: String
+    val timestampOffset: String
+    val timestampUnix: Long
+    val timestampUnixMilliseconds: Long
 }
 
+@OpenForTesting
 class TimeCollector : Collector, TimeData {
 
     override val name: String = "TIME_COLLECTOR"
@@ -52,15 +54,14 @@ class TimeCollector : Collector, TimeData {
     }
 
     companion object : CollectorFactory {
-        override fun create(context: TealiumContext): Collector {
-            return TimeCollector()
+        @Volatile
+        private var instance: Collector? = null
+
+        override fun create(context: TealiumContext): Collector = instance ?: synchronized(this) {
+            instance ?: TimeCollector().also { instance = it }
         }
     }
 }
 
-val Collectors.Time : CollectorFactory
+val Collectors.Time: CollectorFactory
     get() = TimeCollector
-
-
-
-

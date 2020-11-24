@@ -17,7 +17,7 @@ var TealiumConfig.overrideVisitorServiceUrl: String?
     }
 
 /**
- * Sets the length of time to use between requesting an updated Visitor Profile
+ * Sets the length of time in Seconds to use between requesting an updated Visitor Profile
  */
 var TealiumConfig.visitorServiceRefreshInterval: Long?
     get() = options[VISITOR_SERVICE_REFRESH_INTERVAL] as? Long

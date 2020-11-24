@@ -9,9 +9,10 @@ import com.tealium.core.persistence.DataLayer
 import com.tealium.core.persistence.Expiry
 import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
-import junit.framework.Assert.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
@@ -25,35 +26,46 @@ class TealiumTests {
             "test",
             "test",
             Environment.DEV)
-    val configWithQRTraceDisabled get(): TealiumConfig {
-        val config = configWithNoModules
-        config.qrTraceEnabled = false
-        return config
-    }
+    val configWithQRTraceDisabled
+        get(): TealiumConfig {
+            val config = configWithNoModules
+            config.qrTraceEnabled = false
+            return config
+        }
 
-    val configWithQRTraceEnabled get(): TealiumConfig {
-        val config = configWithNoModules
-        config.qrTraceEnabled = true
-        return config
-    }
+    val configWithQRTraceEnabled
+        get(): TealiumConfig {
+            val config = configWithNoModules
+            config.qrTraceEnabled = true
+            return config
+        }
 
-    val configWithDeepLinkingDisabled get(): TealiumConfig {
-        val config = configWithNoModules
-        config.deepLinkTrackingEnabled = false
-        return config
-    }
+    val configWithDeepLinkingDisabled
+        get(): TealiumConfig {
+            val config = configWithNoModules
+            config.deepLinkTrackingEnabled = false
+            return config
+        }
 
-    val configWithDeepLinkingEnabled get(): TealiumConfig {
-        val config = configWithNoModules
-        config.deepLinkTrackingEnabled = true
-        return config
-    }
+    val configWithDeepLinkingEnabled
+        get(): TealiumConfig {
+            val config = configWithNoModules
+            config.deepLinkTrackingEnabled = true
+            return config
+        }
 
     @Before
     fun setUp() {
         mockDataLayer = mockk(relaxed = true)
-        tealium = Tealium("name", configWithNoModules)
+        tealium = Tealium.create("name", configWithNoModules)
         mockTealium = spyk(tealium)
+    }
+
+    @After
+    fun tearDown() {
+        Tealium.names().forEach {
+            Tealium.destroy(it)
+        }
     }
 
     @Test
@@ -64,14 +76,15 @@ class TealiumTests {
     }
 
     @Test
-    fun testCallbackGetsExecuted() {
-        val block: Tealium.() -> Unit = mockk(relaxed = true)
-        every { block(hint(Tealium::class).any()) } just Runs
+    fun testCallbackGetsExecuted() = runBlocking {
+        var hasBeenCalled = false
 
-        val tealium = Tealium("name", configWithNoModules, block)
-
-        verify(timeout = 1000) {
-            block(tealium)
+        val tealium = Tealium.create("name", configWithNoModules) {
+            hasBeenCalled = true
+        }
+        if (!hasBeenCalled) {
+            delay(1000)
+            assertTrue(hasBeenCalled)
         }
     }
 
@@ -205,13 +218,13 @@ class TealiumTests {
         val context = mockk<TealiumContext>()
         every { context.config } returns configWithQRTraceEnabled
         every { context.dataLayer } returns mockDataLayer
-        every {context.tealium } returns mockTealium
+        every { context.tealium } returns mockTealium
         val mockActivityObserverListener = DeepLinkHandler(context)
 
         val builder = Uri.Builder()
         val traceId = "abc123"
         val queryParams = mapOf<String, Any>("tealium_trace_id" to traceId,
-        CoreConstant.LEAVE_TRACE_QUERY_PARAM to "true" )
+                CoreConstant.LEAVE_TRACE_QUERY_PARAM to "true")
         val uri = builder.scheme("https")
                 .authority("tealium.com")
                 .path("/")
@@ -245,7 +258,7 @@ class TealiumTests {
             val builder = Uri.Builder()
             val traceId = "abc123"
             val queryParams = mapOf<String, Any>("tealium_trace_id" to traceId,
-                    CoreConstant.KILL_VISITOR_SESSION to "true" )
+                    CoreConstant.KILL_VISITOR_SESSION to "true")
             val uri = builder.scheme("https")
                     .authority("tealium.com")
                     .path("/")
@@ -341,4 +354,65 @@ class TealiumTests {
         }
     }
 
+    @Test
+    fun testCompanion_CreateAndGet() {
+        val instance = Tealium.create("instance_1", configWithNoModules)
+        assertSame(instance, Tealium["instance_1"])
+        assertSame(instance, Tealium.get("instance_1"))
+    }
+
+    @Test
+    fun testCompanion_CreateAndDestroy() {
+        val instance = Tealium.create("instance_1", configWithNoModules)
+        assertSame(instance, Tealium["instance_1"])
+        assertSame(instance, Tealium.get("instance_1"))
+
+        Tealium.destroy("instance_1")
+        assertNull(Tealium["instance_1"])
+        assertNull(Tealium.get("instance_1"))
+    }
+
+    @Test
+    fun testCompanion_CreateMultipleWithSameConfig() {
+        val instance = Tealium.create("instance_1", configWithNoModules)
+        val instance2 = Tealium.create("instance_2", configWithNoModules)
+        assertSame(instance, Tealium["instance_1"])
+        assertSame(instance, Tealium.get("instance_1"))
+        assertSame(instance2, Tealium["instance_2"])
+        assertSame(instance2, Tealium.get("instance_2"))
+
+        Tealium.destroy("instance_1")
+        assertNull(Tealium["instance_1"])
+        assertNull(Tealium.get("instance_1"))
+
+        assertNotNull(Tealium["instance_2"])
+        assertNotNull(Tealium.get("instance_2"))
+    }
+
+    @Test
+    fun testCompanion_CreateMultipleWithDifferentConfig() {
+        val instance = Tealium.create("instance_1", configWithNoModules)
+        val instance2 = Tealium.create("instance_2", TealiumConfig(application, "test2", "test2", Environment.DEV))
+        assertSame(instance, Tealium["instance_1"])
+        assertSame(instance, Tealium.get("instance_1"))
+        assertSame(instance2, Tealium["instance_2"])
+        assertSame(instance2, Tealium.get("instance_2"))
+
+        Tealium.destroy("instance_1")
+        assertNull(Tealium["instance_1"])
+        assertNull(Tealium.get("instance_1"))
+
+        assertNotNull(Tealium["instance_2"])
+        assertNotNull(Tealium.get("instance_2"))
+    }
+
+    @Test
+    fun testCompanion_NamesReturnsAllNames() {
+        Tealium.create("instance_1", configWithNoModules)
+        Tealium.create("instance_2", TealiumConfig(application, "test2", "test2", Environment.DEV))
+        val names = Tealium.names()
+
+        assertTrue(names.contains("instance_1"))
+        assertTrue(names.contains("instance_2"))
+    }
 }

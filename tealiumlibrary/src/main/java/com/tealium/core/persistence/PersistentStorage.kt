@@ -134,7 +134,7 @@ internal class PersistentStorage(dbHelper: DatabaseHelper,
         return item?.value
     }
 
-    override fun getAll(): Map<String, Any> {
+    override fun all(): Map<String, Any> {
         return dao.getAll().mapValues {
             it.value.value!!
         }

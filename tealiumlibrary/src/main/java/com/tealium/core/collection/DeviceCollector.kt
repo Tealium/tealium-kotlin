@@ -13,6 +13,8 @@ import com.tealium.core.*
 
 interface DeviceData {
     val device: String
+    val deviceModel: String
+    val deviceManufacturer: String
     val deviceArchitecture: String
     val deviceCpuType: String
     val deviceResolution: String
@@ -37,7 +39,9 @@ class DeviceCollector private constructor(context: Context) : Collector, DeviceD
     private val point = Point()
 
     override val device = if (Build.MODEL.startsWith(Build.MANUFACTURER)) Build.MODEL
-            ?: "" else "${Build.MODEL} ${Build.MANUFACTURER}"
+            ?: "" else "${Build.MANUFACTURER} ${Build.MODEL}"
+    override val deviceModel: String = Build.MODEL
+    override val deviceManufacturer: String = Build.MANUFACTURER
     override val deviceArchitecture = if (Build.SUPPORTED_64_BIT_ABIS.isNotEmpty()) "64bit" else "32bit"
     override val deviceCpuType = System.getProperty("os.arch") ?: "unknown"
     override val deviceResolution = point.let {
@@ -75,6 +79,8 @@ class DeviceCollector private constructor(context: Context) : Collector, DeviceD
     override suspend fun collect(): Map<String, Any> {
         return mapOf(
                 DeviceCollectorConstants.DEVICE to device,
+                DeviceCollectorConstants.DEVICE_MODEL to deviceModel,
+                DeviceCollectorConstants.DEVICE_MANUFACTURER to deviceManufacturer,
                 DeviceCollectorConstants.DEVICE_ARCHITECTURE to deviceArchitecture,
                 DeviceCollectorConstants.DEVICE_CPU_TYPE to deviceCpuType,
                 DeviceCollectorConstants.DEVICE_RESOLUTION to deviceResolution,
@@ -90,15 +96,10 @@ class DeviceCollector private constructor(context: Context) : Collector, DeviceD
     }
 
     companion object : CollectorFactory {
+        @Volatile private var instance: Collector? = null
 
-        private lateinit var applicationContext: Context
-        private val instance: Collector by lazy {
-            DeviceCollector(applicationContext)
-        }
-
-        override fun create(context: TealiumContext): Collector {
-            applicationContext = context.config.application.applicationContext
-            return instance
+        override fun create(context: TealiumContext): Collector = instance ?: synchronized(this){
+            instance ?: DeviceCollector(context.config.application).also { instance = it }
         }
     }
 }

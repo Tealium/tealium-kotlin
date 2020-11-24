@@ -8,10 +8,9 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.spyk
 import io.mockk.verify
-import junit.framework.Assert
-import junit.framework.Assert.*
 import org.json.JSONObject
 import org.junit.After
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -209,7 +208,7 @@ class DataLayerStoreTests {
         try {
             store.delete(invalidFile)
         } catch (ex: Exception) {
-            Assert.fail()
+            fail()
         }
     }
 
@@ -279,15 +278,15 @@ class DataLayerStoreTests {
     }
 
     @Test
-    fun size_doesNotExceedMax_AndRemovesOldest(){
+    fun size_doesNotExceedMax_AndRemovesOldest() {
         store.clear()
         assertEquals(0, store.count())
         val firstFileTimestamp = System.currentTimeMillis() - ((defaultCacheSize + 5) * 10000)
-        repeat (defaultCacheSize + 5) {
+        repeat(defaultCacheSize + 5) {
             val entry = HostedDataLayerEntry("entry$it",
-                     firstFileTimestamp + it * 1000,
-                        JSONObject("{}")
-                    )
+                    firstFileTimestamp + it * 1000,
+                    JSONObject("{}")
+            )
             store.insert(entry)
         }
 

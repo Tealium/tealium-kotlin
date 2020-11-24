@@ -1,11 +1,14 @@
 package com.tealium.core.messaging
 
 import android.app.Activity
+import com.tealium.core.Tealium
 import com.tealium.core.consent.ConsentManagementPolicy
 import com.tealium.core.consent.UserConsentPreferences
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
+import com.tealium.remotecommands.RemoteCommandRequest
+import java.lang.ref.WeakReference
 import java.util.*
 
 /**
@@ -59,7 +62,7 @@ interface DispatchDroppedListener : Listener {
  * Executes when a Remote Command execution is required from an external module.
  */
 interface RemoteCommandListener : Listener {
-    fun onRemoteCommandSend(url: String)
+    fun onRemoteCommandSend(request: RemoteCommandRequest)
     fun onProcessRemoteCommand(dispatch: Dispatch)
 }
 
@@ -127,4 +130,12 @@ interface SessionStartedListener : Listener {
 interface UserConsentPreferencesUpdatedListener: Listener {
 
     fun onUserConsentPreferencesUpdated(userConsentPreferences: UserConsentPreferences, policy: ConsentManagementPolicy)
+}
+
+interface InstanceShutdownListener: Listener {
+
+    /**
+     * Notifies that a Tealium instance is being shutdown
+     */
+    fun onInstanceShutdown(name: String, instance: WeakReference<Tealium>)
 }

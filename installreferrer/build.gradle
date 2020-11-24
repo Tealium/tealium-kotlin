@@ -2,8 +2,9 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'maven-publish'
+apply from: '../jacoco.gradle'
 
-version = '0.1.0'
+version = '1.0.0'
 
 android {
     compileSdkVersion 29
@@ -24,8 +25,15 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {
+            testCoverageEnabled true
+        }
     }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
@@ -44,15 +52,15 @@ dependencies {
     androidTestImplementation "io.mockk:mockk-android:$mockk_version"
 }
 
-//afterEvaluate {
-//    publishing {
-//        publications {
-//            release(MavenPublication) {
-//                from components.release
-//                groupId = 'com.tealium'
-//                artifactId = 'kotlin-install-referrer'
-//            }
-//        }
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.tealium'
+                artifactId = 'kotlin-install-referrer'
+            }
+        }
 //        repositories {
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
@@ -62,5 +70,5 @@ dependencies {
 //                }
 //            }
 //        }
-//    }
-//}
+    }
+}

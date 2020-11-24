@@ -5,7 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.tealium.mobile.TealiumHelper
+import com.tealium.core.Tealium
+import com.tealium.mobile.BuildConfig
 import com.tealium.mobile.R
 import com.tealium.visitorservice.visitorService
 import kotlinx.android.synthetic.main.fragment_visitor_service.*
@@ -27,8 +28,7 @@ class VisitorServiceFragment : Fragment() {
 
     private fun onFetchProfile() {
         GlobalScope.launch {
-            println("fetch profile")
-            TealiumHelper.instance.visitorService?.requestVisitorProfile()
+            Tealium[BuildConfig.TEALIUM_INSTANCE]?.visitorService?.requestVisitorProfile()
         }
     }
 }

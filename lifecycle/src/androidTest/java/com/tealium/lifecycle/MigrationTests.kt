@@ -22,8 +22,8 @@ import com.tealium.lifecycle.LifecycleSPKey.TIMESTAMP_LAST_WAKE
 import com.tealium.lifecycle.LifecycleSPKey.TIMESTAMP_UPDATE
 import com.tealium.lifecycle.LifecycleSPKey.TOTAL_SECONDS_AWAKE
 import io.mockk.MockKAnnotations
-import junit.framework.Assert.assertEquals
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 

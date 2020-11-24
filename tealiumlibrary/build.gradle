@@ -1,8 +1,10 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'maven-publish'
+apply plugin: 'kotlin-allopen'
+apply from: '../jacoco.gradle'
 
-version = '0.1.0'
+version = '1.1.0'
 
 android {
     compileSdkVersion 29
@@ -29,7 +31,12 @@ android {
         debug {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            testCoverageEnabled true
         }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
 //    packagingOptions {
@@ -39,6 +46,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    api 'com.tealium:remotecommands:1.0.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_core_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
@@ -63,15 +71,15 @@ repositories {
     maven { url "https://kotlin.bintray.com/kotlinx" }
 }
 
-//afterEvaluate {
-//    publishing {
-//        publications {
-//            release(MavenPublication) {
-//                from components.release
-//                groupId = 'com.tealium'
-//                artifactId = 'kotlin-core'
-//            }
-//        }
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.tealium'
+                artifactId = 'kotlin-core'
+            }
+        }
 //        repositories {
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
@@ -81,5 +89,9 @@ repositories {
 //                }
 //            }
 //        }
-//    }
-//}
+    }
+}
+
+allOpen {
+    annotation 'com.tealium.test.OpenClass'
+}

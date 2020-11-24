@@ -36,8 +36,6 @@ class RemoteCommandConfigRetrieverTests {
         MockKAnnotations.init(this)
         context = ApplicationProvider.getApplicationContext()
 
-        mockkStatic(Log::class)
-        every { Log.v(any(), any()) } returns 0
         mockNetworkClient = mockk()
 
         config = TealiumConfig(context, "test", "profile", Environment.DEV)
@@ -49,7 +47,7 @@ class RemoteCommandConfigRetrieverTests {
         coEvery { mockNetworkClient.get(any()) } returns null
         // initialize RemoteCommandConfigRetriever
         val configRetriever = RemoteCommandConfigRetriever(config, "testCommandId", filename = "testFileName", client = mockNetworkClient, loader = mockLoader, backgroundScope = mockScope)
-        val config = configRetriever.remoteCommandConfig
+        configRetriever.remoteCommandConfig
 
         verify {
             mockLoader.loadFromAsset(any())
@@ -62,7 +60,7 @@ class RemoteCommandConfigRetrieverTests {
         coEvery { mockNetworkClient.get(any()) } returns null
         // initialize RemoteCommandConfigRetriever
         val configRetriever = RemoteCommandConfigRetriever(config, "testCommandId", remoteUrl = "testRemoteUrl", client = mockNetworkClient, loader = mockLoader, backgroundScope = this)
-        val config = configRetriever.remoteCommandConfig
+        configRetriever.remoteCommandConfig
 
         verify {
             mockLoader.loadFromFile(any())

@@ -37,7 +37,7 @@ interface Logging {
     fun prod(tag: String, msg: String)
 }
 
-class Logger(val config: TealiumConfig) {
+class Logger private constructor(val config: TealiumConfig) {
 
     val context: Context = config.application
 
@@ -77,18 +77,21 @@ class Logger(val config: TealiumConfig) {
         }
 
         override fun onDispatchReady(dispatch: Dispatch) {
-            dev(BuildConfig.TAG, "Dispatch(${dispatch.id.substring(0, 5)}) - Ready")
+            dev(BuildConfig.TAG, "Dispatch(${dispatch.id.substring(0, 5)}) - Ready - ${dispatch.payload()}")
         }
 
         override suspend fun onDispatchSend(dispatch: Dispatch) {
-            dev(BuildConfig.TAG, "Dispatch(${dispatch.id.substring(0, 5)}) - Sending")
+            dev(BuildConfig.TAG, "Dispatch(${dispatch.id.substring(0, 5)}) - Sending - ${dispatch.payload()}")
         }
 
         override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {
             dev(BuildConfig.TAG, "Dispatch(${dispatches.joinToString(prefix = "[", postfix = "]") {
                 it.id.substring(0, 5)
             }
-            }) - Sending")
+            }) - Sending Batch")
+            dispatches.forEach {
+                onDispatchSend(it)
+            }
         }
 
         override fun onDispatchQueued(dispatch: Dispatch) {

@@ -5,9 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.tealium.core.Tealium
 import com.tealium.core.consent.ConsentCategory
 import com.tealium.core.consent.ConsentStatus
-import com.tealium.mobile.TealiumHelper
+import com.tealium.mobile.BuildConfig
 import com.tealium.mobile.R
 import kotlinx.android.synthetic.main.fragment_consent.*
 
@@ -37,19 +38,19 @@ class ConsentFragment : Fragment() {
     }
 
     private fun onConsented() {
-       TealiumHelper.instance.consentManager.userConsentStatus = ConsentStatus.CONSENTED
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.consentManager?.userConsentStatus = ConsentStatus.CONSENTED
     }
 
     private fun onNotConsented() {
-       TealiumHelper.instance.consentManager.userConsentStatus = ConsentStatus.NOT_CONSENTED
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.consentManager?.userConsentStatus = ConsentStatus.NOT_CONSENTED
     }
 
     private fun onResetConsentStatus() {
-       TealiumHelper.instance.consentManager.reset()
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.consentManager?.reset()
     }
 
     private fun onCategoriesButton() {
-       TealiumHelper.instance.consentManager.userConsentCategories = setOf(
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.consentManager?.userConsentCategories = setOf(
                 ConsentCategory.ANALYTICS,
                 ConsentCategory.BIG_DATA
         )

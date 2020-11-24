@@ -1,7 +1,7 @@
 package com.tealium.remotecommanddispatcher
 
 import org.json.JSONObject
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class RemoteCommandConfigTests {

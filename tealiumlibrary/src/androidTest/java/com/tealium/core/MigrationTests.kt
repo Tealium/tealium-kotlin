@@ -8,8 +8,8 @@ import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
 import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
 import com.tealium.core.consent.ConsentStatus
 import io.mockk.MockKAnnotations
-import junit.framework.Assert.*
 import org.junit.After
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.util.*
@@ -73,7 +73,7 @@ class MigrationTests {
     fun consent_status_consentedStatusIsMigrated() {
         consentPreferences.edit().putString("status", "consented").commit()
 
-        tealium = Tealium("instance_name", config)
+        tealium = Tealium.create("instance_name", config)
         assertEquals(ConsentStatus.CONSENTED, tealium.consentManager.userConsentStatus)
     }
 
@@ -81,7 +81,7 @@ class MigrationTests {
     fun consent_status_notConsentedStatusIsMigrated() {
         consentPreferences.edit().putString("status", "notConsented").commit()
 
-        tealium = Tealium("instance_name", config)
+        tealium = Tealium.create("instance_name", config)
         assertEquals(ConsentStatus.NOT_CONSENTED, tealium.consentManager.userConsentStatus)
     }
 
@@ -89,7 +89,7 @@ class MigrationTests {
     fun consent_status_unknownStatusIsMigrated() {
         consentPreferences.edit().putString("status", "unknown").commit()
 
-        tealium = Tealium("instance_name", config)
+        tealium = Tealium.create("instance_name", config)
         assertEquals(ConsentStatus.UNKNOWN, tealium.consentManager.userConsentStatus)
     }
 
@@ -97,7 +97,7 @@ class MigrationTests {
     fun consent_categories_categoryListIsMigrated() {
         consentPreferences.edit().putStringSet("categories", setOf("affiliates", "email", "cdp")).commit()
 
-        tealium = Tealium("instance_name", config)
+        tealium = Tealium.create("instance_name", config)
         val categories = tealium.consentManager.userConsentCategories!!
         assertNotNull(categories)
         assertEquals(3, categories.size)
@@ -110,7 +110,7 @@ class MigrationTests {
     fun consent_categories_nullCategoryListIsMigrated() {
         consentPreferences.edit().putStringSet("categories", null).commit()
 
-        tealium = Tealium("instance_name", config)
+        tealium = Tealium.create("instance_name", config)
         val categories = tealium.consentManager.userConsentCategories
         assertNull(categories)
     }
@@ -127,7 +127,7 @@ class MigrationTests {
             putStringSet("my_string_set", setOf("string_value_1", "string_value_2"))
         }.commit()
 
-        tealium = Tealium("instance_name", config)
+        tealium = Tealium.create("instance_name", config)
         assertTrue(tealium.dataLayer.contains("my_string"))
         assertTrue(tealium.dataLayer.contains("my_int"))
         assertTrue(tealium.dataLayer.contains("my_float"))

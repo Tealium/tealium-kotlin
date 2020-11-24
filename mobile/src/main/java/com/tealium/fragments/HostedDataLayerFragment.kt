@@ -5,8 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.tealium.core.Tealium
 import com.tealium.hosteddatalayer.hostedDataLayer
-import com.tealium.mobile.TealiumHelper
+import com.tealium.mobile.BuildConfig
 import com.tealium.mobile.R
 import kotlinx.android.synthetic.main.fragment_hosted_data_layer.*
 import kotlinx.coroutines.GlobalScope
@@ -27,7 +28,7 @@ class HostedDataLayerFragment : Fragment() {
 
     private fun onClearCache() {
         GlobalScope.launch {
-            TealiumHelper.instance.hostedDataLayer?.clearCache()
+            Tealium[BuildConfig.TEALIUM_INSTANCE]?.hostedDataLayer?.clearCache()
         }
     }
 }
