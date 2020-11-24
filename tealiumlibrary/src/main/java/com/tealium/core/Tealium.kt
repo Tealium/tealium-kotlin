@@ -3,6 +3,9 @@ package com.tealium.core
 import com.tealium.core.collection.SessionCollector
 import com.tealium.core.collection.TealiumCollector
 import com.tealium.core.consent.ConsentManager
+import com.tealium.core.events.EventTrigger
+import com.tealium.core.events.TimedEvents
+import com.tealium.core.events.TimedEventsManager
 import com.tealium.core.messaging.*
 import com.tealium.core.network.Connectivity
 import com.tealium.core.network.ConnectivityRetriever
@@ -36,7 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @param onReady - completion block that signifies when this instance has completed finished initializing.
  */
 @OpenForTesting
-class Tealium private constructor(val key: String, val config: TealiumConfig, private val onReady: (Tealium.() -> Unit)? = null) {
+class Tealium private constructor(val key: String, val config: TealiumConfig, private val onReady: (Tealium.() -> Unit)? = null) : TimedEvents {
 
     private val singleThreadedBackground = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     private val backgroundScope = CoroutineScope(singleThreadedBackground)
@@ -66,7 +69,8 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
     private val databaseHelper: DatabaseHelper
     private val eventRouter = EventDispatcher()
     private val sessionManager = SessionManager(config, eventRouter)
-    private lateinit var deepLinkHandler: DeepLinkHandler
+    private val deepLinkHandler: DeepLinkHandler
+    private val timedEvents: TimedEventsManager
 
     // Are publicly accessible, therefore need to be initialized on creation.
     /**
@@ -140,6 +144,12 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
         logger = Logger
         eventRouter.subscribe(Logger)
         eventRouter.subscribe(sessionManager)
+
+        context = TealiumContext(config, visitorId, logger, dataLayer, networkClient, events as MessengerService, this)
+        deepLinkHandler = DeepLinkHandler(context)
+        eventRouter.subscribe(deepLinkHandler)
+        timedEvents = TimedEventsManager(context)
+
         // Initialize everything else in the background.
         backgroundScope.launch {
             bootstrap()
@@ -199,11 +209,10 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
 
         dispatchSendCallbacks = DispatchSendCallbacks(eventRouter) // required by dispatchers.
 
-        context = TealiumContext(config, visitorId, logger, dataLayer, networkClient, events as MessengerService, this)
         collectors = mutableSetOf(TealiumCollector(context), SessionCollector(session.id), dataLayer).union(initializeCollectors(config.collectors))
         validators = initializeValidators(config.validators)
         dispatchers = initializeDispatchers(config.dispatchers)
-        val genericModules = setOf(consentManager).union(initializeModules(config.modules))
+        val genericModules = setOf(consentManager, timedEvents).union(initializeModules(config.modules))
 
         val modulesList = collectors.union(validators)
                 .union(dispatchers)
@@ -226,8 +235,6 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
                 eventRouter)
         eventRouter.subscribe(dispatchRouter)
         eventRouter.subscribe(dispatchStore)
-        deepLinkHandler = DeepLinkHandler(context)
-        eventRouter.subscribe(deepLinkHandler)
         onInstanceReady()
     }
 
@@ -327,6 +334,16 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
     fun killTraceVisitorSession() {
         deepLinkHandler.killTraceVisitorSession()
     }
+
+    override fun startTimedEvent(name: String, data: Map<String, Any>?): Long? = timedEvents.startTimedEvent(name, data)
+
+    override fun stopTimedEvent(name: String): Long? = timedEvents.stopTimedEvent(name)
+
+    override fun cancelTimedEvent(name: String) = timedEvents.cancelTimedEvent(name)
+
+    override fun addEventTrigger(vararg trigger: EventTrigger) = timedEvents.addEventTrigger(*trigger)
+
+    override fun removeEventTrigger(name: String) = timedEvents.removeEventTrigger(name)
 
     /**
      * Migrates persistent data from the Tealium Android (Java) library if present

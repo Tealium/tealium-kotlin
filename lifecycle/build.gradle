@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'maven-publish'
 apply from: '../jacoco.gradle'
 
-version = '1.0.0'
+version = '1.0.1'
 
 android {
     compileSdkVersion 29
@@ -36,6 +36,7 @@ android {
 
     testOptions {
         unitTests.returnDefaultValues = true
+        unitTests.includeAndroidResources = true
     }
 }
 
@@ -45,7 +46,10 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     testImplementation 'junit:junit:4.12'
+    testImplementation "org.robolectric:robolectric:4.3.1"
     testImplementation "io.mockk:mockk:$mockk_version"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_core_version"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_test_version"
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_test_version"
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test:rules:1.2.0'

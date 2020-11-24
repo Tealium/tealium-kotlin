@@ -2,6 +2,7 @@ package com.tealium.core
 
 import android.app.Application
 import com.tealium.core.collection.*
+import com.tealium.core.events.EventTrigger
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.test.OpenForTesting
@@ -84,6 +85,11 @@ class TealiumConfig @JvmOverloads constructor(val application: Application,
      * Set to false to disable the QR code trace feature.
      */
     var qrTraceEnabled: Boolean = true
+
+    /**
+     * A list of EventTriggers for automatically starting and stopping TimedEvents.
+     */
+    var timedEventTriggers: MutableList<EventTrigger> = mutableListOf()
 
     init {
         tealiumDirectory.mkdirs()
