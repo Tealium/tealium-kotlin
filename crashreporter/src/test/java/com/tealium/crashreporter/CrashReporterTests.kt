@@ -6,6 +6,8 @@ import com.tealium.core.Environment
 import com.tealium.core.Tealium
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
+import com.tealium.crashreporter.internal.Crash
+import com.tealium.crashreporter.internal.CrashReporter
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
@@ -71,7 +73,7 @@ class CrashReporterTests {
         every { mockSharedPreferences.getString(CrashReporter.CRASH_EXCEPTION_CAUSE, null) } returns "java.lang.RuntimeException"
         every { mockSharedPreferences.getString(CrashReporter.CRASH_EXCEPTION_NAME, null) } returns "crash"
         every { mockSharedPreferences.getString(CrashReporter.CRASH_BUILD_ID, null) } returns null
-        every { mockSharedPreferences.getString(CrashReporter.CRASH_UUID, null) } returns crash.uUid
+        every { mockSharedPreferences.getString(CrashReporter.CRASH_UUID, null) } returns crash.uuid
         every { mockSharedPreferences.getString(CrashReporter.CRASH_THREADS, null) } returns Crash.getThreadData(crash, false)
 
         every { tealiumContext.track(eventDispatch) } returns Unit
@@ -105,7 +107,7 @@ class CrashReporterTests {
 
         val crashData: Map<String, Any>? = reporter.readSavedCrashData()
 
-        Assert.assertTrue(crashData?.get(CrashReporter.CRASH_UUID).toString().length.equals(crash.uUid.length))
+        Assert.assertTrue(crashData?.get(CrashReporter.CRASH_UUID).toString().length.equals(crash.uuid.length))
 
     }
 

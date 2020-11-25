@@ -1,15 +1,20 @@
-package com.tealium.crashreporter;
+package com.tealium.crashreporter.internal;
 
-import android.util.Log
+import com.tealium.core.Logger
 import com.tealium.tealiumlibrary.BuildConfig
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
-data class Crash (val thread: Thread, val exception: Throwable, val exceptionCause: String = exception.javaClass.name,
-                  val exceptionName: String = exception.message.toString(), val uUid: String = java.util.UUID.randomUUID().toString(),
-                  val threadState: String = thread.state.toString(), val threadNumber: String = thread.id.toString(),
-                  val threadId: String = thread.name.toString(), val threadPriority: String = thread.priority.toString()) {
+internal data class Crash (val thread: Thread,
+                  val exception: Throwable,
+                  val exceptionCause: String = exception.javaClass.name,
+                  val exceptionName: String = exception.message.toString(),
+                  val uuid: String = java.util.UUID.randomUUID().toString(),
+                  val threadState: String = thread.state.toString(),
+                  val threadNumber: String = thread.id.toString(),
+                  val threadId: String = thread.name.toString(),
+                  val threadPriority: String = thread.priority.toString()) {
 
     companion object {
 
@@ -24,8 +29,8 @@ data class Crash (val thread: Thread, val exception: Throwable, val exceptionCau
         const val KEY_THREAD_STACK = "stack"
 
         fun getThreadData (crash: Crash, truncateStackTrace: Boolean): String {
-            var array = JSONArray()
-            var threadData = JSONObject()
+            val array = JSONArray()
+            val threadData = JSONObject()
 
             try {
                 threadData.put("crashed", "true")
@@ -35,14 +40,13 @@ data class Crash (val thread: Thread, val exception: Throwable, val exceptionCau
                 threadData.put(KEY_THREAD_PRIORITY, crash.threadPriority)
                 threadData.put(KEY_THREAD_STACK, getStackData(crash, truncateStackTrace))
             } catch (ex: JSONException) {
-                Log.e(BuildConfig.TAG, ex.message)
+                Logger.prod(BuildConfig.TAG, "Error getting Thread data: ${ex.message ?: ""}")
             }
 
             array.put(threadData.toString())
 
             return array.toString()
         }
-
 
         fun getStackData(crash: Crash, truncateStackTrace: Boolean): JSONArray {
             val array = JSONArray()
@@ -63,12 +67,10 @@ data class Crash (val thread: Thread, val exception: Throwable, val exceptionCau
                         break
                     }
                 } catch (ex: JSONException) {
-                    Log.e(BuildConfig.TAG, ex.message)
+                    Logger.prod(BuildConfig.TAG, "Error getting StackTrace data: ${ex.message ?: ""}")
                 }
             }
             return array
         }
-
-
     }
 }
