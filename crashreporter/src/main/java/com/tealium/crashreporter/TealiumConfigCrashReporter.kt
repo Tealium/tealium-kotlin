@@ -5,6 +5,9 @@ import com.tealium.core.Modules
 import com.tealium.core.Tealium
 import com.tealium.core.TealiumConfig
 
+/**
+ * Returns the Crash Reporter factory.
+ */
 val Modules.CrashReporter: ModuleFactory
     get() = com.tealium.crashreporter.CrashReporter
 

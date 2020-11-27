@@ -6,15 +6,15 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
-internal data class Crash (val thread: Thread,
-                  val exception: Throwable,
-                  val exceptionCause: String = exception.javaClass.name,
-                  val exceptionName: String = exception.message.toString(),
-                  val uuid: String = java.util.UUID.randomUUID().toString(),
-                  val threadState: String = thread.state.toString(),
-                  val threadNumber: String = thread.id.toString(),
-                  val threadId: String = thread.name.toString(),
-                  val threadPriority: String = thread.priority.toString()) {
+internal data class Crash(val thread: Thread,
+                          val exception: Throwable,
+                          val exceptionCause: String = exception.javaClass.name,
+                          val exceptionName: String = exception.message.toString(),
+                          val uuid: String = java.util.UUID.randomUUID().toString(),
+                          val threadState: String = thread.state.toString(),
+                          val threadNumber: String = thread.id.toString(),
+                          val threadId: String = thread.name.toString(),
+                          val threadPriority: String = thread.priority.toString()) {
 
     companion object {
 
@@ -28,7 +28,7 @@ internal data class Crash (val thread: Thread,
         const val KEY_THREAD_PRIORITY = "priority"
         const val KEY_THREAD_STACK = "stack"
 
-        internal fun getThreadData (crash: Crash, truncateStackTrace: Boolean): String {
+        internal fun getThreadData(crash: Crash, truncateStackTrace: Boolean): String {
             val array = JSONArray()
             val threadData = JSONObject()
 

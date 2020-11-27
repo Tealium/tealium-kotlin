@@ -3,6 +3,11 @@ package com.tealium.crashreporter
 import com.tealium.core.*
 import com.tealium.crashreporter.internal.CrashHandler
 
+/**
+ * The Crash Reporter Module will register itself as the default [Thread.UncaughtExceptionHandler]
+ * and log any unexpected crashes. Upon the next app launch the crash data will be sent to any
+ * Dispatchers used.
+ */
 class CrashReporter(private val context: TealiumContext,
                     val exceptionHandler: Thread.UncaughtExceptionHandler = CrashHandler(context,
                             context.config.application.getSharedPreferences(getSharedPreferencesName(context.config), 0),
@@ -13,10 +18,11 @@ class CrashReporter(private val context: TealiumContext,
         Thread.setDefaultUncaughtExceptionHandler(exceptionHandler)
     }
 
-    companion object: ModuleFactory {
+    companion object : ModuleFactory {
         private const val MODULE_NAME = "CRASH_REPORTER"
 
-        @JvmStatic internal fun getSharedPreferencesName(config: TealiumConfig): String {
+        @JvmStatic
+        internal fun getSharedPreferencesName(config: TealiumConfig): String {
             return "tealium.crash." + Integer.toHexString((config.accountName + config.profileName + config.environment.environment).hashCode())
         }
 

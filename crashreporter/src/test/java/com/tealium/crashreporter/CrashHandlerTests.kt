@@ -208,7 +208,7 @@ class CrashHandlerTests {
         crashHandler = CrashHandler(mockTealiumContext, mockSharedPreferences)
         crashHandler.onActivityResumed(null)
 
-        verify (exactly = 0) {
+        verify(exactly = 0) {
             mockTealiumContext.track(any())
         }
     }

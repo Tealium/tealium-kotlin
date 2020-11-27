@@ -4,7 +4,6 @@ import com.tealium.crashreporter.internal.Crash
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.*
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -27,7 +26,6 @@ class CrashTests {
         assertFalse(crash.threadId.isBlank())
         assertFalse(crash.threadPriority.isBlank())
     }
-
 
     @Test
     fun crash_GetThreadData_ReturnsThreadData() {

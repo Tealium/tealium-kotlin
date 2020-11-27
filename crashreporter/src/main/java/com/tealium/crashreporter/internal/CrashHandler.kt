@@ -12,7 +12,8 @@ import java.util.*
 internal class CrashHandler(private val context: TealiumContext,
                             private val sharedPreferences: SharedPreferences,
                             val originalExceptionHandler: Thread.UncaughtExceptionHandler? = null,
-                            val truncateStackTraces: Boolean = context.config.truncateCrashReporterStackTraces ?: false) : Thread.UncaughtExceptionHandler, ActivityObserverListener {
+                            val truncateStackTraces: Boolean = context.config.truncateCrashReporterStackTraces
+                                    ?: false) : Thread.UncaughtExceptionHandler, ActivityObserverListener {
 
     private var _crashCount: Int = sharedPreferences.getInt(CRASH_COUNT, 0)
         @SuppressLint("ApplySharedPref")
