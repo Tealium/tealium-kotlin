@@ -3,17 +3,13 @@ package com.tealium.crashreporter
 import android.app.Application
 import android.content.SharedPreferences
 import com.tealium.core.Environment
-import com.tealium.core.Tealium
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
-import com.tealium.crashreporter.internal.Crash
-import com.tealium.crashreporter.internal.CrashReporter
-import com.tealium.dispatcher.Dispatch
-import com.tealium.dispatcher.TealiumEvent
+import com.tealium.crashreporter.internal.CrashHandler
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import org.json.JSONObject
-import org.junit.Assert
+import junit.framework.Assert.assertNotNull
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -33,102 +29,74 @@ class CrashReporterTests {
     lateinit var mockSharedPreferences: SharedPreferences
 
     @MockK
-    lateinit var mockJSONObject: JSONObject
-
-    @MockK
     lateinit var mockEditor: SharedPreferences.Editor
 
-    lateinit var tealiumContext: TealiumContext
-    lateinit var config: TealiumConfig
-    lateinit var tealium: Tealium
-    lateinit var reporter: CrashReporter
-    lateinit var eventDispatch : Dispatch
+    @MockK
+    lateinit var mockTealiumContext: TealiumContext
+
+    @MockK
+    lateinit var mockConfig: TealiumConfig
 
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
 
-        tealium = mockk()
-        mockJSONObject = mockk()
-
-        val thread = Thread()
-        val exception = RuntimeException("crash")
-        val crash = Crash(thread, exception)
-
-        eventDispatch =  TealiumEvent("crash")
-
+        every { mockTealiumContext.config } returns mockConfig
+        every { mockConfig.application } returns mockContext
+        every { mockConfig.accountName } returns "account_1"
+        every { mockConfig.profileName } returns "profile_1"
+        every { mockConfig.environment } returns Environment.DEV
+        every { mockConfig.options } returns mutableMapOf()
         every { mockContext.filesDir } returns mockFile
 
         every { mockContext.getSharedPreferences(any(), any()) } returns mockSharedPreferences
         every { mockSharedPreferences.edit() } returns mockEditor
         every { mockEditor.putString(any(), any()) } returns mockEditor
-        every { mockEditor.putInt(CrashReporter.CRASH_COUNT, 1) } returns mockEditor
+        every { mockEditor.putInt(any(), any()) } returns mockEditor
         every { mockEditor.apply() } just Runs
-
-        config = TealiumConfig(mockContext, "test_account", "test_profile", Environment.QA)
-        tealiumContext = TealiumContext(config, "", mockk(), mockk(), mockk(), mockk(), tealium)
-        reporter = spyk(CrashReporter(tealiumContext))
-
-        every { mockSharedPreferences.contains(CrashReporter.CRASH_COUNT) } returns true
-        every { mockSharedPreferences.getString(CrashReporter.CRASH_EXCEPTION_CAUSE, null) } returns "java.lang.RuntimeException"
-        every { mockSharedPreferences.getString(CrashReporter.CRASH_EXCEPTION_NAME, null) } returns "crash"
-        every { mockSharedPreferences.getString(CrashReporter.CRASH_BUILD_ID, null) } returns null
-        every { mockSharedPreferences.getString(CrashReporter.CRASH_UUID, null) } returns crash.uuid
-        every { mockSharedPreferences.getString(CrashReporter.CRASH_THREADS, null) } returns Crash.getThreadData(crash, false)
-
-        every { tealiumContext.track(eventDispatch) } returns Unit
-        every { mockEditor.remove(CrashReporter.CRASH_EXCEPTION_CAUSE) } returns mockEditor
-        every { mockEditor.remove(CrashReporter.CRASH_EXCEPTION_NAME) } returns mockEditor
-        every { mockEditor.remove(CrashReporter.CRASH_UUID) } returns mockEditor
-        every { mockEditor.remove(CrashReporter.CRASH_THREADS) } returns mockEditor
-    }
-
-    // Verify exception data
-    @Test
-    fun testExceptionDataOnException() {
-        val thread = Thread()
-        val exception = RuntimeException("crash")
-        val crash = Crash(thread, exception)
-        reporter.saveCrashData(crash)
-
-        val crashData: Map<String, Any>? = reporter.readSavedCrashData()
-
-        Assert.assertEquals(crash.exceptionCause, crashData?.get(CrashReporter.CRASH_EXCEPTION_CAUSE))
-        Assert.assertEquals(crash.exceptionName, crashData?.get(CrashReporter.CRASH_EXCEPTION_NAME))
-    }
-
-    // Verify UUID exists
-    @Test
-    fun testUuidOnException() {
-        val thread = Thread()
-        val exception = RuntimeException("crash")
-        val crash = Crash(thread, exception)
-        reporter.saveCrashData(crash)
-
-        val crashData: Map<String, Any>? = reporter.readSavedCrashData()
-
-        Assert.assertTrue(crashData?.get(CrashReporter.CRASH_UUID).toString().length.equals(crash.uuid.length))
-
-    }
-
-    // Verify thread data
-    @Test
-    fun testThreadDataOnException() {
-        val th = Thread()
-        val exception = RuntimeException("crash")
-        val crash = Crash(th, exception)
-
-        Assert.assertEquals(crash.thread.id, th.id)
-        Assert.assertEquals(crash.thread.state, th.state)
-        Assert.assertEquals(crash.thread.name, th.name)
-        Assert.assertEquals(crash.thread.priority, th.priority)
+        every { mockSharedPreferences.getInt(CrashHandler.CRASH_COUNT, 0) } returns 0
+        every { mockSharedPreferences.getString(CrashHandler.CRASH_BUILD_ID, any()) } returns "buildId"
+        every { mockTealiumContext.track(any()) } just Runs
     }
 
     @Test
-    fun verifyCrashDataOnActivityResumed() {
-        reporter.onActivityResumed()
+    fun sharedPrefs_NameIsUnique() {
+        val config1: TealiumConfig = mockk()
+        every { config1.accountName } returns "account_1"
+        every { config1.profileName } returns "profile_1"
+        every { config1.environment } returns Environment.DEV
+        val config2: TealiumConfig = mockk()
+        every { config2.accountName } returns "account_2"
+        every { config2.profileName } returns "profile_2"
+        every { config2.environment } returns Environment.DEV
 
-        Assert.assertTrue(mockSharedPreferences.contains(CrashReporter.CRASH_COUNT))
+        val sharedPrefsName1 = CrashReporter.getSharedPreferencesName(config1)
+        val sharedPrefsName2 = CrashReporter.getSharedPreferencesName(config2)
+        assertNotEquals(sharedPrefsName1, sharedPrefsName2)
     }
 
+    @Test
+    fun factory_CreatesNewInstance() {
+        val crashReporter = CrashReporter.create(mockTealiumContext)
+        assertNotNull(crashReporter)
+    }
+
+    @Test
+    fun factory_CreatesUniqueInstances() {
+        val crashReporter1 = CrashReporter.create(mockTealiumContext)
+        val crashReporter2 = CrashReporter.create(mockTealiumContext)
+        assertNotSame(crashReporter1, crashReporter2)
+    }
+
+    @Test
+    fun factory_MultipleInstances_ChainsHandlers() {
+        val mockExceptionHandler: Thread.UncaughtExceptionHandler = mockk(relaxed = true)
+        Thread.setDefaultUncaughtExceptionHandler(mockExceptionHandler)
+        val crashReporter1 = CrashReporter(mockTealiumContext)
+        val crashReporter2 = CrashReporter(mockTealiumContext)
+
+        assertSame(crashReporter2.exceptionHandler, Thread.getDefaultUncaughtExceptionHandler())
+        assertSame(crashReporter1.exceptionHandler, (crashReporter2.exceptionHandler as CrashHandler).originalExceptionHandler)
+        assertSame(mockExceptionHandler, (crashReporter1.exceptionHandler as CrashHandler).originalExceptionHandler)
+    }
 }

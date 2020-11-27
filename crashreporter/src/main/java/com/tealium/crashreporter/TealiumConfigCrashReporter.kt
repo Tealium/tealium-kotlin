@@ -4,7 +4,6 @@ import com.tealium.core.ModuleFactory
 import com.tealium.core.Modules
 import com.tealium.core.Tealium
 import com.tealium.core.TealiumConfig
-import com.tealium.crashreporter.CrashReporter
 
 val Modules.CrashReporter: ModuleFactory
     get() = com.tealium.crashreporter.CrashReporter

@@ -28,7 +28,7 @@ internal data class Crash (val thread: Thread,
         const val KEY_THREAD_PRIORITY = "priority"
         const val KEY_THREAD_STACK = "stack"
 
-        fun getThreadData (crash: Crash, truncateStackTrace: Boolean): String {
+        internal fun getThreadData (crash: Crash, truncateStackTrace: Boolean): String {
             val array = JSONArray()
             val threadData = JSONObject()
 
@@ -48,7 +48,7 @@ internal data class Crash (val thread: Thread,
             return array.toString()
         }
 
-        fun getStackData(crash: Crash, truncateStackTrace: Boolean): JSONArray {
+        internal fun getStackData(crash: Crash, truncateStackTrace: Boolean): JSONArray {
             val array = JSONArray()
             val stackTraceElements: Array<StackTraceElement> = crash.exception.stackTrace
 
