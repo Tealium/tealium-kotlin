@@ -31,4 +31,6 @@
 -keep public interface com.tealium.crashreporter.** { *; }
 
 # Keep all public classes in the top level package
--keep public class com.tealium.crashreporter.* { *; }
+-keep public class !com.tealium.crashreporter.BuildConfig,com.tealium.crashreporter.* {
+ public protected *;
+}
