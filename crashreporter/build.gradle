@@ -14,8 +14,8 @@ android {
         minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
-        versionName "1.0"
-        buildConfigField 'String', 'TAG', "\"Tealium-CollectDispatcher-$version\""
+        versionName "$version"
+        buildConfigField 'String', 'TAG', "\"Tealium-CrashReporter-$version\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"

@@ -48,7 +48,7 @@ internal data class Crash(val thread: Thread,
             return array.toString()
         }
 
-        internal fun getStackData(crash: Crash, truncateStackTrace: Boolean): JSONArray {
+        private fun getStackData(crash: Crash, truncateStackTrace: Boolean): JSONArray {
             val array = JSONArray()
             val stackTraceElements: Array<StackTraceElement> = crash.exception.stackTrace
 
