@@ -8,6 +8,7 @@ import com.tealium.core.consent.consentManagerEnabled
 import com.tealium.core.consent.consentManagerPolicy
 import com.tealium.core.events.EventTrigger
 import com.tealium.core.validation.DispatchValidator
+import com.tealium.crashreporter.CrashReporter
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import com.tealium.dispatcher.TealiumView
@@ -29,7 +30,7 @@ object TealiumHelper {
                 "tealiummobile",
                 "android",
                 Environment.DEV,
-                modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer),
+                modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer, Modules.CrashReporter),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
             useRemoteLibrarySettings = true
