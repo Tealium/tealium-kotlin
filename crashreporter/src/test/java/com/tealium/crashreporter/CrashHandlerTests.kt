@@ -51,12 +51,14 @@ class CrashHandlerTests {
         every { mockEditor.putString(any(), any()) } returns mockEditor
         every { mockEditor.putInt(any(), any()) } returns mockEditor
         every { mockEditor.apply() } just Runs
+        every { mockEditor.commit() } returns true
         every { mockSharedPreferences.getInt(CrashHandler.CRASH_COUNT, 0) } returns 0
         every { mockSharedPreferences.getString(CrashHandler.CRASH_BUILD_ID, any()) } returns "buildId"
         every { mockTealiumContext.config } returns mockConfig
         every { mockConfig.application } returns mockContext
         every { mockConfig.truncateCrashReporterStackTraces } returns null
         every { mockTealiumContext.track(any()) } just Runs
+        every { mockTealiumContext.events } returns mockk(relaxed = true)
     }
 
     @Test
