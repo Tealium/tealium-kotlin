@@ -14,6 +14,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.util.concurrent.TimeUnit
+import kotlin.time.ExperimentalTime
+import kotlin.time.milliseconds
 
 class ConsentManager(private val config: TealiumConfig,
                      private val eventRouter: EventRouter,
@@ -31,10 +34,22 @@ class ConsentManager(private val config: TealiumConfig,
     private val consentSharedPreferences = ConsentSharedPreferences(config)
     private val consentManagementPolicy: ConsentManagementPolicy?
     private val httpClient: NetworkClient by lazy { HttpClient(config, connectivity) }
+    private val expiry = config.consentExpiry.expiryTime()
+    var onConsentExpiration: (()->Unit)? = config.consentExpiryCallback
 
     init {
+        expireConsent()
         consentManagementPolicy = policy?.create(UserConsentPreferences(userConsentStatus, userConsentCategories))
     }
+
+    /**
+     * Used by the Consent Manager module to determine if the consent selections are expired.
+     */
+    private var consentLastSet: Long?
+        get() = consentSharedPreferences?.lastSet
+        set(value) {
+            consentSharedPreferences?.lastSet = value
+        }
 
     /**
      * Sets the current Consent Status.
@@ -102,6 +117,27 @@ class ConsentManager(private val config: TealiumConfig,
     }
 
     /**
+     * Checks if the consent selections are expired.
+     * If so, resets consent preferences and triggers optional callback.
+     */
+    private fun expireConsent() {
+        consentLastSet?.let {
+            if (isExpired(it)) {
+                userConsentStatus = ConsentStatus.UNKNOWN
+                userConsentCategories = null
+                onConsentExpiration?.invoke()
+            }
+        }
+    }
+
+    /**
+     * Checks if value is expired.
+     */
+    private fun isExpired(timestamp: Long): Boolean {
+        return (timestamp < TimeUnit.SECONDS.toMillis(expiry))
+    }
+
+    /**
      * Resets the chosen ConsentStatus and set of ConsentCategory back to their defaults.
      */
     fun reset() {
@@ -126,6 +162,7 @@ class ConsentManager(private val config: TealiumConfig,
         consentManagementPolicy?.let {
             val preferences = UserConsentPreferences(userConsentStatus, userConsentCategories)
             it.userConsentPreferences = preferences
+            consentLastSet = System.currentTimeMillis()
             eventRouter.onUserConsentPreferencesUpdated(preferences, it)
 
             if (isConsentLoggingEnabled) {
@@ -138,6 +175,7 @@ class ConsentManager(private val config: TealiumConfig,
      * Delegates whether or not to queue this event to the current [ConsentPolicy] in force, otherwise false
      */
     override fun shouldQueue(dispatch: Dispatch?): Boolean {
+        expireConsent()
         return consentManagementPolicy?.shouldQueue()
                 ?: false
     }

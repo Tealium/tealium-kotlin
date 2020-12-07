@@ -3,10 +3,9 @@ package com.tealium.mobile
 import android.app.Application
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
-import com.tealium.core.consent.ConsentPolicy
-import com.tealium.core.consent.consentManagerEnabled
-import com.tealium.core.consent.consentManagerPolicy
+import com.tealium.core.consent.*
 import com.tealium.core.events.EventTrigger
+import com.tealium.core.persistence.Expiry
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.crashreporter.CrashReporter
 import com.tealium.dispatcher.Dispatch
@@ -22,6 +21,7 @@ import com.tealium.tagmanagementdispatcher.TagManagement
 import com.tealium.visitorservice.VisitorProfile
 import com.tealium.visitorservice.VisitorService
 import com.tealium.visitorservice.VisitorUpdatedListener
+import java.util.concurrent.TimeUnit
 
 object TealiumHelper {
 
@@ -37,11 +37,14 @@ object TealiumHelper {
             hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
 
             // Uncomment to enable Consent Management
-            // consentManagerEnabled = true
+             consentManagerEnabled = true
             // and, uncomment one of the following lines to set the appropriate Consent Policy
-            // consentManagerPolicy = ConsentPolicy.GDPR
+             consentManagerPolicy = ConsentPolicy.GDPR
             // consentManagerPolicy = ConsentPolicy.CCPA
-
+            consentExpiry = Expiry.afterTimeUnit(1, TimeUnit.MINUTES)
+            consentExpiryCallback = {
+                Logger.dev(BuildConfig.TAG, "😀 Consent expired")
+            }
             timedEventTriggers = mutableListOf(
                     EventTrigger.forEventName("start_event", "end_event")
             )
