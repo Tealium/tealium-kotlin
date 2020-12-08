@@ -2,8 +2,10 @@ package com.tealium.core.consent
 
 import org.json.JSONArray
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 data class UserConsentPreferences(val consentStatus: ConsentStatus, val consentCategories: Set<ConsentCategory>? = null)
+data class ConsentExpiry(val length: Long, val timeUnit: TimeUnit)
 
 enum class ConsentStatus(val value: String) {
     UNKNOWN("unknown"),

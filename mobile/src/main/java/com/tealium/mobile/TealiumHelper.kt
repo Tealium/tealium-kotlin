@@ -41,9 +41,9 @@ object TealiumHelper {
             // and, uncomment one of the following lines to set the appropriate Consent Policy
              consentManagerPolicy = ConsentPolicy.GDPR
             // consentManagerPolicy = ConsentPolicy.CCPA
-            consentExpiry = Expiry.afterTimeUnit(1, TimeUnit.MINUTES)
+            consentExpiry = ConsentExpiry(1, TimeUnit.MINUTES)
             consentExpiryCallback = {
-                Logger.dev(BuildConfig.TAG, "😀 Consent expired")
+                Logger.dev(BuildConfig.TAG, "Consent expired")
             }
             timedEventTriggers = mutableListOf(
                     EventTrigger.forEventName("start_event", "end_event")
@@ -51,7 +51,7 @@ object TealiumHelper {
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
-            consentManager.enabled = true
+            // consentManager.enabled = true
             events.subscribe(object : VisitorUpdatedListener {
                 override fun onVisitorUpdated(visitorProfile: VisitorProfile) {
                     Logger.dev("--", "did update vp with $visitorProfile")

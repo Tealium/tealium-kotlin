@@ -45,9 +45,9 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
             }
         }
 
-    var lastSet: Long? = System.currentTimeMillis()
+    var lastSet: Long? = null
         get() {
-            return sharedPreferences.getLong(KEY_LAST_SET, System.currentTimeMillis())
+            return sharedPreferences.getLong(KEY_LAST_SET, 0)
         }
         set(value) {
             field = value
@@ -60,7 +60,6 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
 
 
     fun setConsentStatus(consentStatus: ConsentStatus, consentCategories: Set<ConsentCategory>? = null) {
-        this.lastSet = System.currentTimeMillis()
         this.consentStatus = consentStatus
         this.consentCategories = consentCategories
     }

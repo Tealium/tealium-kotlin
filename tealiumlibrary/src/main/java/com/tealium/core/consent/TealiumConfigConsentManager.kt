@@ -46,8 +46,8 @@ var TealiumConfig.consentManagerPolicy: ConsentPolicy?
 /**
  * Sets the consent expiration.
  */
-var TealiumConfig.consentExpiry: Expiry
-    get() = options[CONSENT_EXPIRY] as? Expiry ?: Expiry.afterTimeUnit(365, TimeUnit.DAYS)
+var TealiumConfig.consentExpiry: ConsentExpiry
+    get() = options[CONSENT_EXPIRY] as? ConsentExpiry ?: ConsentExpiry(365, TimeUnit.DAYS)
     set(value) {
         value?.let {
             options[CONSENT_EXPIRY] = it

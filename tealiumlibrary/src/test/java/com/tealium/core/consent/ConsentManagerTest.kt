@@ -2,18 +2,24 @@ package com.tealium.core.consent
 
 import android.app.Application
 import android.content.SharedPreferences
+import android.util.Log
 import com.tealium.core.Environment
+import com.tealium.core.Logger
 import com.tealium.core.TealiumConfig
 import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
+import com.tealium.core.consent.ConsentManagerConstants.KEY_LAST_SET
 import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
+import com.tealium.core.messaging.EventDispatcher
 import com.tealium.core.messaging.EventRouter
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 class ConsentManagerTest {
 
@@ -23,10 +29,10 @@ class ConsentManagerTest {
     @MockK
     lateinit var mockFile: File
 
-    @MockK
+    @RelaxedMockK
     lateinit var sharedPreferences: SharedPreferences
 
-    @MockK
+    @RelaxedMockK
     lateinit var editor: SharedPreferences.Editor
 
     @MockK(relaxed = true)
@@ -34,6 +40,7 @@ class ConsentManagerTest {
 
     lateinit var consentManager: ConsentManager
     lateinit var config: TealiumConfig
+    var counter = 0
 
     @Before
     fun setUp() {
@@ -49,6 +56,10 @@ class ConsentManagerTest {
         every { editor.putString(KEY_STATUS, "unknown") } returns editor
 
         config = TealiumConfig(context, "test", "profile", Environment.QA)
+        config.consentExpiry = ConsentExpiry(1, TimeUnit.MINUTES)
+        config.consentExpiryCallback = {
+            counter++
+        }
         consentManager = ConsentManager(config, eventRouter, "visitor1234567890", mockk())
     }
 
@@ -177,5 +188,99 @@ class ConsentManagerTest {
 
         val data = consentManager.collect()
         assertTrue(data.isEmpty())
+    }
+
+    @Test
+    fun consentManagerLastSetDefinedUponConsentStatusChangeConsented() {
+        every { editor.putLong(KEY_LAST_SET, 1234) } returns editor
+        every { sharedPreferences.getLong(any(), any()) } returns 1234
+        val expected: Long = 1234
+
+        consentManager.userConsentStatus = ConsentStatus.CONSENTED
+        val actual = consentManager.consentLastSet
+
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun consentManagerLastSetDefinedUponConsentStatusChangeNotConsented() {
+        every { editor.putLong(KEY_LAST_SET, 1234) } returns editor
+        every { sharedPreferences.getLong(any(), any()) } returns 1234
+        val expected: Long = 1234
+
+        consentManager.userConsentStatus = ConsentStatus.NOT_CONSENTED
+        val actual = consentManager.consentLastSet
+
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun consentManagerLastSetNotDefinedUponWhenStatusUnknown() {
+        consentManager.userConsentStatus = ConsentStatus.UNKNOWN
+
+        // run once on init
+        verify(exactly = 1) {
+            sharedPreferences.getLong(any(), any())
+        }
+    }
+
+    @Test
+    fun isExpiredReturnsTrue() {
+        val mockTime = System.currentTimeMillis() - 60001
+        val actual = consentManager.isExpired(mockTime)
+        assertTrue(actual)
+    }
+
+    @Test
+    fun isExpiredReturnsFalse() {
+        val mockTime = System.currentTimeMillis() - 59999
+        val actual = consentManager.isExpired(mockTime)
+        assertFalse(actual)
+    }
+
+    @Test
+    fun expireConsentUpdatesConsentStatus() {
+        val mockTime = System.currentTimeMillis() - 60001
+        every { editor.putLong(KEY_LAST_SET, mockTime) } returns editor
+        every { sharedPreferences.getLong(any(), any()) } returns mockTime
+
+        consentManager.expireConsent()
+
+        verify(exactly = 1) {
+            editor.putString(KEY_STATUS, any())
+        }
+    }
+
+    @Test
+    fun expireConsentDoesntUpdateConsentStatus() {
+        every { editor.putLong(KEY_LAST_SET, 0) } returns editor
+        every { sharedPreferences.getLong(any(), any()) } returns 0
+
+        consentManager.expireConsent()
+
+        verify(exactly = 0) {
+            editor.putString(KEY_STATUS, any())
+        }
+    }
+
+    @Test
+    fun expireConsentCallsCallback() {
+        val mockTime = System.currentTimeMillis() - 60001
+        every { editor.putLong(KEY_LAST_SET, mockTime) } returns editor
+        every { sharedPreferences.getLong(any(), any()) } returns mockTime
+
+        consentManager.expireConsent()
+
+        assertEquals(1, counter)
+    }
+
+    @Test
+    fun expireConsentDoesntCallCallback() {
+        every { editor.putLong(KEY_LAST_SET, 0) } returns editor
+        every { sharedPreferences.getLong(any(), any()) } returns 0
+
+        consentManager.expireConsent()
+
+        assertEquals(0, counter)
     }
 }

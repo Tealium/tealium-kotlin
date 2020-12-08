@@ -34,7 +34,7 @@ class ConsentManager(private val config: TealiumConfig,
     private val consentSharedPreferences = ConsentSharedPreferences(config)
     private val consentManagementPolicy: ConsentManagementPolicy?
     private val httpClient: NetworkClient by lazy { HttpClient(config, connectivity) }
-    private val expiry = config.consentExpiry.expiryTime()
+    private val expiry = config.consentExpiry
     var onConsentExpiration: (()->Unit)? = config.consentExpiryCallback
 
     init {
@@ -45,7 +45,7 @@ class ConsentManager(private val config: TealiumConfig,
     /**
      * Used by the Consent Manager module to determine if the consent selections are expired.
      */
-    private var consentLastSet: Long?
+    var consentLastSet: Long?
         get() = consentSharedPreferences?.lastSet
         set(value) {
             consentSharedPreferences?.lastSet = value
@@ -62,6 +62,9 @@ class ConsentManager(private val config: TealiumConfig,
     var userConsentStatus: ConsentStatus
         get() = consentSharedPreferences.consentStatus
         set(value) {
+            if (value != ConsentStatus.UNKNOWN) {
+                consentLastSet = System.currentTimeMillis()
+            }
             when (value) {
                 ConsentStatus.CONSENTED -> setUserConsentStatus(value, ConsentCategory.ALL)
                 ConsentStatus.NOT_CONSENTED -> setUserConsentStatus(value, null)
@@ -120,11 +123,10 @@ class ConsentManager(private val config: TealiumConfig,
      * Checks if the consent selections are expired.
      * If so, resets consent preferences and triggers optional callback.
      */
-    private fun expireConsent() {
+    fun expireConsent() {
         consentLastSet?.let {
             if (isExpired(it)) {
                 userConsentStatus = ConsentStatus.UNKNOWN
-                userConsentCategories = null
                 onConsentExpiration?.invoke()
             }
         }
@@ -133,8 +135,10 @@ class ConsentManager(private val config: TealiumConfig,
     /**
      * Checks if value is expired.
      */
-    private fun isExpired(timestamp: Long): Boolean {
-        return (timestamp < TimeUnit.SECONDS.toMillis(expiry))
+    fun isExpired(timestamp: Long): Boolean {
+        if (timestamp == 0.toLong()) { return false }
+        return (timestamp <
+                System.currentTimeMillis() - expiry.timeUnit.toMillis(expiry.length))
     }
 
     /**
@@ -162,7 +166,6 @@ class ConsentManager(private val config: TealiumConfig,
         consentManagementPolicy?.let {
             val preferences = UserConsentPreferences(userConsentStatus, userConsentCategories)
             it.userConsentPreferences = preferences
-            consentLastSet = System.currentTimeMillis()
             eventRouter.onUserConsentPreferencesUpdated(preferences, it)
 
             if (isConsentLoggingEnabled) {
