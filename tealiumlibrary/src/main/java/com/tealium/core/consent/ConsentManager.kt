@@ -35,7 +35,7 @@ class ConsentManager(private val config: TealiumConfig,
     private val consentManagementPolicy: ConsentManagementPolicy?
     private val httpClient: NetworkClient by lazy { HttpClient(config, connectivity) }
     private val expiry = config.consentExpiry
-    var onConsentExpiration: (()->Unit)? = config.consentExpiryCallback
+    var onConsentExpiration: (()->Unit)? = config.onConsentExpiration
 
     init {
         expireConsent()

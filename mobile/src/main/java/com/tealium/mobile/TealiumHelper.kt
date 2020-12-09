@@ -42,7 +42,7 @@ object TealiumHelper {
              consentManagerPolicy = ConsentPolicy.GDPR
             // consentManagerPolicy = ConsentPolicy.CCPA
             consentExpiry = ConsentExpiry(1, TimeUnit.MINUTES)
-            consentExpiryCallback = {
+            onConsentExpiration = {
                 Logger.dev(BuildConfig.TAG, "Consent expired")
             }
             timedEventTriggers = mutableListOf(

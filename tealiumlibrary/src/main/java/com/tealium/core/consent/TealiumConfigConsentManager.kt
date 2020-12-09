@@ -57,7 +57,7 @@ var TealiumConfig.consentExpiry: ConsentExpiry
 /**
  * Sets an optional callback to be triggered upon consent expiration.
  */
-var TealiumConfig.consentExpiryCallback: (()->Unit)?
+var TealiumConfig.onConsentExpiration: (()->Unit)?
     get() = options[CONSENT_EXPIRY_CALLBACK] as? (()->Unit)
     set(value) {
         value?.let {

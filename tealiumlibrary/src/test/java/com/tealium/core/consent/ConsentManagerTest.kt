@@ -57,7 +57,7 @@ class ConsentManagerTest {
 
         config = TealiumConfig(context, "test", "profile", Environment.QA)
         config.consentExpiry = ConsentExpiry(1, TimeUnit.MINUTES)
-        config.consentExpiryCallback = {
+        config.onConsentExpiration = {
             counter++
         }
         consentManager = ConsentManager(config, eventRouter, "visitor1234567890", mockk())
