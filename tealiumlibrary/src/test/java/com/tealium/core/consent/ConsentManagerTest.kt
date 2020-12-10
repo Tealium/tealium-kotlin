@@ -215,6 +215,34 @@ class ConsentManagerTest {
     }
 
     @Test
+    fun defaultConsentExpiryCCPA() {
+        var localConfig = TealiumConfig(context, "test", "profile", Environment.QA)
+        localConfig.consentManagerPolicy = ConsentPolicy.CCPA
+        val localConsentManager = ConsentManager(localConfig, eventRouter, "visitor1234567890", mockk())
+        assertEquals(395, localConsentManager.expiry.time)
+        assertEquals(TimeUnit.DAYS, localConsentManager.expiry.unit)
+    }
+
+    @Test
+    fun defaultConsentExpiryGDPR() {
+        var localConfig = TealiumConfig(context, "test", "profile", Environment.QA)
+        localConfig.consentManagerPolicy = ConsentPolicy.GDPR
+        val localConsentManager = ConsentManager(localConfig, eventRouter, "visitor1234567890", mockk())
+        assertEquals(365, localConsentManager.expiry.time)
+        assertEquals(TimeUnit.DAYS, localConsentManager.expiry.unit)
+    }
+
+    @Test
+    fun customConsentExpiry() {
+        var localConfig = TealiumConfig(context, "test", "profile", Environment.QA)
+        localConfig.consentManagerPolicy = ConsentPolicy.GDPR
+        localConfig.consentExpiry = ConsentExpiry(90, TimeUnit.MINUTES)
+        val localConsentManager = ConsentManager(localConfig, eventRouter, "visitor1234567890", mockk())
+        assertEquals(90, localConsentManager.expiry.time)
+        assertEquals(TimeUnit.MINUTES, localConsentManager.expiry.unit)
+    }
+
+    @Test
     fun consentManagerLastSetNotDefinedUponWhenStatusUnknown() {
         consentManager.userConsentStatus = ConsentStatus.UNKNOWN
 

@@ -34,12 +34,13 @@ class ConsentManager(private val config: TealiumConfig,
     private val consentSharedPreferences = ConsentSharedPreferences(config)
     private val consentManagementPolicy: ConsentManagementPolicy?
     private val httpClient: NetworkClient by lazy { HttpClient(config, connectivity) }
-    private val expiry = config.consentExpiry
+    var expiry: ConsentExpiry
     var onConsentExpiration: (()->Unit)? = config.onConsentExpiration
 
     init {
-        expireConsent()
         consentManagementPolicy = policy?.create(UserConsentPreferences(userConsentStatus, userConsentCategories))
+        expiry = config.consentExpiry ?: consentManagementPolicy?.defaultConsentExpiry ?: ConsentExpiry(365, TimeUnit.DAYS)
+        expireConsent()
     }
 
     /**
@@ -138,7 +139,7 @@ class ConsentManager(private val config: TealiumConfig,
     fun isExpired(timestamp: Long): Boolean {
         if (timestamp == 0.toLong()) { return false }
         return (timestamp <
-                System.currentTimeMillis() - expiry.timeUnit.toMillis(expiry.length))
+                System.currentTimeMillis() - expiry.unit.toMillis(expiry.time))
     }
 
     /**
