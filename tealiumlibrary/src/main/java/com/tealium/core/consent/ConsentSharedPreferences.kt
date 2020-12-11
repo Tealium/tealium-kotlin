@@ -3,9 +3,7 @@ import android.content.SharedPreferences
 import com.tealium.core.TealiumConfig
 import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
 import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
-import com.tealium.core.consent.ConsentManagerConstants.KEY_LAST_SET
-import java.time.LocalDateTime
-import java.util.*
+import com.tealium.core.consent.ConsentManagerConstants.KEY_LAST_STATUS_UPDATE
 
 /**
  * This class is responsible for the persistence of consent preferences as defined by [ConsentStatus]
@@ -47,13 +45,13 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
 
     var lastSet: Long? = null
         get() {
-            return sharedPreferences.getLong(KEY_LAST_SET, 0)
+            return sharedPreferences.getLong(KEY_LAST_STATUS_UPDATE, 0)
         }
         set(value) {
             field = value
             field?.let {
                 sharedPreferences.edit()
-                        .putLong(KEY_LAST_SET, it)
+                        .putLong(KEY_LAST_STATUS_UPDATE, it)
                         .apply()
             }
         }

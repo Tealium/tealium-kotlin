@@ -14,5 +14,5 @@ object ConsentManagerConstants {
 
     const val KEY_STATUS = "status"
     const val KEY_CATEGORIES = "categories"
-    const val KEY_LAST_SET = "last_set"
+    const val KEY_LAST_STATUS_UPDATE = "last_updated"
 }
