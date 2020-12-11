@@ -44,9 +44,9 @@ class ConsentManager(private val config: TealiumConfig,
      * Used by the Consent Manager module to determine if the consent selections are expired.
      */
     private var lastConsentUpdate: Long?
-        get() = consentSharedPreferences.lastSet
+        get() = consentSharedPreferences.lastUpdate
         set(value) {
-            consentSharedPreferences.lastSet = value
+            consentSharedPreferences.lastUpdate = value
         }
 
     /**

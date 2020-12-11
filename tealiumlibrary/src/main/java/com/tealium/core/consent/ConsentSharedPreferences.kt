@@ -43,7 +43,7 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
             }
         }
 
-    var lastSet: Long? = null
+    var lastUpdate: Long? = null
         get() {
             return sharedPreferences.getLong(KEY_LAST_STATUS_UPDATE, 0)
         }
