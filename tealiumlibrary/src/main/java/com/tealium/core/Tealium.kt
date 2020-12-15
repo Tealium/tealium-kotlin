@@ -118,7 +118,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
      * Subsequent launches will take this key from the [dataLayer] so amending it there will affect
      * attribution of events.
      */
-    val visitorId: String
+    lateinit var visitorId: String
 
     /**
      * Provides access for users to manage their consent preferences.
@@ -308,6 +308,14 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
                 }
             }
         }
+    }
+
+    /**
+     * Removes current and regenerates a new visitor ID.
+     */
+    fun resetVisitorId() {
+        dataLayer.remove("tealium_visitor_id")
+        visitorId = getOrCreateVisitorId()
     }
 
     /**
