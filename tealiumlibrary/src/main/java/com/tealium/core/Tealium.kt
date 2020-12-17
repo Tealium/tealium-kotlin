@@ -53,11 +53,8 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
     private lateinit var connectivity: Connectivity
     private lateinit var dispatchRouter: DispatchRouter
     private lateinit var dispatchSendCallbacks: AfterDispatchSendCallbacks
-    private lateinit var context: TealiumContext
 
     private val networkClient: NetworkClient = HttpClient(config)
-    private val librarySettingsManager: LibrarySettingsManager
-    private val activityObserver: ActivityObserver
 
     // Only instantiates if there is an event triggered before the modules are initialized.
     private val dispatchBufferDelegate = lazy {
@@ -66,17 +63,20 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
     private val dispatchBuffer: Queue<Dispatch> by dispatchBufferDelegate
 
     // Dependencies for publicly accessible objects.
-    private val databaseHelper: DatabaseHelper
+    private val databaseHelper: DatabaseHelper = DatabaseHelper(config)
     private val eventRouter = EventDispatcher()
+    private val activityObserver: ActivityObserver = ActivityObserver(config, eventRouter)
     private val sessionManager = SessionManager(config, eventRouter)
     private val deepLinkHandler: DeepLinkHandler
     private val timedEvents: TimedEventsManager
+    private val librarySettingsManager: LibrarySettingsManager = LibrarySettingsManager(config, networkClient, eventRouter = eventRouter, backgroundScope = backgroundScope)
+
 
     // Are publicly accessible, therefore need to be initialized on creation.
     /**
      * Provides access to the Tealium Logger system.
      */
-    val logger: Logging
+    val logger: Logging = Logger
 
     private lateinit var _modules: ModuleManager
 
@@ -104,12 +104,14 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
      * Data will be collected from here and merged into each [Dispatch] along with any other defined
      * [Collector] data.
      */
-    val dataLayer: DataLayer
+    val dataLayer: DataLayer = PersistentStorage(databaseHelper, "datalayer")
 
     /**
      * Object representing the current Tealium session in progress.
      */
     val session: Session = sessionManager.currentSession
+
+    private var _visitorId: String = getOrCreateVisitorId()
 
     /**
      * Unique string that identifies the user, used by other Tealium Services. This value is
@@ -118,34 +120,30 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
      * Subsequent launches will take this key from the [dataLayer] so amending it there will affect
      * attribution of events.
      */
-    lateinit var visitorId: String
+    val visitorId: String
+        get() = _visitorId
+
+    private val context = TealiumContext(config, visitorId, logger, dataLayer, networkClient, events as MessengerService, this)
 
     /**
      * Provides access for users to manage their consent preferences.
      * It is disabled by default; enabling will cause any events to be queued until a consent status
      * and/or opted-in category list is provided.
      */
-    val consentManager: ConsentManager
+    val consentManager: ConsentManager = ConsentManager(context, eventRouter, librarySettingsManager.librarySettings)
 
     init {
-        librarySettingsManager = LibrarySettingsManager(config, networkClient, eventRouter = eventRouter, backgroundScope = backgroundScope)
-        activityObserver = ActivityObserver(config, eventRouter)
-        databaseHelper = DatabaseHelper(config)
-        dataLayer = PersistentStorage(databaseHelper, "datalayer")
         migratePersistentData()
-        visitorId = getOrCreateVisitorId()
-        consentManager = ConsentManager(config, eventRouter, visitorId, librarySettingsManager.librarySettings)
 
         Logger.logLevel = when (config.environment) {
             Environment.DEV -> LogLevel.DEV
             Environment.QA -> LogLevel.QA
             Environment.PROD -> LogLevel.PROD
         }
-        logger = Logger
+
         eventRouter.subscribe(Logger)
         eventRouter.subscribe(sessionManager)
 
-        context = TealiumContext(config, visitorId, logger, dataLayer, networkClient, events as MessengerService, this)
         deepLinkHandler = DeepLinkHandler(context)
         eventRouter.subscribe(deepLinkHandler)
         timedEvents = TimedEventsManager(context)
@@ -315,7 +313,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
      */
     fun resetVisitorId() {
         dataLayer.remove("tealium_visitor_id")
-        visitorId = getOrCreateVisitorId()
+        _visitorId = getOrCreateVisitorId()
     }
 
     /**
