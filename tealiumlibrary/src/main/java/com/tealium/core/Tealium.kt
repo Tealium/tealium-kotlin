@@ -310,6 +310,9 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
 
     /**
      * Removes current and regenerates a new visitor ID.
+     *
+     * [consentManager] Consent Status is unaffected by this method; consider whether you may need
+     * reset the consent status also.
      */
     fun resetVisitorId() {
         dataLayer.remove("tealium_visitor_id")
