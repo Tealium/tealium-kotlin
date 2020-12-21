@@ -7,6 +7,7 @@ import com.tealium.core.messaging.EventRouter
 import com.tealium.core.messaging.MessengerService
 import com.tealium.core.network.HttpClient
 import io.mockk.*
+import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -18,6 +19,12 @@ import org.junit.Test
 
 class VisitorServiceInstrumentedTest {
 
+    @RelaxedMockK
+    lateinit var mockTealium: Tealium
+
+    @RelaxedMockK
+    lateinit var mockEventRouter: EventRouter
+
     lateinit var tealiumContext: TealiumContext
     val application = ApplicationProvider.getApplicationContext<Application>()
 
@@ -25,10 +32,8 @@ class VisitorServiceInstrumentedTest {
     fun setUp() {
         MockKAnnotations.init(this)
         val config = TealiumConfig(application, "account", "profile", Environment.DEV)
-        val mockEventRouter: EventRouter = mockk()
-        every { mockEventRouter.subscribe(any()) } just Runs
         val messengerService = MessengerService(mockEventRouter, CoroutineScope(Dispatchers.IO))
-        tealiumContext = TealiumContext(config, "visitor-1", Logger, mockk(), HttpClient(config), messengerService, mockk())
+        tealiumContext = TealiumContext(config, "visitor-1", Logger, mockk(), HttpClient(config), messengerService, mockTealium)
     }
 
     @Test

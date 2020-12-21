@@ -6,7 +6,6 @@ import com.tealium.core.messaging.EventRouter
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.network.ConnectivityRetriever
-import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
@@ -15,22 +14,21 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
-class ConsentManager(private val config: TealiumConfig,
+class ConsentManager(private val context: TealiumContext,
                      private val eventRouter: EventRouter,
-                     private val visitorId: String,
                      private var librarySettings: LibrarySettings,
-                     val policy: ConsentPolicy? = config.consentManagerPolicy
+                     val policy: ConsentPolicy? = context.config.consentManagerPolicy
 ) : Collector, DispatchValidator, LibrarySettingsUpdatedListener {
 
     override val name: String = MODULE_NAME
-    override var enabled: Boolean = config.consentManagerEnabled ?: false
+    override var enabled: Boolean = context.config.consentManagerEnabled ?: false
 
-    private val consentLoggingUrl = config.consentManagerLoggingUrl
+    private val consentLoggingUrl = context.config.consentManagerLoggingUrl
             ?: "https://collect.tealiumiq.com/event"
-    private val connectivity = ConnectivityRetriever.getInstance(config.application)
-    private val consentSharedPreferences = ConsentSharedPreferences(config)
+    private val connectivity = ConnectivityRetriever.getInstance(context.config.application)
+    private val consentSharedPreferences = ConsentSharedPreferences(context.config)
     private val consentManagementPolicy: ConsentManagementPolicy?
-    private val httpClient: NetworkClient by lazy { HttpClient(config, connectivity) }
+    private val httpClient: NetworkClient = context.httpClient
 
     init {
         consentManagementPolicy = policy?.create(UserConsentPreferences(userConsentStatus, userConsentCategories))
@@ -73,7 +71,7 @@ class ConsentManager(private val config: TealiumConfig,
     /**
      * Sets whether Consent should be logged.
      */
-    var isConsentLoggingEnabled = config.consentManagerLoggingEnabled ?: false
+    var isConsentLoggingEnabled = context.config.consentManagerLoggingEnabled ?: false
 
     /**
      * Sends an HTTP request with the current policy status information to the configured endpoint.
@@ -81,7 +79,7 @@ class ConsentManager(private val config: TealiumConfig,
     private fun logConsentUpdate() {
         consentManagementPolicy?.let { policy ->
             if (policy.consentLoggingEnabled) {
-                if ((connectivity.isConnected() && librarySettings.wifiOnly) || connectivity.isConnectedWifi()) {
+                if ((connectivity.isConnected() && !librarySettings.wifiOnly) || connectivity.isConnectedWifi()) {
                     // TODO: consider implementing a general network queue
                     CoroutineScope(IO).launch {
                         val json = JSONObject()
@@ -90,9 +88,9 @@ class ConsentManager(private val config: TealiumConfig,
                         }
                         json.put(CoreConstant.TEALIUM_EVENT, policy.consentLoggingEventName)
 
-                        json.put(TEALIUM_ACCOUNT, config.accountName)
-                        json.put(TEALIUM_PROFILE, config.profileName)
-                        json.put(TEALIUM_VISITOR_ID, visitorId)
+                        json.put(TEALIUM_ACCOUNT, context.config.accountName)
+                        json.put(TEALIUM_PROFILE, context.config.profileName)
+                        json.put(TEALIUM_VISITOR_ID, context.visitorId)
 
                         httpClient.post(json.toString(), consentLoggingUrl, false)
                     }
