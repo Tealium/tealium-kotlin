@@ -211,7 +211,6 @@ class ConsentManagerTest {
         assertEquals(ConsentStatus.CONSENTED, consentManager.userConsentStatus)
         val data = consentManager.collect()
         assertFalse(data.isEmpty())
-        print(data)
         val expected = setOf(ConsentCategory.AFFILIATES).toJsonArray();
         assertEquals(expected, data["consent_categories"])
     }
