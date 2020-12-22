@@ -37,9 +37,9 @@ object TealiumHelper {
             hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
 
             // Uncomment to enable Consent Management
-            // consentManagerEnabled = true
+             consentManagerEnabled = true
             // and, uncomment one of the following lines to set the appropriate Consent Policy
-            // consentManagerPolicy = ConsentPolicy.GDPR
+             consentManagerPolicy = ConsentPolicy.GDPR
             // consentManagerPolicy = ConsentPolicy.CCPA
 
             timedEventTriggers = mutableListOf(
@@ -48,7 +48,8 @@ object TealiumHelper {
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
-            consentManager.enabled = true
+//            consentManager.enabled = true
+//            poli
             events.subscribe(object : VisitorUpdatedListener {
                 override fun onVisitorUpdated(visitorProfile: VisitorProfile) {
                     Logger.dev("--", "did update vp with $visitorProfile")
