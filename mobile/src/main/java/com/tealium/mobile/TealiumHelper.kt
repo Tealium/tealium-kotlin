@@ -48,8 +48,6 @@ object TealiumHelper {
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
-//            consentManager.enabled = true
-//            poli
             events.subscribe(object : VisitorUpdatedListener {
                 override fun onVisitorUpdated(visitorProfile: VisitorProfile) {
                     Logger.dev("--", "did update vp with $visitorProfile")
