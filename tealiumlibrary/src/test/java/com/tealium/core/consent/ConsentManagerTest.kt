@@ -199,6 +199,23 @@ class ConsentManagerTest {
     }
 
     @Test
+    fun consentManagerStatusPartiallyConsented_DoesCollect() = runBlocking {
+        val mockSettings: LibrarySettings = mockk()
+        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockSettings, ConsentPolicy.GDPR)
+        every { editor.putString(KEY_STATUS, "consented") } returns editor
+        every { sharedPreferences.getString(any(), any()) } returns "consented"
+        every { sharedPreferences.getStringSet(KEY_CATEGORIES, null) } returns setOf("affiliates")
+        every { editor.putStringSet(KEY_CATEGORIES, setOf("affiliates")) } returns editor
+        consentManager.userConsentCategories = setOf(ConsentCategory.AFFILIATES)
+
+        assertEquals(ConsentStatus.CONSENTED, consentManager.userConsentStatus)
+        val data = consentManager.collect()
+        assertFalse(data.isEmpty())
+        val expected = setOf(ConsentCategory.AFFILIATES).toJsonArray();
+        assertEquals(expected, data["consent_categories"])
+    }
+
+    @Test
     fun consentLoggingEnabled_SendsUpdatedTealiumVisitorId() = runBlocking {
         config.consentManagerLoggingEnabled = true
         val mockSettings: LibrarySettings = mockk()

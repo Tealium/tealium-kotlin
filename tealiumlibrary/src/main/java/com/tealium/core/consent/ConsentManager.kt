@@ -152,7 +152,7 @@ class ConsentManager(private val context: TealiumContext,
      * Returns the status information from the current [ConsentPolicy] in force, else an empty map.
      */
     override suspend fun collect(): Map<String, Any> {
-        return if (userConsentStatus == ConsentStatus.UNKNOWN && consentManagementPolicy != null)
+        return if (userConsentStatus != ConsentStatus.UNKNOWN && consentManagementPolicy != null)
             consentManagementPolicy.policyStatusInfo()
         else emptyMap()
     }
