@@ -38,9 +38,9 @@ object TealiumHelper {
             hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
 
             // Uncomment to enable Consent Management
-             consentManagerEnabled = true
+            consentManagerEnabled = true
             // and, uncomment one of the following lines to set the appropriate Consent Policy
-             consentManagerPolicy = ConsentPolicy.GDPR
+            consentManagerPolicy = ConsentPolicy.GDPR
             // consentManagerPolicy = ConsentPolicy.CCPA
             consentExpiry = ConsentExpiry(1, TimeUnit.MINUTES)
 

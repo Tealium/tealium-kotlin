@@ -76,6 +76,22 @@ class TealiumTests {
     }
 
     @Test
+    fun testVisitorIdIsReset() {
+        val vid = tealium.visitorId
+        assertNotNull(vid)
+        assertEquals(32, tealium.visitorId.length)
+        assertEquals(tealium.visitorId, tealium.dataLayer.getString("tealium_visitor_id"))
+        val storedVid = tealium.dataLayer.getString("tealium_visitor_id")
+
+        val resetVid = tealium.resetVisitorId()
+        val storedResetVid = tealium.dataLayer.getString("tealium_visitor_id")
+        assertNotEquals(vid, resetVid)
+        assertNotEquals(storedVid, storedResetVid)
+        assertEquals(32, tealium.visitorId.length)
+        assertEquals(tealium.visitorId, tealium.dataLayer.getString("tealium_visitor_id"))
+    }
+
+    @Test
     fun testCallbackGetsExecuted() = runBlocking {
         var hasBeenCalled = false
 
