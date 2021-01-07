@@ -5,6 +5,7 @@ import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
 import com.tealium.core.consent.*
 import com.tealium.core.events.EventTrigger
+import com.tealium.core.messaging.UserConsentPreferencesUpdatedListener
 import com.tealium.core.persistence.Expiry
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.crashreporter.CrashReporter
@@ -42,16 +43,23 @@ object TealiumHelper {
              consentManagerPolicy = ConsentPolicy.GDPR
             // consentManagerPolicy = ConsentPolicy.CCPA
             consentExpiry = ConsentExpiry(1, TimeUnit.MINUTES)
-            onConsentExpiration = {
-                Logger.dev(BuildConfig.TAG, "Consent expired")
-            }
+
             timedEventTriggers = mutableListOf(
                     EventTrigger.forEventName("start_event", "end_event")
             )
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
-            // consentManager.enabled = true
+
+            events.subscribe(object : UserConsentPreferencesUpdatedListener {
+                override fun onUserConsentPreferencesUpdated(userConsentPreferences: UserConsentPreferences,
+                                                             policy: ConsentManagementPolicy) {
+                    if (userConsentPreferences.consentStatus == ConsentStatus.UNKNOWN) {
+                        Logger.dev(BuildConfig.TAG, "Re-prompt for consent")
+                    }
+                }
+            })
+
             events.subscribe(object : VisitorUpdatedListener {
                 override fun onVisitorUpdated(visitorProfile: VisitorProfile) {
                     Logger.dev("--", "did update vp with $visitorProfile")
