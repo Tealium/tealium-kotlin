@@ -77,6 +77,19 @@ class ConsentManagerTest {
     }
 
     @Test
+    fun consentManagerConfigEnabledChecksConsentPolicy() {
+        assertFalse(config.consentManagerEnabled!!)
+        config.consentManagerPolicy = ConsentPolicy.CCPA
+        assertTrue(config.consentManagerEnabled!!)
+
+        // Backwards compatability
+        config.consentManagerEnabled = true
+        assertTrue(config.consentManagerEnabled!!)
+        config.consentManagerEnabled = false
+        assertFalse(config.consentManagerEnabled!!)
+    }
+
+    @Test
     fun consentManagerStatusDefaultsUnknown() {
         assertEquals(ConsentStatus.UNKNOWN, consentManager.userConsentStatus)
     }
