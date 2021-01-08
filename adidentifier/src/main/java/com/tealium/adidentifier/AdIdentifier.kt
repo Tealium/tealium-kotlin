@@ -8,6 +8,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * Module to retrieve Advertising ID from Google Play and save to Data Layer
+ */
 class AdIdentifier(private val tealiumContext: TealiumContext) : Module {
 
     override val name: String
@@ -16,6 +19,9 @@ class AdIdentifier(private val tealiumContext: TealiumContext) : Module {
 
     private val scope = CoroutineScope(Dispatchers.Default)
 
+    /**
+     * Advertising ID from Google Play
+     */
     private var adid: String? = null
         set(value) {
             field = value
@@ -26,6 +32,9 @@ class AdIdentifier(private val tealiumContext: TealiumContext) : Module {
             }
         }
 
+    /**
+     * Limit Ad Tracking flag from Google Play
+     */
     private var isLimitAdTrackingEnabled: Boolean? = null
         set(value) {
             field = value
@@ -42,6 +51,9 @@ class AdIdentifier(private val tealiumContext: TealiumContext) : Module {
         }
     }
 
+    /**
+     * Fetches Advertising Info from AdvertisingIdClient
+     */
     private fun fetchAdInfo(context: Context) {
         if (GoogleApiAvailabilityLight.getInstance().isGooglePlayServicesAvailable(context) == 0) {
             val adInfo = AdvertisingIdClient.getAdvertisingIdInfo(context)
@@ -57,6 +69,9 @@ class AdIdentifier(private val tealiumContext: TealiumContext) : Module {
         }
     }
 
+    /**
+     * Clears values and removes from data layer
+     */
     fun removeAdInfo() {
         adid = null
         isLimitAdTrackingEnabled = null
