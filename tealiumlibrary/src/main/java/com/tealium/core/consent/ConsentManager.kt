@@ -30,7 +30,6 @@ class ConsentManager(private val context: TealiumContext,
     private val consentSharedPreferences = ConsentSharedPreferences(context.config)
     private val consentManagementPolicy: ConsentManagementPolicy?
     private val httpClient: NetworkClient = context.httpClient
-
     val expiry: ConsentExpiry
 
     init {
