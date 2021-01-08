@@ -60,7 +60,6 @@ class AdIdentifier(private val tealiumContext: TealiumContext) : Module {
             adInfo?.id?.let {
                 adid = it
             }
-            // Do we want to add this?
             adInfo?.isLimitAdTrackingEnabled?.let {
                 isLimitAdTrackingEnabled = it
             }
