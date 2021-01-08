@@ -50,7 +50,7 @@ class VisitorServiceTest {
         VisitorService(mockContext, mockVisitorProfileManager)
 
         verify {
-            mockMessengerService.subscribe(mockVisitorProfileManager)
+            mockMessengerService.subscribe(mockVisitorProfileManager as VisitorManager)
         }
     }
 
