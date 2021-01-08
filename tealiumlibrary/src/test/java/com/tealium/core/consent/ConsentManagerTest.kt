@@ -71,8 +71,8 @@ class ConsentManagerTest {
         every { mockTealiumContext.config } returns config
         every { mockTealiumContext.visitorId } returns "visitor1234567890"
         every { mockTealiumContext.httpClient } returns mockHttpClient
-        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockk())
         config.consentExpiry = ConsentExpiry(1, TimeUnit.MINUTES)
+        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockk())
     }
 
     @Test
