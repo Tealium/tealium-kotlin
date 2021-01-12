@@ -1,6 +1,7 @@
 package com.tealium.mobile
 
 import android.app.Application
+import com.tealium.adidentifier.AdIdentifier
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
 import com.tealium.core.consent.*
@@ -31,7 +32,7 @@ object TealiumHelper {
                 "tealiummobile",
                 "android",
                 Environment.DEV,
-                modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer, Modules.CrashReporter),
+                modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer, Modules.CrashReporter, Modules.AdIdentifier),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
             useRemoteLibrarySettings = true
@@ -50,7 +51,6 @@ object TealiumHelper {
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
-
             events.subscribe(object : UserConsentPreferencesUpdatedListener {
                 override fun onUserConsentPreferencesUpdated(userConsentPreferences: UserConsentPreferences,
                                                              policy: ConsentManagementPolicy) {
