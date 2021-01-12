@@ -20,4 +20,5 @@
     <string name="timed_events_start">Start Timer</string>
     <string name="timed_events_event_name_hint">Timed Event Name</string>
     <string name="timed_events_no_events">No Timed Event Running</string>
+    <string name="create_crash">Create Crash</string>
 </resources>

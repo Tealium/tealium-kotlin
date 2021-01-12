@@ -51,4 +51,6 @@ dependencies {
     implementation project(':visitorservice:')
     implementation project(':hosteddatalayer')
     implementation project(':remotecommanddispatcher')
+    implementation project(':crashreporter')
+    implementation project(':adidentifier')
 }

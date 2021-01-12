@@ -6,6 +6,7 @@ class ModuleListViewModel : ViewModel() {
 
     val moduleNames = listOf(
             "Consent Manager",
+            "Crash Reporter",
             "Hosted Data Layer",
             "Location",
             "Timed Events",

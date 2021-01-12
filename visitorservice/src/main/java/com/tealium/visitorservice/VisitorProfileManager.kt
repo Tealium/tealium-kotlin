@@ -1,10 +1,7 @@
 package com.tealium.visitorservice
 
 import com.tealium.core.*
-import com.tealium.core.messaging.BatchDispatchSendListener
-import com.tealium.core.messaging.DispatchSendListener
-import com.tealium.core.messaging.ExternalListener
-import com.tealium.core.messaging.Messenger
+import com.tealium.core.messaging.*
 import com.tealium.core.network.ResourceRetriever
 import com.tealium.dispatcher.Dispatch
 import kotlinx.coroutines.delay
@@ -35,14 +32,22 @@ class VisitorManager(private val context: TealiumContext,
                                             ?: DEFAULT_REFRESH_INTERVAL,
                             private val visitorServiceUrl: String =
                                     context.config.overrideVisitorServiceUrl
-                                            ?: "https://visitor-service.tealiumiq.com/${context.config.accountName}/${context.config.profileName}/${context.visitorId}",
+                                            ?: DEFAULT_VISITOR_SERVICE_TEMPLATE,
                             private val loader: Loader = JsonLoader(context.config.application)) : VisitorProfileManager, DispatchSendListener, BatchDispatchSendListener {
 
     private val file = File(context.config.tealiumDirectory, VISITOR_PROFILE_FILENAME)
 
     val isUpdating = AtomicBoolean(false)
     private var lastUpdate: Long = -1L
-    private val resourceRetriever: ResourceRetriever
+    private var visitorId = context.visitorId
+        set(value) {
+            if (field != value) {
+                field = value
+                // URL needs updating
+                resourceRetriever = createResourceRetriever()
+            }
+        }
+    private var resourceRetriever: ResourceRetriever = createResourceRetriever()
 
     override val visitorProfile: VisitorProfile
         get() = _visitorProfile
@@ -53,12 +58,18 @@ class VisitorManager(private val context: TealiumContext,
             context.events.send(VisitorUpdatedMessenger(value))
         }
 
-    init {
-        resourceRetriever = ResourceRetriever(context.config, visitorServiceUrl, context.httpClient).apply {
+    private fun createResourceRetriever(): ResourceRetriever {
+        return ResourceRetriever(context.config, generateVisitorServiceUrl(), context.httpClient).apply {
             useIfModifed = false
             maxRetries = 1
             refreshInterval = 0
         }
+    }
+
+    internal fun generateVisitorServiceUrl(): String {
+        return visitorServiceUrl.replace(PLACEHOLDER_ACCOUNT, context.config.accountName)
+                .replace(PLACEHOLDER_PROFILE, context.config.profileName)
+                .replace(PLACEHOLDER_VISITOR_ID, visitorId)
     }
 
     fun loadCachedProfile(): VisitorProfile? {
@@ -96,6 +107,9 @@ class VisitorManager(private val context: TealiumContext,
     override suspend fun requestVisitorProfile() {
         // no need if it's already being updated, but we won't adhere to the refreshInterval here.
         if (isUpdating.compareAndSet(false, true)) {
+            // Check for any updates to visitorId.
+            visitorId = context.visitorId
+
             for (i in 1..5) {
                 Logger.dev(BuildConfig.TAG, "Fetching visitor profile for ${context.visitorId}.")
 
@@ -132,5 +146,12 @@ class VisitorManager(private val context: TealiumContext,
     companion object {
         const val VISITOR_PROFILE_FILENAME = "visitor_profile.json"
         const val DEFAULT_REFRESH_INTERVAL = 300L
+
+        // url replacememts
+        const val PLACEHOLDER_ACCOUNT = "{{account}}"
+        const val PLACEHOLDER_PROFILE = "{{profile}}"
+        const val PLACEHOLDER_VISITOR_ID = "{{visitorId}}"
+
+        const val DEFAULT_VISITOR_SERVICE_TEMPLATE = "https://visitor-service.tealiumiq.com/$PLACEHOLDER_ACCOUNT/$PLACEHOLDER_PROFILE/$PLACEHOLDER_VISITOR_ID"
     }
 }

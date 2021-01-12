@@ -10,6 +10,7 @@ import com.tealium.core.network.HttpClient
 import com.tealium.core.network.ResourceRetriever
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -32,7 +33,7 @@ class VisitorProfileManagerTest {
     @MockK
     private lateinit var mockConfig: TealiumConfig
 
-    @MockK
+    @RelaxedMockK
     private lateinit var mockHttpClient: HttpClient
 
     @MockK
@@ -250,6 +251,32 @@ class VisitorProfileManagerTest {
         verify {
             visitorUpdatedListener.onVisitorUpdated(visitorProfile)
         }
+    }
+
+    @Test
+    fun generateVisitorServiceUrl_VisitorIdUpdatesWithContext() {
+        coEvery { mockHttpClient.get(any()) } returns "{}"
+        val visitorProfileManager = VisitorProfileManager(mockContext)
+        assertEquals("https://visitor-service.tealiumiq.com/test-account/test-profile/visitorId", visitorProfileManager.generateVisitorServiceUrl())
+
+        every { mockContext.visitorId } returns "newVisitor"
+        runBlocking {
+            visitorProfileManager.requestVisitorProfile()
+        }
+        assertEquals("https://visitor-service.tealiumiq.com/test-account/test-profile/newVisitor", visitorProfileManager.generateVisitorServiceUrl())
+    }
+
+    @Test
+    fun generateVisitorServiceUrl_ReplacesPlaceholders_Default() {
+        val visitorProfileManager = VisitorProfileManager(mockContext)
+        assertEquals("https://visitor-service.tealiumiq.com/test-account/test-profile/visitorId", visitorProfileManager.generateVisitorServiceUrl())
+    }
+
+    @Test
+    fun generateVisitorServiceUrl_ReplacesPlaceholders_OverrideUrl() {
+        every { mockConfig.overrideVisitorServiceUrl } returns "my.url/{{profile}}/{{visitorId}}"
+        val visitorProfileManager = VisitorProfileManager(mockContext)
+        assertEquals("my.url/test-profile/visitorId", visitorProfileManager.generateVisitorServiceUrl())
     }
 
     private val validExampleProfileString = """
