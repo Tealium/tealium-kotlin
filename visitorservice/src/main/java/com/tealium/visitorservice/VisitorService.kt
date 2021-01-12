@@ -1,6 +1,7 @@
 package com.tealium.visitorservice
 
 import com.tealium.core.*
+import com.tealium.core.messaging.Listener
 
 /**
  * The VisitorService module is responsible for fetching updates to a VisitorProfile, and notifying
@@ -13,7 +14,8 @@ class VisitorService @JvmOverloads constructor(context: TealiumContext,
     override var enabled: Boolean = true
 
     init {
-        context.events.subscribe(visitorProfileManager as VisitorManager)
+        if (visitorProfileManager is Listener)
+            context.events.subscribe(visitorProfileManager)
     }
 
     val visitorProfile: VisitorProfile

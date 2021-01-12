@@ -256,7 +256,7 @@ class VisitorProfileManagerTest {
     @Test
     fun generateVisitorServiceUrl_VisitorIdUpdatesWithContext() {
         coEvery { mockHttpClient.get(any()) } returns "{}"
-        val visitorProfileManager = VisitorProfileManager(mockContext)
+        val visitorProfileManager = VisitorManager(mockContext)
         assertEquals("https://visitor-service.tealiumiq.com/test-account/test-profile/visitorId", visitorProfileManager.generateVisitorServiceUrl())
 
         every { mockContext.visitorId } returns "newVisitor"
@@ -268,14 +268,14 @@ class VisitorProfileManagerTest {
 
     @Test
     fun generateVisitorServiceUrl_ReplacesPlaceholders_Default() {
-        val visitorProfileManager = VisitorProfileManager(mockContext)
+        val visitorProfileManager = VisitorManager(mockContext)
         assertEquals("https://visitor-service.tealiumiq.com/test-account/test-profile/visitorId", visitorProfileManager.generateVisitorServiceUrl())
     }
 
     @Test
     fun generateVisitorServiceUrl_ReplacesPlaceholders_OverrideUrl() {
         every { mockConfig.overrideVisitorServiceUrl } returns "my.url/{{profile}}/{{visitorId}}"
-        val visitorProfileManager = VisitorProfileManager(mockContext)
+        val visitorProfileManager = VisitorManager(mockContext)
         assertEquals("my.url/test-profile/visitorId", visitorProfileManager.generateVisitorServiceUrl())
     }
 
