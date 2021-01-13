@@ -2,10 +2,7 @@ package com.tealium.core
 
 import android.app.Application
 import com.tealium.tealiumlibrary.BuildConfig
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
-import org.json.JSONTokener
+import org.json.*
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -56,7 +53,7 @@ class JsonLoader(val application: Application) : Loader {
         with(url.openConnection() as HttpURLConnection) {
             requestMethod = "GET"  // optional default is GET
             if (responseCode == HttpsURLConnection.HTTP_OK) {
-                val inputString = inputStream.bufferedReader().readText()
+                val inputString = inputStream.bufferedReader().use { it.readText() }
                 if (isValidJson(inputString)) {
                     return when (JSONTokener(inputString).nextValue()) {
                         is JSONObject -> JSONObject(inputString)

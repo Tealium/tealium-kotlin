@@ -47,10 +47,11 @@ class VisitorServiceTest {
 
     @Test
     fun visitorService_SubscribesManagerToEvents() {
-        VisitorService(mockContext, mockVisitorProfileManager)
+        val visitorManager: VisitorManager = mockk()
+        val visitorService = VisitorService(mockContext, visitorManager)
 
         verify {
-            mockMessengerService.subscribe(mockVisitorProfileManager)
+            mockMessengerService.subscribe(visitorManager)
         }
     }
 

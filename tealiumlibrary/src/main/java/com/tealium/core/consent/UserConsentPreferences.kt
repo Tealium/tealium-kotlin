@@ -2,8 +2,10 @@ package com.tealium.core.consent
 
 import org.json.JSONArray
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 data class UserConsentPreferences(val consentStatus: ConsentStatus, val consentCategories: Set<ConsentCategory>? = null)
+data class ConsentExpiry(val time: Long, val unit: TimeUnit)
 
 enum class ConsentStatus(val value: String) {
     UNKNOWN("unknown"),
@@ -103,6 +105,7 @@ interface ConsentManagementPolicy {
     var userConsentPreferences: UserConsentPreferences
     val consentLoggingEnabled: Boolean
     val consentLoggingEventName: String
+    val defaultConsentExpiry: ConsentExpiry
 
     val cookieUpdateRequired: Boolean
     val cookieUpdateEventName: String
@@ -129,7 +132,7 @@ private class GdprConsentManagementPolicy(initialConsentPreferences: UserConsent
             }
             else -> ConsentManagerConstants.DECLINE_CONSENT
         }
-
+    override val defaultConsentExpiry: ConsentExpiry = ConsentExpiry(365, TimeUnit.DAYS)
     override val cookieUpdateRequired: Boolean = true
     override val cookieUpdateEventName: String = "update_consent_cookie"
 
@@ -162,7 +165,7 @@ private class CcpaConsentManagementPolicy(initialConsentPreferences: UserConsent
         get() = if (userConsentPreferences.consentStatus == ConsentStatus.CONSENTED)
             ConsentManagerConstants.GRANT_FULL_CONSENT
         else ConsentManagerConstants.GRANT_PARTIAL_CONSENT
-
+    override val defaultConsentExpiry: ConsentExpiry = ConsentExpiry(395, TimeUnit.DAYS)
     override val cookieUpdateRequired: Boolean = true
     override val cookieUpdateEventName: String = "set_dns_state"
 

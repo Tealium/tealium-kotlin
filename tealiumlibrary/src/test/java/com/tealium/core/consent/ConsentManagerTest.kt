@@ -6,8 +6,10 @@ import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
+import com.tealium.core.consent.ConsentManagerConstants.KEY_LAST_STATUS_UPDATE
 import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
 import com.tealium.core.messaging.EventRouter
+import com.tealium.dispatcher.TealiumView
 import com.tealium.core.network.Connectivity
 import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.network.HttpClient
@@ -22,6 +24,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
 class ConsentManagerTest {
@@ -32,10 +35,10 @@ class ConsentManagerTest {
     @MockK
     lateinit var mockFile: File
 
-    @MockK
+    @RelaxedMockK
     lateinit var sharedPreferences: SharedPreferences
 
-    @MockK
+    @RelaxedMockK
     lateinit var editor: SharedPreferences.Editor
 
     @MockK
@@ -68,12 +71,26 @@ class ConsentManagerTest {
         every { mockTealiumContext.config } returns config
         every { mockTealiumContext.visitorId } returns "visitor1234567890"
         every { mockTealiumContext.httpClient } returns mockHttpClient
+        config.consentExpiry = ConsentExpiry(1, TimeUnit.MINUTES)
         consentManager = ConsentManager(mockTealiumContext, eventRouter, mockk())
     }
 
     @Test
     fun consentManagerModuleDisabledByDefault() {
         assertFalse(consentManager.enabled)
+    }
+
+    @Test
+    fun consentManagerConfigEnabledChecksConsentPolicy() {
+        assertFalse(config.consentManagerEnabled!!)
+        config.consentManagerPolicy = ConsentPolicy.CCPA
+        assertTrue(config.consentManagerEnabled!!)
+
+        // Backwards compatability
+        config.consentManagerEnabled = true
+        assertTrue(config.consentManagerEnabled!!)
+        config.consentManagerEnabled = false
+        assertFalse(config.consentManagerEnabled!!)
     }
 
     @Test
@@ -283,6 +300,119 @@ class ConsentManagerTest {
         consentManager.userConsentStatus = ConsentStatus.UNKNOWN
         coVerify(exactly = 0, timeout = 500) {
             mockHttpClient.post(any(), any(), any())
+        }
+    }
+
+    @Test
+    fun consentManagerLastSetDefinedUponConsentStatusChangeConsented() {
+        every { editor.putLong(KEY_LAST_STATUS_UPDATE, 1234) } returns editor
+        every { sharedPreferences.getLong(any(), any()) } returns 1234
+
+        consentManager.userConsentStatus = ConsentStatus.CONSENTED
+
+        verify(exactly = 1) {
+            editor.putLong(KEY_LAST_STATUS_UPDATE, any())
+        }
+    }
+
+    @Test
+    fun consentManagerLastSetDefinedUponConsentStatusChangeNotConsented() {
+        every { editor.putLong(KEY_LAST_STATUS_UPDATE, 1234) } returns editor
+        every { sharedPreferences.getLong(any(), any()) } returns 1234
+
+        consentManager.userConsentStatus = ConsentStatus.NOT_CONSENTED
+
+        verify(exactly = 1) {
+            editor.putLong(KEY_LAST_STATUS_UPDATE, any())
+        }
+    }
+
+    @Test
+    fun defaultConsentExpiryCCPA() {
+        var localConfig = TealiumConfig(context, "test", "profile", Environment.QA)
+        localConfig.consentManagerPolicy = ConsentPolicy.CCPA
+        every { mockTealiumContext.config } returns localConfig
+        val localConsentManager = ConsentManager(mockTealiumContext, eventRouter, mockk())
+        assertEquals(395, localConsentManager.expiry.time)
+        assertEquals(TimeUnit.DAYS, localConsentManager.expiry.unit)
+    }
+
+    @Test
+    fun defaultConsentExpiryGDPR() {
+        var localConfig = TealiumConfig(context, "test", "profile", Environment.QA)
+        localConfig.consentManagerPolicy = ConsentPolicy.GDPR
+        every { mockTealiumContext.config } returns localConfig
+        val localConsentManager = ConsentManager(mockTealiumContext, eventRouter, mockk())
+        assertEquals(365, localConsentManager.expiry.time)
+        assertEquals(TimeUnit.DAYS, localConsentManager.expiry.unit)
+    }
+
+    @Test
+    fun customConsentExpiry() {
+        var localConfig = TealiumConfig(context, "test", "profile", Environment.QA)
+        localConfig.consentManagerPolicy = ConsentPolicy.GDPR
+        localConfig.consentExpiry = ConsentExpiry(90, TimeUnit.MINUTES)
+        every { mockTealiumContext.config } returns localConfig
+        val localConsentManager = ConsentManager(mockTealiumContext, eventRouter, mockk())
+        assertEquals(90, localConsentManager.expiry.time)
+        assertEquals(TimeUnit.MINUTES, localConsentManager.expiry.unit)
+    }
+
+    @Test
+    fun consentManagerLastSetNotDefinedUponWhenStatusUnknown() {
+        consentManager.userConsentStatus = ConsentStatus.UNKNOWN
+
+        // run once on init
+        verify(exactly = 1) {
+            sharedPreferences.getLong(any(), any())
+        }
+    }
+
+    @Test
+    fun expireConsentUpdatesConsentStatus() {
+        val mockTime = System.currentTimeMillis() - 60001
+        every { editor.putLong(KEY_LAST_STATUS_UPDATE, mockTime) } returns editor
+        every { sharedPreferences.getLong(any(), any()) } returns mockTime
+
+        consentManager.shouldQueue(TealiumView("track"))
+
+        verify(exactly = 1) {
+            editor.putString(KEY_STATUS, any())
+        }
+    }
+
+    @Test
+    fun expireConsentDoesntUpdateConsentStatus() {
+        every { editor.putLong(KEY_LAST_STATUS_UPDATE, 0) } returns editor
+        every { sharedPreferences.getLong(any(), any()) } returns 0
+
+        consentManager.shouldQueue(TealiumView("track"))
+
+        verify(exactly = 0) {
+            editor.putString(KEY_STATUS, any())
+        }
+    }
+
+    @Test
+    fun expireConsentCallsListener() {
+        val mockTime = System.currentTimeMillis() - 60001
+        every { editor.putLong(KEY_LAST_STATUS_UPDATE, mockTime) } returns editor
+        every { sharedPreferences.getLong(any(), any()) } returns mockTime
+        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockk(), ConsentPolicy.GDPR)
+
+        verify(exactly = 1) {
+            eventRouter.onUserConsentPreferencesUpdated(any(), any())
+        }
+    }
+
+    @Test
+    fun expireConsentDoesntCallListener() {
+        every { editor.putLong(KEY_LAST_STATUS_UPDATE, 0) } returns editor
+        every { sharedPreferences.getLong(any(), any()) } returns 0
+        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockk(), ConsentPolicy.GDPR)
+
+        verify(exactly = 0) {
+            eventRouter.onUserConsentPreferencesUpdated(any(), any())
         }
     }
 }
