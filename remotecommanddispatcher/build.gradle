@@ -4,7 +4,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'kotlin-allopen'
 apply from: '../jacoco.gradle'
 
-version = '1.0.0'
+version = '1.0.1'
 
 android {
     compileSdkVersion 29
@@ -23,7 +23,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
