@@ -15,7 +15,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
-class AdIdentifierTests {
+class AdIdentifierIntegratedTests {
     private val application = ApplicationProvider.getApplicationContext<Application>()
 
     lateinit var tealiumContext: TealiumContext
@@ -51,6 +51,7 @@ class AdIdentifierTests {
     fun adInfoSuccessfulAddToDataLayer() {
         config.modules.add(AdIdentifier)
         val tealium = Tealium.create("test2", config)
+        Thread.sleep(1500)
         Assert.assertTrue(tealium.dataLayer.contains("google_adid"))
     }
 
@@ -58,9 +59,10 @@ class AdIdentifierTests {
     fun adInfoSuccessfulRemovalFromDataLayer() {
         config.modules.add(AdIdentifier)
         val tealium = Tealium.create("test2", config)
+        Thread.sleep(1500)
+
         Assert.assertTrue(tealium.dataLayer.contains("google_adid"))
 
-        Thread.sleep(100)
         tealium.adIdentifier?.removeAdInfo()
 
         Assert.assertFalse(tealium.dataLayer.contains("google_adid"))
