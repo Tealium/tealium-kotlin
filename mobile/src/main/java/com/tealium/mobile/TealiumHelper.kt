@@ -38,9 +38,8 @@ object TealiumHelper {
             useRemoteLibrarySettings = true
             hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
 
-            // Uncomment to enable Consent Management
-            consentManagerEnabled = true
-            // and, uncomment one of the following lines to set the appropriate Consent Policy
+            // Uncomment one of the following lines to set the appropriate Consent Policy
+            // and enable the consent manager
             consentManagerPolicy = ConsentPolicy.GDPR
             // consentManagerPolicy = ConsentPolicy.CCPA
             consentExpiry = ConsentExpiry(1, TimeUnit.MINUTES)
