@@ -46,25 +46,4 @@ class AdIdentifierIntegratedTests {
         delay(1500)
         Assert.assertNotNull(tealium.adIdentifier)
     }
-
-    @Test
-    fun adInfoSuccessfulAddToDataLayer() {
-        config.modules.add(AdIdentifier)
-        val tealium = Tealium.create("test2", config)
-        Thread.sleep(1500)
-        Assert.assertTrue(tealium.dataLayer.contains("google_adid"))
-    }
-
-    @Test
-    fun adInfoSuccessfulRemovalFromDataLayer() {
-        config.modules.add(AdIdentifier)
-        val tealium = Tealium.create("test2", config)
-        Thread.sleep(1500)
-
-        Assert.assertTrue(tealium.dataLayer.contains("google_adid"))
-
-        tealium.adIdentifier?.removeAdInfo()
-
-        Assert.assertFalse(tealium.dataLayer.contains("google_adid"))
-    }
 }
