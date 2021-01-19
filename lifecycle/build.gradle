@@ -70,7 +70,10 @@ afterEvaluate {
                 artifactId = 'kotlin-lifecycle'
             }
         }
-//        repositories {
+        repositories {
+            maven {
+                url uri("../repo")
+            }
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
 //                credentials(AwsCredentials) {
@@ -78,6 +81,6 @@ afterEvaluate {
 //                    secretKey AWS_SECRET_KEY
 //                }
 //            }
-//        }
+        }
     }
 }

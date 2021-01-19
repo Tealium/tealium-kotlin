@@ -20,12 +20,12 @@ android {
         buildConfigField 'String', 'LIBRARY_VERSION', "\"$version\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles 'consumer-rules.pro'
+//        consumerProguardFiles 'consumer-rules.pro'
     }
 
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
@@ -81,7 +81,10 @@ afterEvaluate {
                 artifactId = 'kotlin-core'
             }
         }
-//        repositories {
+        repositories {
+            maven {
+                url uri("../repo")
+            }
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
 //                credentials(AwsCredentials) {
@@ -89,7 +92,7 @@ afterEvaluate {
 //                    secretKey AWS_SECRET_KEY
 //                }
 //            }
-//        }
+        }
     }
 }
 

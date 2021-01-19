@@ -23,7 +23,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
@@ -65,7 +65,10 @@ afterEvaluate {
                 artifactId = 'kotlin-crash-reporter'
             }
         }
-//        repositories {
+        repositories {
+            maven {
+                url uri("../repo")
+            }
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
 //                credentials(AwsCredentials) {
@@ -73,6 +76,6 @@ afterEvaluate {
 //                    secretKey AWS_SECRET_KEY
 //                }
 //            }
-//        }
+        }
     }
 }

@@ -37,12 +37,12 @@ object TealiumHelper {
         ).apply {
             useRemoteLibrarySettings = true
             hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
-
+            consentManagerEnabled = false
             // Uncomment one of the following lines to set the appropriate Consent Policy
             // and enable the consent manager
             consentManagerPolicy = ConsentPolicy.GDPR
             // consentManagerPolicy = ConsentPolicy.CCPA
-            consentExpiry = ConsentExpiry(1, TimeUnit.MINUTES)
+//            consentExpiry = ConsentExpiry(1, TimeUnit.MINUTES)
 
             timedEventTriggers = mutableListOf(
                     EventTrigger.forEventName("start_event", "end_event")

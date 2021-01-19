@@ -28,6 +28,7 @@
 
 # Keep all public interfaces
 -keep public interface com.tealium.** { *; }
+-keep public class com.tealium.**$DefaultImpls { *; }
 
 # Keep all Collectors except internal ones
 -keep public class !com.tealium.core.collection.Session**,

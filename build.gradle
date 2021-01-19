@@ -26,7 +26,10 @@ allprojects {
         google()
         jcenter()
 
-        maven { url "http://maven.tealiumiq.com/android/releases/" }
+//        maven { url "http://maven.tealiumiq.com/android/releases/" }
+        maven {
+            url '../repo'
+        }
     }
 }
 
