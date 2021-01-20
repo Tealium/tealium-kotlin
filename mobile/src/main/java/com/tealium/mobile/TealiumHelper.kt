@@ -7,7 +7,6 @@ import com.tealium.core.*
 import com.tealium.core.consent.*
 import com.tealium.core.events.EventTrigger
 import com.tealium.core.messaging.UserConsentPreferencesUpdatedListener
-import com.tealium.core.persistence.Expiry
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.crashreporter.CrashReporter
 import com.tealium.dispatcher.Dispatch
@@ -16,6 +15,7 @@ import com.tealium.dispatcher.TealiumView
 import com.tealium.hosteddatalayer.HostedDataLayer
 import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
 import com.tealium.lifecycle.Lifecycle
+import com.tealium.media.Media
 import com.tealium.remotecommanddispatcher.RemoteCommands
 import com.tealium.remotecommanddispatcher.remoteCommands
 import com.tealium.remotecommands.RemoteCommand
@@ -32,7 +32,13 @@ object TealiumHelper {
                 "tealiummobile",
                 "android",
                 Environment.DEV,
-                modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer, Modules.CrashReporter, Modules.AdIdentifier),
+                modules = mutableSetOf(
+                        Modules.Lifecycle,
+                        Modules.VisitorService,
+                        Modules.HostedDataLayer,
+                        Modules.CrashReporter,
+                        Modules.AdIdentifier,
+                        Modules.Media),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
             useRemoteLibrarySettings = true

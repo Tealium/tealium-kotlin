@@ -53,4 +53,5 @@ dependencies {
     implementation project(':remotecommanddispatcher')
     implementation project(':crashreporter')
     implementation project(':adidentifier')
+    implementation project(':media')
 }
