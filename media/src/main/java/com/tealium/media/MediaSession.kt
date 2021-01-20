@@ -154,7 +154,7 @@ class MediaSession(val name: String,
 
     private fun duration(): Long = System.currentTimeMillis() - startTime;
 
-    override fun segmentInfo(): Map<String, Any>? {
+    override fun segmentInfo(): Map<String, Any> {
         // Summary data map??
         return mapOf()
     }

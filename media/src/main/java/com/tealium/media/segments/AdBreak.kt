@@ -12,7 +12,7 @@ class AdBreak(var id: String,
               var uuid: String? = UUID.randomUUID().toString(),
               private var numberOfAdBreaks: Int = 0) : Segment {
 
-    override fun segmentInfo(): Map<String, Any>? {
+    override fun segmentInfo(): Map<String, Any> {
         val data = mutableMapOf<String, Any>()
         data[AdBreakKeys.ID] = id
 

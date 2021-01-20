@@ -9,7 +9,7 @@ class Chapter(var name: String,
               var metadata: Any? = null, // what is this????
               private var numberOfChapters: Int = 0) : Segment {
 
-    override fun segmentInfo(): Map<String, Any>? {
+    override fun segmentInfo(): Map<String, Any> {
         val data = mutableMapOf<String, Any>()
         data[ChapterKey.NAME] = name
 

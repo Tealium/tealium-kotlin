@@ -19,7 +19,7 @@ class Ad(var id: String,
          var duration: Long? = null,
          var uuid: String = UUID.randomUUID().toString()) : Segment {
 
-    override fun segmentInfo(): Map<String, Any>? {
+    override fun segmentInfo(): Map<String, Any> {
         val data = mutableMapOf<String, Any>()
         data[AdKeys.ID] = id
         name?.let { data[AdKeys.NAME] = it }
@@ -38,6 +38,6 @@ class Ad(var id: String,
         uuid?.let { data[AdKeys.UUID] = it }
 //        numberOfAds?.let { data[AdKeys.NUMBER_OF_ADS] = it }
 
-        return data.toMap()
+        return data
     }
 }
