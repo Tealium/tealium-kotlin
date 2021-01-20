@@ -7,6 +7,7 @@ import com.tealium.core.*
 import com.tealium.core.consent.*
 import com.tealium.core.events.EventTrigger
 import com.tealium.core.messaging.UserConsentPreferencesUpdatedListener
+import com.tealium.core.persistence.Expiry
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.crashreporter.CrashReporter
 import com.tealium.dispatcher.Dispatch
