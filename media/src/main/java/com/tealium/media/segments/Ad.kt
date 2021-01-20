@@ -38,6 +38,6 @@ class Ad(var id: String,
         uuid?.let { data[AdKeys.UUID] = it }
 //        numberOfAds?.let { data[AdKeys.NUMBER_OF_ADS] = it }
 
-        return data
+        return data.toMap()
     }
 }
