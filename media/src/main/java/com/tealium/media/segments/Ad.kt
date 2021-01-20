@@ -19,14 +19,6 @@ class Ad(var id: String,
          var duration: Long? = null,
          var uuid: String = UUID.randomUUID().toString()) : Segment {
 
-    companion object {
-        private var numberOfAds: Int = 0
-    }
-
-    init {
-        numberOfAds += 1
-    }
-
     override fun segmentInfo(): Map<String, Any>? {
         val data = mutableMapOf<String, Any>()
         data[AdKeys.ID] = id
