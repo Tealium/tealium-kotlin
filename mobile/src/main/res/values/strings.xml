@@ -21,4 +21,8 @@
     <string name="timed_events_event_name_hint">Timed Event Name</string>
     <string name="timed_events_no_events">No Timed Event Running</string>
     <string name="create_crash">Create Crash</string>
+    <string name="second_activity">Second Activity</string>
+    <string name="second_activity_text_view">Second Activity</string>
+    <string name="third_activity">Third Activity</string>
+    <string name="third_activity_text_view">Third Activity</string>
 </resources>

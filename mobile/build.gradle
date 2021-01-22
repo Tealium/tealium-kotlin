@@ -13,6 +13,8 @@ android {
         versionName "1.0"
         buildConfigField 'String', 'TAG', "\"App\""
         buildConfigField 'String', 'TEALIUM_INSTANCE', "\"main\""
+        buildConfigField 'Boolean', 'AUTO_TRACKING', "true"
+//        buildConfigField 'Boolean', 'AUTO_TRACKING', "false"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -53,4 +55,5 @@ dependencies {
     implementation project(':remotecommanddispatcher')
     implementation project(':crashreporter')
     implementation project(':adidentifier')
+    implementation project(':autotracking')
 }

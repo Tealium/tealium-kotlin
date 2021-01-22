@@ -65,7 +65,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
     // Dependencies for publicly accessible objects.
     private val databaseHelper: DatabaseHelper = DatabaseHelper(config)
     private val eventRouter = EventDispatcher()
-    private val activityObserver: ActivityObserver = ActivityObserver(config, eventRouter)
+    private val activityObserver: ActivityObserver = ActivityObserver(config, eventRouter, backgroundScope)
     private val sessionManager = SessionManager(config, eventRouter)
     private val deepLinkHandler: DeepLinkHandler
     private val timedEvents: TimedEventsManager
