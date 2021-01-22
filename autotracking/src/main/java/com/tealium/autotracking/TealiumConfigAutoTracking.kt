@@ -15,7 +15,7 @@ const val AUTOTRACKING_MODE = "autotracking_mode"
 const val AUTOTRACKING_COLLECTOR_DELEGATE = "autotracking_collector_delegate"
 
 /**
- * Sets the URL to use when requesting the latest Visitor Profile.
+ * Sets the AutoTrackingMode. Default is [FULL].
  */
 var TealiumConfig.autoTrackingMode: AutoTrackingMode
     get() = options[AUTOTRACKING_MODE] as? AutoTrackingMode ?: AutoTrackingMode.FULL
