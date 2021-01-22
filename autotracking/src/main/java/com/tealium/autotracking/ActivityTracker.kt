@@ -7,6 +7,3 @@ interface ActivityTracker: ActivityObserverListener  {
     fun trackActivity(activity: Activity, data: Map<String, Any>?)
     fun trackActivity(activityDataCollector: ActivityDataCollector, data: Map<String, Any>?)
 }
-
-
-

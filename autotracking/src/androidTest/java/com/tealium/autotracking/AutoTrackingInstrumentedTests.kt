@@ -3,7 +3,6 @@ package com.tealium.autotracking
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.*
-import com.tealium.core.messaging.EventRouter
 import com.tealium.core.messaging.MessengerService
 import com.tealium.core.network.HttpClient
 import io.mockk.MockKAnnotations
@@ -17,12 +16,6 @@ import org.junit.Test
 import org.junit.Assert.*
 import org.junit.Before
 
-/**
- * Instrumented test, which will execute on an Android device.
- *
- * See [testing documentation](http://d.android.com/tools/testing).
- */
-//@RunWith(AndroidJUnit4::class)
 class AutoTrackingInstrumentedTests {
 
     @RelaxedMockK
@@ -40,7 +33,6 @@ class AutoTrackingInstrumentedTests {
         val config = TealiumConfig(application, "account", "profile", Environment.DEV)
         tealiumContext = TealiumContext(config, "visitor-1", Logger, mockk(), HttpClient(config), mockEvents, mockTealium)
     }
-
 
     @Test
     fun factory_ReturnsNewInstance() {

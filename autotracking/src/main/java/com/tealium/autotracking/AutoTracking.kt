@@ -25,7 +25,7 @@ class AutoTracking(
     @JvmOverloads fun trackActivity(activity: Activity, data: Map<String, Any>? = null) = activityTracker.trackActivity(activity, data)
 
     /**
-     * Manually tracks a screen view event for an Activity
+     * Manually tracks a screen view event where the screen implements [ActivityDataCollector]
      */
     @JvmOverloads fun trackActivity(activityDataCollector: ActivityDataCollector, data: Map<String, Any>? = null) = activityTracker.trackActivity(activityDataCollector, data)
 

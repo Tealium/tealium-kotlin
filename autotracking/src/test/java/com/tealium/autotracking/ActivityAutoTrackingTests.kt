@@ -205,8 +205,6 @@ class ActivityAutoTrackingTests {
             mockContext.track(any())
         }
     }
-
-    // TODO( annotated track == false does not track)
 }
 
 private class NonAnnotatedActivity : Activity()

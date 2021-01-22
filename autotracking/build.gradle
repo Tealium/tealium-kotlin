@@ -39,7 +39,6 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation project(':tealiumlibrary:')
-//    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     testImplementation "io.mockk:mockk:$mockk_version"
     testImplementation 'junit:junit:4.+'
     testImplementation "org.robolectric:robolectric:4.3.1"

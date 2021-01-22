@@ -26,7 +26,6 @@ class AutoTrackingModuleTests {
     @RelaxedMockK
     lateinit var mockActivityTracker: ActivityTracker
 
-
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
