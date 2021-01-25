@@ -67,9 +67,6 @@ afterEvaluate {
             }
         }
         repositories {
-            maven {
-                url uri("../repo")
-            }
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
 //                credentials(AwsCredentials) {

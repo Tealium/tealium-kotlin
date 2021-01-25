@@ -42,27 +42,15 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
 
-//    implementation project(':tealiumlibrary:')
-//    implementation project(':collectdispatcher:')
-//    implementation project(':tagmanagementdispatcher:')
-//    implementation project(':installreferrer')
-//    implementation project(':lifecycle')
-//    implementation project(':location')
-//    implementation project(':visitorservice:')
-//    implementation project(':hosteddatalayer')
-//    implementation project(':remotecommanddispatcher')
-//    implementation project(':crashreporter')
-//    implementation project(':adidentifier')
-
-    implementation "com.tealium:kotlin-core:1.2.0"
-    implementation "com.tealium:kotlin-ad-identifier:1.0.0"
-    implementation "com.tealium:kotlin-crash-reporter:1.0.0"
-    implementation "com.tealium:kotlin-hosted-datalayer:1.0.1"
-    implementation "com.tealium:kotlin-install-referrer:1.0.1"
-    implementation "com.tealium:kotlin-lifecycle:1.0.2"
-    implementation "com.tealium:kotlin-location:1.0.2"
-    implementation "com.tealium:kotlin-collect-dispatcher:1.0.2"
-    implementation "com.tealium:kotlin-remotecommand-dispatcher:1.0.1"
-    implementation "com.tealium:kotlin-tagmanagement-dispatcher:1.0.1"
-    implementation "com.tealium:kotlin-visitor-service:1.0.2"
+    implementation project(':tealiumlibrary:')
+    implementation project(':collectdispatcher:')
+    implementation project(':tagmanagementdispatcher:')
+    implementation project(':installreferrer')
+    implementation project(':lifecycle')
+    implementation project(':location')
+    implementation project(':visitorservice:')
+    implementation project(':hosteddatalayer')
+    implementation project(':remotecommanddispatcher')
+    implementation project(':crashreporter')
+    implementation project(':adidentifier')
 }
