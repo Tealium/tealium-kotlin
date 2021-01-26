@@ -1,13 +1,11 @@
 package com.tealium.autotracking
 
-import android.app.Application
 import android.content.SharedPreferences
 import com.tealium.autotracking.internal.ActivityBlacklist
 import com.tealium.core.Loader
 import com.tealium.core.TealiumConfig
 import com.tealium.core.network.Connectivity
 import io.mockk.*
-import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
