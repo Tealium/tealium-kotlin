@@ -2,6 +2,7 @@ package com.tealium.autotracking
 
 import android.app.Activity
 import com.tealium.autotracking.internal.ActivityAutoTracker
+import com.tealium.autotracking.internal.ActivityBlacklist
 import com.tealium.core.TealiumContext
 import com.tealium.dispatcher.TealiumView
 import io.mockk.MockKAnnotations
@@ -23,6 +24,9 @@ class ActivityAutoTrackingTests {
     @MockK
     lateinit var mockDataCollector: ActivityDataCollector
 
+    @MockK
+    lateinit var mockBlacklist: ActivityBlacklist
+
     private var nonAnnotatedActivity = NonAnnotatedActivity()
     private var annotatedActivity = AnnotatedActivity()
     private var annotatedActivityWithOverride = AnnotatedActivityWithOverride()
@@ -32,6 +36,9 @@ class ActivityAutoTrackingTests {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
+
+        // not-blacklisted by default.
+        every { mockBlacklist.isBlacklisted(any()) } returns false
     }
 
     @Test
@@ -190,18 +197,29 @@ class ActivityAutoTrackingTests {
         verify {
             mockContext.track(match {
                 it["manual_data"] == "value" &&
-                it["activity_data"] == "value" &&
-                it["global_data"] == "value"
+                        it["activity_data"] == "value" &&
+                        it["global_data"] == "value"
             })
         }
     }
 
     @Test
     fun manualTracking_Full_TrackSetToFalseIsIgnored() {
-        val tracker = ActivityAutoTracker(mockContext, AutoTrackingMode.NONE)
+        val tracker = ActivityAutoTracker(mockContext, AutoTrackingMode.FULL)
         tracker.trackActivity(annotatedActivityWithoutTracking, null)
 
         verify(exactly = 1) {
+            mockContext.track(any())
+        }
+    }
+
+    @Test
+    fun blacklist_StopsAutoTracking() {
+        every { mockBlacklist.isBlacklisted("NonAnnotatedActivity") } returns true
+        val tracker = ActivityAutoTracker(mockContext, AutoTrackingMode.FULL, blacklist = mockBlacklist)
+        tracker.trackActivity(nonAnnotatedActivity, null)
+
+        verify(exactly = 0) {
             mockContext.track(any())
         }
     }

@@ -10,7 +10,8 @@ import java.lang.Exception
 internal class ActivityAutoTracker(
         private val context: TealiumContext,
         private val trackingMode: AutoTrackingMode,
-        private val globalActivityDataCollector: ActivityDataCollector? = null
+        private val globalActivityDataCollector: ActivityDataCollector? = null,
+        private val blacklist: ActivityBlacklist = ActivityBlacklist(context.config)
 ) : ActivityTracker {
 
     private var activityChangingConfiguration = ""
@@ -26,7 +27,12 @@ internal class ActivityAutoTracker(
     private fun trackActivity(activityName: String, activityDataCollector: ActivityDataCollector?, data: Map<String, Any>?) {
         Logger.dev(BuildConfig.TAG, "Tracking Activity Event for: $activityName")
 
-        val eventData = mutableMapOf<String, Any>()
+        if (blacklist.isBlacklisted(activityName)) {
+            Logger.dev(BuildConfig.TAG, "Activity ($activityName) is blacklisted; no event will be sent.")
+            return
+        }
+
+        val eventData = mutableMapOf<String, Any>("autotracked" to true)
         try {
             data?.let { eventData.putAll(it) }
             globalActivityDataCollector?.onCollectActivityData(activityName)?.let { eventData.putAll(it) }
@@ -49,6 +55,7 @@ internal class ActivityAutoTracker(
             if (autotracked != null && !autotracked.track) return
 
             val activityName = getName(it, autotracked)
+
             if (!(activityChangingConfiguration == activityName)) {
 
                 if (trackingMode == AutoTrackingMode.FULL) {
