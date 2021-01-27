@@ -2,7 +2,7 @@ package com.tealium.autotracking
 
 import android.app.Activity
 import com.tealium.autotracking.internal.ActivityAutoTracker
-import com.tealium.autotracking.internal.ActivityBlacklist
+import com.tealium.autotracking.internal.ActivityBlocklist
 import com.tealium.core.TealiumContext
 import com.tealium.dispatcher.TealiumView
 import io.mockk.MockKAnnotations
@@ -14,8 +14,10 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [21, 28])
 class ActivityAutoTrackingTests {
 
     @RelaxedMockK
@@ -25,7 +27,7 @@ class ActivityAutoTrackingTests {
     lateinit var mockDataCollector: ActivityDataCollector
 
     @MockK
-    lateinit var mockBlacklist: ActivityBlacklist
+    lateinit var mockBlocklist: ActivityBlocklist
 
     private var nonAnnotatedActivity = NonAnnotatedActivity()
     private var annotatedActivity = AnnotatedActivity()
@@ -37,8 +39,8 @@ class ActivityAutoTrackingTests {
     fun setUp() {
         MockKAnnotations.init(this)
 
-        // not-blacklisted by default.
-        every { mockBlacklist.isBlacklisted(any()) } returns false
+        // not-blocklisted by default.
+        every { mockBlocklist.isBlocklisted(any()) } returns false
     }
 
     @Test
@@ -214,9 +216,9 @@ class ActivityAutoTrackingTests {
     }
 
     @Test
-    fun blacklist_StopsAutoTracking() {
-        every { mockBlacklist.isBlacklisted("NonAnnotatedActivity") } returns true
-        val tracker = ActivityAutoTracker(mockContext, AutoTrackingMode.FULL, blacklist = mockBlacklist)
+    fun blocklist_StopsAutoTracking() {
+        every { mockBlocklist.isBlocklisted("NonAnnotatedActivity") } returns true
+        val tracker = ActivityAutoTracker(mockContext, AutoTrackingMode.FULL, blocklist = mockBlocklist)
         tracker.trackActivity(nonAnnotatedActivity, null)
 
         verify(exactly = 0) {

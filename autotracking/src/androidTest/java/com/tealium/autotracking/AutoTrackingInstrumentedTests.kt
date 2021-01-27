@@ -3,11 +3,14 @@ package com.tealium.autotracking
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.*
+import com.tealium.core.messaging.EventRouter
 import com.tealium.core.messaging.MessengerService
 import com.tealium.core.network.HttpClient
 import io.mockk.MockKAnnotations
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 
@@ -22,7 +25,7 @@ class AutoTrackingInstrumentedTests {
     lateinit var mockTealium: Tealium
 
     @RelaxedMockK
-    lateinit var mockEvents: MessengerService
+    lateinit var mockEventRouter: EventRouter
 
     lateinit var tealiumContext: TealiumContext
     val application = ApplicationProvider.getApplicationContext<Application>()
@@ -31,7 +34,8 @@ class AutoTrackingInstrumentedTests {
     fun setUp() {
         MockKAnnotations.init(this)
         val config = TealiumConfig(application, "account", "profile", Environment.DEV)
-        tealiumContext = TealiumContext(config, "visitor-1", Logger, mockk(), HttpClient(config), mockEvents, mockTealium)
+        val messengerService = MessengerService(mockEventRouter, CoroutineScope(Dispatchers.IO))
+        tealiumContext = TealiumContext(config, "visitor-1", Logger, mockk(), HttpClient(config), messengerService, mockTealium)
     }
 
     @Test

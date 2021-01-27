@@ -40,26 +40,26 @@ class TealiumConfigLocationTests {
 
     @Test
     fun setters_SetAutoTrackingFileName() {
-        assertNull(config.autoTrackingBlacklistFilename)
-        config.autoTrackingBlacklistFilename = "file"
-        assertEquals("file", config.autoTrackingBlacklistFilename)
-        assertEquals("file", config.options[AUTOTRACKING_BLACKLIST_FILENAME])
+        assertNull(config.autoTrackingBlocklistFilename)
+        config.autoTrackingBlocklistFilename = "file"
+        assertEquals("file", config.autoTrackingBlocklistFilename)
+        assertEquals("file", config.options[AUTOTRACKING_BLOCKLIST_FILENAME])
 
-        config.autoTrackingBlacklistFilename = null
-        assertNull(config.autoTrackingBlacklistFilename)
-        assertNull(config.options[AUTOTRACKING_BLACKLIST_FILENAME])
+        config.autoTrackingBlocklistFilename = null
+        assertNull(config.autoTrackingBlocklistFilename)
+        assertNull(config.options[AUTOTRACKING_BLOCKLIST_FILENAME])
     }
 
     @Test
     fun setters_SetAutoTrackingUrl() {
-        assertNull(config.autoTrackingBlacklistUrl)
-        config.autoTrackingBlacklistUrl = "file"
-        assertEquals("file", config.autoTrackingBlacklistUrl)
-        assertEquals("file", config.options[AUTOTRACKING_BLACKLIST_URL])
+        assertNull(config.autoTrackingBlocklistUrl)
+        config.autoTrackingBlocklistUrl = "file"
+        assertEquals("file", config.autoTrackingBlocklistUrl)
+        assertEquals("file", config.options[AUTOTRACKING_BLOCKLIST_URL])
 
-        config.autoTrackingBlacklistUrl = null
-        assertNull(config.autoTrackingBlacklistUrl)
-        assertNull(config.options[AUTOTRACKING_BLACKLIST_URL])
+        config.autoTrackingBlocklistUrl = null
+        assertNull(config.autoTrackingBlocklistUrl)
+        assertNull(config.options[AUTOTRACKING_BLOCKLIST_URL])
     }
 
     @Test

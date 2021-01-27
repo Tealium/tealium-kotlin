@@ -50,8 +50,8 @@ object TealiumHelper : ActivityDataCollector {
             )
 
             autoTrackingMode = if (BuildConfig.AUTO_TRACKING) AutoTrackingMode.FULL else AutoTrackingMode.NONE
-            // autoTrackingBlacklistFilename = "autotracking-blacklist.json"
-            // autoTrackingBlacklistUrl = "https://tags.tiqcdn.com/dle/services-james/main/autotracking-blacklist.json"
+            // autoTrackingBlocklistFilename = "autotracking-blocklist.json"
+            // autoTrackingBlocklistUrl = "https://tags.tiqcdn.com/dle/services-james/main/autotracking-blocklist.json"
             autoTrackingCollectorDelegate = TealiumHelper
         }
 
