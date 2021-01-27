@@ -2,6 +2,7 @@ package com.tealium.autotracking
 
 import android.app.Activity
 import com.tealium.autotracking.internal.ActivityAutoTracker
+import com.tealium.autotracking.internal.ActivityBlocklist
 import com.tealium.core.TealiumContext
 import com.tealium.dispatcher.TealiumView
 import io.mockk.MockKAnnotations
@@ -13,8 +14,10 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [21, 28])
 class ActivityAutoTrackingTests {
 
     @RelaxedMockK
@@ -22,6 +25,9 @@ class ActivityAutoTrackingTests {
 
     @MockK
     lateinit var mockDataCollector: ActivityDataCollector
+
+    @MockK
+    lateinit var mockBlocklist: ActivityBlocklist
 
     private var nonAnnotatedActivity = NonAnnotatedActivity()
     private var annotatedActivity = AnnotatedActivity()
@@ -32,6 +38,9 @@ class ActivityAutoTrackingTests {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
+
+        // not-blocklisted by default.
+        every { mockBlocklist.isBlocklisted(any()) } returns false
     }
 
     @Test
@@ -190,18 +199,29 @@ class ActivityAutoTrackingTests {
         verify {
             mockContext.track(match {
                 it["manual_data"] == "value" &&
-                it["activity_data"] == "value" &&
-                it["global_data"] == "value"
+                        it["activity_data"] == "value" &&
+                        it["global_data"] == "value"
             })
         }
     }
 
     @Test
     fun manualTracking_Full_TrackSetToFalseIsIgnored() {
-        val tracker = ActivityAutoTracker(mockContext, AutoTrackingMode.NONE)
+        val tracker = ActivityAutoTracker(mockContext, AutoTrackingMode.FULL)
         tracker.trackActivity(annotatedActivityWithoutTracking, null)
 
         verify(exactly = 1) {
+            mockContext.track(any())
+        }
+    }
+
+    @Test
+    fun blocklist_StopsAutoTracking() {
+        every { mockBlocklist.isBlocklisted("NonAnnotatedActivity") } returns true
+        val tracker = ActivityAutoTracker(mockContext, AutoTrackingMode.FULL, blocklist = mockBlocklist)
+        tracker.trackActivity(nonAnnotatedActivity, null)
+
+        verify(exactly = 0) {
             mockContext.track(any())
         }
     }

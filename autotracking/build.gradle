@@ -1,7 +1,8 @@
-plugins {
-    id 'com.android.library'
-    id 'kotlin-android'
-}
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'maven-publish'
+apply from: '../jacoco.gradle'
 
 version = "1.0.0"
 
@@ -25,6 +26,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {
+            testCoverageEnabled true
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -38,6 +42,8 @@ android {
 dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_core_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
     implementation project(':tealiumlibrary:')
     testImplementation "io.mockk:mockk:$mockk_version"
     testImplementation 'junit:junit:4.+'
@@ -48,4 +54,25 @@ dependencies {
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_core_version"
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
 
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.tealium'
+                artifactId = 'kotlin-autotracking'
+            }
+        }
+//        repositories {
+//            maven {
+//                url "s3://maven.tealiumiq.com/android/releases/"
+//                credentials(AwsCredentials) {
+//                    accessKey AWS_ACCESS_KEY
+//                    secretKey AWS_SECRET_KEY
+//                }
+//            }
+//        }
+    }
 }

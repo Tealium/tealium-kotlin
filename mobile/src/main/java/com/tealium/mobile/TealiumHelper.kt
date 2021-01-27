@@ -26,7 +26,7 @@ import com.tealium.visitorservice.VisitorService
 import com.tealium.visitorservice.VisitorUpdatedListener
 import java.util.concurrent.TimeUnit
 
-object TealiumHelper: ActivityDataCollector {
+object TealiumHelper : ActivityDataCollector {
 
     fun init(application: Application) {
         val config = TealiumConfig(application,
@@ -49,7 +49,9 @@ object TealiumHelper: ActivityDataCollector {
                     EventTrigger.forEventName("start_event", "end_event")
             )
 
-            autoTrackingMode = if (BuildConfig.AUTO_TRACKING) AutoTrackingMode.ANNOTATED else AutoTrackingMode.NONE
+            autoTrackingMode = if (BuildConfig.AUTO_TRACKING) AutoTrackingMode.FULL else AutoTrackingMode.NONE
+            // autoTrackingBlocklistFilename = "autotracking-blocklist.json"
+            // autoTrackingBlocklistUrl = "https://tags.tiqcdn.com/dle/services-james/main/autotracking-blocklist.json"
             autoTrackingCollectorDelegate = TealiumHelper
         }
 
