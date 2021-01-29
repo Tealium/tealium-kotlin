@@ -194,9 +194,7 @@ class WebViewLoader(private val context: TealiumContext,
     }
 
     private fun initializeWebView() {
-        Tealium["main"]?.track(TealiumEvent("webview loading 1"))
         scope.launch {
-            Tealium["main"]?.track(TealiumEvent("webview loading 2"))
             webView = WebView(context.config.application.applicationContext)
             webView.let { view ->
                 view.settings.run {
@@ -215,8 +213,6 @@ class WebViewLoader(private val context: TealiumContext,
 
             loadUrlToWebView()
             enableCookieManager()
-
-            Tealium["main"]?.track(TealiumEvent("webview loading 3"))
         }
     }
 
