@@ -195,8 +195,9 @@ class WebViewClientTest {
     }
 
     @Test
-    fun webViewClient_LoadFailure_WhenSslError() {
+    fun webViewClient_LoadFailure_WhenSslError() = runBlocking {
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        delay(50)
         webViewLoader.webViewClient.onReceivedSslError(mockWebView, null, null)
 
         assertEquals(PageStatus.LOADED_ERROR, webViewLoader.webViewStatus.get())

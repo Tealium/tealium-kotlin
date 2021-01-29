@@ -86,9 +86,6 @@ class WebViewLoaderTest {
         every { CookieManager.getInstance().setAcceptThirdPartyCookies(any(), any()) } just Runs
 
         mockkStatic(SystemClock::class)
-        every { SystemClock.elapsedRealtime() } answers {
-            System.currentTimeMillis()
-        }
     }
 
     @Test
@@ -119,11 +116,12 @@ class WebViewLoaderTest {
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
         delay(50)
 
+        every { SystemClock.elapsedRealtime() } returns 10000L // up for 10s
         val librarySettings = LibrarySettings(refreshInterval = 1)
         webViewLoader.lastUrlLoadTimestamp = SystemClock.elapsedRealtime()
         webViewLoader.onLibrarySettingsUpdated(librarySettings)
         assertFalse(webViewLoader.isTimedOut())
-        delay(1000)
+        every { SystemClock.elapsedRealtime() } returns 11000L // up for 11s
         assertTrue(webViewLoader.isTimedOut())
     }
 
@@ -134,6 +132,7 @@ class WebViewLoaderTest {
         delay(50)
 
         // defaults should be true
+        every { SystemClock.elapsedRealtime() } returns 10000L // up for 10s
         assertTrue(webViewLoader.isTimedOut())
         webViewLoader.lastUrlLoadTimestamp = SystemClock.elapsedRealtime() - 100
         assertTrue(webViewLoader.isTimedOut())
