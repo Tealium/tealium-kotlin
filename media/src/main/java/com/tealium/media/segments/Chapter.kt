@@ -6,7 +6,7 @@ import java.util.*
 class Chapter(var name: String,
               var position: Int? = null,
               var skipped: Boolean? = false,
-              var metadata: Any? = null,
+              var metadata: Map<String, Any>? = null,
               private val uuid: String = UUID.randomUUID().toString()) : Segment {
 
     private var startTime: Long? = null
@@ -34,7 +34,7 @@ class Chapter(var name: String,
         duration?.let { data[ChapterKey.DURATION] = it }
         position?.let { data[ChapterKey.POSITION] = it }
         startTime?.let { data[ChapterKey.START_TIME] = it }
-        metadata?.let { data[ChapterKey.METADATA] = it }
+        metadata?.let { data.putAll(it) }
 
         return data.toMap()
     }

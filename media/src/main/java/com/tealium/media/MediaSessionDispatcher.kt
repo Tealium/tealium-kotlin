@@ -11,7 +11,6 @@ class MediaSessionDispatcher(private val context: TealiumContext) : MediaDispatc
 
         data.putAll(MediaContent.toMap(mediaContent))
 
-        // TODO check segment data overrides Media Content data (should be granular)
         segment?.let {
             data.putAll(segment.segmentInfo())
         }
