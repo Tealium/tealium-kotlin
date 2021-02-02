@@ -24,21 +24,19 @@ object MediaEvent {
     const val PLAY = "media_play"
     const val STOP = "media_stop"
 
-    const val PLAYER_STATE_START = "player_state_start"
-    const val PLAYER_STATE_STOP = "player_state_stop"
+    const val PLAYER_STATE_START = "media_player_state_start"
+    const val PLAYER_STATE_STOP = "media_player_state_stop"
 
     const val SEEK_START = "media_seek_start"
     const val SEEK_COMPLETE = "media_seek_complete"
 
     const val SESSION_START = "media_session_start"
     const val SESSION_END = "media_session_end"
-
-    const val SUMMARY = "media_summary"
 }
 
 object ChapterKey {
     const val NAME = "media_chapter_name"
-    const val DURATION = "media_chapter_length"
+    const val DURATION = "media_chapter_duration"
     const val POSITION = "media_chapter_position"
     const val START_TIME = "media_chapter_start_time"
     const val METADATA = "media_chapter_metadata"
@@ -48,9 +46,9 @@ object AdKey {
     const val UUID = "media_ad_uuid"
     const val NAME = "media_ad_name"
     const val ID = "media_ad_id"
-    const val DURATION = "media_ad_length"
+    const val DURATION = "media_ad_duration"
     const val POSITION = "media_ad_position"
-    const val ADVERTISER = "advertiser"
+    const val ADVERTISER = "media_ad_advertiser"
     const val CREATIVE_ID = "media_ad_creative_id"
     const val CAMPAIGN_ID = "media_ad_campaign_id"
     const val PLACEMENT_ID = "media_ad_placement_id"
@@ -65,7 +63,7 @@ object AdBreakKey {
     const val UUID = "media_ad_break_uuid"
     const val TITLE = "media_ad_break_title"
     const val ID = "media_ad_break_id"
-    const val DURATION = "media_ad_break_length"
+    const val DURATION = "media_ad_break_duration"
     const val INDEX = "media_ad_break_index"
     const val POSITION = "media_ad_break_position"
 }
@@ -101,7 +99,7 @@ object SessionKey {
     const val START_TIME = "media_session_start_time"
     const val STATE = "media_player_state"
     const val CUSTOM_ID = "media_custom_id"
-    const val DURATION = "media_length"
+    const val DURATION = "media_duration"
     const val PLAYER_NAME = "media_player_name"
     const val CHANNEL_NAME = "media_channel_name"
     const val METADATA = "media_metadata"
