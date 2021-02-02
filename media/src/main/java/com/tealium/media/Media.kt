@@ -1,164 +1,86 @@
 package com.tealium.media
 
 import com.tealium.core.*
-import com.tealium.dispatcher.TealiumEvent
 import com.tealium.media.segments.Ad
 import com.tealium.media.segments.AdBreak
 import com.tealium.media.segments.Chapter
+import com.tealium.media.sessions.*
+import com.tealium.media.sessions.Session
 
+/**
+ * Media module provides
+ */
+class Media(private val context: TealiumContext,
+            private val mediaDispatcher: MediaDispatcher = MediaSessionDispatcher(context)) : Module {
 
-class Media(private val tealiumContext: TealiumContext,
-            var currentSession: Session? = null) : Module {
     override val name: String = MODULE_NAME
     override var enabled: Boolean = true
 
-    fun startSession(mediaSession: Session) {
-        currentSession = mediaSession
-        currentSession?.start()
-        tealiumContext.track(TealiumEvent(MediaEvent.SESSION_START))
+    var currentSession: Session? = null
+        private set
+
+    fun startSession(media: MediaContent) {
+        currentSession = when (media.trackingType) {
+            TrackingType.HEARTBEAT -> HeartbeatSession(media, mediaDispatcher)
+            TrackingType.MILESTONE -> MilestoneSession(media, mediaDispatcher)
+            TrackingType.HEARTBEAT_MILESTONE -> HeartbeatMilestoneSession(media, mediaDispatcher)
+
+            TrackingType.SUMMARY -> SummarySession(media, mediaDispatcher)
+            else -> SignificantEventsSession(media, mediaDispatcher)
+        }
+        currentSession?.startSession()
     }
 
     fun endSession() {
-        currentSession?.end()
-        // send session summary?
-        tealiumContext.track(TealiumEvent(MediaEvent.SESSION_END))
+        currentSession?.endSession()
         currentSession = null
     }
 
-    fun startAdBreak(adBreak: AdBreak) {
-        currentSession?.let {
-            it.adBreakStart(adBreak)
-            tealiumContext.track(TealiumEvent(MediaEvent.ADBREAK_START))
-        }
-    }
+    fun startAdBreak(adBreak: AdBreak) = currentSession?.startAdBreak(adBreak)
 
-    fun endAdBreak() {
-        currentSession?.let {
-            tealiumContext.track(TealiumEvent(MediaEvent.ADBREAK_COMPLETE, currentSession?.adComplete()))
-        }
-    }
+    fun endAdBreak() = currentSession?.endAdBreak()
 
-    fun clickAd() {
-        currentSession?.let {
-            tealiumContext.track(TealiumEvent(MediaEvent.AD_CLICK, currentSession?.adClick()))
-        }
-    }
+    fun clickAd() = currentSession?.clickAd()
 
-    fun startAd(ad: Ad) {
-        currentSession?.let {
-            it.adStart(ad)
-            tealiumContext.track(TealiumEvent(MediaEvent.AD_START))
-        }
-    }
+    fun startAd(ad: Ad) = currentSession?.startAd(ad)
 
-    fun endAd() {
-        currentSession?.let {
-            tealiumContext.track(TealiumEvent(MediaEvent.AD_COMPLETE, currentSession?.adComplete()))
-        }
-    }
+    fun endAd() = currentSession?.endAd()
 
-    fun skipAd() {
-        currentSession?.let {
-            tealiumContext.track(TealiumEvent(MediaEvent.AD_SKIP))
-        }
-    }
+    fun skipAd() = currentSession?.skipAd()
 
-    fun startChapter(chapter: Chapter) {
-        currentSession?.let {
-            it.chapterStart(chapter)
-            tealiumContext.track(TealiumEvent(MediaEvent.CHAPTER_START))
-        }
-    }
+    fun startChapter(chapter: Chapter) = currentSession?.startChapter(chapter)
 
-    fun endChapter() {
-        currentSession?.let {
-            tealiumContext.track(TealiumEvent(MediaEvent.CHAPTER_COMPLETE, currentSession?.chapterComplete()))
-        }
-    }
+    fun endChapter() = currentSession?.endChapter()
 
-    fun skipChapter() {
-        currentSession?.let {
-            tealiumContext.track(TealiumEvent(MediaEvent.CHAPTER_SKIP))
-        }
-    }
+    fun skipChapter() = currentSession?.skipChapter()
 
-    fun startBuffer() {
-        currentSession?.let {
-        tealiumContext.track(TealiumEvent(MediaEvent.BUFFER_START))
-        }
-    }
+    fun startBuffer() = currentSession?.startBuffer()
 
-    fun endBuffer() {
-        currentSession?.let {
-            tealiumContext.track(TealiumEvent(MediaEvent.BUFFER_COMPLETE))
-        }
-    }
+    fun endBuffer() = currentSession?.endBuffer()
 
-    fun startSeek() {
-        currentSession?.let {
-            tealiumContext.track(TealiumEvent(MediaEvent.SEEK_START))
-        }
-    }
+    fun startSeek() = currentSession?.startSeek()
 
-    fun endSeek() {
-        currentSession?.let {
-        tealiumContext.track(TealiumEvent(MediaEvent.SEEK_COMPLETE))
-        }
-    }
+    fun endSeek() = currentSession?.endSeek()
 
+    fun play() = currentSession?.play()
 
-    fun play() {
-        currentSession?.let {
-            tealiumContext.track(TealiumEvent(MediaEvent.PLAY))
-        }
-    }
+    fun pause() = currentSession?.pause()
 
-    fun pause() {
-        currentSession?.let {
-            tealiumContext.track(TealiumEvent(MediaEvent.PAUSE))
-        }
-    }
+    fun stop() = currentSession?.stop()
 
-    fun stop() {
-        currentSession?.let {
-            tealiumContext.track(TealiumEvent(MediaEvent.STOP))
-        }
-    }
+    fun custom(event: String) = currentSession?.custom(event)
 
-    fun custom(event: String) {
-        currentSession?.let {
-            tealiumContext.track(TealiumEvent(event))
-        }
-    }
+    fun updateBitrate(rate: Int) = currentSession?.updateBitrate(rate)
 
-    fun updateBitrate(rate: Int) {
-        currentSession?.let {
-            it.updateBitrate(rate)
-            tealiumContext.track(TealiumEvent(MediaEvent.BITRATE_CHANGE))
-        }
-    }
+    fun updateDroppedFrames(frames: Int) = currentSession?.updateDroppedFrames(frames)
 
-    fun updateDroppedFrames(frames: Int) {
-        currentSession?.updateDroppedFrames(frames)
-    }
+    fun updatePlaybackSpeed(speed: Double) = currentSession?.updatePlaybackSpeed(speed)
 
-    fun updatePlaybackSpeed(speed: Double) {
-        currentSession?.updatePlaybackSpeed(speed)
-    }
-
-    fun updatePlayerState(state: PlayerState) {
-        currentSession?.state?.let {
-            tealiumContext.track(TealiumEvent(MediaEvent.PLAYER_STATE_STOP))
-            currentSession?.updatePlayerState(state)
-            tealiumContext.track(TealiumEvent(MediaEvent.PLAYER_STATE_START))
-        } ?: run {
-            currentSession?.updatePlayerState(state)
-            tealiumContext.track(TealiumEvent(MediaEvent.PLAYER_STATE_START))
-        }
-    }
+    fun updatePlayerState(state: PlayerState) = currentSession?.updatePlayerState(state)
 
     companion object : ModuleFactory {
         const val MODULE_NAME = "MEDIA_SERVICE"
+        const val DEFAULT_HEARTBEAT_INTERVAL = 10000L
         override fun create(context: TealiumContext): Module {
             return Media(context)
         }
