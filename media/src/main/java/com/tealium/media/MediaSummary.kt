@@ -29,7 +29,7 @@ data class MediaSummary(var sessionStartTime: String? = null,
                         var chapterEnds: Int = 0,
                         var adEnds: Int = 0) {
     companion object {
-        fun toMap(mediaSummary: MediaSummary) {
+        fun toMap(mediaSummary: MediaSummary): Map<String, Any> {
             val data = mutableMapOf<String, Any>()
             mediaSummary.sessionStartTime?.let {
                 data[SummaryKey.SESSION_START_TIME] = it
@@ -78,6 +78,7 @@ data class MediaSummary(var sessionStartTime: String? = null,
             mediaSummary.sessionEnd?.let {
                 data[SummaryKey.SESSION_END_TIME] = it
             }
+            return  data
         }
     }
 }

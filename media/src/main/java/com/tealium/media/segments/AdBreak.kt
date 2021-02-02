@@ -7,9 +7,10 @@ class AdBreak(var id: String,
               var title: String? = null,
               var index: Int? = null,
               var position: Int? = null,
-              var startTime: Long? = null,
-              var duration: Long? = null,
               private val uuid: String = UUID.randomUUID().toString()) : Segment {
+
+    private var startTime: Long? = null
+    private var duration: Long? = null
 
     override fun start() {
         startTime = System.currentTimeMillis()

@@ -5,11 +5,12 @@ import java.util.*
 
 class Chapter(var name: String,
               var position: Int? = null,
-              var duration: Long? = null,
               var skipped: Boolean? = false,
               var metadata: Any? = null,
-              var startTime: Long? = null,
               private val uuid: String = UUID.randomUUID().toString()) : Segment {
+
+    private var startTime: Long? = null
+    private var duration: Long? = null
 
     override fun start() {
         startTime = System.currentTimeMillis()

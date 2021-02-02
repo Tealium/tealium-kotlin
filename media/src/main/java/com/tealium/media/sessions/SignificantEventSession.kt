@@ -8,7 +8,6 @@ import com.tealium.media.segments.Chapter
 /**
  * Session sends media details at significant events, like play, pause, stop, etc.
  */
-// TODO internal open??
 open class SignificantEventsSession(private val mediaContent: MediaContent,
                                     private val mediaDispatcher: MediaDispatcher) : Session {
 
@@ -114,11 +113,11 @@ open class SignificantEventsSession(private val mediaContent: MediaContent,
         mediaDispatcher.track(MediaEvent.STOP, mediaContent)
     }
 
-    override fun startSeek() {
+    override fun startSeek(playhead: Int?) {
         mediaDispatcher.track(MediaEvent.SEEK_START, mediaContent)
     }
 
-    override fun endSeek() {
+    override fun endSeek(playhead: Int?) {
         mediaDispatcher.track(MediaEvent.SEEK_COMPLETE, mediaContent)
     }
 

@@ -55,6 +55,14 @@ open class MilestoneSession(private val mediaContent: MediaContent,
         super.pause()
     }
 
+    override fun startSeek(playhead: Int?) {
+        super.startSeek(0)
+    }
+
+    override fun endSeek(playhead: Int?) {
+        super.endSeek(0)
+    }
+
     override fun sendMilestone() {
         mediaDispatcher.track(MediaEvent.MILESTONE, mediaContent)
     }

@@ -15,10 +15,11 @@ class Ad(var id: String,
          var numberOfLoads: Int? = null,
          var pod: String? = null,
          var playerName: String? = null,
-         var startTime: Long? = null,
-         var duration: Long? = null,
-         var skipped: Boolean? = false,
          val uuid: String = UUID.randomUUID().toString()) : Segment {
+
+    private var startTime: Long? = null
+    private var duration: Long? = null
+    private var skipped: Boolean? = false
 
     override fun start() {
         startTime = System.currentTimeMillis()

@@ -60,9 +60,9 @@ class Media(private val context: TealiumContext,
 
     fun endBuffer() = currentSession?.endBuffer()
 
-    fun startSeek() = currentSession?.startSeek()
+    fun startSeek() = currentSession?.startSeek(0)
 
-    fun endSeek() = currentSession?.endSeek()
+    fun endSeek() = currentSession?.endSeek(0)
 
     fun play() = currentSession?.play()
 

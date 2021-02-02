@@ -121,13 +121,13 @@ class SummarySession(private val mediaContent: MediaContent,
         }
     }
 
-    override fun startSeek() {
+    override fun startSeek(playhead: Int?) {
         mediaContent.summary?.let {
             it.seekStartTime = System.currentTimeMillis()
         }
     }
 
-    override fun endSeek() {
+    override fun endSeek(playhead: Int?) {
         mediaContent.summary?.let { summary ->
             summary.seekStartTime?.let { start ->
                 val timeElapse = System.currentTimeMillis() - start

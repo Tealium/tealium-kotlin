@@ -21,8 +21,8 @@ interface Session {
     fun skipChapter()
     fun endChapter()
 
-    fun startSeek()
-    fun endSeek()
+    fun startSeek(playhead: Int?)
+    fun endSeek(playhead: Int?)
 
     fun startAdBreak(adBreak: AdBreak)
     fun endAdBreak()
@@ -38,6 +38,7 @@ interface Session {
     fun updatePlayerState(state: PlayerState)
 
     fun custom(event: String)
+
     fun sendMilestone()
     fun finalizeSummaryInfo()
 

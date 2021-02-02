@@ -16,36 +16,37 @@ data class MediaContent(var name: String,
                         var playerName: String? = null,
                         var channelName: String? = null,
                         var metadata: Map<String, Any>? = null,
-
-                        val adBreakList: MutableList<AdBreak> = mutableListOf(),
-                        var adBreakCount: Int = 0,
-                        val adList: MutableList<Ad> = mutableListOf(),
-                        var adCount: Int = 0,
-                        val chapterList: MutableList<Chapter> = mutableListOf(),
-                        var chapterCount: Int = 0,
-                        var milestone: Milestone? = null,
-                        var summary: MediaSummary? = null,
-                        var startTime: Long? = null,
-                        var endTime: Long? = null,
                         private val uuid: String = UUID.randomUUID().toString()) {
+
+    val adBreakList: MutableList<AdBreak> = mutableListOf()
+    var adBreakCount: Int = 0
+    val adList: MutableList<Ad> = mutableListOf()
+    var adCount: Int = 0
+    val chapterList: MutableList<Chapter> = mutableListOf()
+    var chapterCount: Int = 0
+    var milestone: Milestone? = null
+    var summary: MediaSummary? = null
+    var startTime: Long? = null
+    var endTime: Long? = null
 
     companion object {
         fun toMap(mediaContent: MediaContent): Map<String, Any> {
-            val data = mutableMapOf(
+            val data = mutableMapOf<String, Any>(
                     SessionKey.UUID to mediaContent.uuid,
                     SessionKey.NAME to mediaContent.name,
-                    SessionKey.STREAM_TYPE to mediaContent.streamType,
-                    SessionKey.MEDIA_TYPE to mediaContent.mediaType,
-                    SessionKey.QOE to QoE.toMap(mediaContent.qoe),
-                    SessionKey.TRACKING_TYPE to mediaContent.trackingType
+                    SessionKey.STREAM_TYPE to mediaContent.streamType.value,
+                    SessionKey.MEDIA_TYPE to mediaContent.mediaType.value,
+                    SessionKey.TRACKING_TYPE to mediaContent.trackingType.value
             )
+
+            data.putAll(QoE.toMap(mediaContent.qoe))
 
             mediaContent.startTime?.let {
                 data[SessionKey.START_TIME] = it
             }
 
             mediaContent.state?.let {
-                data[SessionKey.STATE] = it
+                data[SessionKey.STATE] = it.value
             }
 
             mediaContent.customId?.let {
@@ -69,11 +70,11 @@ data class MediaContent(var name: String,
             }
 
             mediaContent.milestone?.let {
-                data[SessionKey.MILESTONE] = it
+                data[SessionKey.MILESTONE] = it.value
             }
 
             mediaContent.summary?.let {
-                data[SessionKey.SUMMARY] = MediaSummary.toMap(it)
+                data.putAll(MediaSummary.toMap(it))
             }
 
             return data
