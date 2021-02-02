@@ -1,7 +1,9 @@
 package com.tealium.media
 
 import com.tealium.core.TealiumContext
+import com.tealium.media.segments.Ad
 import io.mockk.MockKAnnotations
+import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.mockk
 import io.mockk.verify
@@ -160,10 +162,13 @@ class SummarySessionTests {
                 TrackingType.SUMMARY
         )
 
+        val ad = mockk<Ad>()
+        every { ad.uuid } returns "1"
+
         val media = Media(mockContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
         media.play()
-        media.startAd(mockk())
+        media.startAd(ad)
 
         Assert.assertEquals(1, mediaContent.summary?.plays)
         Assert.assertEquals(1, mediaContent.summary?.ads)
@@ -179,10 +184,13 @@ class SummarySessionTests {
                 TrackingType.SUMMARY
         )
 
+        val ad = mockk<Ad>()
+        every { ad.uuid } returns "1"
+
         val media = Media(mockContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
         media.play()
-        media.startAd(mockk())
+        media.startAd(ad)
         media.skipAd()
 
         Assert.assertEquals(1, mediaContent.summary?.adSkips)
@@ -197,13 +205,15 @@ class SummarySessionTests {
                 TrackingType.SUMMARY
         )
 
+        val ad = mockk<Ad>()
+        every { ad.uuid } returns "1"
+
         val media = Media(mockContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
         media.play()
-        media.startAd(mockk())
+        media.startAd(ad)
         media.endAd()
 
         Assert.assertEquals(1, mediaContent.summary?.adEnds)
     }
-
 }

@@ -8,7 +8,9 @@ import com.tealium.media.sessions.*
 import com.tealium.media.sessions.Session
 
 /**
- * Media module provides
+ * Media module provides an easy way to track a media session and its components, such as ad breaks,
+ * ads, and chapters. Tracking type options include Significant Events, Milestone, Heartbeat,
+ * Heartbeat + Milestone, and Summary.
  */
 class Media(private val context: TealiumContext,
             private val mediaDispatcher: MediaDispatcher = MediaSessionDispatcher(context)) : Module {
