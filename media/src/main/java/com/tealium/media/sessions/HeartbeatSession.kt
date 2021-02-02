@@ -45,8 +45,7 @@ class HeartbeatSession(private val mediaContent: MediaContent,
     }
 
     private fun startTimer() {
-        // TODO isDaemon = true? per docs, Timer schedules tasks on a background thread
-        timer = Timer("heartbeat").apply {
+        timer = Timer("heartbeat", true).apply {
             scheduleAtFixedRate(
                     // check timeElapsed every 1 second
                     object : TimerTask() {

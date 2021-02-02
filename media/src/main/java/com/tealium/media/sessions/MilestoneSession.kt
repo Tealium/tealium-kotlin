@@ -60,7 +60,7 @@ open class MilestoneSession(private val mediaContent: MediaContent,
     }
 
     private fun startTimer() {
-        timer = Timer("Milestone").apply {
+        timer = Timer("Milestone", true).apply {
             scheduleAtFixedRate(
                     // check timeElapsed every 1 second
                     object : TimerTask() {
