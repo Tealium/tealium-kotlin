@@ -90,8 +90,12 @@ class TagManagementDispatcher(private val context: TealiumContext,
                     webViewLoader.loadUrlToWebView()
                 }
             }
-            else -> {
-                Logger.qa(BuildConfig.TAG, "WebView not ready yet.")
+            PageStatus.INIT -> {
+                Logger.qa(BuildConfig.TAG, "WebView not loaded yet.")
+                webViewLoader.loadUrlToWebView()
+            }
+            PageStatus.LOADING -> {
+                Logger.qa(BuildConfig.TAG, "WebView loading.")
             }
         }
     }

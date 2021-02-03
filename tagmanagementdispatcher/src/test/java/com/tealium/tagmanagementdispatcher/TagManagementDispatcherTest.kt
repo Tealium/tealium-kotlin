@@ -168,4 +168,30 @@ class TagManagementDispatcherTest {
 
         coVerify { mockWebViewLoader.loadUrlToWebView() }
     }
+
+    @Test
+    fun dispatchReady_LoadsUrl_IfNotLoaded() {
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        tagManagementDispatcher.webViewLoader = mockWebViewLoader
+        every { mockWebViewLoader.webViewStatus.get() } returns PageStatus.INIT
+        every { mockWebViewLoader.loadUrlToWebView() } just Runs
+
+        val dispatch = TealiumEvent("test", mapOf("key" to "value"))
+        tagManagementDispatcher.onDispatchReady(dispatch)
+
+        coVerify { mockWebViewLoader.loadUrlToWebView() }
+    }
+
+    @Test
+    fun dispatchReady_DoesNotLoadUrl_IfLoading() {
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        tagManagementDispatcher.webViewLoader = mockWebViewLoader
+        every { mockWebViewLoader.webViewStatus.get() } returns PageStatus.LOADING
+        every { mockWebViewLoader.loadUrlToWebView() } just Runs
+
+        val dispatch = TealiumEvent("test", mapOf("key" to "value"))
+        tagManagementDispatcher.onDispatchReady(dispatch)
+
+        coVerify(exactly = 0) { mockWebViewLoader.loadUrlToWebView() }
+    }
 }
