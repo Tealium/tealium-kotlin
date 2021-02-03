@@ -22,7 +22,7 @@ class Media(private val context: TealiumContext,
         private set
 
     /**
-     * Begins a session for given [MediaContent] base on the [TrackingType] provided
+     * Begins a session for given [MediaContent] based on the [TrackingType] provided
      */
     fun startSession(media: MediaContent) {
         Logger.dev(BuildConfig.TAG, "Starting Media Session for: ${media.name}")
@@ -47,7 +47,7 @@ class Media(private val context: TealiumContext,
     }
 
     /**
-     * Starts a ad break segment with give [AdBreak] segment
+     * Starts an ad break segment with give [AdBreak] segment
      */
     fun startAdBreak(adBreak: AdBreak) = currentSession?.startAdBreak(adBreak)
 

@@ -14,13 +14,12 @@ class MediaSessionDispatcher(private val context: TealiumContext) : MediaDispatc
         segment?.let {
             // merge MediaContent metadata with Chapter metadata (chapter data overwrites mediaContent data)
             if (segment.segmentInfo().containsKey(ChapterKey.METADATA)) {
-                mediaContent.metadata?.putAll(segment.segmentInfo()[ChapterKey.METADATA] as Map<String, Any>)
+                mediaContent.metadata.putAll(segment.segmentInfo()[ChapterKey.METADATA] as Map<String, Any>)
             }
 
-            // TODO don't re-add chapter metadata
-            data.putAll(segment.segmentInfo())
-
-
+            data.putAll(segment.segmentInfo().filter { (key, value) ->
+                key != ChapterKey.METADATA
+            })
         }
 
         context.track(TealiumEvent(event, data))
