@@ -159,8 +159,9 @@ class WebViewClientTest {
     }
 
     @Test
-    fun webViewClient_LoadFailure_WhenResourceFails() {
+    fun webViewClient_LoadFailure_WhenResourceFails() = runBlocking {
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        delay(50)
         webViewLoader.webViewClient.onReceivedError(mockWebView, 404, "", "")
 
         // any errors should not be overwritten even though the load has finished
