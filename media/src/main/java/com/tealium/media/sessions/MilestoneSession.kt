@@ -1,9 +1,7 @@
 package com.tealium.media.sessions
 
-import com.tealium.media.MediaContent
-import com.tealium.media.MediaEvent
-import com.tealium.media.MediaDispatcher
-import com.tealium.media.Milestone
+import com.tealium.core.Logger
+import com.tealium.media.*
 import java.util.*
 
 /**
@@ -41,8 +39,7 @@ open class MilestoneSession(private val mediaContent: MediaContent,
     }
 
     override fun endSession() {
-        timer?.cancel()
-        timer = null
+        cancelTimer()
         super.endSession()
     }
 
@@ -55,13 +52,11 @@ open class MilestoneSession(private val mediaContent: MediaContent,
 
     override fun pause() {
         pauseStart()
-        timer?.cancel()
-        timer = null
         super.pause()
     }
 
     override fun startSeek(position: Int) {
-        startSeekPosition = position
+        startSeekPosition = position // do I need seekStart time to calc anything??
         super.startSeek(0)
     }
 
@@ -113,18 +108,29 @@ open class MilestoneSession(private val mediaContent: MediaContent,
             }
         }
 
+        Logger.dev(BuildConfig.TAG, "Media Content duration required to send milestones")
         return 0.0
     }
 
     open fun delta(): Long? {
-        return mediaContent.startTime?.let {
-            System.currentTimeMillis() - it
+        return mediaContent.startTime?.let { start ->
+            val timeDelta = System.currentTimeMillis() - start
+            endSeekPosition?.let { positionInSecs ->
+                timeDelta + (positionInSecs * 1000) // secs to millis
+            }
+            timeDelta
         }
+    }
+
+    private fun cancelTimer() {
+        timer?.cancel()
+        timer = null
     }
 
     private fun pauseStart() {
         isPaused = true
         startPauseTime = System.currentTimeMillis()
+        cancelTimer()
     }
 
     private fun pauseEnd() {

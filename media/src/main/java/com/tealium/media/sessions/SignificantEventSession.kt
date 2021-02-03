@@ -1,5 +1,6 @@
 package com.tealium.media.sessions
 
+import com.tealium.core.Logger
 import com.tealium.media.*
 import com.tealium.media.segments.Ad
 import com.tealium.media.segments.AdBreak

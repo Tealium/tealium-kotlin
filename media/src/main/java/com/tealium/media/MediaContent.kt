@@ -15,7 +15,7 @@ data class MediaContent(var name: String,
                         var duration: Int? = null,
                         var playerName: String? = null,
                         var channelName: String? = null,
-                        var metadata: Map<String, Any>? = null,
+                        var metadata: MutableMap<String, Any> = mutableMapOf(),
                         private val uuid: String = UUID.randomUUID().toString()) {
 
     val adBreakList: MutableList<AdBreak> = mutableListOf()
@@ -37,6 +37,7 @@ data class MediaContent(var name: String,
             )
 
             data.putAll(QoE.toMap(mediaContent.qoe))
+            data.putAll(mediaContent.metadata)
 
             mediaContent.startTime?.let {
                 data[SessionKey.START_TIME] = it
@@ -60,10 +61,6 @@ data class MediaContent(var name: String,
 
             mediaContent.channelName?.let {
                 data[SessionKey.CHANNEL_NAME] = it
-            }
-
-            mediaContent.metadata?.let {
-                data[SessionKey.METADATA] = it
             }
 
             mediaContent.milestone?.let {

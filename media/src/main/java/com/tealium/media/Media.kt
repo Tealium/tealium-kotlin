@@ -21,7 +21,11 @@ class Media(private val context: TealiumContext,
     var currentSession: Session? = null
         private set
 
+    /**
+     * Begins a session for given [MediaContent] base on the [TrackingType] provided
+     */
     fun startSession(media: MediaContent) {
+        Logger.dev(BuildConfig.TAG, "Starting Media Session for: ${media.name}")
         currentSession = when (media.trackingType) {
             TrackingType.HEARTBEAT -> HeartbeatSession(media, mediaDispatcher)
             TrackingType.MILESTONE -> MilestoneSession(media, mediaDispatcher)
@@ -33,36 +37,83 @@ class Media(private val context: TealiumContext,
         currentSession?.startSession()
     }
 
+    /**
+     * Records end of current media session
+     */
     fun endSession() {
+        Logger.dev(BuildConfig.TAG, "End of Media Session.")
         currentSession?.endSession()
         currentSession = null
     }
 
+    /**
+     * Starts a ad break segment with give [AdBreak] segment
+     */
     fun startAdBreak(adBreak: AdBreak) = currentSession?.startAdBreak(adBreak)
 
+    /**
+     * Ends latest ad break for the current session
+     */
     fun endAdBreak() = currentSession?.endAdBreak()
 
-    fun clickAd() = currentSession?.clickAd()
-
+    /**
+     * Starts an ad segment with give [Ad]
+     */
     fun startAd(ad: Ad) = currentSession?.startAd(ad)
 
-    fun endAd() = currentSession?.endAd()
+    /**
+     * Records an ad click for current ad playing
+     */
+    fun clickAd() = currentSession?.clickAd()
 
+    /**
+     * Records an ad skip for current ad playing
+     */
     fun skipAd() = currentSession?.skipAd()
 
+    /**
+     * Ends latest ad for current session
+     */
+    fun endAd() = currentSession?.endAd()
+
+    /**
+     * Starts a chapter segment with give [Chapter]
+     */
     fun startChapter(chapter: Chapter) = currentSession?.startChapter(chapter)
 
-    fun endChapter() = currentSession?.endChapter()
-
+    /**
+     * Records a chapter skip for latest chapter playing
+     */
     fun skipChapter() = currentSession?.skipChapter()
 
+    /**
+     * Ends latest chapter in current session
+     */
+    fun endChapter() = currentSession?.endChapter()
+
+    /**
+     * Records buffering start
+     */
     fun startBuffer() = currentSession?.startBuffer()
 
+    /**
+     * Records buffering complete
+     */
     fun endBuffer() = currentSession?.endBuffer()
 
-    fun startSeek() = currentSession?.startSeek(0)
+    /**
+     * Records seek started at given position
+     *
+     * @param position media position in seconds where seek started
+     */
+    fun startSeek(position: Int) = currentSession?.startSeek(position)
 
-    fun endSeek() = currentSession?.endSeek(0)
+    /**
+     * Records seek ended at given position
+     *
+     * @param position media position in seconds where seek ended
+     */
+    fun endSeek(position: Int) = currentSession?.endSeek(position)
 
     fun play() = currentSession?.play()
 
@@ -70,14 +121,40 @@ class Media(private val context: TealiumContext,
 
     fun stop() = currentSession?.stop()
 
+    /**
+     * Sends a custom event with current media content status
+     *
+     * @param event name of custom media event, this is the eventName used for
+     * [TealiumEvent]
+     */
     fun custom(event: String) = currentSession?.custom(event)
 
+    /**
+     * Updates the QoE bitrate value of the current session
+     *
+     * @param rate
+     */
     fun updateBitrate(rate: Int) = currentSession?.updateBitrate(rate)
 
+    /**
+     * Updates the QoE dropped frames value of the current session
+     *
+     * @param frames
+     */
     fun updateDroppedFrames(frames: Int) = currentSession?.updateDroppedFrames(frames)
 
+    /**
+     * Updates the QoE playback speed value of the current session
+     *
+     * @param speed
+     */
     fun updatePlaybackSpeed(speed: Double) = currentSession?.updatePlaybackSpeed(speed)
 
+    /**
+     * Updates the player state for current media session
+     *
+     * @param state latest [PlayerState]
+     */
     fun updatePlayerState(state: PlayerState) = currentSession?.updatePlayerState(state)
 
     companion object : ModuleFactory {

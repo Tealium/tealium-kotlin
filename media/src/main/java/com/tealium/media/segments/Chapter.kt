@@ -3,14 +3,14 @@ package com.tealium.media.segments
 import com.tealium.media.ChapterKey
 import java.util.*
 
-data class Chapter(var name: String,
-              var position: Int? = null,
-              var skipped: Boolean? = false,
-              var metadata: Map<String, Any>? = null) : Segment {
+data class Chapter(val name: String,
+                   var position: Int? = null,
+                   var metadata: Map<String, Any>? = null) : Segment {
 
+    private val uuid: String = UUID.randomUUID().toString()
     private var startTime: Long? = null
     private var duration: Long? = null
-    private val uuid: String = UUID.randomUUID().toString()
+    private var skipped: Boolean = false
 
     override fun start() {
         startTime = System.currentTimeMillis()
@@ -28,13 +28,16 @@ data class Chapter(var name: String,
     }
 
     override fun segmentInfo(): Map<String, Any> {
-        val data = mutableMapOf<String, Any>()
-        data[ChapterKey.NAME] = name
+        val data = mutableMapOf(
+                ChapterKey.NAME to name,
+                ChapterKey.UUID to uuid,
+                ChapterKey.SKIPPED to skipped
+        )
 
         duration?.let { data[ChapterKey.DURATION] = it }
         position?.let { data[ChapterKey.POSITION] = it }
         startTime?.let { data[ChapterKey.START_TIME] = it }
-        metadata?.let { data.putAll(it) }
+        metadata?.let { data[ChapterKey.METADATA] = it }
 
         return data.toMap()
     }

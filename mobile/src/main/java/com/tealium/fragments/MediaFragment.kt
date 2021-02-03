@@ -105,7 +105,7 @@ class MediaFragment : Fragment() {
                         StreamType.VOD,
                         MediaType.AUDIO,
                         QoE(1),
-                        trackingType = TrackingType.MILESTONE,
+                        trackingType = TrackingType.HEARTBEAT_MILESTONE,
                         duration = 126
                 ))
     }

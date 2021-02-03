@@ -1,33 +1,35 @@
 package com.tealium.media
 
-data class MediaSummary(var sessionStartTime: String? = null,
-                        var plays: Int = 0,
-                        var pauses: Int = 0,
-                        var adSkips: Int = 0,
-                        var chapterSkips: Int = 0,
-                        var stops: Int = 0,
-                        var ads: Int = 0,
-                        var adUuids: MutableSet<String> = mutableSetOf(),
-                        var playToEnd: Boolean = false,
-                        var duration: Long? = 0,
-                        var totalPlayTime: Int? = 0,
-                        var totalAdTime: Int? = 0,
-                        var percentageAdTime: Double? = 0.0,
-                        var percentageAdComplete: Double? = 0.0,
-                        var percentageChapterComplete: Double? = 0.0,
-                        var totalBufferTime: Int? = 0,
-                        var totalSeekTime: Int? = 0,
-                        var sessionEndTime: String? = null,
+data class MediaSummary(var sessionStart: Long = System.currentTimeMillis()) {
 
-                        var sessionStart: Long = System.currentTimeMillis(),
-                        var sessionEnd: Long? = 0,
-                        var playStartTime: Long? = 0,
-                        var bufferStartTime: Long? = 0,
-                        var seekStartTime: Long? = 0,
-                        var adStartTime: Long? = 0,
-                        var chapterStarts: Int = 0,
-                        var chapterEnds: Int = 0,
-                        var adEnds: Int = 0) {
+    var sessionStartTime: String? = null
+    var plays: Int = 0
+    var pauses: Int = 0
+    var stops: Int = 0
+    var ads: Int = 0
+    var adUuids: MutableSet<String> = mutableSetOf()
+    var adSkips: Int = 0
+    var chapterSkips: Int = 0
+    var playToEnd: Boolean = false
+    var duration: Long? = 0
+    var totalPlayTime: Int? = 0
+    var totalAdTime: Int? = 0
+    var totalBufferTime: Int? = 0
+    var totalSeekTime: Int? = 0
+    var percentageAdTime: Double? = 0.0
+    var percentageAdComplete: Double? = 0.0
+    var percentageChapterComplete: Double? = 0.0
+    var sessionEndTime: String? = null
+
+    var sessionEnd: Long? = 0
+    var playStartTime: Long? = 0
+    var bufferStartTime: Long? = 0
+    var seekStartTime: Long? = 0
+    var adStartTime: Long? = 0
+    var adEnds: Int = 0
+    var chapterStarts: Int = 0
+    var chapterEnds: Int = 0
+
     companion object {
         fun toMap(mediaSummary: MediaSummary): Map<String, Any> {
             val data = mutableMapOf<String, Any>()
@@ -37,7 +39,7 @@ data class MediaSummary(var sessionStartTime: String? = null,
 
             data[SummaryKey.PLAYS] = mediaSummary.plays
             data[SummaryKey.PAUSES] = mediaSummary.pauses
-            data[SummaryKey.ADSKIPS] = mediaSummary.adSkips
+            data[SummaryKey.AD_SKIPS] = mediaSummary.adSkips
             data[SummaryKey.CHAPTER_SKIPS] = mediaSummary.chapterSkips
             data[SummaryKey.STOPS] = mediaSummary.stops
             data[SummaryKey.ADS] = mediaSummary.ads

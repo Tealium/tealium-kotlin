@@ -46,6 +46,7 @@ class SummarySession(private val mediaContent: MediaContent,
         }
     }
 
+    // TODO do we need this? Wouldn't this just be a pause in media? Do media players have stop buttons anymore?!
     override fun stop() {
         mediaContent.summary?.let { summary ->
             summary.stops++

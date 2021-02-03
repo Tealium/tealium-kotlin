@@ -1,5 +1,7 @@
 package com.tealium.media
 
+import java.util.*
+
 object MediaEvent {
     const val ADBREAK_COMPLETE = "media_adbreak_complete"
     const val ADBREAK_START = "media_adbreak_start"
@@ -35,10 +37,12 @@ object MediaEvent {
 }
 
 object ChapterKey {
+    const val UUID = "media_chapter_uuid"
     const val NAME = "media_chapter_name"
     const val DURATION = "media_chapter_duration"
     const val POSITION = "media_chapter_position"
     const val START_TIME = "media_chapter_start_time"
+    const val SKIPPED = "media_chapter_skipped"
     const val METADATA = "media_chapter_metadata"
 }
 
@@ -57,11 +61,12 @@ object AdKey {
     const val NUMBER_OF_LOADS = "media_ad_load"
     const val POD = "media_ad_pod"
     const val PLAYER_NAME = "media_ad_player_name"
+    const val SKIPPED = "media_ad_skipped"
 }
 
 object AdBreakKey {
     const val UUID = "media_ad_break_uuid"
-    const val TITLE = "media_ad_break_title"
+    const val NAME = "media_ad_break_name"
     const val ID = "media_ad_break_id"
     const val DURATION = "media_ad_break_duration"
     const val INDEX = "media_ad_break_index"
@@ -72,7 +77,7 @@ object SummaryKey {
     const val SESSION_START_TIME = "media_session_start_time"
     const val PLAYS = "media_total_plays"
     const val PAUSES = "media_total_pauses"
-    const val ADSKIPS = "media_total_ad_skips"
+    const val AD_SKIPS = "media_total_ad_skips"
     const val CHAPTER_SKIPS = "media_total_chapter_skips"
     const val STOPS = "media_total_stops"
     const val ADS = "media_total_ads"

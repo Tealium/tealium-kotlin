@@ -3,23 +3,25 @@ package com.tealium.media.segments
 import com.tealium.media.AdKey
 import java.util.*
 
-data class Ad(var id: String,
-         var name: String? = null,
-         var position: Int? = null,
-         var advertiser: String? = null,
-         var creativeId: String? = null,
-         var campaignId: String? = null,
-         var placementId: String? = null,
-         var siteId: String? = null,
-         var creativeUrl: String? = null,
-         var numberOfLoads: Int? = null,
-         var pod: String? = null,
-         var playerName: String? = null) : Segment {
+data class Ad(val id: String,
+              val name: String? = null,
+              var position: Int? = null,
+              var advertiser: String? = null,
+              var creativeId: String? = null,
+              var campaignId: String? = null,
+              var placementId: String? = null,
+              var siteId: String? = null,
+              var creativeUrl: String? = null,
+              var numberOfLoads: Int? = null,
+              var pod: String? = null,
+              var playerName: String? = null) : Segment {
 
+    val uuid: String = UUID.randomUUID().toString()
+
+    private val adName: String = name ?: uuid
     private var startTime: Long? = null
     private var duration: Long? = null
-    private var skipped: Boolean? = false
-    val uuid: String = UUID.randomUUID().toString()
+    private var skipped: Boolean = false
 
     override fun start() {
         startTime = System.currentTimeMillis()
@@ -37,9 +39,12 @@ data class Ad(var id: String,
     }
 
     override fun segmentInfo(): Map<String, Any> {
-        val data = mutableMapOf<String, Any>()
-        data[AdKey.ID] = id
-        name?.let { data[AdKey.NAME] = it }
+        val data = mutableMapOf(
+                AdKey.ID to id,
+                AdKey.NAME to adName,
+                AdKey.SKIPPED to skipped
+        )
+
         position?.let { data[AdKey.POSITION] = it }
         advertiser?.let { data[AdKey.ADVERTISER] = it }
         creativeId?.let { data[AdKey.CREATIVE_ID] = it }
