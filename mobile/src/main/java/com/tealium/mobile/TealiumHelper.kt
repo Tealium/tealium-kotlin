@@ -2,6 +2,7 @@ package com.tealium.mobile
 
 import android.app.Application
 import com.tealium.adidentifier.AdIdentifier
+import com.tealium.autotracking.*
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
 import com.tealium.core.consent.*
@@ -25,14 +26,14 @@ import com.tealium.visitorservice.VisitorService
 import com.tealium.visitorservice.VisitorUpdatedListener
 import java.util.concurrent.TimeUnit
 
-object TealiumHelper {
+object TealiumHelper : ActivityDataCollector {
 
     fun init(application: Application) {
         val config = TealiumConfig(application,
                 "tealiummobile",
                 "android",
                 Environment.DEV,
-                modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer, Modules.CrashReporter, Modules.AdIdentifier),
+                modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer, Modules.CrashReporter, Modules.AdIdentifier, Modules.AutoTracking),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
             useRemoteLibrarySettings = true
@@ -42,11 +43,16 @@ object TealiumHelper {
             // and enable the consent manager
             consentManagerPolicy = ConsentPolicy.GDPR
             // consentManagerPolicy = ConsentPolicy.CCPA
-            consentExpiry = ConsentExpiry(1, TimeUnit.MINUTES)
+            consentExpiry = ConsentExpiry(1, TimeUnit.DAYS)
 
             timedEventTriggers = mutableListOf(
                     EventTrigger.forEventName("start_event", "end_event")
             )
+
+            autoTrackingMode = if (BuildConfig.AUTO_TRACKING) AutoTrackingMode.FULL else AutoTrackingMode.NONE
+            // autoTrackingBlocklistFilename = "autotracking-blocklist.json"
+            // autoTrackingBlocklistUrl = "https://tags.tiqcdn.com/dle/tealiummobile/android/autotracking-blocklist.json"
+            autoTrackingCollectorDelegate = TealiumHelper
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
@@ -107,5 +113,9 @@ object TealiumHelper {
             override val name: String = "my validator"
             override var enabled: Boolean = true
         }
+    }
+
+    override fun onCollectActivityData(activityName: String): Map<String, Any>? {
+        return mapOf("global_data" to "value")
     }
 }

@@ -4,8 +4,10 @@ import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 import com.tealium.core.messaging.EventRouter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
-class ActivityObserver(config: TealiumConfig, val eventRouter: EventRouter) {
+class ActivityObserver(config: TealiumConfig, val eventRouter: EventRouter, private val backgroundScope: CoroutineScope) {
 
     private val application: Application = config.application
     private val activityLifecylceCallbacks: Application.ActivityLifecycleCallbacks
@@ -18,11 +20,15 @@ class ActivityObserver(config: TealiumConfig, val eventRouter: EventRouter) {
     private fun createActivityLifecycleCallbacks(): Application.ActivityLifecycleCallbacks {
         return object : Application.ActivityLifecycleCallbacks {
             override fun onActivityPaused(activity: Activity?) {
-                eventRouter.onActivityPaused(activity)
+                backgroundScope.launch {
+                    eventRouter.onActivityPaused(activity)
+                }
             }
 
             override fun onActivityResumed(activity: Activity?) {
-                eventRouter.onActivityResumed(activity)
+                backgroundScope.launch {
+                    eventRouter.onActivityResumed(activity)
+                }
             }
 
             override fun onActivityStarted(activity: Activity?) {
@@ -38,7 +44,9 @@ class ActivityObserver(config: TealiumConfig, val eventRouter: EventRouter) {
             }
 
             override fun onActivityStopped(activity: Activity?) {
-                eventRouter.onActivityStopped(activity, activity?.isChangingConfigurations ?: false)
+                backgroundScope.launch {
+                    eventRouter.onActivityStopped(activity, activity?.isChangingConfigurations ?: false)
+                }
             }
 
             override fun onActivityCreated(activity: Activity?, savedInstanceState: Bundle?) {

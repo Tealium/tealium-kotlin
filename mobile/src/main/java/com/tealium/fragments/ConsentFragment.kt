@@ -5,6 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.tealium.autotracking.ActivityDataCollector
+import com.tealium.autotracking.Autotracked
+import com.tealium.autotracking.autoTracking
 import com.tealium.core.Tealium
 import com.tealium.core.consent.ConsentCategory
 import com.tealium.core.consent.ConsentStatus
@@ -12,7 +15,8 @@ import com.tealium.mobile.BuildConfig
 import com.tealium.mobile.R
 import kotlinx.android.synthetic.main.fragment_consent.*
 
-class ConsentFragment : Fragment() {
+@Autotracked(name = "ConsentManagement")
+class ConsentFragment : Fragment(), ActivityDataCollector {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_consent, container, false)
@@ -35,6 +39,8 @@ class ConsentFragment : Fragment() {
         categoriesButton.setOnClickListener {
             onCategoriesButton()
         }
+
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.autoTracking?.trackActivity(this)
     }
 
     private fun onConsented() {
@@ -54,5 +60,10 @@ class ConsentFragment : Fragment() {
                 ConsentCategory.ANALYTICS,
                 ConsentCategory.BIG_DATA
         )
+    }
+
+    override fun onCollectActivityData(activityName: String): Map<String, Any>? {
+        // delegate to parent activity
+        return (activity as? ActivityDataCollector)?.onCollectActivityData(activityName) ?: emptyMap()
     }
 }

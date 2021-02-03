@@ -185,7 +185,9 @@ class WebViewLoader(private val context: TealiumContext,
                 context.config.options[TagManagementRemoteCommand.TIQ_CONFIG].let {
                     url?.let {
                         if (url.startsWith(TagManagementRemoteCommand.PREFIX)) {
-                            afterDispatchSendCallbacks.sendRemoteCommand(RemoteCommandRequest(createResponseHandler(), url))
+                            backgroundScope.launch {
+                                afterDispatchSendCallbacks.sendRemoteCommand(RemoteCommandRequest(createResponseHandler(), url))
+                            }
                         }
                     }
                 }
