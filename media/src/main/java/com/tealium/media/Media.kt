@@ -57,7 +57,7 @@ class Media(private val context: TealiumContext,
     fun endAdBreak() = currentSession?.endAdBreak()
 
     /**
-     * Starts an ad segment with give [Ad]
+     * Starts an ad segment with given [Ad]
      */
     fun startAd(ad: Ad) = currentSession?.startAd(ad)
 
@@ -77,7 +77,7 @@ class Media(private val context: TealiumContext,
     fun endAd() = currentSession?.endAd()
 
     /**
-     * Starts a chapter segment with give [Chapter]
+     * Starts a chapter segment with given [Chapter]
      */
     fun startChapter(chapter: Chapter) = currentSession?.startChapter(chapter)
 
