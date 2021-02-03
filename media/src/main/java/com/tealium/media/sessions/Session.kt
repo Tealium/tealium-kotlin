@@ -21,8 +21,8 @@ interface Session {
     fun skipChapter()
     fun endChapter()
 
-    fun startSeek(playhead: Int?)
-    fun endSeek(playhead: Int?)
+    fun startSeek(position: Int)
+    fun endSeek(position: Int)
 
     fun startAdBreak(adBreak: AdBreak)
     fun endAdBreak()

@@ -13,9 +13,14 @@ class HeartbeatMilestoneSession(private val mediaContent: MediaContent,
                                 private val mediaDispatcher: MediaDispatcher,
                                 private val interval: Long = Media.DEFAULT_HEARTBEAT_INTERVAL) : MilestoneSession(mediaContent, mediaDispatcher) {
 
+    private var heartbeatCount = 0
+
     override fun ping() {
-        if (delta()?.rem(interval) == 0L) {
-            mediaDispatcher.track(MediaEvent.HEARTBEAT, mediaContent)
+        delta()?.let {delta ->
+            if (delta.div(interval) > heartbeatCount) {
+                heartbeatCount++
+                mediaDispatcher.track(MediaEvent.HEARTBEAT, mediaContent)
+            }
         }
         super.ping()
     }

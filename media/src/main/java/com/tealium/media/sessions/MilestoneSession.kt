@@ -16,7 +16,12 @@ open class MilestoneSession(private val mediaContent: MediaContent,
 
     private var timer: Timer? = null
     private var startPauseTime: Long? = null
-    private var pauseTime : Long = 0
+    private var pauseTime: Long = 0
+    private var isPaused: Boolean = false
+
+    private var startSeekPosition: Int? = null
+    private var endSeekPosition: Int? = null
+
     private val milestonesAchieved = mutableSetOf<Milestone>()
 
     override fun ping() {
@@ -37,29 +42,33 @@ open class MilestoneSession(private val mediaContent: MediaContent,
 
     override fun endSession() {
         timer?.cancel()
+        timer = null
         super.endSession()
     }
 
     override fun play() {
-        if (timer == null) {
-            resumeTimer()
-            startTimer()
+        if (isPaused) {
+            pauseEnd()
         }
         super.play()
     }
 
     override fun pause() {
-        pauseTimer()
+        pauseStart()
         timer?.cancel()
         timer = null
         super.pause()
     }
 
-    override fun startSeek(playhead: Int?) {
+    override fun startSeek(position: Int) {
+        startSeekPosition = position
         super.startSeek(0)
     }
 
-    override fun endSeek(playhead: Int?) {
+    override fun endSeek(position: Int) {
+        endSeekPosition = position
+        milestonesAchieved.clear() // is this going to work?
+
         super.endSeek(0)
     }
 
@@ -91,13 +100,13 @@ open class MilestoneSession(private val mediaContent: MediaContent,
             else -> null
         }
         milestone?.let {
-            return if(milestonesAchieved.add(it)) it else null
+            return if (milestonesAchieved.add(it)) it else null
         }
         return null
     }
 
     private fun percentageElapsed(): Double {
-        contentDuration?.let {length ->
+        contentDuration?.let { length ->
             delta()?.let { timeDifference ->
                 val elapsedSeconds = (timeDifference - pauseTime) / 1000.0
                 return (elapsedSeconds / length) * 100
@@ -113,14 +122,18 @@ open class MilestoneSession(private val mediaContent: MediaContent,
         }
     }
 
-    private fun pauseTimer() {
+    private fun pauseStart() {
+        isPaused = true
         startPauseTime = System.currentTimeMillis()
     }
 
-    private fun resumeTimer() {
+    private fun pauseEnd() {
+        isPaused = false
         startPauseTime?.let {
             pauseTime += System.currentTimeMillis() - it
         }
+
+        startTimer()
     }
 
     companion object {

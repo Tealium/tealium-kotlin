@@ -108,7 +108,6 @@ class MediaTests {
             adBreak.start()
         }
 
-        Assert.assertTrue(mediaContent.adBreakCount == 1)
         Assert.assertTrue(mediaContent.adBreakList.size == 1)
     }
 
@@ -131,12 +130,14 @@ class MediaTests {
         media.endAdBreak()
 
         verify {
+            mockMediaSessionDispatcher.track(MediaEvent.SESSION_START, any(), any())
             adBreak.start()
+            mockMediaSessionDispatcher.track(MediaEvent.ADBREAK_START, any(), any())
             adBreak.end()
+            mockMediaSessionDispatcher.track(MediaEvent.ADBREAK_COMPLETE, any(), any())
         }
 
-        Assert.assertTrue(mediaContent.adBreakCount == 1)
-        Assert.assertTrue(mediaContent.adBreakList.size == 0)
+        Assert.assertTrue(mediaContent.adBreakList.size == 1)
     }
 
     @Test
@@ -160,7 +161,6 @@ class MediaTests {
             adBreak wasNot Called
         }
 
-        Assert.assertTrue(mediaContent.adBreakCount == 0)
         Assert.assertTrue(mediaContent.adBreakList.size == 0)
     }
 
@@ -184,7 +184,6 @@ class MediaTests {
             ad.start()
         }
 
-        Assert.assertTrue(mediaContent.adCount == 1)
         Assert.assertTrue(mediaContent.adList.size == 1)
     }
 
@@ -207,12 +206,14 @@ class MediaTests {
         media.endAd()
 
         verify {
+            mockMediaSessionDispatcher.track(MediaEvent.SESSION_START, any(), any())
             ad.start()
+            mockMediaSessionDispatcher.track(MediaEvent.AD_START, any(), any())
             ad.end()
+            mockMediaSessionDispatcher.track(MediaEvent.AD_COMPLETE, any(), any())
         }
 
-        Assert.assertTrue(mediaContent.adCount == 1)
-        Assert.assertTrue(mediaContent.adList.size == 0)
+        Assert.assertTrue(mediaContent.adList.size == 1)
     }
 
     @Test
@@ -235,7 +236,6 @@ class MediaTests {
             ad wasNot Called
         }
 
-        Assert.assertTrue(mediaContent.adCount == 0)
         Assert.assertTrue(mediaContent.adList.size == 0)
     }
 
@@ -257,13 +257,14 @@ class MediaTests {
         media.clickAd()
 
         verify {
+            mockMediaSessionDispatcher.track(MediaEvent.SESSION_START, any(), any())
             ad.start()
+            mockMediaSessionDispatcher.track(MediaEvent.AD_START, any(), any())
+            mockMediaSessionDispatcher.track(MediaEvent.AD_CLICK, any(), any())
         }
 
-        Assert.assertTrue(mediaContent.adCount == 1)
-
         // similar to end - ad gets removed from adList
-        Assert.assertTrue(mediaContent.adList.size == 0)
+        Assert.assertTrue(mediaContent.adList.size == 1)
     }
 
     @Test
@@ -279,7 +280,6 @@ class MediaTests {
 
         media.clickAd()
 
-        Assert.assertTrue(mediaContent.adCount == 0)
         Assert.assertTrue(mediaContent.adList.size == 0)
     }
 
@@ -301,13 +301,14 @@ class MediaTests {
         media.skipAd()
 
         verify {
+            mockMediaSessionDispatcher.track(MediaEvent.SESSION_START, any(), any())
             ad.start()
+            mockMediaSessionDispatcher.track(MediaEvent.AD_START, any(), any())
+            mockMediaSessionDispatcher.track(MediaEvent.AD_SKIP, any(), any())
         }
 
-        Assert.assertTrue(mediaContent.adCount == 1)
-
         // similar to end & click - ad gets removed from adList
-        Assert.assertTrue(mediaContent.adList.size == 0)
+        Assert.assertTrue(mediaContent.adList.size == 1)
     }
 
     @Test
@@ -323,7 +324,6 @@ class MediaTests {
 
         media.skipAd()
 
-        Assert.assertTrue(mediaContent.adCount == 0)
         Assert.assertTrue(mediaContent.adList.size == 0)
     }
 
@@ -347,7 +347,6 @@ class MediaTests {
             chapter.start()
         }
 
-        Assert.assertTrue(mediaContent.chapterCount == 1)
         Assert.assertTrue(mediaContent.chapterList.size == 1)
     }
 
@@ -370,12 +369,14 @@ class MediaTests {
         media.endChapter()
 
         verify {
+            mockMediaSessionDispatcher.track(MediaEvent.SESSION_START, any(), any())
             chapter.start()
+            mockMediaSessionDispatcher.track(MediaEvent.CHAPTER_START, any(), any())
             chapter.end()
+            mockMediaSessionDispatcher.track(MediaEvent.CHAPTER_COMPLETE, any(), any())
         }
 
-        Assert.assertTrue(mediaContent.chapterCount == 1)
-        Assert.assertTrue(mediaContent.chapterList.size == 0)
+        Assert.assertTrue(mediaContent.chapterList.size == 1)
     }
 
     @Test
@@ -399,7 +400,6 @@ class MediaTests {
             chapter wasNot Called
         }
 
-        Assert.assertTrue(mediaContent.chapterCount == 0)
         Assert.assertTrue(mediaContent.chapterList.size == 0)
     }
 
@@ -421,13 +421,14 @@ class MediaTests {
         media.skipChapter()
 
         verify {
+            mockMediaSessionDispatcher.track(MediaEvent.SESSION_START, any(), any())
             chapter.start()
+            mockMediaSessionDispatcher.track(MediaEvent.CHAPTER_START, any(), any())
+            mockMediaSessionDispatcher.track(MediaEvent.CHAPTER_SKIP, any(), any())
         }
 
-        Assert.assertTrue(mediaContent.chapterCount == 1)
-
         // similar to end - chapter gets removed from adList
-        Assert.assertTrue(mediaContent.chapterList.size == 0)
+        Assert.assertTrue(mediaContent.chapterList.size == 1)
     }
 
     @Test
@@ -443,7 +444,6 @@ class MediaTests {
 
         media.skipChapter()
 
-        Assert.assertTrue(mediaContent.chapterCount == 0)
         Assert.assertTrue(mediaContent.chapterList.size == 0)
     }
 

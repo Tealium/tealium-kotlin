@@ -3,14 +3,14 @@ package com.tealium.media.segments
 import com.tealium.media.ChapterKey
 import java.util.*
 
-class Chapter(var name: String,
+data class Chapter(var name: String,
               var position: Int? = null,
               var skipped: Boolean? = false,
-              var metadata: Map<String, Any>? = null,
-              private val uuid: String = UUID.randomUUID().toString()) : Segment {
+              var metadata: Map<String, Any>? = null) : Segment {
 
     private var startTime: Long? = null
     private var duration: Long? = null
+    private val uuid: String = UUID.randomUUID().toString()
 
     override fun start() {
         startTime = System.currentTimeMillis()

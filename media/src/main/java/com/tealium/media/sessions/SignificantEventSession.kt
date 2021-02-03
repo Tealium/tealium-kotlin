@@ -23,23 +23,20 @@ open class SignificantEventsSession(private val mediaContent: MediaContent,
 
     override fun startAdBreak(adBreak: AdBreak) {
         adBreak.start()
-        mediaContent.adBreakCount++
         mediaContent.adBreakList.add(adBreak)
         mediaDispatcher.track(MediaEvent.ADBREAK_START, mediaContent, adBreak)
     }
 
     override fun endAdBreak() {
         if (mediaContent.adBreakList.isNotEmpty()) {
-            val adBreak = mediaContent.adBreakList.first()
+            val adBreak = mediaContent.adBreakList.last()
             adBreak.end()
             mediaDispatcher.track(MediaEvent.ADBREAK_COMPLETE, mediaContent, adBreak)
-            mediaContent.adBreakList.remove(adBreak)
         }
     }
 
     override fun startAd(ad: Ad) {
         ad.start()
-        mediaContent.adCount++
         mediaContent.adList.add(ad)
         mediaDispatcher.track(MediaEvent.AD_START, mediaContent, ad)
     }
@@ -48,16 +45,14 @@ open class SignificantEventsSession(private val mediaContent: MediaContent,
         if (mediaContent.adList.isNotEmpty()) {
             val ad = mediaContent.adList.last()
             mediaDispatcher.track(MediaEvent.AD_CLICK, mediaContent, ad)
-            mediaContent.adList.remove(ad)
         }
     }
 
     override fun endAd() {
         if (mediaContent.adList.isNotEmpty()) {
-            val ad = mediaContent.adList.first()
+            val ad = mediaContent.adList.last()
             ad.end()
             mediaDispatcher.track(MediaEvent.AD_COMPLETE, mediaContent, ad)
-            mediaContent.adList.remove(ad)
         }
     }
 
@@ -65,23 +60,20 @@ open class SignificantEventsSession(private val mediaContent: MediaContent,
         if (mediaContent.adList.isNotEmpty()) {
             val ad = mediaContent.adList.last()
             mediaDispatcher.track(MediaEvent.AD_SKIP, mediaContent, ad)
-            mediaContent.adList.remove(ad)
         }
     }
 
     override fun startChapter(chapter: Chapter) {
         chapter.start()
-        mediaContent.chapterCount++
         mediaContent.chapterList.add(chapter)
         mediaDispatcher.track(MediaEvent.CHAPTER_START, mediaContent, chapter)
     }
 
     override fun endChapter() {
         if (mediaContent.chapterList.isNotEmpty()) {
-            val chapter = mediaContent.chapterList.first()
+            val chapter = mediaContent.chapterList.last()
             chapter.end()
             mediaDispatcher.track(MediaEvent.CHAPTER_COMPLETE, mediaContent, chapter)
-            mediaContent.chapterList.remove(chapter)
         }
     }
 
@@ -89,7 +81,6 @@ open class SignificantEventsSession(private val mediaContent: MediaContent,
         if (mediaContent.chapterList.isNotEmpty()) {
             val chapter = mediaContent.chapterList.last()
             mediaDispatcher.track(MediaEvent.CHAPTER_SKIP, mediaContent, chapter)
-            mediaContent.chapterList.remove(chapter)
         }
     }
 
@@ -113,11 +104,11 @@ open class SignificantEventsSession(private val mediaContent: MediaContent,
         mediaDispatcher.track(MediaEvent.STOP, mediaContent)
     }
 
-    override fun startSeek(playhead: Int?) {
+    override fun startSeek(position: Int) {
         mediaDispatcher.track(MediaEvent.SEEK_START, mediaContent)
     }
 
-    override fun endSeek(playhead: Int?) {
+    override fun endSeek(position: Int) {
         mediaDispatcher.track(MediaEvent.SEEK_COMPLETE, mediaContent)
     }
 

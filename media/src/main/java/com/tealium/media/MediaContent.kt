@@ -19,11 +19,8 @@ data class MediaContent(var name: String,
                         private val uuid: String = UUID.randomUUID().toString()) {
 
     val adBreakList: MutableList<AdBreak> = mutableListOf()
-    var adBreakCount: Int = 0
     val adList: MutableList<Ad> = mutableListOf()
-    var adCount: Int = 0
     val chapterList: MutableList<Chapter> = mutableListOf()
-    var chapterCount: Int = 0
     var milestone: Milestone? = null
     var summary: MediaSummary? = null
     var startTime: Long? = null

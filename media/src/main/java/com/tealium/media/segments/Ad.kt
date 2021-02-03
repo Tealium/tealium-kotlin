@@ -3,7 +3,7 @@ package com.tealium.media.segments
 import com.tealium.media.AdKey
 import java.util.*
 
-class Ad(var id: String,
+data class Ad(var id: String,
          var name: String? = null,
          var position: Int? = null,
          var advertiser: String? = null,
@@ -14,12 +14,12 @@ class Ad(var id: String,
          var creativeUrl: String? = null,
          var numberOfLoads: Int? = null,
          var pod: String? = null,
-         var playerName: String? = null,
-         val uuid: String = UUID.randomUUID().toString()) : Segment {
+         var playerName: String? = null) : Segment {
 
     private var startTime: Long? = null
     private var duration: Long? = null
     private var skipped: Boolean? = false
+    val uuid: String = UUID.randomUUID().toString()
 
     override fun start() {
         startTime = System.currentTimeMillis()
