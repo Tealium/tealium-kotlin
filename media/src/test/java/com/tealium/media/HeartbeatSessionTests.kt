@@ -9,7 +9,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class HeartbeatSessionTest {
     @RelaxedMockK
     lateinit var mockContext: TealiumContext

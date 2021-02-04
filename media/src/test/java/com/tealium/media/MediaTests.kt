@@ -1,5 +1,6 @@
 package com.tealium.media
 
+import com.tealium.core.Logger
 import com.tealium.core.TealiumContext
 import com.tealium.media.segments.Ad
 import com.tealium.media.segments.AdBreak
@@ -13,7 +14,10 @@ import io.mockk.impl.annotations.RelaxedMockK
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class MediaTests {
 
     @RelaxedMockK
@@ -24,6 +28,9 @@ class MediaTests {
 
     @RelaxedMockK
     lateinit var mockQoE: QoE
+
+    @RelaxedMockK
+    lateinit var mockLogger: Logger
 
     private lateinit var mediaContent: MediaContent
 
@@ -557,12 +564,12 @@ class MediaTests {
         val media = Media(mockContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
 
-        media.startSeek()
+        media.startSeek(10)
 
         // 2 track for startSession + startSeek
         verify(exactly = 2) { mockMediaSessionDispatcher.track(any(), any(), any()) }
 
-        media.endSeek()
+        media.endSeek(25)
 
         // 3 track for startSession + startSeek + endSeek
         verify(exactly = 3) { mockMediaSessionDispatcher.track(any(), any(), any()) }
@@ -578,8 +585,8 @@ class MediaTests {
 
         val media = Media(mockContext, mockMediaSessionDispatcher)
 
-        media.startSeek()
-        media.endSeek()
+        media.startSeek(10)
+        media.endSeek(15)
 
         verify { mockMediaSessionDispatcher wasNot Called }
     }
