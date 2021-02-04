@@ -1,28 +1,42 @@
 package com.tealium.media.segments
 
-import com.tealium.media.AdBreakKeys
+import com.tealium.media.AdBreakKey
 import java.util.*
 
-class AdBreak(var id: String,
-              var name: String? = null,
-              var index: Int? = null,
-              var position: Int? = null,
-              var startTime: Long? = System.currentTimeMillis(),
-              var duration: Long? = null,
-              var uuid: String? = UUID.randomUUID().toString(),
-              private var numberOfAdBreaks: Int = 0) : Segment {
+data class AdBreak(var id: String,
+                   val name: String? = null,
+                   var index: Int? = null,
+                   var position: Int? = null) : Segment {
+
+    private val uuid: String = UUID.randomUUID().toString()
+    private val adBreakName: String = name ?: uuid
+    private var startTime: Long? = null
+    private var duration: Long? = null
+
+    override fun start() {
+        startTime = System.currentTimeMillis()
+    }
+
+    override fun end() {
+        startTime?.let {
+            duration = System.currentTimeMillis() - it
+        }
+    }
+
+    override fun skip() {
+        // do nothing
+    }
 
     override fun segmentInfo(): Map<String, Any> {
-        val data = mutableMapOf<String, Any>()
-        data[AdBreakKeys.ID] = id
+        val data = mutableMapOf<String, Any>(
+                AdBreakKey.ID to id,
+                AdBreakKey.UUID to uuid,
+                AdBreakKey.NAME to adBreakName
+        )
 
-//        name?.let { data[AdBreakKeys.NAME] = it }
-        index?.let { data[AdBreakKeys.INDEX] = it }
-        position?.let { data[AdBreakKeys.POSITION] = it }
-//        startTime?.let { data[AdBreakKeys.START_TIME] = it }
-        duration?.let { data[AdBreakKeys.DURATION] = it }
-        uuid?.let { data[AdBreakKeys.UUID] = it }
-//        numberOfAdBreaks?.let { data[AdBreakKeys.NUMBER_OF_ADBREAKS] = it }
+        index?.let { data[AdBreakKey.INDEX] = it }
+        position?.let { data[AdBreakKey.POSITION] = it }
+        duration?.let { data[AdBreakKey.DURATION] = it }
 
         return data.toMap()
     }
