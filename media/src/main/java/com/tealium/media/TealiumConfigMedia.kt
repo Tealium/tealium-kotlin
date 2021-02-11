@@ -31,8 +31,8 @@ var TealiumConfig.mediaBackgroundSessionEnabled: Boolean?
     }
 
 /**
- * Sets the length of time in Seconds to use when [mediaBackgroundSessionEnabled] is
- * set to false. Media module will call endSession on current media session when interval
+ * Sets the length of time in seconds to use when [mediaBackgroundSessionEnabled] is
+ * false. Media module will call endSession() on current media session when interval
  * is reached.
  *
  * Default is 60000L (60 seconds)

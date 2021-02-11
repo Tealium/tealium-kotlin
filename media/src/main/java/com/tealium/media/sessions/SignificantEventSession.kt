@@ -132,6 +132,7 @@ open class SignificantEventsSession(private val mediaContent: MediaContent,
         mediaContent.qoe.playbackSpeed = speed
     }
 
+    // TODO why do we track player state stop/start on update?? suggest PLAYER_STATE_CHANGE?
     override fun updatePlayerState(state: PlayerState) {
         mediaContent.state?.let {
             mediaDispatcher.track(MediaEvent.PLAYER_STATE_STOP, mediaContent)

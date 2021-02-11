@@ -137,10 +137,6 @@ open class MilestoneSession(private val mediaContent: MediaContent,
         return 0.0
     }
 
-//    open fun delta(): Long? {
-//        return totalContentPlayed
-//    }
-
     private fun cancelTimer() {
         timer?.cancel()
         timer = null
