@@ -2,6 +2,7 @@ package com.tealium.media.sessions
 
 import com.tealium.core.Logger
 import com.tealium.media.*
+import com.tealium.media.segments.AdBreak
 import java.util.*
 
 /**
@@ -9,16 +10,21 @@ import java.util.*
  * 10%, 25%, 50%, 75%, 90%, 100% of video content played.
  */
 open class MilestoneSession(private val mediaContent: MediaContent,
-                            private val mediaDispatcher: MediaDispatcher,
-                            private val contentDuration: Long? = mediaContent.duration?.toLong()) : SignificantEventsSession(mediaContent, mediaDispatcher) {
+                            private val mediaDispatcher: MediaDispatcher) : SignificantEventsSession(mediaContent, mediaDispatcher) {
 
+    private val contentDuration: Long? = mediaContent.duration?.toLong()
     private var timer: Timer? = null
-    private var startPauseTime: Long? = null
-    private var pauseTime: Long = 0
-    private var isPaused: Boolean = false
-
+    val totalContentPlayed: Double
+        get() {
+            return lastPlayTimestamp?.let {
+                val timeElapsed = System.currentTimeMillis() - it
+                totalPlaybackTime += Media.timeMillisToSeconds(timeElapsed) // millis to secs
+                totalPlaybackTime
+            } ?: totalPlaybackTime
+        }
+    private var totalPlaybackTime: Double = 0.0
+    private var lastPlayTimestamp: Long? = null
     private var startSeekPosition: Int? = null
-    private var endSeekPosition: Int? = null
 
     private val milestonesAchieved = mutableSetOf<Milestone>()
 
@@ -26,6 +32,9 @@ open class MilestoneSession(private val mediaContent: MediaContent,
         checkMilestone()?.let {
             mediaContent.milestone = it
             sendMilestone()
+            if (it == Milestone.ONE_HUNDRED) {
+                endContent()
+            }
         }
     }
 
@@ -33,37 +42,56 @@ open class MilestoneSession(private val mediaContent: MediaContent,
         timer?.cancel()
     }
 
-    override fun startSession() {
-        startTimer()
-        super.startSession()
-    }
-
     override fun endSession() {
         cancelTimer()
         super.endSession()
     }
 
+    override fun endContent() {
+        cancelTimer()
+        super.endContent()
+    }
+
     override fun play() {
-        if (isPaused) {
-            pauseEnd()
+        if (lastPlayTimestamp == null) {
+            lastPlayTimestamp = System.currentTimeMillis()
         }
+        startTimer()
         super.play()
     }
 
     override fun pause() {
-        pauseStart()
+        processPause()
+        cancelTimer()
         super.pause()
     }
 
+    override fun startAdBreak(adBreak: AdBreak) {
+        processPause()
+        cancelTimer()
+        super.startAdBreak(adBreak)
+    }
+
+    override fun endAdBreak() {
+        if (lastPlayTimestamp == null) {
+            lastPlayTimestamp = System.currentTimeMillis()
+        }
+        super.endAdBreak()
+    }
+
     override fun startSeek(position: Int) {
-        startSeekPosition = position // do I need seekStart time to calc anything??
+        startSeekPosition = position
+        cancelTimer()
         super.startSeek(0)
     }
 
     override fun endSeek(position: Int) {
-        endSeekPosition = position
-        milestonesAchieved.clear() // is this going to work?
+        startSeekPosition?.let {
+            totalPlaybackTime += position - it
+        }
 
+        milestonesAchieved.clear()
+        startTimer()
         super.endSeek(0)
     }
 
@@ -85,7 +113,7 @@ open class MilestoneSession(private val mediaContent: MediaContent,
     }
 
     private fun checkMilestone(): Milestone? {
-        val milestone = when (percentageElapsed()) {
+        val milestone = when (percentageContentPlayed()) {
             in 8.0..12.0 -> Milestone.TEN
             in 23.0..27.0 -> Milestone.TWENTY_FIVE
             in 48.0..52.0 -> Milestone.FIFTY
@@ -100,46 +128,30 @@ open class MilestoneSession(private val mediaContent: MediaContent,
         return null
     }
 
-    private fun percentageElapsed(): Double {
+    private fun percentageContentPlayed(): Double {
         contentDuration?.let { length ->
-            delta()?.let { timeDifference ->
-                val elapsedSeconds = (timeDifference - pauseTime) / 1000.0
-                return (elapsedSeconds / length) * 100
-            }
+            return ((totalContentPlayed / length) * 100)
         }
 
         Logger.dev(BuildConfig.TAG, "Media Content duration required to send milestones")
         return 0.0
     }
 
-    open fun delta(): Long? {
-        return mediaContent.startTime?.let { start ->
-            val timeDelta = System.currentTimeMillis() - start
-            endSeekPosition?.let { positionInSecs ->
-                timeDelta + (positionInSecs * 1000) // secs to millis
-            }
-            timeDelta
-        }
-    }
+//    open fun delta(): Long? {
+//        return totalContentPlayed
+//    }
 
     private fun cancelTimer() {
         timer?.cancel()
         timer = null
     }
 
-    private fun pauseStart() {
-        isPaused = true
-        startPauseTime = System.currentTimeMillis()
-        cancelTimer()
-    }
-
-    private fun pauseEnd() {
-        isPaused = false
-        startPauseTime?.let {
-            pauseTime += System.currentTimeMillis() - it
+    private fun processPause() {
+        lastPlayTimestamp?.let {
+            val timeElapsed = System.currentTimeMillis() - it
+            totalPlaybackTime += Media.timeMillisToSeconds(timeElapsed)
+            lastPlayTimestamp = null
         }
-
-        startTimer()
     }
 
     companion object {

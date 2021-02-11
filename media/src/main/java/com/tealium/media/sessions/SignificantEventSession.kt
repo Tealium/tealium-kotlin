@@ -1,6 +1,5 @@
 package com.tealium.media.sessions
 
-import com.tealium.core.Logger
 import com.tealium.media.*
 import com.tealium.media.segments.Ad
 import com.tealium.media.segments.AdBreak
@@ -12,14 +11,25 @@ import com.tealium.media.segments.Chapter
 open class SignificantEventsSession(private val mediaContent: MediaContent,
                                     private val mediaDispatcher: MediaDispatcher) : Session {
 
+    override var isBackgrounded: Boolean = false
+
     override fun startSession() {
         mediaContent.startTime = System.currentTimeMillis()
         mediaDispatcher.track(MediaEvent.SESSION_START, mediaContent)
     }
 
+    override fun resumeSession() {
+        isBackgrounded = false
+        mediaDispatcher.track(MediaEvent.SESSION_RESUME, mediaContent)
+    }
+
     override fun endSession() {
         mediaContent.endTime = duration()
         mediaDispatcher.track(MediaEvent.SESSION_END, mediaContent)
+    }
+
+    override fun endContent() {
+        mediaDispatcher.track(MediaEvent.CONTENT_END, mediaContent)
     }
 
     override fun startAdBreak(adBreak: AdBreak) {
@@ -99,10 +109,6 @@ open class SignificantEventsSession(private val mediaContent: MediaContent,
 
     override fun pause() {
         mediaDispatcher.track(MediaEvent.PAUSE, mediaContent)
-    }
-
-    override fun stop() {
-        mediaDispatcher.track(MediaEvent.STOP, mediaContent)
     }
 
     override fun startSeek(position: Int) {

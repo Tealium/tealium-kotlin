@@ -1,7 +1,6 @@
 package com.tealium.media
 
 import com.tealium.core.TealiumContext
-import com.tealium.media.segments.AdBreak
 import io.mockk.*
 import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.delay
@@ -52,10 +51,13 @@ class MilestoneSessionTests {
         val media = Media(mockContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
 
-        // wait 10 seconds - should record Milestone.Ten in mediaContent
+        // wait 10 seconds
         delay(10000)
 
-        verify { mockMediaSessionDispatcher.track(MediaEvent.MILESTONE, any()) }
+        // should not record milestone, no play event to start content
+        verify {
+            mockMediaSessionDispatcher.track(MediaEvent.SESSION_START, any())
+        }
     }
 
     @Test
@@ -69,18 +71,18 @@ class MilestoneSessionTests {
 
         val media = Media(mockContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
+        media.play()
 
         // wait 10 seconds - should record Milestone.Ten in mediaContent
         delay(10000)
 
-        media.play()
         media.pause()
         media.endSession()
 
         verify {
             mockMediaSessionDispatcher.track(MediaEvent.SESSION_START, any())
-            mockMediaSessionDispatcher.track(MediaEvent.MILESTONE, any())
             mockMediaSessionDispatcher.track(MediaEvent.PLAY, any())
+            mockMediaSessionDispatcher.track(MediaEvent.MILESTONE, any())
             mockMediaSessionDispatcher.track(MediaEvent.PAUSE, any())
             mockMediaSessionDispatcher.track(MediaEvent.SESSION_END, any())
         }

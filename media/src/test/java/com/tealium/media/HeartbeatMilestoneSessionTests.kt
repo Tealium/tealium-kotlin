@@ -54,6 +54,7 @@ class HeartbeatMilestoneSessionTests {
 
         val media = Media(mockContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
+        media.play()
 
         // wait 25 seconds - should record Heartbeat & Milestone
         delay(25000)

@@ -5,14 +5,13 @@ data class MediaSummary(var sessionStart: Long = System.currentTimeMillis()) {
     var sessionStartTime: String? = null
     var plays: Int = 0
     var pauses: Int = 0
-    var stops: Int = 0
     var ads: Int = 0
     var adUuids: MutableSet<String> = mutableSetOf()
     var adSkips: Int = 0
     var chapterSkips: Int = 0
     var playToEnd: Boolean = false
     var duration: Long? = 0
-    var totalPlayTime: Int? = 0
+    var totalPlayTime: Double? = 0.0
     var totalAdTime: Int? = 0
     var totalBufferTime: Int? = 0
     var totalSeekTime: Int? = 0
@@ -41,7 +40,6 @@ data class MediaSummary(var sessionStart: Long = System.currentTimeMillis()) {
             data[SummaryKey.PAUSES] = mediaSummary.pauses
             data[SummaryKey.AD_SKIPS] = mediaSummary.adSkips
             data[SummaryKey.CHAPTER_SKIPS] = mediaSummary.chapterSkips
-            data[SummaryKey.STOPS] = mediaSummary.stops
             data[SummaryKey.ADS] = mediaSummary.ads
             data[SummaryKey.AD_UUIDS] = mediaSummary.adUuids
             data[SummaryKey.PLAY_TO_END] = mediaSummary.playToEnd
@@ -80,7 +78,7 @@ data class MediaSummary(var sessionStart: Long = System.currentTimeMillis()) {
             mediaSummary.sessionEnd?.let {
                 data[SummaryKey.SESSION_END_TIME] = it
             }
-            return  data
+            return data
         }
     }
 }

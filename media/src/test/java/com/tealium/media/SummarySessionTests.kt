@@ -92,10 +92,8 @@ class SummarySessionTests {
         val media = Media(mockContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
         media.play()
-        media.stop()
 
         Assert.assertEquals(1, mediaContent.summary?.plays)
-        Assert.assertEquals(1, mediaContent.summary?.stops)
     }
 
     @Test

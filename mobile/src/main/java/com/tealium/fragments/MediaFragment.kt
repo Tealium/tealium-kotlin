@@ -103,7 +103,7 @@ class MediaFragment : Fragment() {
                 MediaContent(
                         "Test Session",
                         StreamType.VOD,
-                        MediaType.AUDIO,
+                        MediaType.VIDEO,
                         QoE(1),
                         trackingType = TrackingType.HEARTBEAT_MILESTONE,
                         duration = 126

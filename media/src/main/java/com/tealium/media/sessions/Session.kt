@@ -6,8 +6,12 @@ import com.tealium.media.segments.AdBreak
 import com.tealium.media.segments.Chapter
 
 interface Session {
+    var isBackgrounded: Boolean
+
     fun startSession()
+    fun resumeSession()
     fun endSession()
+    fun endContent()
 
     // Significant Events
     fun startBuffer()
@@ -15,7 +19,6 @@ interface Session {
 
     fun play()
     fun pause()
-    fun stop()
 
     fun startChapter(chapter: Chapter)
     fun skipChapter()

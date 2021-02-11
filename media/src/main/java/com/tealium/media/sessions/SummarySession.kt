@@ -1,5 +1,6 @@
 package com.tealium.media.sessions
 
+import com.tealium.media.Media
 import com.tealium.media.MediaContent
 import com.tealium.media.MediaSummary
 import com.tealium.media.MediaDispatcher
@@ -13,7 +14,7 @@ import java.util.*
  * and stops of media. Details captured are sent after endSession() is called.
  */
 class SummarySession(private val mediaContent: MediaContent,
-                     private val mediaDispatcher: MediaDispatcher) : SignificantEventsSession(mediaContent, mediaDispatcher) {
+                     mediaDispatcher: MediaDispatcher) : SignificantEventsSession(mediaContent, mediaDispatcher) {
 
     override fun startSession() {
         mediaContent.summary = MediaSummary()
@@ -29,6 +30,15 @@ class SummarySession(private val mediaContent: MediaContent,
         }
     }
 
+    override fun endContent() {
+        mediaContent.summary?.playToEnd = true
+        mediaContent.startTime?.let {
+            val time = System.currentTimeMillis() - it
+            mediaContent.summary?.totalPlayTime = Media.timeMillisToSeconds(time)
+        }
+        super.endContent()
+    }
+
     override fun play() {
         mediaContent.summary?.let {
             it.playStartTime = System.currentTimeMillis()
@@ -39,17 +49,6 @@ class SummarySession(private val mediaContent: MediaContent,
     override fun pause() {
         mediaContent.summary?.let { summary ->
             summary.pauses++
-            summary.totalPlayTime?.let {
-                val timeElapsed = System.currentTimeMillis() - it
-                summary.totalPlayTime = it + timeElapsed.toInt()
-            }
-        }
-    }
-
-    // TODO do we need this? Wouldn't this just be a pause in media? Do media players have stop buttons anymore?!
-    override fun stop() {
-        mediaContent.summary?.let { summary ->
-            summary.stops++
             summary.totalPlayTime?.let {
                 val timeElapsed = System.currentTimeMillis() - it
                 summary.totalPlayTime = it + timeElapsed.toInt()
@@ -100,7 +99,7 @@ class SummarySession(private val mediaContent: MediaContent,
             summary.adEnds++
             summary.adStartTime?.let {
                 val timeElapsed = System.currentTimeMillis() - it
-                summary.adStartTime = it +timeElapsed
+                summary.adStartTime = it + timeElapsed
             }
         }
     }

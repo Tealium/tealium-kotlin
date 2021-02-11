@@ -15,16 +15,19 @@ data class MediaContent(var name: String,
                         var duration: Int? = null,
                         var playerName: String? = null,
                         var channelName: String? = null,
-                        var metadata: MutableMap<String, Any> = mutableMapOf(),
-                        private val uuid: String = UUID.randomUUID().toString()) {
+                        var metadata: MutableMap<String, Any> = mutableMapOf()) {
+
+    private val uuid: String = UUID.randomUUID().toString()
 
     val adBreakList: MutableList<AdBreak> = mutableListOf()
     val adList: MutableList<Ad> = mutableListOf()
     val chapterList: MutableList<Chapter> = mutableListOf()
     var milestone: Milestone? = null
     var summary: MediaSummary? = null
+
     var startTime: Long? = null
     var endTime: Long? = null
+    var percentContentComplete: Double? = null
 
     companion object {
         fun toMap(mediaContent: MediaContent): Map<String, Any> {
@@ -38,6 +41,10 @@ data class MediaContent(var name: String,
 
             data.putAll(QoE.toMap(mediaContent.qoe))
             data.putAll(mediaContent.metadata)
+
+            mediaContent.percentContentComplete?.let {
+                data[SessionKey.PERCENT_COMPLETE] = it
+            }
 
             mediaContent.startTime?.let {
                 data[SessionKey.START_TIME] = it
