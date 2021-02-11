@@ -58,7 +58,7 @@ object TealiumHelper {
             )
 
 //            mediaBackgroundSessionEnabled = true
-//            mediaBackgroundSessionEndInterval = 5000L  
+            mediaBackgroundSessionEndInterval = 5000L  // end session after 5 seconds
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
