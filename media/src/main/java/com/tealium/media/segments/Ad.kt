@@ -1,6 +1,7 @@
 package com.tealium.media.segments
 
 import com.tealium.media.AdKey
+import com.tealium.media.Media
 import java.util.*
 
 data class Ad(val id: String,
@@ -20,7 +21,7 @@ data class Ad(val id: String,
 
     private val adName: String = name ?: uuid
     private var startTime: Long? = null
-    private var duration: Long? = null
+    private var duration: Double? = null
     private var skipped: Boolean = false
 
     override fun start() {
@@ -29,7 +30,7 @@ data class Ad(val id: String,
 
     override fun end() {
         startTime?.let {
-            duration = System.currentTimeMillis() - it
+            duration = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
         }
     }
 

@@ -17,8 +17,8 @@ open class MilestoneSession(private val mediaContent: MediaContent,
     val totalContentPlayed: Double
         get() {
             return lastPlayTimestamp?.let {
-                val timeElapsed = System.currentTimeMillis() - it
-                totalPlaybackTime += Media.timeMillisToSeconds(timeElapsed) // millis to secs
+                val timeElapsed = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
+                totalPlaybackTime += timeElapsed
                 totalPlaybackTime
             } ?: totalPlaybackTime
         }
@@ -144,8 +144,8 @@ open class MilestoneSession(private val mediaContent: MediaContent,
 
     private fun processPause() {
         lastPlayTimestamp?.let {
-            val timeElapsed = System.currentTimeMillis() - it
-            totalPlaybackTime += Media.timeMillisToSeconds(timeElapsed)
+            val timeElapsed = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
+            totalPlaybackTime += timeElapsed
             lastPlayTimestamp = null
         }
     }

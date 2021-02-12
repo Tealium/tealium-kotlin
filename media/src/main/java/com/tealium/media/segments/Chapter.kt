@@ -1,6 +1,7 @@
 package com.tealium.media.segments
 
 import com.tealium.media.ChapterKey
+import com.tealium.media.Media
 import java.util.*
 
 data class Chapter(val name: String,
@@ -9,7 +10,7 @@ data class Chapter(val name: String,
 
     private val uuid: String = UUID.randomUUID().toString()
     private var startTime: Long? = null
-    private var duration: Long? = null
+    private var duration: Double? = null
     private var skipped: Boolean = false
 
     override fun start() {
@@ -18,7 +19,7 @@ data class Chapter(val name: String,
 
     override fun end() {
         startTime?.let {
-            duration = System.currentTimeMillis() - it
+            duration = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
         }
     }
 
