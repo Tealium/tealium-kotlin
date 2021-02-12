@@ -23,8 +23,7 @@ class SummarySession(private val mediaContent: MediaContent,
 
     override fun endSession() {
         mediaContent.summary?.let {
-            it.sessionEnd = System.currentTimeMillis()
-            it.playToEnd = true
+            it.sessionEndTime = System.currentTimeMillis()
             finalizeSummaryInfo()
             super.endSession()
         }
@@ -32,9 +31,9 @@ class SummarySession(private val mediaContent: MediaContent,
 
     override fun endContent() {
         mediaContent.summary?.playToEnd = true
-        mediaContent.startTime?.let {
-            val time = System.currentTimeMillis() - it
-            mediaContent.summary?.totalPlayTime = Media.timeMillisToSeconds(time)
+        mediaContent.summary?.playStartTime?.let {
+            mediaContent.summary?.totalPlayTime =
+                    Media.timeMillisToSeconds(System.currentTimeMillis() - it)
         }
         super.endContent()
     }
@@ -49,9 +48,12 @@ class SummarySession(private val mediaContent: MediaContent,
     override fun pause() {
         mediaContent.summary?.let { summary ->
             summary.pauses++
-            summary.totalPlayTime?.let {
-                val timeElapsed = System.currentTimeMillis() - it
-                summary.totalPlayTime = it + timeElapsed.toInt()
+            summary.playStartTime?.let { start ->
+                val timeElapsed = Media.timeMillisToSeconds(System.currentTimeMillis() - start)
+                summary.totalPlayTime?.let {
+                    summary.totalPlayTime = it + timeElapsed
+
+                }
             }
         }
     }
@@ -88,8 +90,8 @@ class SummarySession(private val mediaContent: MediaContent,
             summary.adSkips++
             summary.adEnds++
             summary.adStartTime?.let {
-                val timeElapsed = System.currentTimeMillis() - it
-                summary.adStartTime = it + timeElapsed
+                val timeElapsed = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
+                summary.totalAdTime = it + timeElapsed
             }
         }
     }
@@ -98,8 +100,8 @@ class SummarySession(private val mediaContent: MediaContent,
         mediaContent.summary?.let { summary ->
             summary.adEnds++
             summary.adStartTime?.let {
-                val timeElapsed = System.currentTimeMillis() - it
-                summary.adStartTime = it + timeElapsed
+                val timeElapsed = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
+                summary.totalAdTime = it + timeElapsed
             }
         }
     }
@@ -113,9 +115,9 @@ class SummarySession(private val mediaContent: MediaContent,
     override fun endBuffer() {
         mediaContent.summary?.let { summary ->
             summary.bufferStartTime?.let { start ->
-                val timeElapse = System.currentTimeMillis() - start
+                val timeElapsed = Media.timeMillisToSeconds(System.currentTimeMillis() - start)
                 summary.totalBufferTime?.let {
-                    summary.totalBufferTime = it + timeElapse.toInt()
+                    summary.totalBufferTime = it + timeElapsed
                 }
             }
         }
@@ -130,9 +132,9 @@ class SummarySession(private val mediaContent: MediaContent,
     override fun endSeek(position: Int) {
         mediaContent.summary?.let { summary ->
             summary.seekStartTime?.let { start ->
-                val timeElapse = System.currentTimeMillis() - start
+                val timeElapse = Media.timeMillisToSeconds(System.currentTimeMillis() - start)
                 summary.totalSeekTime?.let {
-                    summary.totalSeekTime = it + timeElapse.toInt()
+                    summary.totalSeekTime = it + timeElapse
                 }
             }
         }
@@ -140,32 +142,39 @@ class SummarySession(private val mediaContent: MediaContent,
 
     override fun finalizeSummaryInfo() {
         mediaContent.summary?.let { summary ->
-            reusableDate.time = summary.sessionStart
-            summary.sessionStartTime = formatIso8601.format(reusableDate)
+            reusableDate.time = summary.sessionStartTime
+            summary.sessionStartTimestamp = formatIso8601.format(reusableDate)
 
-            summary.duration = summary.sessionEnd?.minus(summary.sessionStart)
+            summary.sessionEndTime?.let {
+                summary.duration = Media.timeMillisToSeconds(it.minus(summary.sessionStartTime))
+            }
 
-            summary.sessionEnd?.let { endTime ->
+            summary.sessionEndTime?.let { endTime ->
                 reusableDate.time = endTime
-                summary.sessionEndTime = formatIso8601.format(reusableDate)
+                summary.sessionEndTimestamp = formatIso8601.format(reusableDate)
             }
 
             if (summary.chapterStarts > 0) {
-                summary.percentageChapterComplete = ((summary.chapterEnds / summary.chapterStarts) * 100).toDouble()
+                summary.percentageChapterComplete = percentage(summary.chapterEnds, summary.chapterStarts)
             }
 
             if (summary.ads > 0) {
-                summary.percentageAdComplete = ((summary.adEnds / summary.ads) * 100).toDouble()
+                summary.percentageAdComplete = percentage(summary.adEnds, summary.ads)
             }
 
             summary.totalAdTime?.let { adTime ->
                 if (adTime > 0) {
                     summary.totalPlayTime?.let { totalTime ->
-                        summary.percentageAdTime = ((adTime / totalTime) * 100).toDouble()
+                        summary.percentageAdTime = percentage(adTime.toInt(), totalTime.toInt())
                     }
                 }
             }
         }
+    }
+
+    private fun percentage(count: Int, total: Int): Double {
+        return ((count.toDouble() / total.toDouble()) * 100)
+
     }
 
     companion object {

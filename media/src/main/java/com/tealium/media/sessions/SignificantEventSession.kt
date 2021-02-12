@@ -24,7 +24,7 @@ open class SignificantEventsSession(private val mediaContent: MediaContent,
     }
 
     override fun endSession() {
-        mediaContent.endTime = duration()
+        mediaContent.endTime = System.currentTimeMillis()
         mediaDispatcher.track(MediaEvent.SESSION_END, mediaContent)
     }
 
@@ -156,9 +156,9 @@ open class SignificantEventsSession(private val mediaContent: MediaContent,
         // do nothing
     }
 
-    private fun duration(): Long? {
+    private fun duration(): Double? {
         return mediaContent.startTime?.let {
-            System.currentTimeMillis() - it
+            Media.timeMillisToSeconds(System.currentTimeMillis() - it)
         }
     }
 }

@@ -43,7 +43,7 @@ class SummarySessionTests {
         verify { mockMediaSessionDispatcher.track(MediaEvent.SESSION_START, any(), any()) }
 
         Assert.assertNotNull(mediaContent.summary)
-        Assert.assertNotNull(mediaContent.summary?.sessionStart)
+        Assert.assertNotNull(mediaContent.summary?.sessionStartTime)
     }
 
     @Test
