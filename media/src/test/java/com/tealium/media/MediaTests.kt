@@ -18,6 +18,7 @@ import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -859,6 +860,10 @@ class MediaTests {
         }
     }
 
+    @Test
+    fun timeMillis() {
+        assertEquals(10.555, Media.timeMillisToSeconds(10555), 0.0)
+    }
 }
 
 private class TestActivity : Activity()

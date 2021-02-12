@@ -174,7 +174,6 @@ class SummarySession(private val mediaContent: MediaContent,
 
     private fun percentage(count: Int, total: Int): Double {
         return ((count.toDouble() / total.toDouble()) * 100)
-
     }
 
     companion object {

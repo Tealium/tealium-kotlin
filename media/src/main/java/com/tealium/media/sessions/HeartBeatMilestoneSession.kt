@@ -16,7 +16,7 @@ class HeartbeatMilestoneSession(private val mediaContent: MediaContent,
     private var heartbeatCount = 0
 
     override fun ping() {
-        if (totalContentPlayed.div(interval) > heartbeatCount) {
+        if (totalContentPlayed.times(1000).div(interval) > heartbeatCount) {
             heartbeatCount++
             mediaDispatcher.track(MediaEvent.HEARTBEAT, mediaContent)
         }

@@ -77,7 +77,7 @@ data class MediaSummary(var sessionStartTime: Long = System.currentTimeMillis())
                 data[SummaryKey.TOTAL_SEEK_TIME] = it
             }
 
-            mediaSummary.sessionEndTime?.let {
+            mediaSummary.sessionEndTimestamp?.let {
                 data[SummaryKey.SESSION_END_TIME] = it
             }
             return data
