@@ -69,6 +69,13 @@ class Media(private val context: TealiumContext,
     }
 
     /**
+     * Records end of MediaContent
+     */
+    fun endContent() {
+        currentSession?.endContent()
+    }
+
+    /**
      * Starts an ad break segment with give [AdBreak] segment
      */
     fun startAdBreak(adBreak: AdBreak) = currentSession?.startAdBreak(adBreak)

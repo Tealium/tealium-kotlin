@@ -14,6 +14,7 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class HeartbeatMilestoneSessionTests {
+
     @RelaxedMockK
     lateinit var mockContext: TealiumContext
 
