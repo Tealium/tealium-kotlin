@@ -228,7 +228,7 @@ class Media(private val context: TealiumContext,
         }
 
         fun timeMillisToSeconds(time: Long): Double {
-            return (time / 1000).toDouble()
+            return time.toDouble() / 1000
         }
     }
 }
