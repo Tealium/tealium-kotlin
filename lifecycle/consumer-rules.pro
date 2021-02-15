@@ -15,18 +15,18 @@
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
--keepparameternames
--keeppackagenames
--renamesourcefileattribute SourceFile
--keepattributes Exceptions,InnerClasses,Signature,Deprecated,
-                SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
+#-keepparameternames
+#-keeppackagenames
 #-renamesourcefileattribute SourceFile
-
--keep class kotlin.Metadata { *; }
-
--keep class com.tealium.lifecycle.Lifecycle { *; }
--keep class com.tealium.lifecycle.Lifecycle$Companion { *; }
--keep class com.tealium.lifecycle.LifecycleKt { *; }
--keep class com.tealium.lifecycle.TealiumConfigLifecycleKt { *; }
+#-keepattributes Exceptions,InnerClasses,Signature,Deprecated,
+#                SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
+## If you keep the line number information, uncomment this to
+## hide the original source file name.
+##-renamesourcefileattribute SourceFile
+#
+#-keep class kotlin.Metadata { *; }
+#
+#-keep class com.tealium.lifecycle.Lifecycle { *; }
+#-keep class com.tealium.lifecycle.Lifecycle$Companion { *; }
+#-keep class com.tealium.lifecycle.LifecycleKt { *; }
+#-keep class com.tealium.lifecycle.TealiumConfigLifecycleKt { *; }

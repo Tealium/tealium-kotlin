@@ -88,7 +88,9 @@ object TealiumHelper {
     }
 
     fun trackEvent(name: String, data: Map<String, Any>?) {
+
         val eventDispatch = TealiumEvent(name, data)
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.dataLayer?.putString("new_key", "value")
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.track(eventDispatch)
     }
 

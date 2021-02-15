@@ -15,22 +15,22 @@
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
--keepparameternames
--keeppackagenames
--renamesourcefileattribute SourceFile
--keepattributes Exceptions,InnerClasses,Signature,Deprecated,
-                SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
+#-keepparameternames
+#-keeppackagenames
 #-renamesourcefileattribute SourceFile
-
--keep class kotlin.Metadata { *; }
-
-# Keep all public interfaces.
--keep public interface com.tealium.crashreporter.** { *; }
-
-# Keep all public classes in the top level package
--keep public class !com.tealium.crashreporter.BuildConfig,com.tealium.crashreporter.* {
- public protected *;
-}
+#-keepattributes Exceptions,InnerClasses,Signature,Deprecated,
+#                SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
+#
+## If you keep the line number information, uncomment this to
+## hide the original source file name.
+##-renamesourcefileattribute SourceFile
+#
+#-keep class kotlin.Metadata { *; }
+#
+## Keep all public interfaces.
+#-keep public interface com.tealium.crashreporter.** { *; }
+#
+## Keep all public classes in the top level package
+#-keep public class !com.tealium.crashreporter.BuildConfig,com.tealium.crashreporter.* {
+# public protected *;
+#}

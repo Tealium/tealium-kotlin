@@ -27,7 +27,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             testCoverageEnabled true
         }
@@ -65,6 +65,9 @@ afterEvaluate {
             }
         }
         repositories {
+            maven {
+                url '../repo'
+            }
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
 //                credentials(AwsCredentials) {
