@@ -1,8 +1,11 @@
 package com.tealium.fragments
 
+import android.content.ComponentName
+import android.content.ServiceConnection
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
+import android.os.IBinder
 import android.view.*
 import android.widget.MediaController
 import androidx.fragment.app.Fragment
@@ -26,6 +29,22 @@ class MediaFragment : Fragment() {
 
     private var videoPlayer: SimpleExoPlayer? = null
     private var sampleUrl = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4"
+    private lateinit var mediaService: MediaService
+    private var isBound: Boolean = false
+
+    private var connection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceDisconnected(name: ComponentName?) {
+            isBound = false
+        }
+
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            val binder = service as MediaService.LocalBinder
+            binder.service?.let {
+                mediaService = it
+                isBound = true
+            }
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_media, container, false)
