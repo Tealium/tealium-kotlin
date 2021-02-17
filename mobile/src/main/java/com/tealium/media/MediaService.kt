@@ -20,22 +20,23 @@ import com.tealium.mobile.BuildConfig
 
 open class MediaService : Service() {
 
-    private var sampleUrl = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4"
-    private var player: SimpleExoPlayer? = null
+//    private var sampleUrl = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4"
+//    private var player: SimpleExoPlayer? = null
+//
+    private var mediaPlayer: MediaPlayer? = null
     private var playerNotificationManager: PlayerNotificationManager? = null
     private val binder: IBinder = LocalBinder()
 
     override fun onDestroy() {
         playerNotificationManager?.setPlayer(null)
-//        releasePlayer()
-        player = null
+        releasePlayer()
         super.onDestroy()
     }
 
 
     override fun onBind(intent: Intent?): IBinder? {
         handleIntent(intent)
-        return LocalBinder()
+        return binder
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -45,34 +46,6 @@ open class MediaService : Service() {
 
 
     private fun startPlayer() {
-        player = SimpleExoPlayer.Builder(applicationContext).build()
-        player?.addListener(object : Player.EventListener {
-            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                when (playbackState) {
-                    ExoPlayer.STATE_BUFFERING -> {
-                    }
-                    ExoPlayer.STATE_ENDED -> Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endSession()
-                    ExoPlayer.STATE_READY -> {
-                    }
-                    ExoPlayer.STATE_IDLE -> println("Idle")
-                    else -> print("unknownState$playbackState")
-                }
-            }
-        })
-
-        player?.addListener(object : Player.EventListener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                when (isPlaying) {
-                    true -> Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.play()
-                    false -> Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.pause()
-                }
-            }
-        })
-
-        buildMediaSource()?.let {
-            player?.prepare(it)
-        }
-
         playerNotificationManager =
                 PlayerNotificationManager.createWithNotificationChannel(
                         applicationContext,
@@ -85,16 +58,11 @@ open class MediaService : Service() {
                 )
     }
 
-    private fun buildMediaSource(): MediaSource? {
-        val dataSourceFactory = DefaultDataSourceFactory(applicationContext, "sample")
-        return ProgressiveMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(Uri.parse(sampleUrl))
-    }
-
     private fun releasePlayer() {
-        if (player != null) {
-
-        }
+//        if (player != null) {
+//            player?.release()
+//            player = null
+//        }
     }
 
     private fun handleIntent(intent: Intent?) {
@@ -146,6 +114,6 @@ open class MediaService : Service() {
             get() = this@MediaService
 
         val exoPlayer
-            get() = this@MediaService.player
+            get() = this@MediaService.mediaPlayer
     }
 }
