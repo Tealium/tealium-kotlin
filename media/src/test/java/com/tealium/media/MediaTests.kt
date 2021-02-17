@@ -847,7 +847,7 @@ class MediaTests {
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
 
         media.startSession(mediaContent)
-        media.onActivityPaused(testActivity)
+        media.onActivityStopped(testActivity, false)
         media.onActivityResumed(testActivity)
 
         Assert.assertEquals(false, media.currentSession?.isBackgrounded)
