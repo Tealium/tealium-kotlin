@@ -26,6 +26,7 @@ class Media(private val context: TealiumContext,
 
     private var endSessionTimer: Timer = Timer("End Media", true)
     private var activityCount = 0
+
     private val backgroundSessionTrackingEnabled: Boolean = context.config.mediaBackgroundSessionEnabled
             ?: false
     private val backgroundEndSessionInterval: Long = context.config.mediaBackgroundSessionEndInterval
@@ -192,6 +193,7 @@ class Media(private val context: TealiumContext,
     fun updatePlayerState(state: PlayerState) = currentSession?.updatePlayerState(state)
 
     override fun onActivityPaused(activity: Activity?) {
+        // do nothing
     }
 
     override fun onActivityResumed(activity: Activity?) {
