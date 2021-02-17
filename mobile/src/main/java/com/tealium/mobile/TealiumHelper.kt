@@ -16,6 +16,7 @@ import com.tealium.dispatcher.TealiumView
 import com.tealium.hosteddatalayer.HostedDataLayer
 import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
 import com.tealium.lifecycle.Lifecycle
+import com.tealium.location.Location
 import com.tealium.remotecommanddispatcher.RemoteCommands
 import com.tealium.remotecommanddispatcher.remoteCommands
 import com.tealium.remotecommands.RemoteCommand
@@ -35,6 +36,7 @@ object TealiumHelper {
                 modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer, Modules.CrashReporter, Modules.AdIdentifier),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
+            collectors.add(Collectors.Location)
             useRemoteLibrarySettings = true
             hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
             consentManagerEnabled = false
@@ -59,6 +61,8 @@ object TealiumHelper {
                 }
             })
 
+            dataLayer.putString("init", "string", Expiry.SESSION)
+            dataLayer.putString("init", "string")
             events.subscribe(object : VisitorUpdatedListener {
                 override fun onVisitorUpdated(visitorProfile: VisitorProfile) {
                     Logger.dev("--", "did update vp with $visitorProfile")

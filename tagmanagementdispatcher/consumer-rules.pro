@@ -15,18 +15,7 @@
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
-#-keepparameternames
-#-keeppackagenames
+
+# If you keep the line number information, uncomment this to
+# hide the original source file name.
 #-renamesourcefileattribute SourceFile
-#-keepattributes Exceptions,InnerClasses,Signature,Deprecated,
-#                SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
-## If you keep the line number information, uncomment this to
-## hide the original source file name.
-##-renamesourcefileattribute SourceFile
-#
-#-keep class kotlin.Metadata { *; }
-#
-#-keep class com.tealium.tagmanagementdispatcher.TagManagementDispatcher { *; }
-#-keep class com.tealium.tagmanagementdispatcher.TagManagementDispatcher$Companion { *; }
-#-keep class com.tealium.tagmanagementdispatcher.TagManagementDispatcherKt { *; }
-#-keep class com.tealium.tagmanagementdispatcher.TealiumConfigTagManagementDispatcherKt { *; }
