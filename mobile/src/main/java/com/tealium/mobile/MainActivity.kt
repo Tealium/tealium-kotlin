@@ -4,7 +4,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
-import com.tealium.core.Tealium
 import com.tealium.fragments.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
@@ -40,7 +39,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
     }
 
     private fun onTrack() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.dataLayer?.putString("string","value")
         TealiumHelper.trackEvent("event1", mapOf("key1" to "value1", "key2" to 2))
 
     }

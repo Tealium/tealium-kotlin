@@ -36,15 +36,13 @@ object TealiumHelper {
                 modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer, Modules.CrashReporter, Modules.AdIdentifier),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
-            collectors.add(Collectors.Location)
             useRemoteLibrarySettings = true
             hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
-            consentManagerEnabled = false
             // Uncomment one of the following lines to set the appropriate Consent Policy
             // and enable the consent manager
             consentManagerPolicy = ConsentPolicy.GDPR
             // consentManagerPolicy = ConsentPolicy.CCPA
-//            consentExpiry = ConsentExpiry(1, TimeUnit.MINUTES)
+            consentExpiry = ConsentExpiry(1, TimeUnit.DAYS)
 
             timedEventTriggers = mutableListOf(
                     EventTrigger.forEventName("start_event", "end_event")
@@ -61,8 +59,6 @@ object TealiumHelper {
                 }
             })
 
-            dataLayer.putString("init", "string", Expiry.SESSION)
-            dataLayer.putString("init", "string")
             events.subscribe(object : VisitorUpdatedListener {
                 override fun onVisitorUpdated(visitorProfile: VisitorProfile) {
                     Logger.dev("--", "did update vp with $visitorProfile")
@@ -92,9 +88,7 @@ object TealiumHelper {
     }
 
     fun trackEvent(name: String, data: Map<String, Any>?) {
-
         val eventDispatch = TealiumEvent(name, data)
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.dataLayer?.putString("new_key", "value")
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.track(eventDispatch)
     }
 
