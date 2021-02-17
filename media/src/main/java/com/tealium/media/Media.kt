@@ -24,7 +24,9 @@ class Media(private val context: TealiumContext,
     var currentSession: Session? = null
         private set
 
-    private var endSessionTimer: Timer? = null
+    private var endSessionTimer: Timer = Timer("End Media", true)
+    private var activityCount = 0
+
     private val backgroundSessionTrackingEnabled: Boolean = context.config.mediaBackgroundSessionEnabled
             ?: false
     private val backgroundEndSessionInterval: Long = context.config.mediaBackgroundSessionEndInterval
@@ -191,31 +193,41 @@ class Media(private val context: TealiumContext,
     fun updatePlayerState(state: PlayerState) = currentSession?.updatePlayerState(state)
 
     override fun onActivityPaused(activity: Activity?) {
-        // background media tracking is not enabled, start timer to end session
-        if (!backgroundSessionTrackingEnabled && currentSession?.isBackgrounded == false) {
-            currentSession?.isBackgrounded = true
-            endSessionTimer = Timer("End Media", true).apply {
-                schedule(
-                        object : TimerTask() {
-                            override fun run() {
-                                endSession()
-                            }
-                        }, backgroundEndSessionInterval
-                )
-            }
-        }
+        // do nothing
     }
 
     override fun onActivityResumed(activity: Activity?) {
+        ++activityCount
+
         if (currentSession?.isBackgrounded == true) {
-            endSessionTimer?.cancel()
-            endSessionTimer = null
+            cancelTimer()
             resumeSession()
         }
     }
 
     override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
-        // do nothing
+        --activityCount
+
+        // background media tracking is not enabled, start timer to end session
+        if (activityCount == 0 &&
+                !backgroundSessionTrackingEnabled && currentSession?.isBackgrounded == false) {
+            currentSession?.isBackgrounded = true
+            startTimerTask()
+        }
+    }
+
+    private fun startTimerTask() {
+        endSessionTimer.schedule(
+                object : TimerTask() {
+                    override fun run() {
+                        endSession()
+                    }
+                }, backgroundEndSessionInterval
+        )
+    }
+
+    private fun cancelTimer() {
+        endSessionTimer.cancel()
     }
 
     companion object : ModuleFactory {
