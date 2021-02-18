@@ -1,6 +1,9 @@
 package com.tealium.mobile
 
 import android.app.Application
+import android.util.Log
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
 import com.tealium.adidentifier.AdIdentifier
 import com.tealium.autotracking.*
 import com.tealium.collectdispatcher.Collect
@@ -74,6 +77,19 @@ object TealiumHelper : ActivityDataCollector {
             remoteCommands?.add(localJsonCommand, filename = "remoteCommand.json")
             remoteCommands?.add(webViewRemoteCommand)
         }
+
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w(BuildConfig.TAG, "Fetching FCM registration token failed", task.exception)
+                return@OnCompleteListener
+            }
+
+            // Get new FCM registration token
+            val token = task.result
+
+            // Log
+            Log.d(BuildConfig.TAG, "FCM Token: $token")
+        })
     }
 
     val webViewRemoteCommand = object : RemoteCommand("bgcolor", "testing Webview RCs") {
