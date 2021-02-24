@@ -61,8 +61,14 @@ class MediaPlayer(private val context: Context) {
         }
     }
 
+    fun resume() {
+        player?.playWhenReady = true
+    }
+
     fun stop() {
+        player?.playWhenReady = false
         player?.stop(true)
+        release()
     }
 
     fun release() {
@@ -162,36 +168,6 @@ class MediaPlayer(private val context: Context) {
     fun onEndChapter() {
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endChapter()
     }
-
-    //    private fun initializePlayer() {
-//        activity?.applicationContext?.let { app ->
-//            videoPlayer = SimpleExoPlayer.Builder(context).build()
-//            videoPlayer?.addListener(object : Player.EventListener {
-//                override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-//                    when (playbackState) {
-//                        ExoPlayer.STATE_BUFFERING -> {}
-//                        ExoPlayer.STATE_ENDED -> Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endSession()
-//                        ExoPlayer.STATE_READY -> {}
-//                        ExoPlayer.STATE_IDLE -> println("Idle")
-//                        else -> print("unknownState$playbackState")
-//                    }
-//                }
-//            })
-//
-//            videoPlayer?.addListener(object : Player.EventListener {
-//                override fun onIsPlayingChanged(isPlaying: Boolean) {
-//                    when (isPlaying) {
-//                        true -> Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.play()
-//                        false -> Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.pause()
-//                    }
-//                }
-//            })
-//            video_player_view?.player = videoPlayer
-//            buildMediaSource()?.let {
-//                videoPlayer?.prepare(it)
-//            }
-//        }
-//    }
 
     companion object : MediaService() {
         const val NOTIFICATION_ID = 1

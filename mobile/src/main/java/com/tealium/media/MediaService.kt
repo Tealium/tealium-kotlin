@@ -4,15 +4,10 @@ import android.app.Service
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
-import com.tealium.core.Tealium
-import com.tealium.media.segments.Ad
-import com.tealium.media.segments.AdBreak
-import com.tealium.media.segments.Chapter
-import com.tealium.mobile.BuildConfig
 
 open class MediaService : Service() {
 
-    private lateinit var mediaPlayer: MediaPlayer
+    lateinit var mediaPlayer: MediaPlayer
     private val binder: IBinder = LocalBinder()
 
     override fun onCreate() {
@@ -70,6 +65,14 @@ open class MediaService : Service() {
 
     fun endChapter() {
         mediaPlayer.onEndChapter()
+    }
+
+    fun resume() {
+        mediaPlayer.resume()
+    }
+
+    fun stop() {
+        mediaPlayer.stop()
     }
 
     private fun handleIntent(intent: Intent?) {
