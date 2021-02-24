@@ -1,6 +1,8 @@
 package com.tealium.fragments
 
 import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
 import android.content.ServiceConnection
 import android.media.MediaPlayer
 import android.net.Uri
@@ -27,22 +29,20 @@ import kotlinx.android.synthetic.main.fragment_media.*
 
 class MediaFragment : Fragment() {
 
-    private var videoPlayer: SimpleExoPlayer? = null
-    private var sampleUrl = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4"
-    private lateinit var mediaService: MediaService
+//    private lateinit var mediaService: MediaService
     private var isBound: Boolean = false
 
     private var connection: ServiceConnection = object : ServiceConnection {
-        override fun onServiceDisconnected(name: ComponentName?) {
-            isBound = false
-        }
 
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            val binder = service as MediaService.LocalBinder
-            binder.service?.let {
-                mediaService = it
+            if (service is MediaService.LocalBinder) {
+                video_player_view.player = service.player
                 isBound = true
             }
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            isBound = false
         }
     }
 
@@ -53,118 +53,49 @@ class MediaFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        onStartMediaSession()
-        initializePlayer()
+        activity?.applicationContext?.let { app ->
+            Intent(app, MediaService::class.java).also { intent ->
+                activity?.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+            }
+
+        }
+
+//        onStartMediaSession()
+//        initializePlayer()
 
         startAdBreakButton.setOnClickListener {
-            onStartAdBreak()
+//            onStartAdBreak()
         }
 
         endAdBreakButton.setOnClickListener {
-            onEndAdBreak()
+//            onEndAdBreak()
         }
 
         startAdButton.setOnClickListener {
-            onStartAd()
+//            onStartAd()
         }
 
         endAdButton.setOnClickListener {
-            onEndAd()
+//            onEndAd()
         }
 
         startChapterButton.setOnClickListener {
-            onStartChapter()
+//            onStartChapter()
         }
 
         endChapterButton.setOnClickListener {
-            onEndChapter()
+//            onEndChapter()
         }
-    }
-
-    private fun buildMediaSource(): MediaSource? {
-        val dataSourceFactory = DefaultDataSourceFactory(activity, "sample")
-        return ProgressiveMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(Uri.parse(sampleUrl))
-    }
-
-    private fun initializePlayer() {
-        activity?.applicationContext?.let { app ->
-            videoPlayer = SimpleExoPlayer.Builder(app).build()
-            videoPlayer?.addListener(object : Player.EventListener {
-                override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                    when (playbackState) {
-                        ExoPlayer.STATE_BUFFERING -> {}
-                        ExoPlayer.STATE_ENDED -> Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endSession()
-                        ExoPlayer.STATE_READY -> {}
-                        ExoPlayer.STATE_IDLE -> println("Idle")
-                        else -> print("unknownState$playbackState")
-                    }
-                }
-            })
-
-            videoPlayer?.addListener(object : Player.EventListener {
-                override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    when (isPlaying) {
-                        true -> Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.play()
-                        false -> Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.pause()
-                    }
-                }
-            })
-            video_player_view?.player = videoPlayer
-            buildMediaSource()?.let {
-                videoPlayer?.prepare(it)
-            }
-        }
-    }
-
-    private fun onStartMediaSession() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.startSession(
-                MediaContent(
-                        "Test Session",
-                        StreamType.VOD,
-                        MediaType.VIDEO,
-                        QoE(1),
-                        trackingType = TrackingType.HEARTBEAT_MILESTONE,
-                        duration = 126
-                ))
-    }
-
-    private fun onStartAdBreak() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.startAdBreak(AdBreak("Ad Break 1"))
-    }
-
-    private fun onEndAdBreak() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endAdBreak()
-    }
-
-    private fun onStartAd() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.startAd(Ad("Ad  1"))
-    }
-
-    private fun onEndAd() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endAd()
-    }
-
-    private fun onStartChapter() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.startChapter(Chapter("Chapter 1"))
-    }
-
-    private fun onEndChapter() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endChapter()
     }
 
     override fun onResume() {
         super.onResume()
-        videoPlayer?.playWhenReady = true
+//        videoPlayer?.playWhenReady = true
     }
 
     override fun onStop() {
         super.onStop()
-        videoPlayer?.playWhenReady = false
-        releasePlayer()
-    }
-
-    private fun releasePlayer() {
-        videoPlayer?.release()
+//        videoPlayer?.playWhenReady = false
+//        releasePlayer()
     }
 }

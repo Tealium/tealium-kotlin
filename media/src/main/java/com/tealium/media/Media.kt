@@ -25,6 +25,7 @@ class Media(private val context: TealiumContext,
         private set
 
     private var endSessionTimer: Timer = Timer("End Media", true)
+    private var timerTask: TimerTask? = null
     private var activityCount = 0
 
     private val backgroundSessionTrackingEnabled: Boolean = context.config.mediaBackgroundSessionEnabled
@@ -200,7 +201,7 @@ class Media(private val context: TealiumContext,
         ++activityCount
 
         if (currentSession?.isBackgrounded == true) {
-            cancelTimer()
+            cancelTimerTask()
             resumeSession()
         }
     }
@@ -209,25 +210,30 @@ class Media(private val context: TealiumContext,
         --activityCount
 
         // background media tracking is not enabled, start timer to end session
-        if (activityCount == 0 &&
-                !backgroundSessionTrackingEnabled && currentSession?.isBackgrounded == false) {
+        if (activityCount == 0 && !isChangingConfiguration && shouldStartEndSessionTimer()) {
             currentSession?.isBackgrounded = true
-            startTimerTask()
+            endSessionTimer.schedule(createTimerTask(), backgroundEndSessionInterval)
         }
     }
 
-    private fun startTimerTask() {
-        endSessionTimer.schedule(
-                object : TimerTask() {
-                    override fun run() {
-                        endSession()
-                    }
-                }, backgroundEndSessionInterval
-        )
+    // TODO rename?
+    private fun shouldStartEndSessionTimer(): Boolean {
+        return !backgroundSessionTrackingEnabled && currentSession?.isBackgrounded == false
     }
 
-    private fun cancelTimer() {
-        endSessionTimer.cancel()
+    private fun createTimerTask(): TimerTask {
+        timerTask = object : TimerTask() {
+            override fun run() {
+                endSession()
+            }
+        }
+
+        return timerTask as TimerTask
+    }
+
+    private fun cancelTimerTask() {
+        timerTask?.cancel()
+        timerTask = null
     }
 
     companion object : ModuleFactory {

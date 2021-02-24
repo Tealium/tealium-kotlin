@@ -1,34 +1,28 @@
 package com.tealium.media
 
-import android.app.Notification
-import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
-import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.ui.PlayerNotificationManager
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.tealium.core.Tealium
+import com.tealium.media.segments.Ad
+import com.tealium.media.segments.AdBreak
+import com.tealium.media.segments.Chapter
 import com.tealium.mobile.BuildConfig
 
 open class MediaService : Service() {
 
-//    private var sampleUrl = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4"
-//    private var player: SimpleExoPlayer? = null
-//
-    private var mediaPlayer: MediaPlayer? = null
-    private var playerNotificationManager: PlayerNotificationManager? = null
+    private lateinit var mediaPlayer: MediaPlayer
     private val binder: IBinder = LocalBinder()
 
+    override fun onCreate() {
+        super.onCreate()
+        mediaPlayer.player?.playWhenReady = true
+        startPlayer()
+
+    }
+
     override fun onDestroy() {
-        playerNotificationManager?.setPlayer(null)
         releasePlayer()
         super.onDestroy()
     }
@@ -46,23 +40,36 @@ open class MediaService : Service() {
 
 
     private fun startPlayer() {
-        playerNotificationManager =
-                PlayerNotificationManager.createWithNotificationChannel(
-                        applicationContext,
-                        CHANNEL_ID,
-                        R.string.app_name, // TODO change this: channelName A string resource identifier for the user visible name of the channel.
-                        0, // TODO change this: channelDescription A string resource identifier for the user visible description of the channel, or 0 if no description is provided.
-                        NOTIFICATION_ID,
-                        createMediaDescriptionManager(),
-                        createNotificationListener()
-                )
+        mediaPlayer = MediaPlayer(applicationContext)
+        mediaPlayer.startPlayer()
     }
 
     private fun releasePlayer() {
-//        if (player != null) {
-//            player?.release()
-//            player = null
-//        }
+        mediaPlayer.release()
+    }
+
+    fun startAdBreak() {
+        mediaPlayer.onStartAdBreak()
+    }
+
+    fun endAdBreak() {
+        mediaPlayer.onEndAdBreak()
+    }
+
+    fun startAd() {
+        mediaPlayer.onStartAd()
+    }
+
+    fun endAd() {
+        mediaPlayer.onEndAd()
+    }
+
+    fun startChapter() {
+        mediaPlayer.onStartChapter()
+    }
+
+    fun endChapter() {
+        mediaPlayer.onEndChapter()
     }
 
     private fun handleIntent(intent: Intent?) {
@@ -71,49 +78,11 @@ open class MediaService : Service() {
         }
     }
 
-    private fun createMediaDescriptionManager(): PlayerNotificationManager.MediaDescriptionAdapter {
-        return object : PlayerNotificationManager.MediaDescriptionAdapter {
-            override fun createCurrentContentIntent(player: Player): PendingIntent? {
-                TODO("Not yet implemented")
-            }
-
-            override fun getCurrentContentText(player: Player): CharSequence? {
-                TODO("Not yet implemented")
-            }
-
-            override fun getCurrentContentTitle(player: Player): CharSequence {
-                TODO("Not yet implemented")
-            }
-
-            override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
-                TODO("Not yet implemented")
-            }
-
-        }
-    }
-
-    private fun createNotificationListener(): PlayerNotificationManager.NotificationListener {
-        return object : PlayerNotificationManager.NotificationListener {
-            override fun onNotificationCancelled(notificationId: Int, dismissedByUser: Boolean) {
-                stopSelf()
-            }
-
-            override fun onNotificationPosted(notificationId: Int, notification: Notification, ongoing: Boolean) {
-                startForeground(notificationId, notification)
-            }
-        }
-    }
-
-    companion object : MediaService() {
-        private const val NOTIFICATION_ID = 1
-        private const val CHANNEL_ID = "playback_channel"
-    }
-
     inner class LocalBinder : Binder() {
         val service
             get() = this@MediaService
 
-        val exoPlayer
-            get() = this@MediaService.mediaPlayer
+        val player
+            get() = this@MediaService.mediaPlayer?.player
     }
 }
