@@ -4,11 +4,9 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.view.*
-import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.tealium.media.*
 import com.tealium.mobile.R
@@ -34,7 +32,6 @@ class MediaFragment : Fragment() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         activity?.applicationContext?.let { app ->
             Intent(app, MediaService::class.java).also { intent ->
@@ -86,7 +83,7 @@ class MediaFragment : Fragment() {
     }
 
     override fun onDestroy() {
-        println("!!!!!!!!!!!!!!!!Media Frag destroyed")
+        println("Media Fragment destroyed")
         super.onDestroy()
     }
 }
