@@ -91,7 +91,7 @@ class MediaService : Service() {
             setPlaybackState(playbackState.build())
             playerNotificationManager?.setMediaSessionToken(sessionToken)
         }
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.startSession(mediaContent)
+        startSession()
     }
 
     private fun buildMediaSource(): MediaSource? {
@@ -104,18 +104,16 @@ class MediaService : Service() {
         return object : Player.EventListener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 when (isPlaying) {
-                    true -> Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.play()
-                    false -> Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.pause()
+                    true -> play()
+                    false -> pause()
                 }
             }
 
             override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
                 when (playbackState) {
-                    ExoPlayer.STATE_BUFFERING -> {
-                    }
-                    ExoPlayer.STATE_ENDED -> Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endSession()
-                    ExoPlayer.STATE_READY -> {
-                    }
+                    ExoPlayer.STATE_BUFFERING -> { }
+                    ExoPlayer.STATE_ENDED -> endSession()
+                    ExoPlayer.STATE_READY -> { }
                     ExoPlayer.STATE_IDLE -> println("Idle")
                     else -> print("unknownState$playbackState")
                 }
@@ -140,7 +138,6 @@ class MediaService : Service() {
             override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
                 return null
             }
-
         }
     }
 
@@ -154,6 +151,22 @@ class MediaService : Service() {
                 startForeground(notificationId, notification)
             }
         }
+    }
+
+    fun startSession() {
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.startSession(mediaContent)
+    }
+
+    fun endSession() {
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endSession()
+    }
+
+    fun play() {
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.play()
+    }
+
+    fun pause() {
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.pause()
     }
 
     fun startAdBreak() {
@@ -178,12 +191,6 @@ class MediaService : Service() {
 
     fun endChapter() {
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endChapter()
-    }
-
-    fun resume() {
-    }
-
-    fun stop() {
     }
 
     inner class LocalBinder : Binder() {
