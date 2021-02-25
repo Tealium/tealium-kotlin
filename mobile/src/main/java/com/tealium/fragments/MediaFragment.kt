@@ -4,9 +4,11 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.view.*
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.tealium.media.*
 import com.tealium.mobile.R
@@ -32,13 +34,13 @@ class MediaFragment : Fragment() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         activity?.applicationContext?.let { app ->
             Intent(app, MediaService::class.java).also { intent ->
                 activity?.bindService(intent, connection, Context.BIND_AUTO_CREATE)
             }
         }
-
         return inflater.inflate(R.layout.fragment_media, container, false)
     }
 
@@ -46,54 +48,40 @@ class MediaFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         startAdBreakButton.setOnClickListener {
-            if (isBound) {
-                mediaService.startAdBreak()
-            }
+            mediaService.startAdBreak()
         }
 
         endAdBreakButton.setOnClickListener {
-            if (isBound) {
-                mediaService.endAdBreak()
-            }
+            mediaService.endAdBreak()
         }
 
         startAdButton.setOnClickListener {
-            if (isBound) {
-                mediaService.startAd()
-            }
+            mediaService.startAd()
         }
 
         endAdButton.setOnClickListener {
-            if (isBound) {
-                mediaService.endAd()
-            }
+            mediaService.endAd()
         }
 
         startChapterButton.setOnClickListener {
-            if (isBound) {
-                mediaService.startChapter()
-            }
+            mediaService.startChapter()
         }
 
         endChapterButton.setOnClickListener {
-            if (isBound) {
-                mediaService.endChapter()
-            }
+            mediaService.endChapter()
         }
     }
 
     override fun onResume() {
         super.onResume()
-        if (isBound) {
-            mediaService.resume()
-        }
+//        mediaService.resume()
     }
 
     override fun onStop() {
         super.onStop()
         if (isBound) {
-            activity?.unbindService(connection)
-            mediaService.stop()
+//            activity?.unbindService(connection)
+//            mediaService.stop()
         }
     }
 }
