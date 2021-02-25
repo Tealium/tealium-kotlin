@@ -216,7 +216,6 @@ class Media(private val context: TealiumContext,
         }
     }
 
-    // TODO rename?
     private fun shouldStartEndSessionTimer(): Boolean {
         return !backgroundSessionTrackingEnabled && currentSession?.isBackgrounded == false
     }

@@ -41,6 +41,7 @@ class MediaFragment : Fragment() {
                 activity?.bindService(intent, connection, Context.BIND_AUTO_CREATE)
             }
         }
+
         return inflater.inflate(R.layout.fragment_media, container, false)
     }
 
@@ -48,40 +49,44 @@ class MediaFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         startAdBreakButton.setOnClickListener {
-            mediaService.startAdBreak()
+            if (isBound) {
+                mediaService.startAdBreak()
+            }
         }
 
         endAdBreakButton.setOnClickListener {
-            mediaService.endAdBreak()
+            if (isBound) {
+                mediaService.endAdBreak()
+            }
         }
 
         startAdButton.setOnClickListener {
-            mediaService.startAd()
+            if (isBound) {
+                mediaService.startAd()
+            }
         }
 
         endAdButton.setOnClickListener {
-            mediaService.endAd()
+            if (isBound) {
+                mediaService.endAd()
+            }
         }
 
         startChapterButton.setOnClickListener {
-            mediaService.startChapter()
+            if (isBound) {
+                mediaService.startChapter()
+            }
         }
 
         endChapterButton.setOnClickListener {
-            mediaService.endChapter()
+            if (isBound) {
+                mediaService.endChapter()
+            }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-//        mediaService.resume()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        if (isBound) {
-//            activity?.unbindService(connection)
-//            mediaService.stop()
-        }
+    override fun onDestroy() {
+        println("!!!!!!!!!!!!!!!!Media Frag destroyed")
+        super.onDestroy()
     }
 }

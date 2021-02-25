@@ -3,7 +3,6 @@ package com.tealium.media
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
-import android.content.BroadcastReceiver
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
@@ -24,7 +23,7 @@ import com.tealium.media.segments.AdBreak
 import com.tealium.media.segments.Chapter
 import com.tealium.mobile.BuildConfig
 
-open class MediaService : Service() {
+class MediaService : Service() {
 
     private var player: SimpleExoPlayer? = null
     private var playerNotificationManager: PlayerNotificationManager? = null
@@ -34,17 +33,13 @@ open class MediaService : Service() {
     private var binder = LocalBinder()
 
     private val mediaContent: MediaContent = MediaContent(
-            "Test Session",
+            "Tealium Sample Media Content",
             StreamType.VOD,
             MediaType.VIDEO,
             QoE(1),
-            trackingType = TrackingType.HEARTBEAT_MILESTONE,
-            duration = 126
+            trackingType = TrackingType.SIGNIFICANT,
+            duration = 120
     )
-
-//    lateinit var mediaPlayer: MediaPlayer
-//    private lateinit var notificationManager: PlayerNotificationManager
-
 
     override fun onCreate() {
         super.onCreate()
@@ -185,11 +180,11 @@ open class MediaService : Service() {
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endChapter()
     }
 
-//    fun resume() {
-//    }
-//
-//    fun stop() {
-//    }
+    fun resume() {
+    }
+
+    fun stop() {
+    }
 
     inner class LocalBinder : Binder() {
         val service
