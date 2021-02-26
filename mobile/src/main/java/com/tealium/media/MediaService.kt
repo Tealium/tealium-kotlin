@@ -5,7 +5,6 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
@@ -17,6 +16,7 @@ import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.upstream.RawResourceDataSource
 import com.tealium.core.Tealium
 import com.tealium.media.segments.Ad
 import com.tealium.media.segments.AdBreak
@@ -29,7 +29,6 @@ class MediaService : Service() {
     private var playerNotificationManager: PlayerNotificationManager? = null
     private var mediaSession: MediaSessionCompat? = null
 
-    private var mediaUrl = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4"
     private var binder = LocalBinder()
 
     private val mediaContent: MediaContent = MediaContent(
@@ -75,8 +74,8 @@ class MediaService : Service() {
                 PlayerNotificationManager.createWithNotificationChannel(
                         this,
                         CHANNEL_ID,
-                        R.string.app_name, // TODO change this: channelName A string resource identifier for the user visible name of the channel.
-                        0, // TODO change this: channelDescription A string resource identifier for the user visible description of the channel, or 0 if no description is provided.
+                        R.string.app_name,
+                        0,
                         NOTIFICATION_ID,
                         createMediaDescriptionManager(),
                         createNotificationListener()
@@ -95,9 +94,9 @@ class MediaService : Service() {
     }
 
     private fun buildMediaSource(): MediaSource? {
-        val dataSourceFactory = DefaultDataSourceFactory(this, "sample")
-        return ProgressiveMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(Uri.parse(mediaUrl))
+        val dataSourceFactory = DefaultDataSourceFactory(this, "Sample")
+        val uri = RawResourceDataSource.buildRawResourceUri(com.tealium.mobile.R.raw.tealium)
+        return ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(uri)
     }
 
     private fun createListener(): Player.EventListener {
@@ -111,9 +110,11 @@ class MediaService : Service() {
 
             override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
                 when (playbackState) {
-                    ExoPlayer.STATE_BUFFERING -> { }
+                    ExoPlayer.STATE_BUFFERING -> {
+                    }
                     ExoPlayer.STATE_ENDED -> endSession()
-                    ExoPlayer.STATE_READY -> { }
+                    ExoPlayer.STATE_READY -> {
+                    }
                     ExoPlayer.STATE_IDLE -> println("Idle")
                     else -> print("unknownState$playbackState")
                 }
