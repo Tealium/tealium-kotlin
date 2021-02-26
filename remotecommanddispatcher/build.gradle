@@ -4,7 +4,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'kotlin-allopen'
 apply from: '../jacoco.gradle'
 
-version = '1.0.1'
+version = '1.0.2'
 
 android {
     compileSdkVersion 29
@@ -28,9 +28,9 @@ android {
         }
 
         debug {
-            testCoverageEnabled true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            testCoverageEnabled true
         }
     }
 
@@ -68,7 +68,7 @@ afterEvaluate {
                 artifactId = 'kotlin-remotecommand-dispatcher'
             }
         }
-//        repositories {
+        repositories {
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
 //                credentials(AwsCredentials) {
@@ -76,7 +76,7 @@ afterEvaluate {
 //                    secretKey AWS_SECRET_KEY
 //                }
 //            }
-//        }
+        }
     }
 }
 

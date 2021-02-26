@@ -30,3 +30,4 @@
 -keep class com.tealium.location.LocationManager$Companion { *; }
 -keep class com.tealium.location.LocationManagerKt { *; }
 -keep class com.tealium.location.TealiumConfigLocationKt { *; }
+-keep class com.tealium.location.GeofenceBroadcastReceiver

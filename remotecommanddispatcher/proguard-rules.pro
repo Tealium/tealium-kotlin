@@ -25,6 +25,7 @@
 #-renamesourcefileattribute SourceFile
 
 -keep class kotlin.Metadata { *; }
+-keep public class com.tealium.**$DefaultImpls { *; }
 
 -keep class com.tealium.remotecommanddispatcher.RemoteCommandDispatcher { *; }
 -keep class com.tealium.remotecommanddispatcher.RemoteCommandDispatcher$Companion { *; }

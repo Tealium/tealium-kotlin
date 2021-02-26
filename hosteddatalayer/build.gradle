@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'maven-publish'
 apply from: '../jacoco.gradle'
 
-version = '1.0.1'
+version = '1.0.2'
 
 android {
     compileSdkVersion 29
@@ -30,6 +30,7 @@ android {
 
         debug {
             minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             testCoverageEnabled true
         }
     }
@@ -64,7 +65,7 @@ afterEvaluate {
                 artifactId = 'kotlin-hosted-datalayer'
             }
         }
-//        repositories {
+        repositories {
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
 //                credentials(AwsCredentials) {
@@ -72,6 +73,6 @@ afterEvaluate {
 //                    secretKey AWS_SECRET_KEY
 //                }
 //            }
-//        }
+        }
     }
 }

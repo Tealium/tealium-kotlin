@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'maven-publish'
 apply from: '../jacoco.gradle'
 
-version = '1.0.2'
+version = '1.0.3'
 
 android {
     compileSdkVersion 29
@@ -64,7 +64,7 @@ afterEvaluate {
                 artifactId = 'kotlin-visitor-service'
             }
         }
-//        repositories {
+        repositories {
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
 //                credentials(AwsCredentials) {
@@ -72,6 +72,6 @@ afterEvaluate {
 //                    secretKey AWS_SECRET_KEY
 //                }
 //            }
-//        }
+        }
     }
 }
