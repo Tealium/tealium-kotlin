@@ -767,7 +767,8 @@ class MediaTests {
 
         Assert.assertEquals(false, media.currentSession?.isBackgrounded)
 
-        media.onActivityPaused(testActivity)
+        media.onActivityResumed()
+        media.onActivityStopped(testActivity, false)
 
         delay(11000)
 
@@ -794,12 +795,12 @@ class MediaTests {
 
         Assert.assertEquals(false, media.currentSession?.isBackgrounded)
 
-        media.onActivityPaused(testActivity)
+        media.onActivityResumed()
+        media.onActivityStopped(testActivity, false)
 
         Assert.assertEquals(true, media.currentSession?.isBackgrounded)
 
         delay(9000)
-
         media.onActivityResumed(testActivity)
 
         verify {
@@ -812,7 +813,7 @@ class MediaTests {
 
     // TODO better name?
     @Test
-    fun testMedia_BackgroundTrackingEnabled_onActivityPaused_isBackgroundedFalse() {
+    fun testMedia_BackgroundTrackingEnabled_onActivityStopped_isBackgroundedFalse() {
         config.mediaBackgroundSessionEnabled = true
         mediaContent = MediaContent("test_media",
                 mockk(),
@@ -824,7 +825,7 @@ class MediaTests {
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
 
         media.startSession(mediaContent)
-        media.onActivityPaused(testActivity)
+        media.onActivityStopped(testActivity, false)
 
         Assert.assertEquals(false, media.currentSession?.isBackgrounded)
 
@@ -846,7 +847,7 @@ class MediaTests {
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
 
         media.startSession(mediaContent)
-        media.onActivityPaused(testActivity)
+        media.onActivityStopped(testActivity, false)
         media.onActivityResumed(testActivity)
 
         Assert.assertEquals(false, media.currentSession?.isBackgrounded)

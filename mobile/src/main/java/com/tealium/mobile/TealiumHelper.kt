@@ -57,7 +57,7 @@ object TealiumHelper {
                     EventTrigger.forEventName("start_event", "end_event")
             )
 
-//            mediaBackgroundSessionEnabled = true
+            mediaBackgroundSessionEnabled = false
             mediaBackgroundSessionEndInterval = 5000L  // end session after 5 seconds
         }
 

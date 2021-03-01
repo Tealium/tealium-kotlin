@@ -17,8 +17,7 @@ open class MilestoneSession(private val mediaContent: MediaContent,
     val totalContentPlayed: Double
         get() {
             return lastPlayTimestamp?.let {
-                val timeElapsed = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
-                totalPlaybackTime = timeElapsed
+                totalPlaybackTime = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
                 totalPlaybackTime
             } ?: totalPlaybackTime
         }
