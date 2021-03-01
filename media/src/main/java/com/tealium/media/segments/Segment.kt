@@ -7,4 +7,3 @@ interface Segment {
 
     fun segmentInfo(): Map<String, Any>
 }
-
