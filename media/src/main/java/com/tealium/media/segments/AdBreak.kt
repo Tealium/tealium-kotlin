@@ -1,6 +1,7 @@
 package com.tealium.media.segments
 
 import com.tealium.media.AdBreakKey
+import com.tealium.media.Media
 import java.util.*
 
 data class AdBreak(var id: String,
@@ -11,7 +12,7 @@ data class AdBreak(var id: String,
     private val uuid: String = UUID.randomUUID().toString()
     private val adBreakName: String = name ?: uuid
     private var startTime: Long? = null
-    private var duration: Long? = null
+    private var duration: Double? = null
 
     override fun start() {
         startTime = System.currentTimeMillis()
@@ -19,7 +20,7 @@ data class AdBreak(var id: String,
 
     override fun end() {
         startTime?.let {
-            duration = System.currentTimeMillis() - it
+            duration = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
         }
     }
 

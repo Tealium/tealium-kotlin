@@ -17,6 +17,8 @@ import com.tealium.hosteddatalayer.HostedDataLayer
 import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
 import com.tealium.lifecycle.Lifecycle
 import com.tealium.media.Media
+import com.tealium.media.mediaBackgroundSessionEnabled
+import com.tealium.media.mediaBackgroundSessionEndInterval
 import com.tealium.remotecommanddispatcher.RemoteCommands
 import com.tealium.remotecommanddispatcher.remoteCommands
 import com.tealium.remotecommands.RemoteCommand
@@ -54,6 +56,9 @@ object TealiumHelper {
             timedEventTriggers = mutableListOf(
                     EventTrigger.forEventName("start_event", "end_event")
             )
+
+            mediaBackgroundSessionEnabled = false
+            mediaBackgroundSessionEndInterval = 5000L  // end session after 5 seconds
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {

@@ -1,11 +1,14 @@
 package com.tealium.media
 
+import android.app.Activity
 import com.tealium.core.*
+import com.tealium.core.messaging.ActivityObserverListener
 import com.tealium.media.segments.Ad
 import com.tealium.media.segments.AdBreak
 import com.tealium.media.segments.Chapter
 import com.tealium.media.sessions.*
 import com.tealium.media.sessions.Session
+import java.util.*
 
 /**
  * Media module provides an easy way to track a media session and its components, such as ad breaks,
@@ -13,7 +16,7 @@ import com.tealium.media.sessions.Session
  * Heartbeat + Milestone, and Summary.
  */
 class Media(private val context: TealiumContext,
-            private val mediaDispatcher: MediaDispatcher = MediaSessionDispatcher(context)) : Module {
+            private val mediaDispatcher: MediaDispatcher = MediaSessionDispatcher(context)) : Module, ActivityObserverListener {
 
     override val name: String = MODULE_NAME
     override var enabled: Boolean = true
@@ -21,11 +24,25 @@ class Media(private val context: TealiumContext,
     var currentSession: Session? = null
         private set
 
+    private var endSessionTimer: Timer = Timer("End Media", true)
+    private var timerTask: TimerTask? = null
+    private var activityCount = 0
+
+    private val backgroundSessionTrackingEnabled: Boolean = context.config.mediaBackgroundSessionEnabled
+            ?: false
+    private val backgroundEndSessionInterval: Long = context.config.mediaBackgroundSessionEndInterval
+            ?: DEFAULT_END_SESSION_INTERVAL
+
     /**
      * Begins a session for given [MediaContent] based on the [TrackingType] provided
      */
     fun startSession(media: MediaContent) {
-        Logger.dev(BuildConfig.TAG, "Starting Media Session for: ${media.name}")
+        // if a session exists and is in background, resume it
+        if (currentSession?.isBackgrounded == true) {
+            resumeSession()
+            return
+        }
+
         currentSession = when (media.trackingType) {
             TrackingType.HEARTBEAT -> HeartbeatSession(media, mediaDispatcher)
             TrackingType.MILESTONE -> MilestoneSession(media, mediaDispatcher)
@@ -34,7 +51,15 @@ class Media(private val context: TealiumContext,
             TrackingType.SUMMARY -> SummarySession(media, mediaDispatcher)
             else -> SignificantEventsSession(media, mediaDispatcher)
         }
-        currentSession?.startSession()
+        currentSession?.let {
+            Logger.dev(BuildConfig.TAG, "Starting Media Session for: ${media.name}.")
+            it.startSession()
+        }
+    }
+
+    fun resumeSession() {
+        currentSession?.isBackgrounded = false
+        currentSession?.resumeSession()
     }
 
     /**
@@ -44,6 +69,13 @@ class Media(private val context: TealiumContext,
         Logger.dev(BuildConfig.TAG, "End of Media Session.")
         currentSession?.endSession()
         currentSession = null
+    }
+
+    /**
+     * Records end of MediaContent
+     */
+    fun endContent() {
+        currentSession?.endContent()
     }
 
     /**
@@ -115,11 +147,15 @@ class Media(private val context: TealiumContext,
      */
     fun endSeek(position: Int) = currentSession?.endSeek(position)
 
+    /**
+     * Records play event for media session
+     */
     fun play() = currentSession?.play()
 
+    /**
+     * Records pause event for media session
+     */
     fun pause() = currentSession?.pause()
-
-    fun stop() = currentSession?.stop()
 
     /**
      * Sends a custom event with current media content status
@@ -157,17 +193,59 @@ class Media(private val context: TealiumContext,
      */
     fun updatePlayerState(state: PlayerState) = currentSession?.updatePlayerState(state)
 
+    override fun onActivityPaused(activity: Activity?) {
+        // do nothing
+    }
+
+    override fun onActivityResumed(activity: Activity?) {
+        ++activityCount
+
+        if (currentSession?.isBackgrounded == true) {
+            cancelTimerTask()
+            resumeSession()
+        }
+    }
+
+    override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
+        --activityCount
+
+        // background media tracking is not enabled, start timer to end session
+        if (activityCount == 0 && !isChangingConfiguration && shouldStartEndSessionTimer()) {
+            currentSession?.isBackgrounded = true
+            endSessionTimer.schedule(createTimerTask(), backgroundEndSessionInterval)
+        }
+    }
+
+    private fun shouldStartEndSessionTimer(): Boolean {
+        return !backgroundSessionTrackingEnabled && currentSession?.isBackgrounded == false
+    }
+
+    private fun createTimerTask(): TimerTask {
+        timerTask = object : TimerTask() {
+            override fun run() {
+                endSession()
+            }
+        }
+
+        return timerTask as TimerTask
+    }
+
+    private fun cancelTimerTask() {
+        timerTask?.cancel()
+        timerTask = null
+    }
+
     companion object : ModuleFactory {
         const val MODULE_NAME = "MEDIA_SERVICE"
-        const val DEFAULT_HEARTBEAT_INTERVAL = 10000L
+        const val DEFAULT_HEARTBEAT_INTERVAL = 10000L // ten seconds
+        const val DEFAULT_END_SESSION_INTERVAL = 60000L // one minute
+
         override fun create(context: TealiumContext): Module {
             return Media(context)
         }
+
+        fun timeMillisToSeconds(time: Long): Double {
+            return time.toDouble() / 1000
+        }
     }
 }
-
-val Tealium.media: Media?
-    get() = modules.getModule(Media::class.java)
-
-val Modules.Media: ModuleFactory
-    get() = com.tealium.media.Media

@@ -1,7 +1,5 @@
 package com.tealium.media
 
-import java.util.*
-
 object MediaEvent {
     const val ADBREAK_COMPLETE = "media_adbreak_complete"
     const val ADBREAK_START = "media_adbreak_start"
@@ -24,7 +22,6 @@ object MediaEvent {
 
     const val PAUSE = "media_pause"
     const val PLAY = "media_play"
-    const val STOP = "media_stop"
 
     const val PLAYER_STATE_START = "media_player_state_start"
     const val PLAYER_STATE_STOP = "media_player_state_stop"
@@ -33,7 +30,9 @@ object MediaEvent {
     const val SEEK_COMPLETE = "media_seek_complete"
 
     const val SESSION_START = "media_session_start"
+    const val SESSION_RESUME = "media_session_resume"
     const val SESSION_END = "media_session_end"
+    const val CONTENT_END = "media_content_end"
 }
 
 object ChapterKey {
@@ -99,7 +98,6 @@ object SessionKey {
     const val NAME = "media_name"
     const val STREAM_TYPE = "media_stream_type"
     const val MEDIA_TYPE = "media_type"
-    const val QOE = "media_qoe"
     const val TRACKING_TYPE = "media_tracking_type"
     const val START_TIME = "media_session_start_time"
     const val STATE = "media_player_state"
@@ -107,8 +105,9 @@ object SessionKey {
     const val DURATION = "media_duration"
     const val PLAYER_NAME = "media_player_name"
     const val CHANNEL_NAME = "media_channel_name"
-    const val METADATA = "media_metadata"
     const val MILESTONE = "media_milestone"
+    const val PERCENT_COMPLETE = "media_percent_complete"
+    const val RESUMED = "media_resumed"
     const val SUMMARY = "media_summary"
 }
 

@@ -1,6 +1,5 @@
 package com.tealium.media.sessions
 
-import com.tealium.core.Logger
 import com.tealium.media.*
 import com.tealium.media.segments.Ad
 import com.tealium.media.segments.AdBreak
@@ -12,14 +11,25 @@ import com.tealium.media.segments.Chapter
 open class SignificantEventsSession(private val mediaContent: MediaContent,
                                     private val mediaDispatcher: MediaDispatcher) : Session {
 
+    override var isBackgrounded: Boolean = false
+
     override fun startSession() {
         mediaContent.startTime = System.currentTimeMillis()
         mediaDispatcher.track(MediaEvent.SESSION_START, mediaContent)
     }
 
+    override fun resumeSession() {
+        isBackgrounded = false
+        mediaDispatcher.track(MediaEvent.SESSION_RESUME, mediaContent)
+    }
+
     override fun endSession() {
-        mediaContent.endTime = duration()
+        mediaContent.endTime = System.currentTimeMillis()
         mediaDispatcher.track(MediaEvent.SESSION_END, mediaContent)
+    }
+
+    override fun endContent() {
+        mediaDispatcher.track(MediaEvent.CONTENT_END, mediaContent)
     }
 
     override fun startAdBreak(adBreak: AdBreak) {
@@ -101,10 +111,6 @@ open class SignificantEventsSession(private val mediaContent: MediaContent,
         mediaDispatcher.track(MediaEvent.PAUSE, mediaContent)
     }
 
-    override fun stop() {
-        mediaDispatcher.track(MediaEvent.STOP, mediaContent)
-    }
-
     override fun startSeek(position: Int) {
         mediaDispatcher.track(MediaEvent.SEEK_START, mediaContent)
     }
@@ -126,6 +132,7 @@ open class SignificantEventsSession(private val mediaContent: MediaContent,
         mediaContent.qoe.playbackSpeed = speed
     }
 
+    // TODO why do we track player state stop/start on update?? suggest PLAYER_STATE_CHANGE?
     override fun updatePlayerState(state: PlayerState) {
         mediaContent.state?.let {
             mediaDispatcher.track(MediaEvent.PLAYER_STATE_STOP, mediaContent)
@@ -149,9 +156,9 @@ open class SignificantEventsSession(private val mediaContent: MediaContent,
         // do nothing
     }
 
-    private fun duration(): Long? {
+    private fun duration(): Double? {
         return mediaContent.startTime?.let {
-            System.currentTimeMillis() - it
+            Media.timeMillisToSeconds(System.currentTimeMillis() - it)
         }
     }
 }

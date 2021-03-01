@@ -10,17 +10,15 @@ import com.tealium.media.MediaDispatcher
  * events, milestones, and pings every 10 seconds
  */
 class HeartbeatMilestoneSession(private val mediaContent: MediaContent,
-                                private val mediaDispatcher: MediaDispatcher,
-                                private val interval: Long = Media.DEFAULT_HEARTBEAT_INTERVAL) : MilestoneSession(mediaContent, mediaDispatcher) {
+                                private val mediaDispatcher: MediaDispatcher) : MilestoneSession(mediaContent, mediaDispatcher) {
 
+    private val interval: Long = Media.DEFAULT_HEARTBEAT_INTERVAL
     private var heartbeatCount = 0
 
     override fun ping() {
-        delta()?.let {delta ->
-            if (delta.div(interval) > heartbeatCount) {
-                heartbeatCount++
-                mediaDispatcher.track(MediaEvent.HEARTBEAT, mediaContent)
-            }
+        if (totalContentPlayed.times(1000).div(interval) > heartbeatCount) {
+            heartbeatCount++
+            mediaDispatcher.track(MediaEvent.HEARTBEAT, mediaContent)
         }
         super.ping()
     }

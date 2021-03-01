@@ -8,9 +8,9 @@ import java.util.*
  * is playing
  */
 class HeartbeatSession(private val mediaContent: MediaContent,
-                       private val mediaDispatcher: MediaDispatcher,
-                       private val interval: Long = Media.DEFAULT_HEARTBEAT_INTERVAL) : SignificantEventsSession(mediaContent, mediaDispatcher) {
+                       private val mediaDispatcher: MediaDispatcher) : SignificantEventsSession(mediaContent, mediaDispatcher) {
 
+    private val interval: Long = Media.DEFAULT_HEARTBEAT_INTERVAL
     private var timer: Timer? = null
 
     override fun ping() {
@@ -47,7 +47,6 @@ class HeartbeatSession(private val mediaContent: MediaContent,
     private fun startTimer() {
         timer = Timer("heartbeat", true).apply {
             scheduleAtFixedRate(
-                    // check timeElapsed every 1 second
                     object : TimerTask() {
                         override fun run() {
                             ping()
