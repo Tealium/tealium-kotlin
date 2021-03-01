@@ -80,22 +80,28 @@ class TagManagementDispatcher(private val context: TealiumContext,
     }
 
     override fun onDispatchReady(dispatch: Dispatch) {
-        when (webViewLoader.isWebViewLoaded.get()) {
-            PageStatus.LOADED_ERROR -> {
-                webViewLoader.initializeWebView()
-                return
-            }
+        when (webViewLoader.webViewStatus.get()) {
             PageStatus.LOADED_SUCCESS -> {
                 callRemoteCommandTags(dispatch)
                 return
             }
+            PageStatus.LOADED_ERROR -> {
+                if (webViewLoader.isTimedOut()) {
+                    webViewLoader.loadUrlToWebView()
+                }
+            }
+            PageStatus.INIT -> {
+                Logger.qa(BuildConfig.TAG, "WebView not loaded yet.")
+                webViewLoader.loadUrlToWebView()
+            }
+            PageStatus.LOADING -> {
+                Logger.qa(BuildConfig.TAG, "WebView loading.")
+            }
         }
-
-        webViewLoader.loadUrlToWebView()
     }
 
     override fun onEvaluateJavascript(js: String) {
-        if (webViewLoader.isWebViewLoaded.get() != PageStatus.LOADED_SUCCESS) {
+        if (webViewLoader.webViewStatus.get() != PageStatus.LOADED_SUCCESS) {
             return
         }
 
@@ -110,7 +116,7 @@ class TagManagementDispatcher(private val context: TealiumContext,
     }
 
     override fun shouldQueue(dispatch: Dispatch?): Boolean {
-        return !webViewLoader.isWebViewLoaded.get()
+        return webViewLoader.webViewStatus.get() != PageStatus.LOADED_SUCCESS
     }
 
     override fun shouldDrop(dispatch: Dispatch): Boolean {

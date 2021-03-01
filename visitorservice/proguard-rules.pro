@@ -35,3 +35,4 @@
 -keep class com.tealium.visitorservice.TealiumConfigVisitorServiceKt { *; }
 -keep class com.tealium.visitorservice.CurrentVisit { *; }
 -keep class com.tealium.visitorservice.VisitorProfile { *; }
+-keep class com.tealium.visitorservice.VisitorProfile$Companion { *; }

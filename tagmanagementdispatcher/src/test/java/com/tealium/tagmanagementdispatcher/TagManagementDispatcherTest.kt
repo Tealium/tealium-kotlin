@@ -17,7 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
 import org.json.JSONStringer
-import org.junit.Assert
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.io.File
@@ -91,43 +91,55 @@ class TagManagementDispatcherTest {
         val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
         val url = URL(tagManagementDispatcher.urlString)
 
-        Assert.assertEquals("https", url.protocol)
-        Assert.assertEquals("tags.tiqcdn.com", url.authority)
-        Assert.assertEquals("/utag/${config.accountName}/${config.profileName}/${config.environment.environment}/mobile.html", url.path)
-        Assert.assertEquals("/utag/${config.accountName}/${config.profileName}/${config.environment.environment}/mobile.html", url.path)
+        assertEquals("https", url.protocol)
+        assertEquals("tags.tiqcdn.com", url.authority)
+        assertEquals("/utag/${config.accountName}/${config.profileName}/${config.environment.environment}/mobile.html", url.path)
+        assertEquals("/utag/${config.accountName}/${config.profileName}/${config.environment.environment}/mobile.html", url.path)
 
         val queryParams = url.query.split("&").associate { param ->
             Pair(param.split("=")[0], param.split("=")[1])
         }
-        Assert.assertEquals("android", queryParams[DeviceCollectorConstants.DEVICE_PLATFORM])
-        Assert.assertEquals(/* Build.VERSION.RELEASE */"null", queryParams[DeviceCollectorConstants.DEVICE_OS_VERSION])
-        Assert.assertEquals(BuildConfig.VERSION_NAME, queryParams[CoreConstant.LIBRARY_VERSION])
-        Assert.assertEquals("true", queryParams["sdk_session_count"])
+        assertEquals("android", queryParams[DeviceCollectorConstants.DEVICE_PLATFORM])
+        assertEquals(/* Build.VERSION.RELEASE */"null", queryParams[DeviceCollectorConstants.DEVICE_OS_VERSION])
+        assertEquals(BuildConfig.VERSION_NAME, queryParams[CoreConstant.LIBRARY_VERSION])
+        assertEquals("true", queryParams["sdk_session_count"])
     }
 
     @Test
     fun overrideTagManagementUrlIsSet() {
         val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
         config.options["override_tag_management_url"] = "test_url"
-        Assert.assertEquals("test_url", tagManagementDispatcher.urlString)
+        assertEquals("test_url", tagManagementDispatcher.urlString)
     }
 
     @Test
     fun webViewLoadedShouldNotQueueDispatch() {
         val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
-        tagManagementDispatcher.webViewLoader.isWebViewLoaded.set(true)
         val dispatch = TealiumEvent("", emptyMap())
+        tagManagementDispatcher.webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
         val result = tagManagementDispatcher.shouldQueue(dispatch)
-        Assert.assertFalse(result)
+        assertFalse(result)
     }
 
     @Test
     fun webViewNotLoadedShouldQueueDispatch() {
         val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
         val dispatch = TealiumEvent("", emptyMap())
-        tagManagementDispatcher.webViewLoader.isWebViewLoaded.set(false)
-        val result = tagManagementDispatcher.shouldQueue(dispatch)
-        Assert.assertTrue(result)
+        tagManagementDispatcher.webViewLoader.webViewStatus.set(PageStatus.LOADED_ERROR)
+        assertTrue(tagManagementDispatcher.shouldQueue(dispatch))
+
+        tagManagementDispatcher.webViewLoader.webViewStatus.set(PageStatus.INIT)
+        assertTrue(tagManagementDispatcher.shouldQueue(dispatch))
+        tagManagementDispatcher.webViewLoader.webViewStatus.set(PageStatus.LOADING)
+        assertTrue(tagManagementDispatcher.shouldQueue(dispatch))
+    }
+
+    @Test
+    fun shouldNeverDropDispatch() {
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        val dispatch = TealiumEvent("", emptyMap())
+
+        assertFalse(tagManagementDispatcher.shouldDrop(dispatch))
     }
 
     @Test
@@ -137,7 +149,7 @@ class TagManagementDispatcherTest {
         every { anyConstructed<JSONStringer>().toString() } returns ""
         val dispatch = TealiumEvent("test", mapOf("key" to "value"))
         tagManagementDispatcher.webViewLoader = mockWebViewLoader
-        every { mockWebViewLoader.isWebViewLoaded.get() } returns PageStatus.LOADED_SUCCESS
+        every { mockWebViewLoader.webViewStatus.get() } returns PageStatus.LOADED_SUCCESS
         tagManagementDispatcher.onDispatchReady(dispatch)
 
         coVerify { tagManagementDispatcher.callRemoteCommandTags(dispatch) }
@@ -147,12 +159,39 @@ class TagManagementDispatcherTest {
     fun dispatchReadyCreateWebViewClient() {
         val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
         tagManagementDispatcher.webViewLoader = mockWebViewLoader
-        every { mockWebViewLoader.isWebViewLoaded.get() } returns PageStatus.LOADED_ERROR
-        every { mockWebViewLoader.initializeWebView() } just Runs
+        every { mockWebViewLoader.webViewStatus.get() } returns PageStatus.LOADED_ERROR
+        every { mockWebViewLoader.loadUrlToWebView() } just Runs
+        every { mockWebViewLoader.isTimedOut() } returns true
 
         val dispatch = TealiumEvent("test", mapOf("key" to "value"))
         tagManagementDispatcher.onDispatchReady(dispatch)
 
-        coVerify { mockWebViewLoader.initializeWebView() }
+        coVerify { mockWebViewLoader.loadUrlToWebView() }
+    }
+
+    @Test
+    fun dispatchReady_LoadsUrl_IfNotLoaded() {
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        tagManagementDispatcher.webViewLoader = mockWebViewLoader
+        every { mockWebViewLoader.webViewStatus.get() } returns PageStatus.INIT
+        every { mockWebViewLoader.loadUrlToWebView() } just Runs
+
+        val dispatch = TealiumEvent("test", mapOf("key" to "value"))
+        tagManagementDispatcher.onDispatchReady(dispatch)
+
+        coVerify { mockWebViewLoader.loadUrlToWebView() }
+    }
+
+    @Test
+    fun dispatchReady_DoesNotLoadUrl_IfLoading() {
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        tagManagementDispatcher.webViewLoader = mockWebViewLoader
+        every { mockWebViewLoader.webViewStatus.get() } returns PageStatus.LOADING
+        every { mockWebViewLoader.loadUrlToWebView() } just Runs
+
+        val dispatch = TealiumEvent("test", mapOf("key" to "value"))
+        tagManagementDispatcher.onDispatchReady(dispatch)
+
+        coVerify(exactly = 0) { mockWebViewLoader.loadUrlToWebView() }
     }
 }

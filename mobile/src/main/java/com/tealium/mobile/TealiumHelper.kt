@@ -19,6 +19,7 @@ import com.tealium.lifecycle.Lifecycle
 import com.tealium.media.Media
 import com.tealium.media.mediaBackgroundSessionEnabled
 import com.tealium.media.mediaBackgroundSessionEndInterval
+import com.tealium.location.Location
 import com.tealium.remotecommanddispatcher.RemoteCommands
 import com.tealium.remotecommanddispatcher.remoteCommands
 import com.tealium.remotecommands.RemoteCommand
@@ -46,12 +47,11 @@ object TealiumHelper {
         ).apply {
             useRemoteLibrarySettings = true
             hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
-
             // Uncomment one of the following lines to set the appropriate Consent Policy
             // and enable the consent manager
             consentManagerPolicy = ConsentPolicy.GDPR
             // consentManagerPolicy = ConsentPolicy.CCPA
-            consentExpiry = ConsentExpiry(1, TimeUnit.MINUTES)
+            consentExpiry = ConsentExpiry(1, TimeUnit.DAYS)
 
             timedEventTriggers = mutableListOf(
                     EventTrigger.forEventName("start_event", "end_event")
