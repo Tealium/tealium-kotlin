@@ -2,7 +2,9 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-apply plugin: 'com.google.gms.google-services'
+// Uncomment to use Push Message tracking.
+// Be sure to update the AUTO_TRACKING_PUSH_ENABLED flag to true as well.
+//apply plugin: 'com.google.gms.google-services'
 
 android {
     compileSdkVersion 28
@@ -16,7 +18,7 @@ android {
         buildConfigField 'String', 'TAG', "\"App\""
         buildConfigField 'String', 'TEALIUM_INSTANCE', "\"main\""
         buildConfigField 'Boolean', 'AUTO_TRACKING', "true"
-//        buildConfigField 'Boolean', 'AUTO_TRACKING', "false"
+        buildConfigField 'Boolean', 'AUTO_TRACKING_PUSH_ENABLED', "false"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -1,17 +1,15 @@
-package com.tealium.autotracking.internal
+package com.tealium.autotracking
 
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.tealium.core.Tealium
-import com.tealium.dispatcher.TealiumEvent
 
 class TealiumFirebaseService: FirebaseMessagingService() {
 
-    override fun onMessageReceived(p0: RemoteMessage) {
-        super.onMessageReceived(p0)
+    override fun onMessageReceived(notification: RemoteMessage) {
+        super.onMessageReceived(notification)
         Tealium.names().forEach {
-//            Tealium[it]?.track(TealiumEvent())
+            Tealium[it]?.autoTracking?.trackPushNotification(notification)
         }
-
     }
 }

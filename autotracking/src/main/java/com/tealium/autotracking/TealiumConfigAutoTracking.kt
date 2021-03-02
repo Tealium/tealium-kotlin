@@ -15,6 +15,7 @@ const val AUTOTRACKING_MODE = "autotracking_mode"
 const val AUTOTRACKING_COLLECTOR_DELEGATE = "autotracking_collector_delegate"
 const val AUTOTRACKING_BLOCKLIST_FILENAME = "autotracking_blocklist_filename"
 const val AUTOTRACKING_BLOCKLIST_URL = "autotracking_blocklist_url"
+const val AUTOTRACKING_PUSH_ENABLED = "autotracking_push_enabled"
 
 /**
  * Sets the AutoTrackingMode. Default is [FULL].
@@ -73,5 +74,20 @@ var TealiumConfig.autoTrackingBlocklistUrl: String?
             options[AUTOTRACKING_BLOCKLIST_URL] = it
         } ?: run {
             options.remove(AUTOTRACKING_BLOCKLIST_URL)
+        }
+    }
+
+/**
+ * Determines whether or not to enabled push notification tracking.
+ *
+ * Default value is: false
+ */
+var TealiumConfig.autoTrackingPushEnabled: Boolean?
+    get() = options[AUTOTRACKING_PUSH_ENABLED] as? Boolean
+    set(value) {
+        value?.let {
+            options[AUTOTRACKING_PUSH_ENABLED] = it
+        } ?: run {
+            options.remove(AUTOTRACKING_PUSH_ENABLED)
         }
     }

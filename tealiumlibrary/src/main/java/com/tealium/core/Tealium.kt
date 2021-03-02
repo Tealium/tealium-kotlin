@@ -78,7 +78,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
      */
     val logger: Logging = Logger
 
-    private lateinit var _modules: ModuleManager
+    private val _modules: MutableModuleManager = MutableModuleManager(emptyList())
 
     /**
      * Provides access to the different modules that are in use, either by name or by class.
@@ -220,7 +220,9 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
         modulesList.filterIsInstance<Listener>().forEach {
             eventRouter.subscribe(it)
         }
-        _modules = ModuleManager(modulesList)
+        modulesList.forEach {
+            _modules.add(it)
+        }
 
         dispatchRouter = DispatchRouter(singleThreadedBackground,
                 modules.getModulesForType(Collector::class.java),
