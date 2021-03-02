@@ -26,10 +26,13 @@
 
 -keep class kotlin.Metadata { *; }
 
--keep class com.tealium.media.Media { *; }
--keep class com.tealium.media.Media$Companion { *; }
--keep class com.tealium.media.TealiumConfigMediaKt { *; }
+-keep interface com.tealium.media.** { *; }
+-keep enum com.tealium.media.** { *; }
 
--keep class com.tealium.media.segments.Ad { *; }
--keep class com.tealium.media.segments.AdBreak { *; }
--keep class com.tealium.media.segments.Chapter { *; }
+-keep class !com.tealium.media.MediaSessionDispatcher,
+            !com.tealium.media.*$Companion,
+            com.tealium.media.* {
+    *;
+}
+-keep class com.tealium.media.Media$Companion { *; }
+-keep class com.tealium.media.segments.* { *; }
