@@ -10,5 +10,6 @@ class ModuleListViewModel : ViewModel() {
             "Hosted Data Layer",
             "Location",
             "Timed Events",
-            "Visitor Service")
+            "Visitor Service",
+            "Media Tracking")
 }

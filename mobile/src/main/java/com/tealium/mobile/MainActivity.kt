@@ -51,6 +51,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
             "Timed Events" -> TimedEventsFragment()
             "Hosted Data Layer" -> HostedDataLayerFragment()
             "Crash Reporter" -> CrashReporterFragment()
+            "Media Tracking" -> MediaFragment()
             else -> null
         }
         fragment?.let {

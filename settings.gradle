@@ -1,3 +1,5 @@
+
+include ':media'
 include ':adidentifier'
 include ':mobile', ':tealiumlibrary', ':collectdispatcher', ':tagmanagementdispatcher', ':lifecycle', ':visitorservice', ':installreferrer', ':location', ':remotecommanddispatcher'
 include ':hosteddatalayer', ':crashreporter'
