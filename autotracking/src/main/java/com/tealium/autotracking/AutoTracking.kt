@@ -18,7 +18,7 @@ class AutoTracking(
     override val name: String = MODULE_NAME
     override var enabled: Boolean = true
 
-    val pushTrackingEnabled: Boolean = context.config.autoTrackingPushEnabled ?: false
+    private val pushTrackingEnabled: Boolean = context.config.autoTrackingPushEnabled ?: false
 
     init {
         context.events.subscribe(activityTracker)
