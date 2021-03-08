@@ -11,6 +11,7 @@ data class TealiumView(var viewName: String) : Dispatch {
     init {
         mutableMap[CoreConstant.TEALIUM_EVENT_TYPE] = DispatchType.VIEW
         mutableMap[CoreConstant.TEALIUM_EVENT] = viewName
+        mutableMap[CoreConstant.REQUEST_UUID] = id
     }
 
     constructor(viewName: String, data: Map<String, Any>? = null) : this(viewName) {
