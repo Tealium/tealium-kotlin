@@ -1,6 +1,9 @@
 package com.tealium.mobile
 
 import android.app.Application
+import android.util.Log
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
 import com.tealium.adidentifier.AdIdentifier
 import com.tealium.autotracking.*
 import com.tealium.collectdispatcher.Collect
@@ -53,6 +56,8 @@ object TealiumHelper : ActivityDataCollector {
             // autoTrackingBlocklistFilename = "autotracking-blocklist.json"
             // autoTrackingBlocklistUrl = "https://tags.tiqcdn.com/dle/tealiummobile/android/autotracking-blocklist.json"
             autoTrackingCollectorDelegate = TealiumHelper
+
+            autoTrackingPushEnabled = BuildConfig.AUTO_TRACKING_PUSH_ENABLED
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {

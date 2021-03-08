@@ -18,6 +18,9 @@ buildscript {
         // in the individual module build.gradle files
         classpath "org.jacoco:org.jacoco.core:0.8.5"
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
+
+        // Firebase integration
+        classpath 'com.google.gms:google-services:4.3.5'
     }
 }
 
