@@ -11,6 +11,7 @@ data class TealiumEvent(var eventName: String) : Dispatch {
     init {
         mutableMap[CoreConstant.TEALIUM_EVENT_TYPE] = DispatchType.EVENT
         mutableMap[CoreConstant.TEALIUM_EVENT] = eventName
+        mutableMap[CoreConstant.REQUEST_UUID] = id
     }
 
     constructor(eventName: String, data: Map<String, Any>? = null) : this(eventName) {
