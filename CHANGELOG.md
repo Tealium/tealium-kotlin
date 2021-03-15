@@ -1,9 +1,49 @@
 # Change Log
+- 1.2.2 Mar 2021
+  - Core 1.2.2
+    - Add `request_uuid` to event/view payload
+  - Collect Dispatcher 1.0.4, TagManagement Dispatcher 1.0.4, RemoteCommand Dispatcher 1.0.3
+    - Bug Fix: Route HttpRemoteCommand to background thread for execution.
+    - Test updates
+- 1.2.1 Mar 2021
+  - Proguard and Consumer Rules revision; some public classes were missed initially, and the consumer rules have been revised.
+  - Core 1.2.1, Collect Dispatcher 1.0.3, TagManagement Dispatcher 1.0.3, Install Referrer 1.0.2, Lifecycle 1.0.3, Location 1.0.3, VisitorService 1.0.3, RemoteCommand Dispatcher 1.0.2, Hosted DataLayer 1.0.2, Crash Reporter 1.0.1, Ad Identifier 1.0.1
+- 1.2.0 Jan 2021
+  - Consent Management
+    - Consent Expiration - Introduces the ability to set an expiration for provided consent.
+    - Deprecated consentManagerEnabled config property; setting a valid ConsentPolicy will automatically enable the Consent Manager.
+    - Bug Fix - Incorrect consent collector logic
+  - Visitor Id - new method to allow manually regenerating a Visitor Id for the device.
+    - Proguard - Initial proguard rules added to generated binaries and consumer proguard rules.
+  - AdIdentifier 1.0.0
+    - Initial release of the AdIdentifier module - if available, then the ad identifier will be added to each Dispatch
+  - CrashReporter 1.0.0
+    - Initial release of the CrashReporter module - uncaught exceptions causing a crash are recorded and any crash data is sent on the next dispatch when the app is next launched.
+  - Collect Dispatcher 1.0.2, Hosted DataLayer 1.0.1, InstallReferrer 1.0.1, Lifecycle 1.0.2, Location 1.0.2, RemoteCommand Dispatcher 1.0.1, TagManagement Dispatcher 1.0.1, Visitor Service 1.0.2
+      - Proguard - Initial proguard rules added to generated binaries and consumer proguard rules.
+- 1.1.0 Nov. 2020
+  - Timed Events support for reporting the time taken between user events of interest.
+  - New device_model and device_manufacturer data keys provided by the DeviceCollector
+  - Automated unit and instrumented tests for PRs into master using Github Actions.
+  - Collect Dispatcher 1.0.1
+    - Additional Collect URL overrides
+    - Test coverage increase
+  - Hosted Datalayer 1.0.0
+    - Test coverage increase
+  - Lifecycle 1.0.1
+    - Bug Fix: missing autotracked key on sleep events
+    - Test coverage increase
+    - Location 1.0.1
+    - Bug Fix: issue with automatically adding nearby geofences
+    - Test coverage increase
+  - Visitor Service 1.0.1
+    - Non-breaking change for testability purposes
+    - Test coverage increase
 - 1.0.0 Oct. 2020
-    - New and improved modular Tealium Kotlin for Android
-    - Release includes modifications based on feedback
-    - JSON controlled Remote Commands
-    - Hosted Data layer support
+  - New and improved modular Tealium Kotlin for Android
+  - Release includes modifications based on feedback
+  - JSON controlled Remote Commands
+  - Hosted Data layer support
     
 - 0.1.2 Sept 2020
   - Tealium multi-instance management added
