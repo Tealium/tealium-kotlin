@@ -7,7 +7,6 @@ import android.os.SystemClock
 import android.view.View
 import android.webkit.*
 import com.tealium.core.Logger
-import com.tealium.core.Tealium
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
@@ -17,12 +16,9 @@ import com.tealium.core.messaging.ValidationChangedMessenger
 import com.tealium.core.network.Connectivity
 import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.settings.LibrarySettings
-import com.tealium.dispatcher.TealiumEvent
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandRequest
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -160,7 +156,9 @@ class WebViewLoader(private val context: TealiumContext,
         override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
             url?.let {
                 if (url.startsWith(TagManagementRemoteCommand.PREFIX)) {
-                    afterDispatchSendCallbacks.sendRemoteCommand(RemoteCommandRequest(createResponseHandler(), url))
+                    backgroundScope.launch {
+                        afterDispatchSendCallbacks.sendRemoteCommand(RemoteCommandRequest(createResponseHandler(), url))
+                    }
                 }
             }
             return true

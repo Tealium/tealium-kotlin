@@ -18,6 +18,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.io.File
+import java.util.*
 
 @RunWith(RobolectricTestRunner::class)
 class CollectDispatcherTests {
@@ -59,6 +60,9 @@ class CollectDispatcherTests {
         every { mockConfig.overrideCollectDomain } returns null
         every { mockConfig.overrideCollectUrl } returns null
         every { mockConfig.overrideCollectBatchUrl } returns null
+
+        mockkStatic(UUID::class)
+        every { UUID.randomUUID().toString() } returns "test_id"
     }
 
     @Test
@@ -146,7 +150,7 @@ class CollectDispatcherTests {
 
         coVerify {
             mockNetworkClient.post(
-                    "tealium_event_type=event&tealium_event=my-event&key=value&tealium_account=test-account&tealium_profile=test-profile",
+                    "tealium_event_type=event&tealium_event=my-event&request_uuid=test_id&key=value&tealium_account=test-account&tealium_profile=test-profile",
                     CollectDispatcher.COLLECT_URL,
                     false
             )

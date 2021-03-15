@@ -249,7 +249,7 @@ class WebViewClientTest {
         // should not override
         webViewLoader.webViewClient.shouldOverrideUrlLoading(mockWebView, "http://myRemoteCommandName")
 
-        verify(exactly = 1) {
+        coVerify(exactly = 1) {
             mockDispatchSendCallbacks.sendRemoteCommand(match {
                 it.commandId == "myRemoteCommandName".toLowerCase(Locale.ROOT)
             })

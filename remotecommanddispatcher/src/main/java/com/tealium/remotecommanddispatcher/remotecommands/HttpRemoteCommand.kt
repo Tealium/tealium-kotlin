@@ -5,9 +5,7 @@ import com.tealium.core.Logger
 import com.tealium.core.network.*
 import com.tealium.remotecommanddispatcher.BuildConfig
 import com.tealium.remotecommands.RemoteCommand
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -43,7 +41,7 @@ class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME,
         }
     }
 
-    private suspend fun execute(response: Response, urlString: String, method: String) = coroutineScope {
+    private suspend fun execute(response: Response, urlString: String, method: String) = withContext(Dispatchers.IO) {
         if (isActive && client.connectivity.isConnected()) {
             try {
                 with(URL(urlString).openConnection() as HttpURLConnection) {
