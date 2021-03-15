@@ -2,7 +2,7 @@
 - 1.2.2 Mar 2021
   - Core 1.2.2
     - Add `request_uuid` to event/view payload
-  - Collect Dispatcher 1.0.4, TagManagement Dispatcher 1.0.4, RemoteCommand Dispatcher 1.0.3
+  - TagManagement Dispatcher 1.0.4, RemoteCommand Dispatcher 1.0.3
     - Bug Fix: Route HttpRemoteCommand to background thread for execution.
     - Test updates
 - 1.2.1 Mar 2021
