@@ -10,6 +10,7 @@ import android.os.StatFs
 import android.view.Surface
 import android.view.WindowManager
 import com.tealium.core.*
+import java.util.*
 
 interface DeviceData {
     val device: String
@@ -26,6 +27,7 @@ interface DeviceData {
     val deviceAvailableSystemStorage: Long
     val deviceAvailableExternalStorage: Long
     val deviceOrientation: String
+    val deviceLanguage: String
 }
 
 class DeviceCollector private constructor(context: Context) : Collector, DeviceData {
@@ -75,6 +77,8 @@ class DeviceCollector private constructor(context: Context) : Collector, DeviceD
                 else -> "Portrait"
             }
         }
+    override val deviceLanguage: String
+        get() = Locale.getDefault().toLanguageTag()
 
     override suspend fun collect(): Map<String, Any> {
         return mapOf(
