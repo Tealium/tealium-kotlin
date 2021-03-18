@@ -9,10 +9,12 @@ import com.tealium.core.persistence.DataLayer
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.mockkStatic
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import java.util.*
 
 class DeviceCollectorTests {
 
@@ -44,6 +46,10 @@ class DeviceCollectorTests {
         every { config.application } returns context
         every { tealiumContext.config } returns config
         every { tealiumContext.dataLayer } returns dataLayer
+
+        mockkStatic(Locale::class)
+
+        every { Locale.getDefault().toLanguageTag() } returns "en-US"
     }
 
     @Test
@@ -69,8 +75,10 @@ class DeviceCollectorTests {
         assertNotNull(data[DeviceCollectorConstants.DEVICE_OS_BUILD])
         assertNotNull(data[DeviceCollectorConstants.DEVICE_OS_VERSION])
         assertEquals("android", data[DeviceCollectorConstants.DEVICE_PLATFORM])
+        assertEquals("Android", data[DeviceCollectorConstants.DEVICE_OS_NAME])
         assertNotNull(data[DeviceCollectorConstants.DEVICE_RUNTIME])
         assertTrue("[0-9]+x[0-9]+".toRegex().matches(data[DeviceCollectorConstants.DEVICE_RESOLUTION] as String))
+        assertEquals("en-US", data[DeviceCollectorConstants.DEVICE_LANGUAGE])
 
         assertSame(DeviceCollector.create(tealiumContext), DeviceCollector.create(tealiumContext))
     }

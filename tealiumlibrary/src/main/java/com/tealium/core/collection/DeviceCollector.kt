@@ -22,6 +22,7 @@ interface DeviceData {
     val deviceRuntime: String
     val deviceOrigin: String
     val devicePlatform: String
+    val deviceOsName: String
     val deviceOsBuild: String
     val deviceOsVersion: String
     val deviceAvailableSystemStorage: Long
@@ -53,6 +54,7 @@ class DeviceCollector private constructor(context: Context) : Collector, DeviceD
     override val deviceRuntime = System.getProperty("java.vm.version") ?: "unknown"
     override val deviceOrigin = if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) "tv" else "mobile"
     override val devicePlatform = "android"
+    override val deviceOsName = "Android"
     override val deviceOsBuild = Build.VERSION.INCREMENTAL ?: ""
     override val deviceOsVersion = Build.VERSION.RELEASE ?: ""
     override val deviceAvailableSystemStorage: Long
@@ -91,11 +93,13 @@ class DeviceCollector private constructor(context: Context) : Collector, DeviceD
                 DeviceCollectorConstants.DEVICE_RUNTIME to deviceRuntime,
                 DeviceCollectorConstants.DEVICE_ORIGIN to deviceOrigin,
                 DeviceCollectorConstants.DEVICE_PLATFORM to devicePlatform,
+                DeviceCollectorConstants.DEVICE_OS_NAME to deviceOsName,
                 DeviceCollectorConstants.DEVICE_OS_BUILD to deviceOsBuild,
                 DeviceCollectorConstants.DEVICE_OS_VERSION to deviceOsVersion,
                 DeviceCollectorConstants.DEVICE_AVAILABLE_SYSTEM_STORAGE to deviceAvailableSystemStorage,
                 DeviceCollectorConstants.DEVICE_AVAILABLE_EXTERNAL_STORAGE to deviceAvailableExternalStorage,
-                DeviceCollectorConstants.DEVICE_ORIENTATION to deviceOrientation
+                DeviceCollectorConstants.DEVICE_ORIENTATION to deviceOrientation,
+                DeviceCollectorConstants.DEVICE_LANGUAGE to deviceLanguage
         )
     }
 
