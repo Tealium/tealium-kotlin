@@ -17,5 +17,4 @@ object DeviceCollectorConstants {
     const val DEVICE_AVAILABLE_EXTERNAL_STORAGE = "device_free_external_storage"
     const val DEVICE_ORIENTATION = "device_orientation"
     const val DEVICE_LANGUAGE = "device_language"
-
 }
