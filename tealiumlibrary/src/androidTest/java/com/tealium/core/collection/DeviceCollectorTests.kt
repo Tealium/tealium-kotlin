@@ -46,10 +46,6 @@ class DeviceCollectorTests {
         every { config.application } returns context
         every { tealiumContext.config } returns config
         every { tealiumContext.dataLayer } returns dataLayer
-
-        mockkStatic(Locale::class)
-
-        every { Locale.getDefault().toLanguageTag() } returns "en-US"
     }
 
     @Test
@@ -74,11 +70,12 @@ class DeviceCollectorTests {
         )
         assertNotNull(data[DeviceCollectorConstants.DEVICE_OS_BUILD])
         assertNotNull(data[DeviceCollectorConstants.DEVICE_OS_VERSION])
+        assertNotNull(data[DeviceCollectorConstants.DEVICE_LANGUAGE])
         assertEquals("android", data[DeviceCollectorConstants.DEVICE_PLATFORM])
         assertEquals("Android", data[DeviceCollectorConstants.DEVICE_OS_NAME])
         assertNotNull(data[DeviceCollectorConstants.DEVICE_RUNTIME])
         assertTrue("[0-9]+x[0-9]+".toRegex().matches(data[DeviceCollectorConstants.DEVICE_RESOLUTION] as String))
-        assertEquals("en-US", data[DeviceCollectorConstants.DEVICE_LANGUAGE])
+
 
         assertSame(DeviceCollector.create(tealiumContext), DeviceCollector.create(tealiumContext))
     }
