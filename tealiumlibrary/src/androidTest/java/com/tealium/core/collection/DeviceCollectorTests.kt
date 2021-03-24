@@ -9,12 +9,10 @@ import com.tealium.core.persistence.DataLayer
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.mockkStatic
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import java.util.*
 
 class DeviceCollectorTests {
 
@@ -75,7 +73,6 @@ class DeviceCollectorTests {
         assertEquals("Android", data[DeviceCollectorConstants.DEVICE_OS_NAME])
         assertNotNull(data[DeviceCollectorConstants.DEVICE_RUNTIME])
         assertTrue("[0-9]+x[0-9]+".toRegex().matches(data[DeviceCollectorConstants.DEVICE_RESOLUTION] as String))
-
 
         assertSame(DeviceCollector.create(tealiumContext), DeviceCollector.create(tealiumContext))
     }
