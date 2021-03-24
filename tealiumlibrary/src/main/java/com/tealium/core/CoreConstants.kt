@@ -3,7 +3,7 @@
 object CoreConstant {
     const val TEALIUM_EVENT_TYPE = "tealium_event_type"
     const val TEALIUM_EVENT = "tealium_event"
-    const val LIBRARY_VERSION = "library_version"
+    const val LIBRARY_VERSION = "tealium_library_version"
     const val TRACE_ID = "cp.trace_id"
     const val TRACE_ID_QUERY_PARAM = "tealium_trace_id"
     const val LEAVE_TRACE_QUERY_PARAM = "leave_trace"
