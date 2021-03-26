@@ -10,7 +10,8 @@ import com.tealium.core.consent.ConsentManagerConstants.GRANT_PARTIAL_CONSENT
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import org.json.JSONArray
+import io.mockk.mockk
+import io.mockk.verify
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -225,5 +226,18 @@ class UserConsentPreferencesTest {
         assertEquals(ConsentPolicy.CCPA.value, policyInfo[CONSENT_POLICY])
         assertFalse(policyInfo[CONSENT_DO_NOT_SELL] as Boolean)
         assertFalse(policyInfo.keys.contains(CONSENT_CATEGORIES))
+    }
+
+    @Test
+    fun testConsentManagementPolicy_Custom_ReturnsCustomPolicy() {
+        val mockPolicy: ConsentManagementPolicy = mockk(relaxed = true)
+        ConsentPolicy.CUSTOM.setCustomPolicy(mockPolicy)
+
+        val policy = ConsentPolicy.CUSTOM.create(preferences)
+        assertSame(mockPolicy, policy)
+
+        verify {
+            mockPolicy.userConsentPreferences = preferences
+        }
     }
 }
