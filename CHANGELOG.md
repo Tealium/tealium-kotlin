@@ -1,4 +1,9 @@
 # Change Log
+- 1.2.3 Mar 2021
+  - Core 1.2.3
+    - Consent Management: Add option for setting a custom consent policy.
+    - Add new `device_language`, `os_name` to DeviceCollector
+    - Update keys for CrashReporter: `crash_exception_name` changed to `crash_name`, `crash_exception_cause` changed to `crash_cause`  
 - 1.2.2 Mar 2021
   - Core 1.2.2
     - Add `request_uuid` to event/view payload
