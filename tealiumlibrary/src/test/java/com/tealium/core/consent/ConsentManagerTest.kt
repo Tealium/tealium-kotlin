@@ -50,6 +50,9 @@ class ConsentManagerTest {
     @RelaxedMockK
     lateinit var eventRouter: EventRouter
 
+    @RelaxedMockK
+    lateinit var mockPolicy: ConsentManagementPolicy
+
     lateinit var consentManager: ConsentManager
     lateinit var config: TealiumConfig
 
@@ -178,7 +181,22 @@ class ConsentManagerTest {
     }
 
     @Test
-    fun userPreferencesUpdateListener_Called() {
+    fun userPreferencesUpdateListener_Called_WhenDifferent() {
+        every { editor.putString(KEY_STATUS, "consented") } returns editor
+        every { sharedPreferences.getString(any(), any()) } returns "consented"
+        every { sharedPreferences.getStringSet(KEY_CATEGORIES, null) } returns setOf("crm")
+        every { editor.putStringSet(KEY_CATEGORIES, setOf("engagement")) } returns editor
+        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockk(), ConsentPolicy.GDPR)
+        consentManager.userConsentCategories = setOf(ConsentCategory.ENGAGEMENT)
+
+        // no policy == no updates.
+        verify(exactly = 1) {
+            eventRouter.onUserConsentPreferencesUpdated(any(), any())
+        }
+    }
+
+    @Test
+    fun userPreferencesUpdateListener_NotCalled_WhenSame() {
         every { editor.putString(KEY_STATUS, "consented") } returns editor
         every { sharedPreferences.getString(any(), any()) } returns "consented"
         every { sharedPreferences.getStringSet(KEY_CATEGORIES, null) } returns setOf("engagement")
@@ -187,7 +205,7 @@ class ConsentManagerTest {
         consentManager.userConsentCategories = setOf(ConsentCategory.ENGAGEMENT)
 
         // no policy == no updates.
-        verify(exactly = 1) {
+        verify(exactly = 0) {
             eventRouter.onUserConsentPreferencesUpdated(any(), any())
         }
     }
@@ -218,11 +236,11 @@ class ConsentManagerTest {
     @Test
     fun consentManagerStatusPartiallyConsented_DoesCollect() = runBlocking {
         val mockSettings: LibrarySettings = mockk()
-        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockSettings, ConsentPolicy.GDPR)
         every { editor.putString(KEY_STATUS, "consented") } returns editor
         every { sharedPreferences.getString(any(), any()) } returns "consented"
         every { sharedPreferences.getStringSet(KEY_CATEGORIES, null) } returns setOf("affiliates")
         every { editor.putStringSet(KEY_CATEGORIES, setOf("affiliates")) } returns editor
+        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockSettings, ConsentPolicy.GDPR)
         consentManager.userConsentCategories = setOf(ConsentCategory.AFFILIATES)
 
         assertEquals(ConsentStatus.CONSENTED, consentManager.userConsentStatus)
@@ -246,7 +264,7 @@ class ConsentManagerTest {
         every { ConnectivityRetriever.getInstance(any<Application>()) } returns mockConnectivity
 
         consentManager = ConsentManager(mockTealiumContext, eventRouter, mockSettings, ConsentPolicy.GDPR)
-        consentManager.userConsentStatus = ConsentStatus.UNKNOWN
+        consentManager.userConsentStatus = ConsentStatus.CONSENTED
         coVerify(timeout = 500) {
             mockHttpClient.post(match {
                 it.contains("visitor1234567890")
@@ -254,7 +272,7 @@ class ConsentManagerTest {
         }
 
         every { mockTealiumContext.visitorId } returns "newVisitor"
-        consentManager.userConsentStatus = ConsentStatus.UNKNOWN
+        consentManager.userConsentStatus = ConsentStatus.NOT_CONSENTED
 
         coVerify(timeout = 500) {
             mockHttpClient.post(match {
@@ -348,6 +366,18 @@ class ConsentManagerTest {
     }
 
     @Test
+    fun defaultConsentExpiryCustom() {
+        var localConfig = TealiumConfig(context, "test", "profile", Environment.QA)
+        every { mockPolicy.defaultConsentExpiry } returns ConsentExpiry(10, TimeUnit.MINUTES)
+        ConsentPolicy.CUSTOM.setCustomPolicy(mockPolicy)
+        localConfig.consentManagerPolicy = ConsentPolicy.CUSTOM
+        every { mockTealiumContext.config } returns localConfig
+        val localConsentManager = ConsentManager(mockTealiumContext, eventRouter, mockk())
+        assertEquals(10, localConsentManager.expiry.time)
+        assertEquals(TimeUnit.MINUTES, localConsentManager.expiry.unit)
+    }
+
+    @Test
     fun customConsentExpiry() {
         var localConfig = TealiumConfig(context, "test", "profile", Environment.QA)
         localConfig.consentManagerPolicy = ConsentPolicy.GDPR
@@ -373,6 +403,7 @@ class ConsentManagerTest {
         val mockTime = System.currentTimeMillis() - 60001
         every { editor.putLong(KEY_LAST_STATUS_UPDATE, mockTime) } returns editor
         every { sharedPreferences.getLong(any(), any()) } returns mockTime
+        every { sharedPreferences.getString(KEY_STATUS, any()) } returns "consented"
 
         consentManager.shouldQueue(TealiumView("track"))
 
@@ -398,6 +429,7 @@ class ConsentManagerTest {
         val mockTime = System.currentTimeMillis() - 60001
         every { editor.putLong(KEY_LAST_STATUS_UPDATE, mockTime) } returns editor
         every { sharedPreferences.getLong(any(), any()) } returns mockTime
+        every { sharedPreferences.getString(KEY_STATUS, any()) } returns "consented"
         consentManager = ConsentManager(mockTealiumContext, eventRouter, mockk(), ConsentPolicy.GDPR)
 
         verify(exactly = 1) {
@@ -414,5 +446,21 @@ class ConsentManagerTest {
         verify(exactly = 0) {
             eventRouter.onUserConsentPreferencesUpdated(any(), any())
         }
+    }
+
+    @Test
+    fun consentManager_DelegatesToCustomConsentPolicy() = runBlocking {
+        ConsentPolicy.CUSTOM.setCustomPolicy(mockPolicy)
+        every { sharedPreferences.getString(KEY_STATUS, any()) } returns "consented"
+        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockk(), ConsentPolicy.CUSTOM)
+
+        every { mockPolicy.shouldQueue() } returns true
+        every { mockPolicy.shouldDrop() } returns true
+        every { mockPolicy.policyStatusInfo() } returns mapOf("my_policy_name" to "policy")
+
+        assertTrue(consentManager.shouldQueue(mockk()))
+        assertTrue(consentManager.shouldDrop(mockk()))
+        val policyInfo = consentManager.collect()
+        assertTrue(policyInfo["my_policy_name"] == "policy")
     }
 }
