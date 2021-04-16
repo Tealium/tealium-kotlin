@@ -5,6 +5,7 @@ import com.tealium.core.TealiumConfig
 const val COLLECT_OVERRIDE_DOMAIN = "override_collect_domain"
 const val COLLECT_OVERRIDE_URL = "override_collect_url"
 const val COLLECT_OVERRIDE_BATCH_URL = "override_collect_batch_url"
+const val COLLECT_OVERRIDE_PROFILE = "override_collect_profile"
 
 /**
  * Sets the Domain to send event data to. Use this in preference to either [overrideCollectUrl] or
@@ -44,5 +45,17 @@ var TealiumConfig.overrideCollectBatchUrl: String?
     set(value) {
         value?.let {
             options[COLLECT_OVERRIDE_BATCH_URL] = it
+        }
+    }
+
+/**
+ * Overrides the value set in the `tealium_profile` key within the event payload.
+ * Use this setting to control which Tealium Profile event data will be distributed to.
+ */
+var TealiumConfig.overrideCollectProfile: String?
+    get() = options[COLLECT_OVERRIDE_PROFILE] as? String
+    set(value) {
+        value?.let {
+            options[COLLECT_OVERRIDE_PROFILE] = it
         }
     }

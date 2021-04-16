@@ -31,6 +31,8 @@ class CollectDispatcher(private val config: TealiumConfig,
             "https://$it/bulk-event"
         } ?: BULK_URL
 
+    val profileOverride: String? = config.overrideCollectProfile
+
     init {
         client.networkClientListener = object : NetworkClientListener {
 
@@ -50,10 +52,13 @@ class CollectDispatcher(private val config: TealiumConfig,
     }
 
     override suspend fun onDispatchSend(dispatch: Dispatch) {
-        var params = encoder.encode(dispatch)
-        params += "&${encoder.encode(config)}"
+        if (profileOverride != null) {
+            dispatch.addAll(
+                    mapOf(TEALIUM_PROFILE to profileOverride)
+            )
+        }
         Logger.dev(BuildConfig.TAG, "Sending dispatch: ${dispatch.payload()}")
-        client.post(params, eventUrl, false)
+        client.post(JSONObject(dispatch.payload()).toString(), eventUrl, false)
     }
 
     override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {
@@ -61,6 +66,9 @@ class CollectDispatcher(private val config: TealiumConfig,
 
         val batchDispatch = BatchDispatch.create(dispatches)
         batchDispatch?.let {
+            if (profileOverride != null) {
+                batchDispatch.shared[TEALIUM_PROFILE] = profileOverride
+            }
             client.post(JSONObject(batchDispatch.payload()).toString(), batchEventUrl, true)
         }
     }
