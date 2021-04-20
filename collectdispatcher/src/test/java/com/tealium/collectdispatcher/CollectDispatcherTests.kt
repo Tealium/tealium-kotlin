@@ -35,9 +35,6 @@ class CollectDispatcherTests {
     lateinit var mockConfig: TealiumConfig
 
     @MockK
-    lateinit var mockEncoder: Encoder
-
-    @MockK
     lateinit var mockNetworkClient: NetworkClient
 
     @MockK
@@ -124,7 +121,7 @@ class CollectDispatcherTests {
     @Test
     fun urls_DefaultsAreUsedWhenNotOverridden() {
         // no overrides set in [setUp]
-        val collectDispatcher = CollectDispatcher(mockConfig, mockEncoder, mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(mockConfig, mockNetworkClient)
 
         assertEquals(CollectDispatcher.COLLECT_URL, collectDispatcher.eventUrl)
         assertEquals(CollectDispatcher.BULK_URL, collectDispatcher.batchEventUrl)
@@ -136,7 +133,7 @@ class CollectDispatcherTests {
         every { mockConfig.overrideCollectUrl } returns null
         every { mockConfig.overrideCollectBatchUrl } returns null
 
-        val collectDispatcher = CollectDispatcher(mockConfig, mockEncoder, mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(mockConfig, mockNetworkClient)
 
         assertEquals("https://cname.domain.com/event", collectDispatcher.eventUrl)
         assertEquals("https://cname.domain.com/bulk-event", collectDispatcher.batchEventUrl)
@@ -149,7 +146,7 @@ class CollectDispatcherTests {
         every { mockConfig.overrideCollectUrl } returns "https://my.website.com/my-endpoint"
         every { mockConfig.overrideCollectBatchUrl } returns "https://my.website.com/my-bulk-endpoint"
 
-        val collectDispatcher = CollectDispatcher(mockConfig, mockEncoder, mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(mockConfig, mockNetworkClient)
 
         assertEquals("https://my.website.com/my-endpoint", collectDispatcher.eventUrl)
         assertEquals("https://my.website.com/my-bulk-endpoint", collectDispatcher.batchEventUrl)
