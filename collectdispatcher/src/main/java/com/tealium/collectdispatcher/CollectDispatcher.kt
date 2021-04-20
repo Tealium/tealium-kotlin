@@ -16,7 +16,6 @@ interface CollectDispatcherListener : DispatcherListener {
 }
 
 class CollectDispatcher(private val config: TealiumConfig,
-                        private val encoder: Encoder = TealiumEncoder,
                         private val client: NetworkClient = HttpClient(config),
                         private val collectDispatchListener: CollectDispatcherListener? = null) :
         Dispatcher {
@@ -31,7 +30,7 @@ class CollectDispatcher(private val config: TealiumConfig,
             "https://$it/bulk-event"
         } ?: BULK_URL
 
-    val profileOverride: String? = config.overrideCollectProfile
+    private val profileOverride: String? = config.overrideCollectProfile
 
     init {
         client.networkClientListener = object : NetworkClientListener {
