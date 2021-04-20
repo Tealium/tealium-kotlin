@@ -30,6 +30,7 @@ class BatchDispatch private constructor(dispatchList: List<Dispatch>) {
                     event[key]?.let {
                         shared[key] = it
                         keyFound = true
+                        event.remove(key)
                     }
                 } else {
                     event.remove(key)
