@@ -208,6 +208,7 @@ class ConsentManager(private val context: TealiumContext,
     }
 
     companion object {
-        const val MODULE_NAME = "CONSENT_MANAGER"
+        const val MODULE_NAME = "ConsentManager"
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
     }
 }

@@ -26,6 +26,6 @@ class SessionCollector(private var sessionId: Long) : NewSessionListener, Collec
     override var enabled: Boolean = true
 
     companion object {
-        const val MODULE_NAME = "SESSION_COLLECTOR"
+        const val MODULE_NAME = "SessionCollector"
     }
 }

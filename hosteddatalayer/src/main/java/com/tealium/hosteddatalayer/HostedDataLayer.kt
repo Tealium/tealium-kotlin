@@ -149,7 +149,8 @@ class HostedDataLayer(private val config: TealiumConfig,
 
     companion object : ModuleFactory {
 
-        const val MODULE_NAME = "HOSTED_DATA_LAYER"
+        const val MODULE_NAME = "HostedDataLayer"
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
         override fun create(context: TealiumContext): Module {
             return HostedDataLayer(context.config)

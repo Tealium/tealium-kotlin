@@ -10,6 +10,7 @@ import android.os.StatFs
 import android.view.Surface
 import android.view.WindowManager
 import com.tealium.core.*
+import com.tealium.tealiumlibrary.BuildConfig
 import java.util.*
 
 interface DeviceData {
@@ -34,7 +35,7 @@ interface DeviceData {
 class DeviceCollector private constructor(context: Context) : Collector, DeviceData {
 
     override val name: String
-        get() = "DEVICE_COLLECTOR"
+        get() = "DeviceData"
     override var enabled: Boolean = true
 
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -104,6 +105,7 @@ class DeviceCollector private constructor(context: Context) : Collector, DeviceD
     }
 
     companion object : CollectorFactory {
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
         @Volatile private var instance: Collector? = null
 
         override fun create(context: TealiumContext): Collector = instance ?: synchronized(this){

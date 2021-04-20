@@ -160,6 +160,8 @@ class LocationManager(private val context: TealiumContext) :
     }
 
     companion object : CollectorFactory {
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
+
         @Volatile private var instance: LocationManager? = null
         private val contexts = mutableListOf<TealiumContext>()
 
@@ -191,7 +193,7 @@ class LocationManager(private val context: TealiumContext) :
     }
 
     override val name: String
-        get() = "LOCATION_MANAGER"
+        get() = "Location"
     override var enabled: Boolean = true
 }
 
