@@ -194,4 +194,38 @@ class TagManagementDispatcherTest {
 
         coVerify(exactly = 0) { mockWebViewLoader.loadUrlToWebView() }
     }
+
+    @Test
+    fun callRemoteCommandTags_DoesCall_WhenRemoteApiEnabled() {
+        config.remoteApiEnabled = true
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        val mockWebView: WebView = mockk()
+        every { mockWebViewLoader.webView } returns mockWebView
+        tagManagementDispatcher.webViewLoader = mockWebViewLoader
+        every { mockWebViewLoader.webViewStatus.get() } returns PageStatus.LOADED_SUCCESS
+        every { mockWebViewLoader.loadUrlToWebView() } just Runs
+
+        tagManagementDispatcher.callRemoteCommandTags(TealiumEvent("test"))
+
+        verify(exactly = 1) {
+            mockWebView.evaluateJavascript(any(), any())
+        }
+    }
+
+    @Test
+    fun callRemoteCommandTags_DoesNotCall_WhenRemoteApiDisabled() {
+        config.remoteApiEnabled = false
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        val mockWebView: WebView = mockk()
+        every { mockWebViewLoader.webView } returns mockWebView
+        tagManagementDispatcher.webViewLoader = mockWebViewLoader
+        every { mockWebViewLoader.webViewStatus.get() } returns PageStatus.LOADED_SUCCESS
+        every { mockWebViewLoader.loadUrlToWebView() } just Runs
+
+        tagManagementDispatcher.callRemoteCommandTags(TealiumEvent("test"))
+
+        verify(exactly = 0) {
+            mockWebView.evaluateJavascript(any(), any())
+        }
+    }
 }
