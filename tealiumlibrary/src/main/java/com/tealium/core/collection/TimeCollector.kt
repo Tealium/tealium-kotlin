@@ -17,7 +17,7 @@ interface TimeData {
 @OpenForTesting
 class TimeCollector : Collector, TimeData {
 
-    override val name: String = "TIME_COLLECTOR"
+    override val name: String = "TimeCollector"
     override var enabled: Boolean = true
 
     private val utcDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ROOT)

@@ -137,7 +137,8 @@ class TagManagementDispatcher(private val context: TealiumContext,
     }
 
     companion object : DispatcherFactory {
-        const val MODULE_NAME = "TAG_MANAGEMENT_DISPATCHER"
+        const val MODULE_NAME = "TagManagement"
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
         override fun create(context: TealiumContext, callbacks: AfterDispatchSendCallbacks): Dispatcher {
             return TagManagementDispatcher(context, callbacks)

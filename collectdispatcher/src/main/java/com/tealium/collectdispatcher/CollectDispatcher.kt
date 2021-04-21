@@ -68,6 +68,7 @@ class CollectDispatcher(private val config: TealiumConfig,
     companion object : DispatcherFactory {
         const val COLLECT_URL = "https://collect.tealiumiq.com/event"
         const val BULK_URL = "https://collect.tealiumiq.com/bulk-event"
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
         override fun create(context: TealiumContext,
                             callbacks: AfterDispatchSendCallbacks): Dispatcher {
@@ -76,7 +77,7 @@ class CollectDispatcher(private val config: TealiumConfig,
         }
     }
 
-    override val name = "COLLECT_DISPATCHER"
+    override val name = "Collect"
     override var enabled: Boolean = true
 }
 

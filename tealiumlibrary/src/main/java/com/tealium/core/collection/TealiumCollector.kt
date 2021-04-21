@@ -13,7 +13,7 @@ interface TealiumData {
 class TealiumCollector(private val context: TealiumContext) : Collector, TealiumData {
 
     override val name: String
-        get() = "TEALIUM_COLLECTOR"
+        get() = "TealiumCollector"
     override var enabled: Boolean = true
 
     private val config = context.config
