@@ -1,5 +1,6 @@
 package com.tealium.dispatcher
 
+import com.tealium.core.JsonUtils
 import org.json.JSONStringer
 
 interface Dispatch {
@@ -16,21 +17,7 @@ interface Dispatch {
     }
 
     fun toJsonString(): String {
-        val jsonStringer = JSONStringer()
-        jsonStringer.`object`()
-        payload().entries.forEach { entry ->
-            when (entry.value) {
-                is String -> encode(jsonStringer, entry.key, entry.value)
-                is Int -> encode(jsonStringer, entry.key, entry.value)
-                is Float -> encode(jsonStringer, entry.key, entry.value)
-                is Double -> encode(jsonStringer, entry.key, entry.value)
-                is Array<*> -> encodeCollection(jsonStringer, entry.key, entry.value)
-                is List<*> -> encodeCollection(jsonStringer, entry.key, entry.value)
-                else -> encodeString(jsonStringer, entry.key, entry.value)
-            }
-        }
-        jsonStringer.endObject()
-        return jsonStringer.toString()
+        return JsonUtils.jsonFor(payload()).toString()
     }
 
     fun encode(jsonStringer: JSONStringer, key: String, value: Any) {
