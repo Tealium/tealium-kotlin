@@ -1,5 +1,6 @@
 package com.tealium.core
 
+import com.tealium.core.collection.ModuleCollector
 import com.tealium.core.collection.SessionCollector
 import com.tealium.core.collection.TealiumCollector
 import com.tealium.core.consent.ConsentManager
@@ -216,6 +217,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
                 .union(dispatchers)
                 .union(genericModules)
                 .toList()
+        val moduleCollector = ModuleCollector(modulesList)
 
         modulesList.filterIsInstance<Listener>().forEach {
             eventRouter.subscribe(it)
@@ -223,7 +225,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
         _modules = ModuleManager(modulesList)
 
         dispatchRouter = DispatchRouter(singleThreadedBackground,
-                modules.getModulesForType(Collector::class.java),
+                modules.getModulesForType(Collector::class.java).union(setOf(moduleCollector)),
                 modules.getModulesForType(Transformer::class.java),
                 modules.getModulesForType(DispatchValidator::class.java),
                 dispatchStore,

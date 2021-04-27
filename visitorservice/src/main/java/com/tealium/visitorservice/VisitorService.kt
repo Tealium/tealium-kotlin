@@ -27,7 +27,8 @@ class VisitorService @JvmOverloads constructor(context: TealiumContext,
     suspend fun requestVisitorProfile() = visitorProfileManager.requestVisitorProfile()
 
     companion object : ModuleFactory {
-        const val MODULE_NAME = "VISITOR_SERVICE"
+        const val MODULE_NAME = "VisitorService"
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
         override fun create(context: TealiumContext): Module {
             return VisitorService(context)

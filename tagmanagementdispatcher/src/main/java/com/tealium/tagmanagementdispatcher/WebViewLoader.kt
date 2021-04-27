@@ -121,6 +121,9 @@ class WebViewLoader(private val context: TealiumContext,
                 if (isFavicon(it)) {
                     return
                 }
+                if (isAboutScheme(it)) {
+                    return
+                }
             }
 
             super.onReceivedError(view, errorCode, description, failingUrl)
@@ -317,6 +320,10 @@ class WebViewLoader(private val context: TealiumContext,
 
         private fun isFavicon(url: String): Boolean {
             return url.toLowerCase(Locale.ROOT).contains("favicon.ico")
+        }
+
+        private fun isAboutScheme(url: String): Boolean {
+            return url.toLowerCase(Locale.ROOT).startsWith("about:")
         }
 
         fun createSessionUrl(config: TealiumConfig, sessionId: Long): String {

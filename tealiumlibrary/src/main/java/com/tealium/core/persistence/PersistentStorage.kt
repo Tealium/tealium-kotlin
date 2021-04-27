@@ -25,7 +25,7 @@ internal class PersistentStorage(dbHelper: DatabaseHelper,
         NewSessionListener,
         CoroutineScope by dbHelper.scope {
 
-    override val name: String = "DATALAYER"
+    override val name: String = "DataLayer"
     override var enabled: Boolean = true
 
     private val dao = PersistentStorageDao<PersistentItem<*>>(dbHelper, tableName, false).also { it.purgeExpired() }

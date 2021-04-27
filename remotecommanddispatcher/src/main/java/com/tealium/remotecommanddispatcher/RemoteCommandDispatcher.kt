@@ -133,10 +133,12 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
         // do nothing - individual dispatch sent through onProcessRemoteCommand without batching
     }
 
-    override val name = "REMOTE_COMMAND_DISPATCHER"
+    override val name = "RemoteCommands"
     override var enabled: Boolean = true
 
     companion object : DispatcherFactory {
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
+
         override fun create(context: TealiumContext, callbacks: AfterDispatchSendCallbacks): Dispatcher {
             return RemoteCommandDispatcher(context)
         }

@@ -34,6 +34,10 @@ class BatchDispatchTests {
                 assertEquals("shared_value_2", e["shared_key_2"])
                 assertEquals("unique_value_$index", e["shared_key"])
                 assertEquals("unique_value_$index", e["unique_key_$index"])
+
+                assertNull(e[TEALIUM_ACCOUNT])
+                assertNull(e[TEALIUM_PROFILE])
+                assertNull(e[TEALIUM_ENVIRONMENT])
             }
         } ?: Assert.fail()
     }
@@ -64,7 +68,6 @@ class BatchDispatchTests {
             data[TEALIUM_ACCOUNT] = "account"
             data[TEALIUM_PROFILE] = "profile"
             data[TEALIUM_ENVIRONMENT] = "dev"
-
 
             // shared keys
             data["shared_key_1"] = "shared_value_1"

@@ -213,7 +213,8 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
     }
 
     companion object : ModuleFactory {
-        const val MODULE_NAME = "LIFECYCLE"
+        const val MODULE_NAME = "Lifecycle"
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
         override fun create(context: TealiumContext): Module {
             return Lifecycle(context)

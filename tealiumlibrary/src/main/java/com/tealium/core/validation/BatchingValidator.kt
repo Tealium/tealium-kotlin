@@ -16,7 +16,7 @@ internal class BatchingValidator(private val dispatchStorage: DispatchStorage,
                                  librarySettings: LibrarySettings,
                                  private val eventRouter: EventRouter) : DispatchValidator, LibrarySettingsUpdatedListener, ActivityObserverListener {
 
-    override val name: String = "BATCHING_VALIDATOR"
+    override val name: String = "BatchingValidator"
     override var enabled: Boolean = true
 
     private var batchSettings = librarySettings.batching
