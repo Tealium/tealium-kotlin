@@ -1,6 +1,7 @@
 package com.tealium.tagmanagementdispatcher
 
 import android.app.Application
+import android.os.Build
 import android.webkit.CookieManager
 import android.webkit.WebSettings
 import android.webkit.WebView
@@ -20,9 +21,14 @@ import org.json.JSONStringer
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.io.File
 import java.net.URL
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [21, 28])
 class TagManagementDispatcherTest {
 
     @MockK
@@ -100,7 +106,7 @@ class TagManagementDispatcherTest {
             Pair(param.split("=")[0], param.split("=")[1])
         }
         assertEquals("android", queryParams[DeviceCollectorConstants.DEVICE_PLATFORM])
-        assertEquals(/* Build.VERSION.RELEASE */"null", queryParams[DeviceCollectorConstants.DEVICE_OS_VERSION])
+        assertEquals(Build.VERSION.RELEASE, queryParams[DeviceCollectorConstants.DEVICE_OS_VERSION])
         assertEquals(BuildConfig.VERSION_NAME, queryParams[CoreConstant.LIBRARY_VERSION])
         assertEquals("true", queryParams["sdk_session_count"])
     }
@@ -145,8 +151,6 @@ class TagManagementDispatcherTest {
     @Test
     fun dispatchReadyCallRemoteCommandTags() {
         val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
-        mockkConstructor(JSONStringer::class)
-        every { anyConstructed<JSONStringer>().toString() } returns ""
         val dispatch = TealiumEvent("test", mapOf("key" to "value"))
         tagManagementDispatcher.webViewLoader = mockWebViewLoader
         every { mockWebViewLoader.webViewStatus.get() } returns PageStatus.LOADED_SUCCESS

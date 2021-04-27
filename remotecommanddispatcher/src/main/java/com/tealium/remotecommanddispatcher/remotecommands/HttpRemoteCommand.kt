@@ -19,6 +19,8 @@ import kotlin.text.StringBuilder
 
 class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME, DESCRIPTION) {
 
+    private val utf8 = Charset.forName("utf-8")
+
     override fun onInvoke(response: Response) {
         val url = response.requestPayload.optString(URL, "")
         val method = response.requestPayload.optString(METHOD, "")
@@ -45,14 +47,20 @@ class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME,
         if (isActive && client.connectivity.isConnected()) {
             try {
                 with(URL(urlString).openConnection() as HttpURLConnection) {
-                    addHeaders(response, this)
+                    val headers: JSONObject? = response.requestPayload.optJSONObject(HEADERS)?.let {
+                        addHeaders(it, this)
+                        it
+                    }
                     this.requestMethod = method
                     this.doInput = true
 
                     if (POST == method.toLowerCase(Locale.ROOT) || PUT == method.toLowerCase(Locale.ROOT)) {
                         this.doOutput = true
                         val outputStream = this.outputStream
-                        outputStream.write(parseEntity(response.requestPayload))
+                        outputStream.write(
+                                parseEntity(
+                                        response.requestPayload.opt(BODY),
+                                        headers?.optString("Content-Type") ?: ""))
                         outputStream.flush()
                         outputStream.close()
                     }
@@ -131,40 +139,17 @@ class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME,
         }
     }
 
-    private fun parseEntity(json: JSONObject): ByteArray {
-        val utf8 = Charset.forName("utf-8")
+    private fun parseEntity(body: Any?, contentType: String): ByteArray {
 
-        return when (json.opt(BODY)) {
-            is JSONObject -> {
-                val temp = json.opt(BODY) as JSONObject
-                val keys = temp.keys()
-                val builder = Uri.Builder()
-
-                while (keys.hasNext()) {
-                    val key = keys.next()
-                    builder.appendQueryParameter(key, temp.optString(key, ""))
-                }
-                builder.build().encodedQuery?.let {
-                    it.toByteArray(utf8)
-                } ?: run {
-                    byteArrayOf()
-                }
-            }
-            is String -> URLEncoder.encode(json.opt(BODY) as String, "utf8").toByteArray(utf8)
-            null -> byteArrayOf()
-            else -> URLEncoder.encode(json.opt(BODY) as String, "utf-8").toByteArray(utf8)
-        }
+        return body?.let { Formatters.formatterFor(contentType).format(it, utf8) } ?: byteArrayOf()
     }
 
-    private fun addHeaders(response: Response, connection: HttpURLConnection) {
-        val headers = response.requestPayload.optJSONObject(HEADERS)
-        headers?.let {
-            val i = it.keys()
-            while (i.hasNext()) {
-                val key = i.next()
-                val value = it.optString(key, "")
-                connection.setRequestProperty(key, value)
-            }
+    private fun addHeaders(headers: JSONObject, connection: HttpURLConnection) {
+        val i = headers.keys()
+        while (i.hasNext()) {
+            val key = i.next()
+            val value = headers.optString(key, "")
+            connection.setRequestProperty(key, value)
         }
     }
 
@@ -179,5 +164,48 @@ class HttpRemoteCommand(private val client: NetworkClient) : RemoteCommand(NAME,
 
         const val POST = "post"
         const val PUT = "put"
+    }
+
+    internal object Formatters {
+        private val formatters: MutableMap<String, Formatter> = mutableMapOf()
+
+        fun formatterFor(contentType: String): Formatter {
+            return formatters[contentType] ?: run {
+                return when(contentType) {
+                    "application/x-www-form-urlencoded" -> FormsUrlFormatter()
+                    "application/json" -> DefaultFormatter()
+                    else -> DefaultFormatter()
+                }.also { formatters[contentType] = it }
+            }
+        }
+    }
+
+    internal interface Formatter {
+        fun format(payload: Any, charset: Charset): ByteArray?
+    }
+
+    private class DefaultFormatter: Formatter {
+        override fun format(payload: Any, charset: Charset): ByteArray? {
+            return payload.toString().toByteArray(charset)
+        }
+    }
+
+    private class FormsUrlFormatter: Formatter {
+        override fun format(payload: Any, charset: Charset): ByteArray? {
+            return when (payload) {
+                is JSONObject -> {
+                    val keys = payload.keys()
+                    val builder = Uri.Builder()
+
+                    while (keys.hasNext()) {
+                        val key = keys.next()
+                        builder.appendQueryParameter(key, payload.optString(key, ""))
+                    }
+                    builder.build().encodedQuery?.toByteArray(charset)
+                }
+                is String -> URLEncoder.encode(payload, charset.name()).toByteArray(charset)
+                else -> URLEncoder.encode(payload.toString(), charset.name()).toByteArray(charset)
+            }
+        }
     }
 }
