@@ -187,7 +187,7 @@ class MediaService : Service() {
     }
 
     fun startChapter() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.startChapter(Chapter("Chapter 1"))
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.startChapter(Chapter("Chapter 1", 3000))
     }
 
     fun endChapter() {

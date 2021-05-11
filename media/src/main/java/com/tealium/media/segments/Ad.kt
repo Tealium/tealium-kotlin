@@ -4,7 +4,7 @@ import com.tealium.media.AdKey
 import com.tealium.media.Media
 import java.util.*
 
-data class Ad(val id: String,
+data class Ad(val id: String? = null,
               val name: String? = null,
               var position: Int? = null,
               var advertiser: String? = null,
@@ -41,11 +41,12 @@ data class Ad(val id: String,
 
     override fun segmentInfo(): Map<String, Any> {
         val data = mutableMapOf(
-                AdKey.ID to id,
                 AdKey.NAME to adName,
+                AdKey.UUID to uuid,
                 AdKey.SKIPPED to skipped
         )
 
+        id?.let { data[AdKey.ID] = it }
         position?.let { data[AdKey.POSITION] = it }
         advertiser?.let { data[AdKey.ADVERTISER] = it }
         creativeId?.let { data[AdKey.CREATIVE_ID] = it }
@@ -57,7 +58,6 @@ data class Ad(val id: String,
         pod?.let { data[AdKey.POD] = it }
         playerName?.let { data[AdKey.PLAYER_NAME] = it }
         duration?.let { data[AdKey.DURATION] = it }
-        uuid.let { data[AdKey.UUID] = it }
 
         return data.toMap()
     }
