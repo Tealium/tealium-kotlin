@@ -25,7 +25,9 @@ data class Chapter(val name: String,
 
     override fun skip() {
         end()
-        skipped = true
+        startTime?.let {
+            skipped = true
+        }
     }
 
     override fun segmentInfo(): Map<String, Any> {

@@ -36,7 +36,9 @@ data class Ad(val id: String? = null,
 
     override fun skip() {
         end()
-        skipped = true
+        startTime?.let {
+            skipped = true
+        }
     }
 
     override fun segmentInfo(): Map<String, Any> {
