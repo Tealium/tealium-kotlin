@@ -6,13 +6,13 @@ import java.util.*
 
 data class AdBreak(var id: String? = null,
                    val name: String? = null,
+                   var duration: Double? = null,
                    var index: Int? = null,
                    var position: Int? = null) : Segment {
 
     private val uuid: String = UUID.randomUUID().toString()
     private val adBreakName: String = name ?: uuid
     private var startTime: Long? = null
-    private var duration: Double? = null
 
     override fun start() {
         startTime = System.currentTimeMillis()
@@ -20,7 +20,9 @@ data class AdBreak(var id: String? = null,
 
     override fun end() {
         startTime?.let {
-            duration = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
+            if (duration == null) {
+                duration = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
+            }
         }
     }
 

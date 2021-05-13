@@ -6,6 +6,7 @@ import java.util.*
 
 data class Ad(val id: String? = null,
               val name: String? = null,
+              var duration: Double? = null,
               var position: Int? = null,
               var advertiser: String? = null,
               var creativeId: String? = null,
@@ -21,7 +22,6 @@ data class Ad(val id: String? = null,
 
     private val adName: String = name ?: uuid
     private var startTime: Long? = null
-    private var duration: Double? = null
     private var skipped: Boolean = false
 
     override fun start() {
@@ -30,7 +30,9 @@ data class Ad(val id: String? = null,
 
     override fun end() {
         startTime?.let {
-            duration = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
+            if (duration == null) {
+                duration = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
+            }
         }
     }
 

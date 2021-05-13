@@ -5,7 +5,7 @@ import com.tealium.media.Media
 import java.util.*
 
 data class Chapter(val name: String,
-                   var duration: Int,
+                   var duration: Double?,
                    var position: Int? = null,
                    var metadata: Map<String, Any>? = null) : Segment {
 
@@ -19,7 +19,9 @@ data class Chapter(val name: String,
 
     override fun end() {
         startTime?.let {
-            duration = Media.timeMillisToSeconds(System.currentTimeMillis() - it).toInt()
+            if (duration == null) {
+                duration = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
+            }
         }
     }
 
@@ -34,10 +36,10 @@ data class Chapter(val name: String,
         val data = mutableMapOf(
                 ChapterKey.NAME to name,
                 ChapterKey.UUID to uuid,
-                ChapterKey.DURATION to duration,
                 ChapterKey.SKIPPED to skipped
         )
 
+        duration?.let { data[ChapterKey.DURATION] = it }
         position?.let { data[ChapterKey.POSITION] = it }
         startTime?.let { data[ChapterKey.START_TIME] = it }
         metadata?.let { data[ChapterKey.METADATA] = it }
