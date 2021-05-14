@@ -5,7 +5,7 @@ import com.tealium.media.Media
 import java.util.*
 
 data class Chapter(val name: String,
-                   var duration: Double?,
+                   var duration: Double? = null,
                    var position: Int? = null,
                    var metadata: Map<String, Any>? = null) : Segment {
 
