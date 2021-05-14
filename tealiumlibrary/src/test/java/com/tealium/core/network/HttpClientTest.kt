@@ -66,7 +66,7 @@ class HttpClientTest {
     }
 
     @Test
-    fun postSuccess() = runBlockingTest {
+    fun postSuccess() = runBlocking {
         every { mockConnectivity.isConnected() } returns true
         mockkStatic(URLUtil::class)
         every { URLUtil.isValidUrl(any()) } returns true
@@ -90,7 +90,7 @@ class HttpClientTest {
     }
 
     @Test
-    fun postFailsUnknownHost() = runBlockingTest {
+    fun postFailsUnknownHost() = runBlocking {
         every { mockConnectivity.isConnected() } returns true
         mockkStatic(URLUtil::class)
         every { URLUtil.isValidUrl(any()) } returns true
