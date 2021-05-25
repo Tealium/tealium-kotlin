@@ -37,7 +37,7 @@ class HttpClientListenerTest {
         httpClient.post("test", "test_url", false)
 
         verify {
-            mockNetworkClientListener.onNetworkError("No network connection.")
+            mockNetworkClientListener.onNetworkError(any())
         }
         confirmVerified(mockNetworkClientListener)
     }
