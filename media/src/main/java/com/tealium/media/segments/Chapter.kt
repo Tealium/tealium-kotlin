@@ -5,12 +5,12 @@ import com.tealium.media.Media
 import java.util.*
 
 data class Chapter(val name: String,
+                   var duration: Double? = null,
                    var position: Int? = null,
                    var metadata: Map<String, Any>? = null) : Segment {
 
     private val uuid: String = UUID.randomUUID().toString()
     private var startTime: Long? = null
-    private var duration: Double? = null
     private var skipped: Boolean = false
 
     override fun start() {
@@ -19,13 +19,17 @@ data class Chapter(val name: String,
 
     override fun end() {
         startTime?.let {
-            duration = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
+            if (duration == null) {
+                duration = Media.timeMillisToSeconds(System.currentTimeMillis() - it)
+            }
         }
     }
 
     override fun skip() {
         end()
-        skipped = true
+        startTime?.let {
+            skipped = true
+        }
     }
 
     override fun segmentInfo(): Map<String, Any> {
