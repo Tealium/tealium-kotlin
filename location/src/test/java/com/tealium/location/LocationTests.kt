@@ -12,8 +12,11 @@ import com.tealium.core.Environment
 import com.tealium.core.Tealium
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
+import com.tealium.core.network.Connectivity
+import com.tealium.core.network.ConnectivityRetriever
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
@@ -33,6 +36,9 @@ class LocationTests {
 
     @MockK
     lateinit var mockFusedLocationProviderClient: FusedLocationProviderClient
+
+    @RelaxedMockK
+    lateinit var mockConnectivity: Connectivity
 
     @get:Rule
     var instantExecutorRule: TestRule = InstantTaskExecutorRule()
@@ -54,6 +60,10 @@ class LocationTests {
         every { mockContext.filesDir } returns mockFile
         every { anyConstructed<TealiumConfig>().tealiumDirectory.mkdir() } returns mockk()
         every { mockContext.applicationContext } returns mockContext
+
+        mockkObject(ConnectivityRetriever)
+        every { ConnectivityRetriever.getInstance(mockContext) } returns mockConnectivity
+        every { mockConnectivity.isConnected() } returns true
 
         mockkStatic(LocationServices::class)
         every { LocationServices.getFusedLocationProviderClient(any()) } returns mockk()

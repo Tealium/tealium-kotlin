@@ -3,10 +3,9 @@ package com.tealium.location
 import android.app.Application
 import android.location.Location
 import android.os.Build
-import com.tealium.core.Collectors
-import com.tealium.core.Environment
-import com.tealium.core.TealiumConfig
-import com.tealium.core.TealiumContext
+import com.tealium.core.*
+import com.tealium.core.network.Connectivity
+import com.tealium.core.network.ConnectivityRetriever
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
@@ -31,12 +30,19 @@ class LocationManagerTests {
     @MockK
     private lateinit var context2: TealiumContext
 
+    @RelaxedMockK
+    lateinit var mockConnectivity: Connectivity
+
     private lateinit var config: TealiumConfig
 
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
         config = TealiumConfig(mockApplication, "test", "test", Environment.DEV)
+
+        mockkObject(ConnectivityRetriever)
+        every { ConnectivityRetriever.getInstance(mockApplication) } returns mockConnectivity
+        every { mockConnectivity.isConnected() } returns true
 
         every { context.config } returns config
         every { context.track(any()) } just Runs
@@ -81,6 +87,22 @@ class LocationManagerTests {
                         assertEquals("fence", it[GeofenceEventConstants.GEOFENCE_NAME])
                         assertEquals("geofence_dwell", it[GeofenceEventConstants.GEOFENCE_TRANSITION_TYPE])
                     })
+        }
+    }
+
+    @Test
+    fun create_DoesNotLoadRemoteGeofence_WhenNoConnectivity() {
+        every { mockConnectivity.isConnected() } returns false
+
+        val mockLoader: JsonLoader = mockk(relaxed = true)
+        mockkObject(JsonLoader)
+        every { JsonLoader.getInstance(mockApplication) } returns mockLoader
+        JsonLoader.getInstance(context.config.application)
+
+        LocationManager.create(context)
+
+        verify {
+            mockLoader wasNot Called
         }
     }
 
