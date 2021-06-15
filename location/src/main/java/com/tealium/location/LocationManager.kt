@@ -4,6 +4,7 @@ import android.content.Intent
 import android.location.Location
 import android.os.Build
 import com.tealium.core.*
+import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.dispatcher.TealiumEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -138,7 +139,9 @@ class LocationManager(private val context: TealiumContext) :
                 allGeofenceLocations.add(geofence)
             }
         } ?: run {
-            scope.launch {
+            if (!ConnectivityRetriever.getInstance(context.config.application).isConnected()) return
+
+            scope.launch(Logger.exceptionHandler) {
                 jsonLoader.loadFromUrl(URL(geofenceUrl))?.let {
                     val geofenceList = GeofenceLocation.jsonArrayToGeofenceLocation(it as JSONArray)
                     geofenceList.forEach { geofence ->

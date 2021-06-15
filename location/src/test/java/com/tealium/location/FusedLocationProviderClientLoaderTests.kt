@@ -9,6 +9,8 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
+import com.tealium.core.network.Connectivity
+import com.tealium.core.network.ConnectivityRetriever
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
@@ -39,6 +41,9 @@ class FusedLocationProviderClientLoaderTests {
     @RelaxedMockK
     lateinit var mockLocationClient: FusedLocationProviderClient
 
+    @RelaxedMockK
+    lateinit var mockConnectivity: Connectivity
+
     lateinit var fusedLocationProviderClientLoader: FusedLocationProviderClientLoader
 
     val geofenceLocation = GeofenceLocation("Tealium_Reading", 51.4610304, -0.9707625, 100, -1, 0, true, true)
@@ -53,6 +58,10 @@ class FusedLocationProviderClientLoaderTests {
         every { mockConfig.application } returns mockApplication
         every { mockConfig.options } returns mutableMapOf()
         every { mockConfig.overrideFusedLocationProviderClient } returns mockLocationClient
+
+        mockkObject(ConnectivityRetriever)
+        every { ConnectivityRetriever.getInstance(mockApplication) } returns mockConnectivity
+        every { mockConnectivity.isConnected() } returns true
 
         fusedLocationProviderClientLoader = FusedLocationProviderClientLoader(mockContext)
     }
