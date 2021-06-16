@@ -12,8 +12,8 @@ import java.util.*
 
 /**
  * Media module provides an easy way to track a media session and its components, such as ad breaks,
- * ads, and chapters. Tracking type options include Significant Events, Milestone, Heartbeat,
- * Heartbeat + Milestone, and Summary.
+ * ads, and chapters. Tracking type options include Full Playback, Milestone, Interval,
+ * Interval + Milestone, and Summary.
  */
 class Media(private val context: TealiumContext,
             private val mediaDispatcher: MediaDispatcher = MediaSessionDispatcher(context)) : Module, ActivityObserverListener {
@@ -44,12 +44,12 @@ class Media(private val context: TealiumContext,
         }
 
         currentSession = when (media.trackingType) {
-            TrackingType.HEARTBEAT -> HeartbeatSession(media, mediaDispatcher)
+            TrackingType.INTERVAL -> IntervalSession(media, mediaDispatcher)
             TrackingType.MILESTONE -> MilestoneSession(media, mediaDispatcher)
-            TrackingType.HEARTBEAT_MILESTONE -> HeartbeatMilestoneSession(media, mediaDispatcher)
+            TrackingType.INTERVAL_MILESTONE -> IntervalMilestoneSession(media, mediaDispatcher)
 
             TrackingType.SUMMARY -> SummarySession(media, mediaDispatcher)
-            else -> SignificantEventsSession(media, mediaDispatcher)
+            else -> FullPlaybackSession(media, mediaDispatcher)
         }
         currentSession?.let {
             Logger.dev(BuildConfig.TAG, "Starting Media Session for: ${media.name}.")
@@ -237,7 +237,7 @@ class Media(private val context: TealiumContext,
 
     companion object : ModuleFactory {
         const val MODULE_NAME = "MEDIA_SERVICE"
-        const val DEFAULT_HEARTBEAT_INTERVAL = 10000L // ten seconds
+        const val DEFAULT_SESSION_INTERVAL = 10000L // ten seconds
         const val DEFAULT_END_SESSION_INTERVAL = 60000L // one minute
 
         override fun create(context: TealiumContext): Module {

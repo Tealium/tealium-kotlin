@@ -13,7 +13,7 @@ interface Session {
     fun endSession()
     fun endContent()
 
-    // Significant Events
+    // Full Playback Events
     fun startBuffer()
     fun endBuffer()
 

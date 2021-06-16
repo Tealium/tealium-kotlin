@@ -17,7 +17,7 @@ object MediaEvent {
     const val CHAPTER_SKIP = "media_chapter_skip"
     const val CHAPTER_START = "media_chapter_start"
 
-    const val HEARTBEAT = "media_heartbeat"
+    const val INTERVAL = "media_interaval"
     const val MILESTONE = "media_milestone"
 
     const val PAUSE = "media_pause"
@@ -141,10 +141,10 @@ enum class MediaType(val value: String) {
 }
 
 enum class TrackingType(val value: String) {
-    HEARTBEAT("heartbeat"),
+    INTERVAL("interval"),
     MILESTONE("milestone"),
-    SIGNIFICANT("significant"),
-    HEARTBEAT_MILESTONE("heartbeat_milestone"),
+    FULL_PLAYBACK("full_playback"),
+    INTERVAL_MILESTONE("interval_milestone"),
     SUMMARY("summary"),
 
 }

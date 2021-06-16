@@ -8,10 +8,10 @@ import com.tealium.core.TealiumContext
 import com.tealium.media.segments.Ad
 import com.tealium.media.segments.AdBreak
 import com.tealium.media.segments.Chapter
-import com.tealium.media.sessions.HeartbeatMilestoneSession
-import com.tealium.media.sessions.HeartbeatSession
+import com.tealium.media.sessions.IntervalMilestoneSession
+import com.tealium.media.sessions.IntervalSession
 import com.tealium.media.sessions.MilestoneSession
-import com.tealium.media.sessions.SignificantEventsSession
+import com.tealium.media.sessions.FullPlaybackSession
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
@@ -58,31 +58,31 @@ class MediaTests {
     }
 
     @Test
-    fun testMedia_StartSessionWithSignificantEventSession() {
+    fun testMedia_StartSessionWithFullPlaybackEventSession() {
         mediaContent = MediaContent("test_media",
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
 
-        Assert.assertTrue(media.currentSession is SignificantEventsSession)
+        Assert.assertTrue(media.currentSession is FullPlaybackSession)
     }
 
     @Test
-    fun testMedia_StartSessionWithHeartbeatSession() {
+    fun testMedia_StartSessionWithIntervalSession() {
         mediaContent = MediaContent("test_media",
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.HEARTBEAT)
+                TrackingType.INTERVAL)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
 
-        Assert.assertTrue(media.currentSession is HeartbeatSession)
+        Assert.assertTrue(media.currentSession is IntervalSession)
     }
 
     @Test
@@ -100,17 +100,17 @@ class MediaTests {
     }
 
     @Test
-    fun testMedia_StartSessionWithHeartbeatMilestoneSession() {
+    fun testMedia_StartSessionWithIntervalMilestoneSession() {
         mediaContent = MediaContent("test_media",
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.HEARTBEAT_MILESTONE)
+                TrackingType.INTERVAL_MILESTONE)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
 
-        Assert.assertTrue(media.currentSession is HeartbeatMilestoneSession)
+        Assert.assertTrue(media.currentSession is IntervalMilestoneSession)
     }
 
     @Test
@@ -119,7 +119,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -142,7 +142,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -171,7 +171,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -195,7 +195,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -218,7 +218,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -247,7 +247,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -270,7 +270,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -298,7 +298,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -314,7 +314,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -342,7 +342,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -358,7 +358,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -381,7 +381,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -410,7 +410,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -434,7 +434,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -462,7 +462,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -478,7 +478,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -497,7 +497,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
 
@@ -512,7 +512,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -533,7 +533,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
 
@@ -549,7 +549,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -570,7 +570,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
 
@@ -586,7 +586,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -608,7 +608,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
 
@@ -624,7 +624,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockQoE,
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -643,7 +643,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockQoE,
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -661,7 +661,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockQoE,
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -679,7 +679,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockQoE,
-                TrackingType.SIGNIFICANT)
+                TrackingType.FULL_PLAYBACK)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -699,7 +699,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockQoE,
-                TrackingType.SIGNIFICANT,
+                TrackingType.FULL_PLAYBACK,
                 PlayerState.FULLSCREEN)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
@@ -721,7 +721,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockQoE,
-                TrackingType.SIGNIFICANT,
+                TrackingType.FULL_PLAYBACK,
                 PlayerState.FULLSCREEN)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
@@ -737,7 +737,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockQoE,
-                TrackingType.SIGNIFICANT,
+                TrackingType.FULL_PLAYBACK,
                 PlayerState.FULLSCREEN)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
@@ -758,7 +758,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockQoE,
-                TrackingType.SIGNIFICANT,
+                TrackingType.FULL_PLAYBACK,
                 PlayerState.FULLSCREEN)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
@@ -786,7 +786,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockQoE,
-                TrackingType.SIGNIFICANT,
+                TrackingType.FULL_PLAYBACK,
                 PlayerState.FULLSCREEN)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
@@ -819,7 +819,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockQoE,
-                TrackingType.SIGNIFICANT,
+                TrackingType.FULL_PLAYBACK,
                 PlayerState.FULLSCREEN)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
@@ -841,7 +841,7 @@ class MediaTests {
                 mockk(),
                 mockk(),
                 mockQoE,
-                TrackingType.SIGNIFICANT,
+                TrackingType.FULL_PLAYBACK,
                 PlayerState.FULLSCREEN)
 
         val media = Media(mockTealiumContext, mockMediaSessionDispatcher)

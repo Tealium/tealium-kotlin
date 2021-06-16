@@ -36,7 +36,7 @@ class MediaService : Service() {
             StreamType.VOD,
             MediaType.VIDEO,
             QoE(1),
-            trackingType = TrackingType.SIGNIFICANT,
+            trackingType = TrackingType.FULL_PLAYBACK,
             duration = 120
     )
 
@@ -187,7 +187,7 @@ class MediaService : Service() {
     }
 
     fun startChapter() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.startChapter(Chapter("Chapter 1", 3000))
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.startChapter(Chapter("Chapter 1", 3000.toDouble()))
     }
 
     fun endChapter() {

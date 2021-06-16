@@ -10,7 +10,7 @@ import java.util.*
  * 10%, 25%, 50%, 75%, 90%, 100% of video content played.
  */
 open class MilestoneSession(private val mediaContent: MediaContent,
-                            private val mediaDispatcher: MediaDispatcher) : SignificantEventsSession(mediaContent, mediaDispatcher) {
+                            private val mediaDispatcher: MediaDispatcher) : FullPlaybackSession(mediaContent, mediaDispatcher) {
 
     private val contentDuration: Long? = mediaContent.duration?.toLong()
     private var timer: Timer? = null
