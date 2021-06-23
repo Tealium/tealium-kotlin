@@ -6,10 +6,10 @@ import com.tealium.media.segments.AdBreak
 import com.tealium.media.segments.Chapter
 
 /**
- * Session sends media details at significant events, like play, pause, stop, etc.
+ * Session sends media details at playback events, like play, pause, stop, etc.
  */
-open class SignificantEventsSession(private val mediaContent: MediaContent,
-                                    private val mediaDispatcher: MediaDispatcher) : Session {
+open class FullPlaybackSession(private val mediaContent: MediaContent,
+                               private val mediaDispatcher: MediaDispatcher) : Session {
 
     override var isBackgrounded: Boolean = false
 

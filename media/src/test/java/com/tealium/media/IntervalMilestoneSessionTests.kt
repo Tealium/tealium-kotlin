@@ -13,7 +13,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
-class HeartbeatMilestoneSessionTests {
+class IntervalMilestoneSessionTests {
 
     @RelaxedMockK
     lateinit var mockContext: TealiumContext
@@ -29,12 +29,12 @@ class HeartbeatMilestoneSessionTests {
     }
 
     @Test
-    fun testHeartbeatMilestone_SessionStart() {
+    fun testIntervalMilestone_SessionStart() {
         mediaContent = MediaContent("test_media",
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.HEARTBEAT_MILESTONE,
+                TrackingType.INTERVAL_MILESTONE,
                 duration = 100)
 
         val media = Media(mockContext, mockMediaSessionDispatcher)
@@ -44,12 +44,12 @@ class HeartbeatMilestoneSessionTests {
     }
 
     @Test
-    fun testHeartbeatMilestone_MilestoneSent() = runBlocking {
+    fun testIntervalMilestone_MilestoneSent() = runBlocking {
         mediaContent = MediaContent("test_media",
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.HEARTBEAT_MILESTONE,
+                TrackingType.INTERVAL_MILESTONE,
                 duration = 100
         )
 
@@ -57,17 +57,17 @@ class HeartbeatMilestoneSessionTests {
         media.startSession(mediaContent)
         media.play()
 
-        // wait 25 seconds - should record Heartbeat & Milestone
+        // wait 25 seconds - should record Interval & Milestone
         delay(25000)
 
         verify {
             mockMediaSessionDispatcher.track(MediaEvent.SESSION_START, any())
             // 10 sec. ping
-            mockMediaSessionDispatcher.track(MediaEvent.HEARTBEAT, any())
+            mockMediaSessionDispatcher.track(MediaEvent.INTERVAL, any())
             // Milestone.TEN
             mockMediaSessionDispatcher.track(MediaEvent.MILESTONE, any())
             // 20 sec. ping
-            mockMediaSessionDispatcher.track(MediaEvent.HEARTBEAT, any())
+            mockMediaSessionDispatcher.track(MediaEvent.INTERVAL, any())
             // Milestone.TWENTY_FIVE
             mockMediaSessionDispatcher.track(MediaEvent.MILESTONE, any())
 

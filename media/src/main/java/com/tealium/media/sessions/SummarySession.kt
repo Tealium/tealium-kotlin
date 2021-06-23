@@ -14,7 +14,7 @@ import java.util.*
  * and stops of media. Details captured are sent after endSession() is called.
  */
 class SummarySession(private val mediaContent: MediaContent,
-                     mediaDispatcher: MediaDispatcher) : SignificantEventsSession(mediaContent, mediaDispatcher) {
+                     mediaDispatcher: MediaDispatcher) : FullPlaybackSession(mediaContent, mediaDispatcher) {
 
     override fun startSession() {
         mediaContent.summary = MediaSummary()

@@ -13,7 +13,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
-class HeartbeatSessionTest {
+class IntervalSessionTest {
 
     @RelaxedMockK
     lateinit var mockContext: TealiumContext
@@ -29,12 +29,12 @@ class HeartbeatSessionTest {
     }
 
     @Test
-    fun testHeartbeat_SessionStart() {
+    fun testInterval_SessionStart() {
         mediaContent = MediaContent("test_media",
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.HEARTBEAT)
+                TrackingType.INTERVAL)
 
         val media = Media(mockContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
@@ -43,39 +43,39 @@ class HeartbeatSessionTest {
     }
 
     @Test
-    fun testHeartbeat_HeartbeatSent() = runBlocking {
+    fun testInterval_IntervalSent() = runBlocking {
         mediaContent = MediaContent("test_media",
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.HEARTBEAT
+                TrackingType.INTERVAL
         )
 
         val media = Media(mockContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
 
-        // wait 10 seconds - should record Heartbeat
+        // wait 10 seconds - should record Interval
         delay(10000)
 
         verify {
             mockMediaSessionDispatcher.track(MediaEvent.SESSION_START, any())
-            mockMediaSessionDispatcher.track(MediaEvent.HEARTBEAT, any())
+            mockMediaSessionDispatcher.track(MediaEvent.INTERVAL, any())
         }
     }
 
     @Test
-    fun testHeartbeat_PlayPauseSuccess() = runBlocking {
+    fun testInterval_PlayPauseSuccess() = runBlocking {
         mediaContent = MediaContent("test_media",
                 mockk(),
                 mockk(),
                 mockk(),
-                TrackingType.HEARTBEAT,
+                TrackingType.INTERVAL,
                 duration = 100)
 
         val media = Media(mockContext, mockMediaSessionDispatcher)
         media.startSession(mediaContent)
 
-        // wait 10 seconds - should record Heartbeat
+        // wait 10 seconds - should record Interval
         delay(10000)
 
         media.play()
@@ -84,7 +84,7 @@ class HeartbeatSessionTest {
 
         verify {
             mockMediaSessionDispatcher.track(MediaEvent.SESSION_START, any())
-            mockMediaSessionDispatcher.track(MediaEvent.HEARTBEAT, any())
+            mockMediaSessionDispatcher.track(MediaEvent.INTERVAL, any())
             mockMediaSessionDispatcher.track(MediaEvent.PLAY, any())
             mockMediaSessionDispatcher.track(MediaEvent.PAUSE, any())
             mockMediaSessionDispatcher.track(MediaEvent.SESSION_END, any())
