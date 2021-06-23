@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'maven-publish'
 apply from: '../jacoco.gradle'
 
-version = '1.0.3'
+version = '1.0.5'
 
 android {
     compileSdkVersion 29
@@ -16,6 +16,7 @@ android {
 
         buildConfigField 'String', 'TAG', "\"Tealium-TagManagementDispatcher-$version\""
         buildConfigField 'String', 'VERSION_NAME', "\"$version\""
+        buildConfigField 'String', 'LIBRARY_VERSION', "\"$version\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 

@@ -1,10 +1,20 @@
 package com.tealium.core
 
 import com.tealium.dispatcher.TealiumView
+import io.mockk.every
+import io.mockk.mockkStatic
 import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Test
+import java.util.*
 
 class TealiumEncoderTest {
+
+    @Before
+    fun setUp() {
+        mockkStatic(UUID::class)
+        every { UUID.randomUUID().toString() } returns "test_id"
+    }
 
     @Test
     fun encodeViewDispatchStringPayload() {
@@ -12,6 +22,7 @@ class TealiumEncoderTest {
         val result = TealiumEncoder.encode(dispatch)
         var expected = "${CoreConstant.TEALIUM_EVENT_TYPE}=view"
         expected += "&${CoreConstant.TEALIUM_EVENT}=my_view"
+        expected += "&${CoreConstant.REQUEST_UUID}=test_id"
         expected += "&test_key=test_value"
         assertTrue("Expected \n$expected does not match \n$result", expected == result)
     }
@@ -22,6 +33,7 @@ class TealiumEncoderTest {
         val result = TealiumEncoder.encode(dispatch)
         var expected = "${CoreConstant.TEALIUM_EVENT_TYPE}=view"
         expected += "&${CoreConstant.TEALIUM_EVENT}=my_view"
+        expected += "&${CoreConstant.REQUEST_UUID}=test_id"
         expected += "&test_key=value+with+spaces"
         assertTrue("Expected \n$expected does not match \n$result", expected == result)
     }
@@ -32,6 +44,7 @@ class TealiumEncoderTest {
         val result = TealiumEncoder.encode(dispatch)
         var expected = "${CoreConstant.TEALIUM_EVENT_TYPE}=view"
         expected += "&${CoreConstant.TEALIUM_EVENT}=my_view"
+        expected += "&${CoreConstant.REQUEST_UUID}=test_id"
         expected += "&test_key=1234"
         assertTrue("Expected $expected does not match $result", expected == result)
     }
@@ -42,6 +55,7 @@ class TealiumEncoderTest {
         val result = TealiumEncoder.encode(dispatch)
         var expected = "${CoreConstant.TEALIUM_EVENT_TYPE}=view"
         expected += "&${CoreConstant.TEALIUM_EVENT}=my_view"
+        expected += "&${CoreConstant.REQUEST_UUID}=test_id"
         expected += "&test_key=12.34"
         assertTrue("Expected $expected does not match $result", expected == result)
     }
@@ -53,6 +67,7 @@ class TealiumEncoderTest {
         val commaEncoded = "%2C"
         var expected = "${CoreConstant.TEALIUM_EVENT_TYPE}=view"
         expected += "&${CoreConstant.TEALIUM_EVENT}=my_view"
+        expected += "&${CoreConstant.REQUEST_UUID}=test_id"
         expected += "&test_key=1${commaEncoded}2${commaEncoded}3"
         assertTrue("Expected $expected does not match $result", expected == result)
     }

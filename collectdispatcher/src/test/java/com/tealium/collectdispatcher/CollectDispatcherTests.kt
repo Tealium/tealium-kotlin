@@ -5,7 +5,7 @@ import com.tealium.core.*
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
-import com.tealium.dispatcher.BatchDispatch
+import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import io.mockk.MockKAnnotations
 import io.mockk.*
@@ -17,9 +17,12 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.io.File
 
+
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [21, 28])
 class CollectDispatcherTests {
 
     @MockK
@@ -32,9 +35,6 @@ class CollectDispatcherTests {
     lateinit var mockConfig: TealiumConfig
 
     @MockK
-    lateinit var mockEncoder: Encoder
-
-    @MockK
     lateinit var mockNetworkClient: NetworkClient
 
     @MockK
@@ -42,6 +42,8 @@ class CollectDispatcherTests {
 
     @MockK
     lateinit var mockFile: File
+
+    lateinit var mockDispatch: Dispatch
 
     @Before
     fun setUp() {
@@ -59,6 +61,16 @@ class CollectDispatcherTests {
         every { mockConfig.overrideCollectDomain } returns null
         every { mockConfig.overrideCollectUrl } returns null
         every { mockConfig.overrideCollectBatchUrl } returns null
+        every { mockConfig.overrideCollectProfile } returns null
+        coEvery { mockNetworkClient.post(any(), any(), any()) } just Runs
+
+        mockDispatch = spyk(TealiumEvent("my-event", mapOf(
+                "tealium_event" to "my-event",
+                "tealium_account" to "test-account" ,
+                "tealium_profile" to "test-profile",
+                "key" to "value"))
+        )
+        every { mockDispatch.id } returns "test_id"
     }
 
     @Test
@@ -99,12 +111,17 @@ class CollectDispatcherTests {
         assertNull(config.overrideCollectBatchUrl)
         config.overrideCollectBatchUrl = "my.override"
         assertEquals("my.override", config.overrideCollectBatchUrl)
+
+        config.overrideCollectProfile = null
+        assertNull(config.overrideCollectProfile)
+        config.overrideCollectProfile = "my.override"
+        assertEquals("my.override", config.overrideCollectProfile)
     }
 
     @Test
     fun urls_DefaultsAreUsedWhenNotOverridden() {
         // no overrides set in [setUp]
-        val collectDispatcher = CollectDispatcher(mockConfig, mockEncoder, mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(mockConfig, mockNetworkClient)
 
         assertEquals(CollectDispatcher.COLLECT_URL, collectDispatcher.eventUrl)
         assertEquals(CollectDispatcher.BULK_URL, collectDispatcher.batchEventUrl)
@@ -116,7 +133,7 @@ class CollectDispatcherTests {
         every { mockConfig.overrideCollectUrl } returns null
         every { mockConfig.overrideCollectBatchUrl } returns null
 
-        val collectDispatcher = CollectDispatcher(mockConfig, mockEncoder, mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(mockConfig, mockNetworkClient)
 
         assertEquals("https://cname.domain.com/event", collectDispatcher.eventUrl)
         assertEquals("https://cname.domain.com/bulk-event", collectDispatcher.batchEventUrl)
@@ -129,24 +146,25 @@ class CollectDispatcherTests {
         every { mockConfig.overrideCollectUrl } returns "https://my.website.com/my-endpoint"
         every { mockConfig.overrideCollectBatchUrl } returns "https://my.website.com/my-bulk-endpoint"
 
-        val collectDispatcher = CollectDispatcher(mockConfig, mockEncoder, mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(mockConfig, mockNetworkClient)
 
         assertEquals("https://my.website.com/my-endpoint", collectDispatcher.eventUrl)
         assertEquals("https://my.website.com/my-bulk-endpoint", collectDispatcher.batchEventUrl)
     }
 
     @Test
-    fun events_IndividualEventsAreEncodedCorrectly() = runBlocking {
-        coEvery { mockNetworkClient.post(any(), any(), any()) } just Runs
-
+    fun events_IndividualEvents_AreEncodedCorrectly() = runBlocking {
         val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
-        val event = TealiumEvent("my-event", mapOf("key" to "value"))
-
-        collectDispatcher.onDispatchSend(event)
+        collectDispatcher.onDispatchSend(mockDispatch)
 
         coVerify {
             mockNetworkClient.post(
-                    "tealium_event_type=event&tealium_event=my-event&key=value&tealium_account=test-account&tealium_profile=test-profile",
+                    match { str ->
+                       JSONObject(str).let { payload ->
+                           payload.getString("tealium_account") == "test-account"
+                                   && payload.getString("tealium_profile") == "test-profile"
+                       }
+                    },
                     CollectDispatcher.COLLECT_URL,
                     false
             )
@@ -154,17 +172,62 @@ class CollectDispatcherTests {
     }
 
     @Test
-    fun events_BatchEventsAreEncodedCorrectly() = runBlocking {
-        coEvery { mockNetworkClient.post(any(), any(), any()) } just Runs
+    fun events_IndividualEvents_HaveProfileOverridden() = runBlocking {
+        every { mockConfig.overrideCollectProfile } returns "test-override"
 
         val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
-        val event = TealiumEvent("my-event", mapOf("key" to "value"))
-
-        collectDispatcher.onBatchDispatchSend(listOf(event, event))
+        collectDispatcher.onDispatchSend(mockDispatch)
 
         coVerify {
             mockNetworkClient.post(
-                    JSONObject(BatchDispatch.create(listOf(event, event))!!.payload()).toString(),
+                    match { str ->
+                        JSONObject(str).let { payload ->
+                            payload.getString("tealium_account") == "test-account"
+                                    && payload.getString("tealium_profile") == "test-override"
+                        }
+                    },
+                    CollectDispatcher.COLLECT_URL,
+                    false
+            )
+        }
+    }
+
+    @Test
+    fun events_BatchEvents_AreEncodedCorrectly(): Unit = runBlocking {
+        val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
+        collectDispatcher.onBatchDispatchSend(listOf(mockDispatch, mockDispatch))
+
+        coVerify {
+            mockNetworkClient.post(
+                    match { str ->
+                        JSONObject(str).let { payload ->
+                            payload.getJSONObject("shared").getString("tealium_account") == "test-account"
+                                    && payload.getJSONObject("shared").getString("tealium_profile") == "test-profile"
+                                    && payload.getJSONArray("events").length() == 2
+                        }
+                    },
+                    CollectDispatcher.BULK_URL,
+                    true
+            )
+        }
+    }
+
+    @Test
+    fun events_BatchEvents_HaveProfileOverridden() = runBlocking {
+        every { mockConfig.overrideCollectProfile } returns "test-override"
+
+        val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
+        collectDispatcher.onBatchDispatchSend(listOf(mockDispatch, mockDispatch))
+
+        coVerify {
+            mockNetworkClient.post(
+                    match { str ->
+                        JSONObject(str).let { payload ->
+                            payload.getJSONObject("shared").getString("tealium_account") == "test-account"
+                                    && payload.getJSONObject("shared").getString("tealium_profile") == "test-override"
+                                    && payload.getJSONArray("events").length() == 2
+                        }
+                    },
                     CollectDispatcher.BULK_URL,
                     true
             )
@@ -189,6 +252,109 @@ class CollectDispatcherTests {
         verify {
             listener.successfulTrack()
             listener.unsuccessfulTrack("Network error, response: Not Found")
+        }
+    }
+
+    @Test
+    fun serialization_Arrays_AreSerializedCorrectly() = runBlocking {
+        val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
+        every { mockDispatch.payload() } returns mapOf(
+                "string_array" to arrayOf("value_1", "value_2"),
+                "int_array" to arrayOf(10, 20),
+                "double_array" to arrayOf(10.5, 20.75),
+                "boolean_array" to arrayOf(true, false),
+                "object_array" to arrayOf(mapOf("string" to "value"), mapOf("int" to 1), mapOf("boolean" to false))
+        )
+
+        collectDispatcher.onDispatchSend(mockDispatch)
+
+        coVerify {
+            mockNetworkClient.post(
+                    match { str ->
+                        JSONObject(str).let { payload ->
+                            payload.getJSONArray("string_array").get(0) == "value_1"
+                                    && payload.getJSONArray("string_array").get(1) == "value_2"
+                                    && payload.getJSONArray("int_array").get(0) == 10
+                                    && payload.getJSONArray("int_array").get(1) == 20
+                                    && payload.getJSONArray("double_array").get(0) == 10.5
+                                    && payload.getJSONArray("double_array").get(1) == 20.75
+                                    && payload.getJSONArray("boolean_array").get(0) == true
+                                    && payload.getJSONArray("boolean_array").get(1) == false
+                                    && payload.getJSONArray("object_array").getJSONObject(0).get("string") == "value"
+                                    && payload.getJSONArray("object_array").getJSONObject(1).get("int") == 1
+                                    && payload.getJSONArray("object_array").getJSONObject(2).get("boolean") == false
+                        }
+                    },
+                    CollectDispatcher.COLLECT_URL,
+                    false
+            )
+        }
+    }
+
+    @Test
+    fun serialization_Lists_AreSerializedCorrectly() = runBlocking {
+        val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
+        every { mockDispatch.payload() } returns mapOf(
+                "string_list" to listOf("value_1", "value_2"),
+                "int_list" to listOf(10, 20),
+                "double_list" to listOf(10.5, 20.75),
+                "boolean_list" to listOf(true, false),
+                "object_list" to listOf(mapOf("string" to "value"), mapOf("int" to 1), mapOf("boolean" to false))
+        )
+
+        collectDispatcher.onDispatchSend(mockDispatch)
+
+        coVerify {
+            mockNetworkClient.post(
+                    match { str ->
+                        JSONObject(str).let { payload ->
+                            payload.getJSONArray("string_list").get(0) == "value_1"
+                                    && payload.getJSONArray("string_list").get(1) == "value_2"
+                                    && payload.getJSONArray("int_list").get(0) == 10
+                                    && payload.getJSONArray("int_list").get(1) == 20
+                                    && payload.getJSONArray("double_list").get(0) == 10.5
+                                    && payload.getJSONArray("double_list").get(1) == 20.75
+                                    && payload.getJSONArray("boolean_list").get(0) == true
+                                    && payload.getJSONArray("boolean_list").get(1) == false
+                                    && payload.getJSONArray("object_list").getJSONObject(0).get("string") == "value"
+                                    && payload.getJSONArray("object_list").getJSONObject(1).get("int") == 1
+                                    && payload.getJSONArray("object_list").getJSONObject(2).get("boolean") == false
+                        }
+                    },
+                    CollectDispatcher.COLLECT_URL,
+                    false
+            )
+        }
+    }
+
+    @Test
+    fun serialization_Maps_AreSerializedCorrectly() = runBlocking {
+        val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
+        every { mockDispatch.payload() } returns mapOf(
+                "string_map" to mapOf("string" to "value"),
+                "int_map" to mapOf("int" to 20),
+                "double_map" to mapOf("double" to 20.75),
+                "boolean_map" to mapOf("true" to false),
+                "object_map" to mapOf("map1" to mapOf("string" to "value", "boolean" to true)) // TODO
+        )
+
+        collectDispatcher.onDispatchSend(mockDispatch)
+
+        coVerify {
+            mockNetworkClient.post(
+                    match { str ->
+                        JSONObject(str).let { payload ->
+                            payload.getJSONObject("string_map").get("string") == "value"
+                                    && payload.getJSONObject("int_map").get("int") == 20
+                                    && payload.getJSONObject("double_map").get("double") == 20.75
+                                    && payload.getJSONObject("boolean_map").get("true") == false
+                                    && payload.getJSONObject("object_map").getJSONObject("map1").get("string") == "value"
+                                    && payload.getJSONObject("object_map").getJSONObject("map1").get("boolean") == true
+                        }
+                    },
+                    CollectDispatcher.COLLECT_URL,
+                    false
+            )
         }
     }
 }

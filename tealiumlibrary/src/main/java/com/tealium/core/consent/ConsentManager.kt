@@ -9,10 +9,12 @@ import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.network.NetworkClient
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
+import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
 class ConsentManager(private val context: TealiumContext,
@@ -33,8 +35,14 @@ class ConsentManager(private val context: TealiumContext,
     val expiry: ConsentExpiry
 
     init {
-        consentManagementPolicy = policy?.create(UserConsentPreferences(userConsentStatus, userConsentCategories))
-        expiry = context.config.consentExpiry ?: consentManagementPolicy?.defaultConsentExpiry ?: ConsentExpiry(365, TimeUnit.DAYS)
+        consentManagementPolicy = try {
+            policy?.create(UserConsentPreferences(userConsentStatus, userConsentCategories))
+        } catch (ex: Exception) {
+            Logger.qa(BuildConfig.TAG, "Error creating ConsentPolicy: ${ex.message}")
+            null
+        }
+        expiry = context.config.consentExpiry ?: consentManagementPolicy?.defaultConsentExpiry
+                ?: ConsentExpiry(365, TimeUnit.DAYS)
         expireConsent()
     }
 
@@ -58,9 +66,7 @@ class ConsentManager(private val context: TealiumContext,
     var userConsentStatus: ConsentStatus
         get() = consentSharedPreferences.consentStatus
         set(value) {
-            if (value != ConsentStatus.UNKNOWN) {
-                lastConsentUpdate = System.currentTimeMillis()
-            }
+            lastConsentUpdate = System.currentTimeMillis()
             when (value) {
                 ConsentStatus.CONSENTED -> setUserConsentStatus(value, ConsentCategory.ALL)
                 ConsentStatus.NOT_CONSENTED -> setUserConsentStatus(value, null)
@@ -149,6 +155,8 @@ class ConsentManager(private val context: TealiumContext,
      * any listeners.
      */
     private fun setUserConsentStatus(userConsentStatus: ConsentStatus, userConsentCategories: Set<ConsentCategory>?) {
+        if (consentSharedPreferences.consentStatus == userConsentStatus && consentSharedPreferences.consentCategories == userConsentCategories) return
+
         consentSharedPreferences.setConsentStatus(userConsentStatus, userConsentCategories)
         notifyPreferencesUpdated(userConsentStatus, userConsentCategories)
     }
@@ -200,6 +208,7 @@ class ConsentManager(private val context: TealiumContext,
     }
 
     companion object {
-        const val MODULE_NAME = "CONSENT_MANAGER"
+        const val MODULE_NAME = "ConsentManager"
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
     }
 }

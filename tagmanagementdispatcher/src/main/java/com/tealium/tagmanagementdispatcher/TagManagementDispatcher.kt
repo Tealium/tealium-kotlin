@@ -41,10 +41,14 @@ class TagManagementDispatcher(private val context: TealiumContext,
                 "&${CoreConstant.LIBRARY_VERSION}=${BuildConfig.VERSION_NAME}" +
                 "&sdk_session_count=true"
 
+    private val remoteApiEnabled: Boolean = context.config.remoteApiEnabled ?: true
+
     private val scope = CoroutineScope(Dispatchers.Main)
     internal var webViewLoader = WebViewLoader(context, urlString, afterDispatchSendCallbacks, connectivityRetriever = connectivity)
 
     fun callRemoteCommandTags(dispatch: Dispatch) {
+        if (!remoteApiEnabled) return
+
         val remoteCommandScript = "utag.track(\"remote_api\", ${dispatch.toJsonString()})"
         onEvaluateJavascript(remoteCommandScript)
     }
@@ -133,7 +137,8 @@ class TagManagementDispatcher(private val context: TealiumContext,
     }
 
     companion object : DispatcherFactory {
-        const val MODULE_NAME = "TAG_MANAGEMENT_DISPATCHER"
+        const val MODULE_NAME = "TagManagement"
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
         override fun create(context: TealiumContext, callbacks: AfterDispatchSendCallbacks): Dispatcher {
             return TagManagementDispatcher(context, callbacks)

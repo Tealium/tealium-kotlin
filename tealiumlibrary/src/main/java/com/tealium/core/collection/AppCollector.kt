@@ -9,6 +9,7 @@ import android.os.Process
 import com.tealium.core.*
 import com.tealium.core.persistence.DataLayer
 import com.tealium.core.persistence.Expiry
+import com.tealium.tealiumlibrary.BuildConfig
 import java.util.*
 
 interface AppData : Collector {
@@ -23,7 +24,7 @@ interface AppData : Collector {
 class AppCollector(private val context: Context, private val dataLayer: DataLayer) : Collector, AppData {
 
     override val name: String
-        get() = "APP_COLLECTOR"
+        get() = "AppData"
     override var enabled: Boolean = true
 
     private val activityManager = context.applicationContext.getSystemService(Service.ACTIVITY_SERVICE) as ActivityManager
@@ -67,7 +68,7 @@ class AppCollector(private val context: Context, private val dataLayer: DataLaye
     }
 
     companion object: CollectorFactory {
-
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
         override fun create(context: TealiumContext): Collector {
             return AppCollector(context.config.application, context.dataLayer)
         }

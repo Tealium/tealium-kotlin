@@ -11,6 +11,7 @@ object CoreConstant {
     const val KILL_VISITOR_SESSION_EVENT_KEY = "event"
     const val DEEP_LINK_URL = "deep_link_url"
     const val DEEP_LINK_QUERY_PREFIX = "deep_link_param"
+    const val REQUEST_UUID = "request_uuid"
 }
 
 object DispatchType {
