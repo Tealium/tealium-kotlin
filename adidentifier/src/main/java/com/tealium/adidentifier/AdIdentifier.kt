@@ -77,7 +77,8 @@ class AdIdentifier(private val tealiumContext: TealiumContext) : Module {
     }
 
     companion object : ModuleFactory {
-        const val MODULE_NAME = "AD_IDENTIFIER"
+        const val MODULE_NAME = "AdIdentifier"
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
         const val KEY_GOOGLE_ADID = "google_adid"
         const val KEY_GOOGLE_AD_TRACKING = "google_limit_ad_tracking"
 

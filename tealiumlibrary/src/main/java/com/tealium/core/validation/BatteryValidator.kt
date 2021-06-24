@@ -17,7 +17,7 @@ class BatteryValidator(config: TealiumConfig,
                        librarySettings: LibrarySettings,
                        events: Subscribable) : DispatchValidator {
 
-    override val name: String = "BATTERY_VALIDATOR"
+    override val name: String = "BatteryValidator"
     override var enabled: Boolean = librarySettings.batterySaver
 
     private val context: Context = config.application

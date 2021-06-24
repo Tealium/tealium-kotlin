@@ -16,7 +16,6 @@ interface CollectDispatcherListener : DispatcherListener {
 }
 
 class CollectDispatcher(private val config: TealiumConfig,
-                        private val encoder: Encoder = TealiumEncoder,
                         private val client: NetworkClient = HttpClient(config),
                         private val collectDispatchListener: CollectDispatcherListener? = null) :
         Dispatcher {
@@ -30,6 +29,8 @@ class CollectDispatcher(private val config: TealiumConfig,
         get() = config.overrideCollectBatchUrl ?: config.overrideCollectDomain?.let {
             "https://$it/bulk-event"
         } ?: BULK_URL
+
+    private val profileOverride: String? = config.overrideCollectProfile
 
     init {
         client.networkClientListener = object : NetworkClientListener {
@@ -50,10 +51,13 @@ class CollectDispatcher(private val config: TealiumConfig,
     }
 
     override suspend fun onDispatchSend(dispatch: Dispatch) {
-        var params = encoder.encode(dispatch)
-        params += "&${encoder.encode(config)}"
+        if (profileOverride != null) {
+            dispatch.addAll(
+                    mapOf(TEALIUM_PROFILE to profileOverride)
+            )
+        }
         Logger.dev(BuildConfig.TAG, "Sending dispatch: ${dispatch.payload()}")
-        client.post(params, eventUrl, false)
+        client.post(JSONObject(dispatch.payload()).toString(), eventUrl, false)
     }
 
     override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {
@@ -61,6 +65,9 @@ class CollectDispatcher(private val config: TealiumConfig,
 
         val batchDispatch = BatchDispatch.create(dispatches)
         batchDispatch?.let {
+            if (profileOverride != null) {
+                batchDispatch.shared[TEALIUM_PROFILE] = profileOverride
+            }
             client.post(JSONObject(batchDispatch.payload()).toString(), batchEventUrl, true)
         }
     }
@@ -68,6 +75,7 @@ class CollectDispatcher(private val config: TealiumConfig,
     companion object : DispatcherFactory {
         const val COLLECT_URL = "https://collect.tealiumiq.com/event"
         const val BULK_URL = "https://collect.tealiumiq.com/bulk-event"
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
         override fun create(context: TealiumContext,
                             callbacks: AfterDispatchSendCallbacks): Dispatcher {
@@ -76,7 +84,7 @@ class CollectDispatcher(private val config: TealiumConfig,
         }
     }
 
-    override val name = "COLLECT_DISPATCHER"
+    override val name = "Collect"
     override var enabled: Boolean = true
 }
 

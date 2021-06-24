@@ -226,7 +226,7 @@ class LibrarySettingsManagerTest {
         coEvery { mockNetworkClient.get(any()) } returns jsonLibrarySettings
         val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
 
-        verify(exactly = 1, timeout = 1000) {
+        verify(exactly = 1, timeout = 1500) {
             mockEventRouter.onLibrarySettingsUpdated(any())
         }
 
@@ -259,7 +259,7 @@ class LibrarySettingsManagerTest {
         coEvery { mockNetworkClient.get(any()) } returns htmlLibrarySettings
         val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
 
-        coVerify(exactly = 1, timeout = 1000) {
+        coVerify(exactly = 1, timeout = 1500) {
             mockEventRouter.onLibrarySettingsUpdated(any())
         }
 

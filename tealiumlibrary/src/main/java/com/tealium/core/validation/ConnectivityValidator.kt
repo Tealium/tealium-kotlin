@@ -6,13 +6,13 @@ import com.tealium.core.network.Connectivity
 import com.tealium.dispatcher.Dispatch
 
 /**
- * The connectivitiy validator will queue requests based on the current Library Settings. If there
+ * The connectivity validator will queue requests based on the current Library Settings. If there
  * is no network connectivity, or the settings dictate that data should only be sent when a WiFi
  * connection is detected, then the Dispatch will be queued.
  */
 class ConnectivityValidator(private val connectivityRetriever: Connectivity, private var librarySettings: LibrarySettings): DispatchValidator, LibrarySettingsUpdatedListener {
 
-    override val name: String = "CONNECTIVITY_VALIDATOR"
+    override val name: String = "ConnectivityValidator"
     override var enabled: Boolean = true
 
     override fun shouldQueue(dispatch: Dispatch?): Boolean {
