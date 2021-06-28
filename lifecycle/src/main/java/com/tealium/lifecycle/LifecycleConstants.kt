@@ -8,18 +8,12 @@ object LifecycleDefaults {
 }
 
 object LifecycleSPKey {
-    const val UPDATE_LAUNCH_DATE = "update_launch_date"
-    const val FIRST_LAUNCH = "first_launch"
-    const val FIRST_LAUNCH_MMDDYYY = "first_launch_mmddyyyy"
     const val TIMESTAMP_UPDATE = "timestamp_update"
     const val TIMESTAMP_LAUNCH = "timestamp_launch"
     const val TIMESTAMP_FIRST_LAUNCH = "timestamp_first_launch"
     const val TIMESTAMP_LAST_LAUNCH = "timestamp_last_launch"
     const val TIMESTAMP_LAST_WAKE = "timestamp_last_wake"
     const val TIMESTAMP_LAST_SLEEP = "timestamp_last_sleep"
-    const val LAST_LAUNCH = "last_launch"
-    const val LAST_SLEEP = "last_sleep"
-    const val LAST_WAKE = "last_wake"
     const val COUNT_LAUNCH = "count_launch"
     const val COUNT_SLEEP = "count_sleep"
     const val COUNT_WAKE = "count_wake"

@@ -14,7 +14,7 @@ import java.lang.UnsupportedOperationException
  * The Lifecycle module sends events relating to the overall lifecycle of the application - Launch,
  * Wake, Sleep.
  */
-class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverListener {
+class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserverListener {
 
     private val config: TealiumConfig = context.config
     var isAutoTracking = config.isAutoTrackingEnabled ?: true
@@ -35,7 +35,12 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
             throw UnsupportedOperationException("Lifecycle Autotracking is enable, cannot manually track lifecycle event")
         }
 
-        trackLaunchEvent(System.currentTimeMillis(), data)
+        val eventData = mutableMapOf<String, Any>(LifecycleStateKey.AUTOTRACKED to false)
+        data?.let {
+            eventData.putAll(it)
+        }
+
+        trackLaunchEvent(System.currentTimeMillis(), eventData.toMap())
     }
 
     /**
@@ -47,7 +52,12 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
             throw UnsupportedOperationException("Lifecycle Autotracking is enable, cannot manually track lifecycle event")
         }
 
-        trackWakeEvent(System.currentTimeMillis(), data)
+        val eventData = mutableMapOf<String, Any>(LifecycleStateKey.AUTOTRACKED to false)
+        data?.let {
+            eventData.putAll(it)
+        }
+
+        trackWakeEvent(System.currentTimeMillis(), eventData.toMap())
     }
 
     /**
@@ -59,7 +69,12 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
             throw UnsupportedOperationException("Lifecycle Autotracking is enable, cannot manually track lifecycle event")
         }
 
-        trackSleepEvent(System.currentTimeMillis(), data)
+        val eventData = mutableMapOf<String, Any>(LifecycleStateKey.AUTOTRACKED to false)
+        data?.let {
+            eventData.putAll(it)
+        }
+
+        trackSleepEvent(System.currentTimeMillis(), eventData.toMap())
     }
 
     private fun trackLaunchEvent(timestamp: Long, data: Map<String, Any>? = null) {
@@ -70,7 +85,7 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
         lifecycleSharedPreferences.incrementLaunch()
         lifecycleSharedPreferences.incrementWake()
 
-        val state: MutableMap<String, Any> = lifecycleService.getCurrentState(timestamp)
+        val state: MutableMap<String, Any> = mutableMapOf()//lifecycleService.getCurrentState(timestamp)
 
         data?.let {
             state.putAll(it)
@@ -98,7 +113,7 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
     private fun trackWakeEvent(timestamp: Long, data: Map<String, Any>? = null) {
         lifecycleSharedPreferences.incrementWake()
 
-        val state: MutableMap<String, Any> = lifecycleService.getCurrentState(timestamp)
+        val state: MutableMap<String, Any> = mutableMapOf()//lifecycleService.getCurrentState(timestamp)
 
         data?.let {
             state.putAll(it)
@@ -119,7 +134,7 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
         lifecycleSharedPreferences.incrementSleep()
         lifecycleSharedPreferences.updateSecondsAwake(secondsAwakeDelta)
 
-        val state: MutableMap<String, Any> = lifecycleService.getCurrentState(timestamp)
+        val state: MutableMap<String, Any> = mutableMapOf()//lifecycleService.getCurrentState(timestamp)
 
         data?.let {
             state.putAll(it)
@@ -210,6 +225,10 @@ class Lifecycle(private val context: TealiumContext) : Module, ActivityObserverL
 
     override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
         // do nothing
+    }
+
+    override suspend fun collect(): Map<String, Any> {
+        return lifecycleService.getCurrentState(System.currentTimeMillis()).toMap()
     }
 
     companion object : ModuleFactory {
