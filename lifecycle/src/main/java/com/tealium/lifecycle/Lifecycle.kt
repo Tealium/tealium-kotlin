@@ -85,7 +85,7 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
         lifecycleSharedPreferences.incrementLaunch()
         lifecycleSharedPreferences.incrementWake()
 
-        val state: MutableMap<String, Any> = mutableMapOf()//lifecycleService.getCurrentState(timestamp)
+        val state: MutableMap<String, Any> = mutableMapOf()
 
         data?.let {
             state.putAll(it)
@@ -113,7 +113,7 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
     private fun trackWakeEvent(timestamp: Long, data: Map<String, Any>? = null) {
         lifecycleSharedPreferences.incrementWake()
 
-        val state: MutableMap<String, Any> = mutableMapOf()//lifecycleService.getCurrentState(timestamp)
+        val state: MutableMap<String, Any> = mutableMapOf()
 
         data?.let {
             state.putAll(it)
@@ -134,7 +134,7 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
         lifecycleSharedPreferences.incrementSleep()
         lifecycleSharedPreferences.updateSecondsAwake(secondsAwakeDelta)
 
-        val state: MutableMap<String, Any> = mutableMapOf()//lifecycleService.getCurrentState(timestamp)
+        val state: MutableMap<String, Any> = mutableMapOf()
 
         data?.let {
             state.putAll(it)
