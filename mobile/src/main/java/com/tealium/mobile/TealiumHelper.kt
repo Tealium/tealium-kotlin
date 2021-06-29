@@ -16,6 +16,9 @@ import com.tealium.dispatcher.TealiumView
 import com.tealium.hosteddatalayer.HostedDataLayer
 import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
 import com.tealium.lifecycle.Lifecycle
+import com.tealium.media.Media
+import com.tealium.media.mediaBackgroundSessionEnabled
+import com.tealium.media.mediaBackgroundSessionEndInterval
 import com.tealium.location.Location
 import com.tealium.remotecommanddispatcher.RemoteCommands
 import com.tealium.remotecommanddispatcher.remoteCommands
@@ -33,7 +36,13 @@ object TealiumHelper {
                 "tealiummobile",
                 "android",
                 Environment.DEV,
-                modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer, Modules.CrashReporter, Modules.AdIdentifier),
+                modules = mutableSetOf(
+                        Modules.Lifecycle,
+                        Modules.VisitorService,
+                        Modules.HostedDataLayer,
+                        Modules.CrashReporter,
+                        Modules.AdIdentifier,
+                        Modules.Media),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
             useRemoteLibrarySettings = true
@@ -47,6 +56,9 @@ object TealiumHelper {
             timedEventTriggers = mutableListOf(
                     EventTrigger.forEventName("start_event", "end_event")
             )
+
+            mediaBackgroundSessionEnabled = false
+            mediaBackgroundSessionEndInterval = 5000L  // end session after 5 seconds
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
