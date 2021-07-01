@@ -11,5 +11,7 @@ class ModuleListViewModel : ViewModel() {
             "Location",
             "Timed Events",
             "Visitor Service",
-            "Media Tracking")
+            "Media Tracking",
+            "WebView Consent Sync"
+    )
 }
