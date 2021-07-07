@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
             "Hosted Data Layer" -> HostedDataLayerFragment()
             "Crash Reporter" -> CrashReporterFragment()
             "Media Tracking" -> MediaFragment()
+            "WebView Consent Sync" -> ConsentSyncFragment()
             else -> null
         }
         fragment?.let {

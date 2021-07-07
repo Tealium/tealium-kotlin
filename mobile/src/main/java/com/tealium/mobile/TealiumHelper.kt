@@ -94,6 +94,14 @@ object TealiumHelper {
         }
     }
 
+    fun fetchConsentCategories(): String? {
+        return Tealium[BuildConfig.TEALIUM_INSTANCE]?.consentManager?.userConsentCategories?.joinToString(",")
+    }
+
+    fun setConsentCategories(categories: Set<String>) {
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.consentManager?.userConsentCategories = ConsentCategory.consentCategories(categories)
+    }
+
     fun trackView(name: String, data: Map<String, Any>?) {
         val viewDispatch = TealiumView(name, data)
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.track(viewDispatch)
