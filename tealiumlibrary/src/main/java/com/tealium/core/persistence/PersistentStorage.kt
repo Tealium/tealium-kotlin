@@ -3,6 +3,7 @@ package com.tealium.core.persistence
 import com.tealium.core.messaging.NewSessionListener
 import kotlinx.coroutines.CoroutineScope
 import org.json.JSONObject
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  *  Key Value storage backed by a SQLite database.
@@ -20,7 +21,8 @@ import org.json.JSONObject
  *                      in the [DatabaseHelper].
  */
 internal class PersistentStorage(dbHelper: DatabaseHelper,
-                        private val tableName: String)
+                        private val tableName: String,
+                        private val volatileData: MutableMap<String, PersistentItem<*>> = ConcurrentHashMap())
     : SqlDataLayer,
         NewSessionListener,
         CoroutineScope by dbHelper.scope {
@@ -31,137 +33,158 @@ internal class PersistentStorage(dbHelper: DatabaseHelper,
     private val dao = PersistentStorageDao<PersistentItem<*>>(dbHelper, tableName, false).also { it.purgeExpired() }
 
     override fun putString(key: String, value: String, expiry: Expiry?) {
-        dao.upsert(PersistentString(key, value, expiry))
+        put(PersistentString(key, value, expiry))
     }
 
     override fun putInt(key: String, value: Int, expiry: Expiry?) {
-        dao.upsert(PersistentInt(key, value, expiry))
+        put(PersistentInt(key, value, expiry))
     }
 
     override fun putLong(key: String, value: Long, expiry: Expiry?) {
-        dao.upsert(PersistentLong(key, value, expiry))
+        put(PersistentLong(key, value, expiry))
     }
 
     override fun putDouble(key: String, value: Double, expiry: Expiry?) {
-        dao.upsert(PersistentDouble(key, value, expiry))
+        put(PersistentDouble(key, value, expiry))
     }
 
     override fun putBoolean(key: String, value: Boolean, expiry: Expiry?) {
-        dao.upsert(PersistentBoolean(key, value, expiry))
+        put(PersistentBoolean(key, value, expiry))
     }
 
     override fun putStringArray(key: String, value: Array<String>, expiry: Expiry?) {
-        dao.upsert(PersistentStringArray(key, value, expiry))
+        put(PersistentStringArray(key, value, expiry))
     }
 
     override fun putIntArray(key: String, value: Array<Int>, expiry: Expiry?) {
-        dao.upsert(PersistentIntArray(key, value, expiry))
+        put(PersistentIntArray(key, value, expiry))
     }
 
     override fun putLongArray(key: String, value: Array<Long>, expiry: Expiry?) {
-        dao.upsert(PersistentLongArray(key, value, expiry))
+        put(PersistentLongArray(key, value, expiry))
     }
 
     override fun putDoubleArray(key: String, value: Array<Double>, expiry: Expiry?) {
-        dao.upsert(PersistentDoubleArray(key, value, expiry))
+        put(PersistentDoubleArray(key, value, expiry))
     }
 
     override fun putBooleanArray(key: String, value: Array<Boolean>, expiry: Expiry?) {
-        dao.upsert(PersistentBooleanArray(key, value, expiry))
+        put(PersistentBooleanArray(key, value, expiry))
     }
 
     override fun putJsonObject(key: String, value: JSONObject, expiry: Expiry?) {
-        dao.upsert(PersistentJsonObject(key, value, expiry))
+        put(PersistentJsonObject(key, value, expiry))
+    }
+
+    private fun put(item: PersistentItem<*>) {
+        item.value?.let {
+            if (item.expiry == Expiry.UNTIL_RESTART) {
+                volatileData[item.key] = item
+                dao.delete(item.key)
+            } else {
+                dao.upsert(item)
+                volatileData.remove(item.key);
+            }
+        }
     }
 
     override fun getString(key: String): String? {
-        val item = dao.get(key)
+        val item = getItem(key)
         return (item as? PersistentString)?.value
     }
 
     override fun getInt(key: String): Int? {
-        val item = dao.get(key)
+        val item = getItem(key)
         return (item as? PersistentInt)?.value
     }
 
     override fun getLong(key: String): Long? {
-        val item = dao.get(key)
+        val item = getItem(key)
         return (item as? PersistentLong)?.value
     }
 
     override fun getDouble(key: String): Double? {
-        val item = dao.get(key)
+        val item = getItem(key)
         return (item as? PersistentDouble)?.value
     }
 
     override fun getBoolean(key: String): Boolean? {
-        val item = dao.get(key)
+        val item = getItem(key)
         return (item as? PersistentBoolean)?.value
     }
 
     override fun getStringArray(key: String): Array<String>? {
-        val item = dao.get(key)
+        val item = getItem(key)
         return (item as? PersistentStringArray)?.value
     }
 
     override fun getIntArray(key: String): Array<Int>? {
-        val item = dao.get(key)
+        val item = getItem(key)
         return (item as? PersistentIntArray)?.value
     }
 
     override fun getLongArray(key: String): Array<Long>? {
-        val item = dao.get(key)
+        val item = getItem(key)
         return (item as? PersistentLongArray)?.value
     }
 
     override fun getDoubleArray(key: String): Array<Double>? {
-        val item = dao.get(key)
+        val item = getItem(key)
         return (item as? PersistentDoubleArray)?.value
     }
 
     override fun getBooleanArray(key: String): Array<Boolean>? {
-        val item = dao.get(key)
+        val item = getItem(key)
         return (item as? PersistentBooleanArray)?.value
     }
 
     override fun getJsonObject(key: String): JSONObject? {
-        val item = dao.get(key)
+        val item = getItem(key)
         return (item as? PersistentJsonObject)?.value
     }
 
     override fun get(key: String): Any? {
-        val item = dao.get(key)
+        val item = getItem(key)
         return item?.value
     }
 
+    private fun getItem(key: String) : PersistentItem<*>? {
+        return volatileData[key] ?: dao.get(key)
+    }
+
     override fun all(): Map<String, Any> {
-        return dao.getAll().mapValues {
+        return dao.getAll().plus(volatileData).mapValues {
             it.value.value!!
         }
     }
 
     override fun remove(key: String) {
-        dao.delete(key)
+        val item = volatileData.remove(key)
+        // if it was stored in memory, no need to empty it from storage
+        if (item == null) {
+            dao.delete(key)
+        }
     }
 
     override fun clear() {
+        volatileData.clear()
         dao.clear()
     }
 
     override fun contains(key: String): Boolean {
-        return dao.contains(key)
+        return volatileData.containsKey(key) || dao.contains(key)
     }
 
     override fun keys(): List<String> {
-        return dao.keys()
+        return volatileData.keys.union(dao.keys()).toList();
     }
 
     override fun count(): Int {
-        return dao.count()
+        return volatileData.size + dao.count()
     }
 
     override fun getExpiry(key: String): Expiry? {
-        return dao.get(key)?.expiry
+        return volatileData[key]?.expiry ?: dao.get(key)?.expiry
     }
 
     override fun onNewSession(sessionId: Long) {

@@ -379,6 +379,70 @@ class KeyValueStorageTests {
         assertTrue(allItems.containsKey("timed_item"))
     }
 
+    @Test
+    fun testUntilRestartStoresData() {
+        storage.putString("until_restart_string", "string", Expiry.UNTIL_RESTART)
+        storage.putInt("until_restart_int", 10, Expiry.UNTIL_RESTART)
+        storage.putDouble("until_restart_double", 10.1, Expiry.UNTIL_RESTART)
+        storage.putLong("until_restart_long", 100L, Expiry.UNTIL_RESTART)
+        storage.putBoolean("until_restart_boolean", true, Expiry.UNTIL_RESTART)
+        storage.putStringArray("until_restart_string_array", arrayOf("string", "string_1"), Expiry.UNTIL_RESTART)
+        storage.putIntArray("until_restart_int_array", arrayOf(10, 11, 12), Expiry.UNTIL_RESTART)
+        storage.putDoubleArray("until_restart_double_array", arrayOf(10.1, 11.1, 12.1), Expiry.UNTIL_RESTART)
+        storage.putLongArray("until_restart_long_array", arrayOf(100L, 200L, 300L), Expiry.UNTIL_RESTART)
+        storage.putBooleanArray("until_restart_boolean_array", arrayOf(true, false, true), Expiry.UNTIL_RESTART)
+        val json = JSONObject("{\"key\":\"value\"}")
+        storage.putJsonObject("until_restart_json", json, Expiry.UNTIL_RESTART)
+
+        assertEquals("string", storage.get("until_restart_string"))
+        assertEquals(10, storage.get("until_restart_int"))
+        assertEquals(10.1, storage.get("until_restart_double"))
+        assertEquals(100L, storage.get("until_restart_long"))
+        assertEquals(true, storage.get("until_restart_boolean"))
+        assertArrayEquals(arrayOf("string", "string_1"), storage.getStringArray("until_restart_string_array"))
+        assertArrayEquals(arrayOf(10, 11, 12), storage.getIntArray("until_restart_int_array"))
+        assertArrayEquals(arrayOf(10.1, 11.1, 12.1), storage.getDoubleArray("until_restart_double_array"))
+        assertArrayEquals(arrayOf(100L, 200L, 300L), storage.getLongArray("until_restart_long_array"))
+        assertArrayEquals(arrayOf(true, false, true), storage.getBooleanArray("until_restart_boolean_array"))
+        assertEquals(json.toString(), (storage.get("until_restart_json") as JSONObject).toString())
+    }
+
+    @Test
+    fun testUntilRestartDropsData() {
+        // UntilRestart
+        storage.putString("until_restart_string", "string", Expiry.UNTIL_RESTART)
+        storage.putInt("until_restart_int", 10, Expiry.UNTIL_RESTART)
+        // Session
+        storage.putString("session_string", "string", Expiry.SESSION)
+        storage.putInt("session_int", 10, Expiry.SESSION)
+
+        assertEquals("string", storage.get("until_restart_string"))
+        assertEquals(10, storage.get("until_restart_int"))
+        assertEquals("string", storage.get("session_string"))
+        assertEquals(10, storage.get("session_int"))
+
+        storage = PersistentStorage(dbHelper, "datalayer")
+        assertNull(storage.get("until_restart_string"))
+        assertNull(storage.get("until_restart_int"))
+        assertEquals("string", storage.get("session_string"))
+        assertEquals(10, storage.get("session_int"))
+    }
+
+    @Test
+    fun testUntilRestartLatestExpiryWins() {
+        // UntilRestart
+        storage.putString("string", "string", Expiry.SESSION)
+        assertEquals("string", storage.get("string"))
+        assertEquals(Expiry.SESSION, storage.getExpiry("string"))
+
+        storage.putString("string", "string", Expiry.UNTIL_RESTART)
+        assertEquals("string", storage.get("string"))
+        assertEquals(Expiry.UNTIL_RESTART, storage.getExpiry("string"))
+
+        storage = PersistentStorage(dbHelper, "datalayer")
+        assertNull(storage.get("string"))
+    }
+
     @After
     fun tearDown() {
         // clear all.
