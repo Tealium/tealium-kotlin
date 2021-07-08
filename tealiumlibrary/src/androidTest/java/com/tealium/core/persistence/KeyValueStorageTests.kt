@@ -30,7 +30,7 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testPutString() {
+    fun putString_StoresValue() {
         storage.putString("string_key", "string_value")
 
         assertTrue(storage.contains("string_key"))
@@ -39,7 +39,7 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testPutInteger() {
+    fun putInt_StoresValue() {
         storage.putInt("int_key", 10)
 
         assertTrue(storage.contains("int_key"))
@@ -48,7 +48,7 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testPutDouble() {
+    fun putDouble_StoresValue() {
         storage.putDouble("double_key", 10.01)
 
         assertTrue(storage.contains("double_key"))
@@ -57,7 +57,7 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testPutLong() {
+    fun putLong_StoresValue() {
         storage.putLong("long_key", 10L)
 
         assertTrue(storage.contains("long_key"))
@@ -66,7 +66,7 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testPutBoolean() {
+    fun putBoolean_StoresValue() {
         storage.putBoolean("boolean_key_true", true)
         storage.putBoolean("boolean_key_false", false)
 
@@ -79,7 +79,7 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testPutStringArray() {
+    fun putStringArray_StoresValue() {
         storage.putStringArray("string_array_key", arrayOf("string_1", "string_2"))
 
         assertTrue(storage.contains("string_array_key"))
@@ -88,7 +88,7 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testPutIntArray() {
+    fun putIntArray_StoresValue() {
         storage.putIntArray("int_array_key", arrayOf(1,2,3))
 
         assertTrue(storage.contains("int_array_key"))
@@ -97,7 +97,7 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testPutLongArray() {
+    fun putLongArray_StoresValue() {
         storage.putLongArray("long_array_key", arrayOf(1L,2L,3L))
 
         assertTrue(storage.contains("long_array_key"))
@@ -106,7 +106,7 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testPutDoubleArray() {
+    fun putDoubleArray_StoresValue() {
         storage.putDoubleArray("double_array_key", arrayOf(1.1,2.2,3.3))
 
         assertTrue(storage.contains("double_array_key"))
@@ -115,7 +115,7 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testPutBooleanArray() {
+    fun putBooleanArray_StoresValue() {
         storage.putBooleanArray("boolean_array_key", arrayOf(true,false,true))
 
         assertTrue(storage.contains("boolean_array_key"))
@@ -124,7 +124,7 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testPutJsonObject() {
+    fun putJsonObject_StoresValue() {
         val emptyJsonObject = JSONObject()
         val filledJsonObject = JSONObject("{\"key\":\"value\",\"nested\":{\"nested_key\":\"nested_value\"}}")
 
@@ -140,9 +140,9 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testContainsKey() {
-        storage.putString("string", "String")
-        storage.putInt("int", 1)
+    fun contains_ReturnsCorrectValue() {
+        storage.putString("string", "String", Expiry.FOREVER)
+        storage.putInt("int", 1, Expiry.UNTIL_RESTART)
         storage.putDouble("double", 2.0)
         storage.putLong("long", 2L)
         storage.putBoolean("boolean", true)
@@ -165,13 +165,13 @@ class KeyValueStorageTests {
         assertTrue(storage.contains("long_array"))
         assertTrue(storage.contains("boolean_array"))
 
-        assertTrue(!storage.contains("missing_key"))
+        assertFalse(storage.contains("missing_key"))
     }
 
     @Test
-    fun testKeysList() {
-        storage.putString("string", "String")
-        storage.putInt("int", 1)
+    fun keys_ContainsAllKeys() {
+        storage.putString("string", "String", Expiry.FOREVER)
+        storage.putInt("int", 1, Expiry.UNTIL_RESTART)
         storage.putDouble("double", 2.0)
         storage.putLong("long", 2L)
         storage.putBoolean("boolean", true)
@@ -191,9 +191,9 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testKeysCount() {
-        storage.putString("string", "String")
-        storage.putInt("int", 1)
+    fun keys_Count() {
+        storage.putString("string", "String", Expiry.FOREVER)
+        storage.putInt("int", 1, Expiry.UNTIL_RESTART)
         storage.putDouble("double", 2.0)
         storage.putLong("long", 2L)
         storage.putBoolean("boolean", true)
@@ -209,9 +209,9 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testGetAll() {
-        storage.putString("string", "String")
-        storage.putInt("int", 1)
+    fun getAll_ReturnsAllData() {
+        storage.putString("string", "String", Expiry.FOREVER)
+        storage.putInt("int", 1, Expiry.UNTIL_RESTART)
         storage.putDouble("double", 2.0)
         storage.putLong("long", 2L)
         storage.putBoolean("boolean", true)
@@ -237,9 +237,9 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testGetAny() {
-        storage.putString("string", "String")
-        storage.putInt("int", 1)
+    fun get_ReturnsDataOfCorrectType() {
+        storage.putString("string", "String", Expiry.FOREVER)
+        storage.putInt("int", 1, Expiry.UNTIL_RESTART)
         storage.putDouble("double", 2.0)
         storage.putLong("long", 2L)
         storage.putBoolean("boolean", true)
@@ -251,11 +251,17 @@ class KeyValueStorageTests {
         storage.putBooleanArray("boolean_array", arrayOf(true))
 
         assertEquals("String", storage.get("string"))
+        assertTrue(storage.get("string") is String)
         assertEquals(1, storage.get("int"))
+        assertTrue(storage.get("int") is Int)
         assertEquals(2.0, storage.get("double"))
+        assertTrue(storage.get("double") is Double)
         assertEquals(2L, storage.get("long"))
+        assertTrue(storage.get("long") is Long)
         assertEquals(true, storage.get("boolean"))
+        assertTrue(storage.get("boolean") is Boolean)
         assertEquals(JSONObject().toString(), (storage.get("json") as JSONObject).toString())
+        assertTrue(storage.get("json") is JSONObject)
         assertArrayEquals(arrayOf("String"), storage.get("string_array") as Array<*>)
         assertArrayEquals(arrayOf(1), storage.get("int_array") as Array<*>)
         assertArrayEquals(arrayOf(2.0), storage.get("double_array") as Array<*>)
@@ -264,7 +270,7 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testOverwrites() {
+    fun put_OverwritesExistingValue() {
         storage.putString("string", "string 1")
         storage.putString("string", "string 2")
         assertEquals("string 2", storage.getString("string"))
@@ -283,12 +289,12 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testRemovals() {
+    fun remove_RemovesData() {
         storage.putString("string", "string 1")
         assertEquals("string 1", storage.getString("string"))
 
         storage.remove("string")
-        assertEquals(null, storage.getString("string"))
+        assertNull(storage.getString("string"))
 
         try {
             storage.remove("missing")
@@ -298,7 +304,7 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testNulls() {
+    fun get_ReturnsNull_ForIncorrectType() {
         // keys that dont exist
         assertNull(storage.getString("string"))
 
@@ -318,7 +324,7 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testExpiryDates() = runBlocking {
+    fun get_DoesNotReturnExpiredData() = runBlocking {
         val timestamp = System.currentTimeMillis() / 1000
         storage.putBoolean("non_expired_boolean", true, Expiry.afterEpochTime(timestamp + 100))
         storage.putBoolean("expired_boolean_1", true, Expiry.afterEpochTime(timestamp - 100))
@@ -358,11 +364,12 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testSessionExpiry() = runBlocking {
+    fun onNewSession_RemovesAllSessionData() = runBlocking {
         storage.putBoolean("session_item_1", true, Expiry.SESSION)
         storage.putString("session_item_2", "string", Expiry.SESSION)
         storage.putDouble("forever_item", Double.MAX_VALUE, Expiry.FOREVER)
         storage.putLong("timed_item", Long.MIN_VALUE, Expiry.afterTimeUnit(10, TimeUnit.MINUTES))
+        storage.putLong("restart_item", Long.MIN_VALUE, Expiry.UNTIL_RESTART)
 
         var allItems = storage.all()
         assertTrue(allItems.containsKey("session_item_1"))
@@ -377,10 +384,11 @@ class KeyValueStorageTests {
         assertFalse(allItems.containsKey("session_item_2"))
         assertTrue(allItems.containsKey("forever_item"))
         assertTrue(allItems.containsKey("timed_item"))
+        assertTrue(allItems.containsKey("restart_item"))
     }
 
     @Test
-    fun testUntilRestartStoresData() {
+    fun untilRestart_StoresAndRetrievesData() {
         storage.putString("until_restart_string", "string", Expiry.UNTIL_RESTART)
         storage.putInt("until_restart_int", 10, Expiry.UNTIL_RESTART)
         storage.putDouble("until_restart_double", 10.1, Expiry.UNTIL_RESTART)
@@ -408,7 +416,7 @@ class KeyValueStorageTests {
     }
 
     @Test
-    fun testUntilRestartDropsData() {
+    fun untilRestart_ErasedOnRestart() {
         // UntilRestart
         storage.putString("until_restart_string", "string", Expiry.UNTIL_RESTART)
         storage.putInt("until_restart_int", 10, Expiry.UNTIL_RESTART)
@@ -422,14 +430,16 @@ class KeyValueStorageTests {
         assertEquals(10, storage.get("session_int"))
 
         storage = PersistentStorage(dbHelper, "datalayer")
+        // Until Restart
         assertNull(storage.get("until_restart_string"))
         assertNull(storage.get("until_restart_int"))
+        // Session
         assertEquals("string", storage.get("session_string"))
         assertEquals(10, storage.get("session_int"))
     }
 
     @Test
-    fun testUntilRestartLatestExpiryWins() {
+    fun untilRestart_LatestExpiryWins() {
         // UntilRestart
         storage.putString("string", "string", Expiry.SESSION)
         assertEquals("string", storage.get("string"))
@@ -441,6 +451,76 @@ class KeyValueStorageTests {
 
         storage = PersistentStorage(dbHelper, "datalayer")
         assertNull(storage.get("string"))
+    }
+
+    @Test
+    fun untilRestart_LatestExpiryWins_OrderReversed() {
+        storage.putString("string", "string", Expiry.UNTIL_RESTART)
+        assertEquals("string", storage.get("string"))
+        assertEquals(Expiry.UNTIL_RESTART, storage.getExpiry("string"))
+
+        // UntilRestart
+        storage.putString("string", "string", Expiry.SESSION)
+        assertEquals("string", storage.get("string"))
+        assertEquals(Expiry.SESSION, storage.getExpiry("string"))
+
+        storage = PersistentStorage(dbHelper, "datalayer")
+        assertEquals("string", storage.get("string"))
+    }
+
+    @Test
+    fun untilRestart_Keys_ContainsMergedKeys() {
+        storage.putString("restart", "string", Expiry.UNTIL_RESTART)
+        storage.putString("session", "string", Expiry.SESSION)
+        storage.putString("forever", "string", Expiry.FOREVER)
+
+        val keys = storage.keys();
+        assertTrue(keys.contains("restart"))
+        assertTrue(keys.contains("session"))
+        assertTrue(keys.contains("forever"))
+    }
+
+    @Test
+    fun untilRestart_GetAll_ContainsMergedData() {
+        storage.putString("restart", "string", Expiry.UNTIL_RESTART)
+        storage.putString("session", "string", Expiry.SESSION)
+        storage.putString("forever", "string", Expiry.FOREVER)
+
+        val data = storage.all()
+        assertEquals("string", data["restart"])
+        assertEquals("string", data["session"])
+        assertEquals("string", data["forever"])
+    }
+
+    @Test
+    fun untilRestart_Remove_RemovesAllExpiries() {
+        storage.putString("restart", "string", Expiry.UNTIL_RESTART)
+        storage.putString("session", "string", Expiry.SESSION)
+        storage.putString("forever", "string", Expiry.FOREVER)
+        assertEquals("string", storage.getString("restart"))
+        assertEquals("string", storage.getString("session"))
+        assertEquals("string", storage.getString("forever"))
+
+        storage.remove("restart")
+        storage.remove("session")
+        storage.remove("forever")
+
+        assertNull(storage.getString("restart"))
+        assertNull(storage.getString("session"))
+        assertNull(storage.getString("forever"))
+    }
+
+    @Test
+    fun untilRestart_Clear_RemovesAll() {
+        storage.putString("restart", "string", Expiry.UNTIL_RESTART)
+        storage.putString("session", "string", Expiry.SESSION)
+        storage.putString("forever", "string", Expiry.FOREVER)
+
+        storage.clear()
+
+        assertNull(storage.getString("restart"))
+        assertNull(storage.getString("session"))
+        assertNull(storage.getString("forever"))
     }
 
     @After
