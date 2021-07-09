@@ -6,9 +6,11 @@ import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.io.BufferedReader
 
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [21, 28])
 class VisitorProfileTest {
 
     @Test
@@ -91,15 +93,13 @@ class VisitorProfileTest {
     fun visitorProfileDecodeMetricsSuccess() {
         val json = loadJson("valid_profile.json")
         val visitorProfile = VisitorProfile.fromJson(json)
-        assertEquals(5, visitorProfile.numbers?.count())
-        assertTrue(visitorProfile.numbers?.containsKey("22")!!)
-        assertTrue(visitorProfile.numbers?.containsKey("15")!!)
-        assertTrue(visitorProfile.numbers?.containsKey("28")!!)
-        assertTrue(visitorProfile.numbers?.containsKey("29")!!)
-        assertTrue(visitorProfile.numbers?.containsKey("21")!!)
-        visitorProfile.numbers?.forEach { (_, value) ->
-            assertEquals(1.toDouble(), value, 0.0)
-        }
+        assertEquals(6, visitorProfile.numbers?.count())
+        assertEquals(1.0, visitorProfile.numbers?.get("22")!!, 0.0)
+        assertEquals(1.0, visitorProfile.numbers?.get("15")!!, 0.0)
+        assertEquals(1.0, visitorProfile.numbers?.get("28")!!, 0.0)
+        assertEquals(1.0, visitorProfile.numbers?.get("29")!!, 0.0)
+        assertEquals(1.0, visitorProfile.numbers?.get("21")!!, 0.0)
+        assertEquals(1585244808000.0, visitorProfile.numbers?.get("23")!!, 0.0)
     }
 
     @Test
@@ -114,8 +114,9 @@ class VisitorProfileTest {
         val json = loadJson("valid_profile.json")
         val visitorProfile = VisitorProfile.fromJson(json)
         val array = visitorProfile.arraysOfNumbers?.get("5132")
-        assertEquals(1, array?.count())
+        assertEquals(2, array?.count())
         assertEquals(5.toDouble(), array?.first()!!, 0.0)
+        assertEquals(1585244808000.toDouble(), array?.last()!!, 0.0)
     }
 
     @Test
@@ -133,6 +134,7 @@ class VisitorProfileTest {
         assertEquals(1.0, set1?.get("blue_shoes")!!, 0.0)
         assertEquals(5.0, set1?.get("red_shoes")!!, 0.0)
         assertEquals(100.0, set1?.get("yellow_shoes")!!, 0.0)
+        assertEquals(1585244808000.0, set1?.get("long_yellow_shoes")!!, 0.0)
 
         val set2 = visitorProfile.tallies?.get("1234")
         assertEquals(100.0, set2?.get("blue_shirts")!!, 0.0)
@@ -197,6 +199,34 @@ class VisitorProfileTest {
         val visitorProfile = VisitorProfile.fromJson(json)
         assertNull(visitorProfile.setsOfStrings?.get("9999"))
 
+    }
+
+    @Test
+    fun toDouble_AcceptsInts() {
+        val double: Double? = VisitorProfile.toDouble(100)
+
+        assertEquals(100.0, double!!, 0.5)
+    }
+
+    @Test
+    fun toDouble_AcceptsDoubles() {
+        val double = VisitorProfile.toDouble(100.5)
+
+        assertEquals(100.5, double!!, 0.05)
+    }
+
+    @Test
+    fun toDouble_AcceptsLongs() {
+        val double = VisitorProfile.toDouble(100L)
+
+        assertEquals(100.0, double!!, 0.0)
+    }
+
+    @Test
+    fun toDouble_ReturnsNull() {
+        val double = VisitorProfile.toDouble("not-a-number")
+
+        assertNull(double)
     }
 }
 
