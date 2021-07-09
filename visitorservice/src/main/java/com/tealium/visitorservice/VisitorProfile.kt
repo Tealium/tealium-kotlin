@@ -147,7 +147,8 @@ data class VisitorProfile(
                         .entries
                         .associate { entry ->
                             entry.key to toDouble(entry.value)
-                        }.also { metrics ->
+                        }.mapNotNull { (k, v) -> v?.let { k to it }  }.toMap()
+                        .also { metrics ->
                             if (metrics.containsKey(KEY_TOTAL_EVENT_COUNT_METRIC)) {
                                 visitorProfile.totalEventCount = metrics.getValue(KEY_TOTAL_EVENT_COUNT_METRIC).toInt()
                             }
@@ -161,7 +162,9 @@ data class VisitorProfile(
                             val values = entry.value as JSONArray
                             val doubles = ArrayList<Double>()
                             for (i in 0 until values.length()) {
-                                doubles.add(toDouble(values.get(i)))
+                                toDouble(values.get(i))?.let {
+                                    doubles.add(it)
+                                }
                             }
                             entry.key to doubles
                         }
@@ -172,11 +175,11 @@ data class VisitorProfile(
                         .entries
                         .associate { entry ->
                             val values = entry.value as JSONObject
-                            val tallyValues = JsonUtils.mapFor(values)
+                            val tallyValues: Map<String, Double> = JsonUtils.mapFor(values)
                                     .entries
                                     .associate { tally ->
                                         tally.key to toDouble(tally.value)
-                                    }
+                                    }.mapNotNull { (k, v) -> v?.let { k to it }  }.toMap()
                             entry.key to tallyValues
                         }
             }
@@ -222,9 +225,9 @@ data class VisitorProfile(
             return visitorProfile
         }
 
-        fun toDouble(value: Any): Double {
-            return when (value as? Int) {
-                null -> value as Double
+        fun toDouble(value: Any): Double? {
+            return when (value as? Number) {
+                null -> value as? Double
                 else -> value.toDouble()
             }
         }

@@ -99,7 +99,7 @@ data class CurrentVisit(
                             .entries
                             .associate { entry ->
                                 entry.key to VisitorProfile.toDouble(entry.value)
-                            }
+                            }.mapNotNull { (k, v) -> v?.let { k to it }  }.toMap()
                 }
                 arraysOfNumbers = json.optJSONObject(KEY_METRIC_LISTS)?.let {
                     JsonUtils.mapFor(it)
@@ -108,7 +108,9 @@ data class CurrentVisit(
                                 val values = entry.value as JSONArray
                                 val doubles = ArrayList<Double>()
                                 for (i in 0 until values.length()) {
-                                    doubles.add(VisitorProfile.toDouble(values.get(i)))
+                                    VisitorProfile.toDouble(values.get(i))?.let {
+                                        doubles.add(it)
+                                    }
                                 }
                                 entry.key to doubles
                             }
@@ -122,7 +124,7 @@ data class CurrentVisit(
                                         .entries
                                         .associate { tally ->
                                             tally.key to VisitorProfile.toDouble(tally.value)
-                                        }
+                                        }.mapNotNull { (k, v) -> v?.let { k to it }  }.toMap()
                                 entry.key to tallyValues
                             }
                 }
