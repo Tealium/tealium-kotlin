@@ -1,6 +1,10 @@
 package com.tealium.collectdispatcher
 
 import com.tealium.core.*
+import com.tealium.core.consent.ConsentManager
+import com.tealium.core.consent.ConsentManagerConstants
+import com.tealium.core.consent.consentManagerLoggingProfile
+import com.tealium.core.consent.consentManagerLoggingUrl
 import com.tealium.core.messaging.*
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
@@ -51,19 +55,48 @@ class CollectDispatcher(private val config: TealiumConfig,
     }
 
     override suspend fun onDispatchSend(dispatch: Dispatch) {
-        if (profileOverride != null) {
-            dispatch.addAll(
+        when {
+            // Consent update event? check for profile override and URL override
+            ConsentManager.isConsentGrantedEvent(dispatch) -> {
+                config.consentManagerLoggingProfile?.let {
+                    dispatch.addAll(
+                        mapOf(TEALIUM_PROFILE to it)
+                    )
+                }
+
+                config.consentManagerLoggingUrl?.let { consentUrl ->
+                    Logger.dev(BuildConfig.TAG, "Sending dispatch: ${dispatch.payload()}")
+                    client.post(JSONObject(dispatch.payload()).toString(), consentUrl, false)
+                    return
+                }
+            }
+            profileOverride != null -> {
+                dispatch.addAll(
                     mapOf(TEALIUM_PROFILE to profileOverride)
-            )
+                )
+            }
         }
+
         Logger.dev(BuildConfig.TAG, "Sending dispatch: ${dispatch.payload()}")
         client.post(JSONObject(dispatch.payload()).toString(), eventUrl, false)
     }
 
     override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {
-        Logger.dev(BuildConfig.TAG, "Sending ${dispatches.count()} dispatches")
+        val dispatchList = mutableListOf<Dispatch>()
 
-        val batchDispatch = BatchDispatch.create(dispatches)
+        dispatches.forEach { dispatch ->
+            if (ConsentManager.isConsentGrantedEvent(dispatch)) {
+                if (!config.consentManagerLoggingProfile.isNullOrEmpty()
+                        || !config.consentManagerLoggingUrl.isNullOrEmpty()) {
+                    onDispatchSend(dispatch)
+                }
+            } else {
+                dispatchList.add(dispatch)
+            }
+        }
+
+        Logger.dev(BuildConfig.TAG, "Sending ${dispatchList.toList().count()} dispatches")
+        val batchDispatch = BatchDispatch.create(dispatchList.toList())
         batchDispatch?.let {
             if (profileOverride != null) {
                 batchDispatch.shared[TEALIUM_PROFILE] = profileOverride
