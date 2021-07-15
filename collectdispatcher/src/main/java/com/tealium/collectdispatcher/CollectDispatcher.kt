@@ -63,7 +63,6 @@ class CollectDispatcher(private val config: TealiumConfig,
                         mapOf(TEALIUM_PROFILE to it)
                     )
                 }
-
                 config.consentManagerLoggingUrl?.let { consentUrl ->
                     Logger.dev(BuildConfig.TAG, "Sending dispatch: ${dispatch.payload()}")
                     client.post(JSONObject(dispatch.payload()).toString(), consentUrl, false)
@@ -89,6 +88,8 @@ class CollectDispatcher(private val config: TealiumConfig,
                 if (!config.consentManagerLoggingProfile.isNullOrEmpty()
                         || !config.consentManagerLoggingUrl.isNullOrEmpty()) {
                     onDispatchSend(dispatch)
+                } else {
+                    dispatchList.add(dispatch)
                 }
             } else {
                 dispatchList.add(dispatch)
