@@ -92,6 +92,44 @@ class TealiumTests {
     }
 
     @Test
+    fun existingVisitorId() {
+        val config = TealiumConfig(application,
+            "testAccount",
+            "testProfile",
+            Environment.DEV)
+        config.existingVisitorId = "testExistingVisitorId"
+        val test = Tealium.create("tester", config)
+
+        val vid = test.visitorId
+        assertNotNull(vid)
+        assertEquals("testExistingVisitorId", test.visitorId)
+        assertEquals(test.visitorId, test.dataLayer.getString("tealium_visitor_id"))
+
+    }
+
+    @Test
+    fun resetExistingVisitorId() {
+        val config = TealiumConfig(application,
+            "testAccount2",
+            "testProfile2",
+            Environment.DEV)
+        config.existingVisitorId = "testExistingVisitorId"
+        val teal = Tealium.create("tester", config)
+
+        val vid = teal.visitorId
+        val storedVid = teal.dataLayer.getString("tealium_visitor_id")
+        assertEquals("testExistingVisitorId", vid)
+
+        val resetVid = teal.resetVisitorId()
+        val storedResetVid = teal.dataLayer.getString("tealium_visitor_id")
+
+        assertNotEquals(vid, resetVid)
+        assertNotEquals(storedVid, storedResetVid)
+        assertEquals(teal.visitorId, teal.dataLayer.getString("tealium_visitor_id"))
+
+    }
+
+    @Test
     fun testCallbackGetsExecuted() = runBlocking {
         var hasBeenCalled = false
 

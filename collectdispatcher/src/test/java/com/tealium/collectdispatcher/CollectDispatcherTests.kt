@@ -2,14 +2,20 @@ package com.tealium.collectdispatcher
 
 import android.app.Application
 import com.tealium.core.*
+import com.tealium.core.consent.ConsentManagerConstants
+import com.tealium.core.consent.consentManagerLoggingProfile
+import com.tealium.core.consent.consentManagerLoggingUrl
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
+import com.tealium.dispatcher.BatchDispatch
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import io.mockk.MockKAnnotations
 import io.mockk.*
+import io.mockk.InternalPlatformDsl.toStr
 import io.mockk.impl.annotations.MockK
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Assert.*
@@ -153,6 +159,70 @@ class CollectDispatcherTests {
     }
 
     @Test
+    fun consentLogging_OverrideProfile() = runBlocking {
+        every { mockConfig.consentManagerLoggingProfile } returns "testingProfile"
+        every { mockConfig.consentManagerLoggingUrl } returns null
+        every { mockDispatch.addAll(any()) } just Runs
+
+        val testDispatch = TealiumEvent(ConsentManagerConstants.GRANT_FULL_CONSENT)
+        val collectDispatcher = CollectDispatcher(mockConfig, mockNetworkClient)
+        collectDispatcher.onDispatchSend(testDispatch)
+
+        coVerify {
+            mockNetworkClient.post(
+                match { str ->
+                    JSONObject(str).let { payload ->
+                        payload.getString("tealium_profile") == "testingProfile"
+                    }
+                },
+                any(),
+                any()
+            )
+        }
+    }
+
+    @Test
+    fun consentLogging_OverrideUrl() = runBlocking {
+        every { mockConfig.consentManagerLoggingProfile } returns null
+        every { mockConfig.consentManagerLoggingUrl } returns "https://customUrl.com/my-endpoint"
+
+        val testDispatch = TealiumEvent(ConsentManagerConstants.GRANT_FULL_CONSENT)
+        val collectDispatcher = CollectDispatcher(mockConfig, mockNetworkClient)
+        collectDispatcher.onDispatchSend(testDispatch)
+
+        coVerify {
+            mockNetworkClient.post(
+                any(),
+                match { str -> str == "https://customUrl.com/my-endpoint" },
+                any()
+            )
+        }
+    }
+
+    @Test
+    fun consentLogging_OverrideProfileAndUrl() = runBlocking {
+        every { mockConfig.consentManagerLoggingProfile } returns "testingProfile"
+        every { mockConfig.consentManagerLoggingUrl } returns "https://customUrl.com/my-endpoint"
+        every { mockDispatch.addAll(any()) } just Runs
+
+        val testDispatch = TealiumEvent(ConsentManagerConstants.GRANT_FULL_CONSENT)
+        val collectDispatcher = CollectDispatcher(mockConfig, mockNetworkClient)
+        collectDispatcher.onDispatchSend(testDispatch)
+
+        coVerify {
+            mockNetworkClient.post(
+                match { str ->
+                    JSONObject(str).let { payload ->
+                        payload.getString("tealium_profile") == "testingProfile"
+                    }
+                },
+                match { str -> str == "https://customUrl.com/my-endpoint" },
+                any()
+            )
+        }
+    }
+
+    @Test
     fun events_IndividualEvents_AreEncodedCorrectly() = runBlocking {
         val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
         collectDispatcher.onDispatchSend(mockDispatch)
@@ -230,6 +300,126 @@ class CollectDispatcherTests {
                     },
                     CollectDispatcher.BULK_URL,
                     true
+            )
+        }
+    }
+
+    @Test
+    fun consentLogging_BatchEvents_ProfileOverridden() = runBlocking {
+        every { mockConfig.consentManagerLoggingProfile } returns "testingProfile"
+        every { mockConfig.consentManagerLoggingUrl } returns null
+
+
+        val testDispatch = TealiumEvent(ConsentManagerConstants.GRANT_FULL_CONSENT)
+        val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
+        collectDispatcher.onBatchDispatchSend(listOf(testDispatch, mockDispatch, mockDispatch, mockDispatch))
+
+        testDispatch.addAll(mapOf(TEALIUM_PROFILE to "testingProfile"))
+        val testConsentPayload = JSONObject(testDispatch.payload()).toString()
+
+        val batchPayload = BatchDispatch.create(listOf(mockDispatch, mockDispatch, mockDispatch))
+        val batch = JSONObject(batchPayload?.payload()).toString()
+
+        coVerify {
+            collectDispatcher.onDispatchSend(testDispatch)
+            mockNetworkClient.post(
+                testConsentPayload,
+                CollectDispatcher.COLLECT_URL,
+                any()
+            )
+
+            mockNetworkClient.post(
+                batch,
+                CollectDispatcher.BULK_URL,
+                any()
+            )
+        }
+    }
+
+    @Test
+    fun consentLogging_BatchEvents_UrlOverridden() = runBlocking {
+        val config = TealiumConfig(mockApplication,
+            mockConfig.accountName,
+            mockConfig.profileName,
+            mockConfig.environment,
+            dataSourceId = mockConfig.dataSourceId)
+        config.consentManagerLoggingUrl = "https://customUrl.com/my-endpoint"
+
+        val testDispatch = TealiumEvent(ConsentManagerConstants.GRANT_FULL_CONSENT)
+        val collectDispatcher = CollectDispatcher(config, client = mockNetworkClient)
+        collectDispatcher.onBatchDispatchSend(listOf(testDispatch, mockDispatch, mockDispatch, mockDispatch))
+
+        val str = JSONObject(testDispatch.payload()).toString()
+
+        val batchPayload = BatchDispatch.create(listOf(mockDispatch, mockDispatch, mockDispatch))
+        val batch = JSONObject(batchPayload?.payload()).toString()
+
+        coVerify {
+            collectDispatcher.onDispatchSend(testDispatch)
+            mockNetworkClient.post(
+                str,
+                "https://customUrl.com/my-endpoint",
+                any()
+            )
+
+            mockNetworkClient.post(
+                batch,
+                CollectDispatcher.BULK_URL,
+                any()
+            )
+        }
+    }
+
+    @Test
+    fun consentLogging_BatchEvents_ProfileAndUrlOverridden() = runBlocking {
+        val config = TealiumConfig(mockApplication,
+            mockConfig.accountName,
+            mockConfig.profileName,
+            mockConfig.environment,
+            dataSourceId = mockConfig.dataSourceId)
+        config.consentManagerLoggingProfile  = "testingProfile"
+        config.consentManagerLoggingUrl = "https://customUrl.com/my-endpoint"
+
+        val testDispatch = TealiumEvent(ConsentManagerConstants.GRANT_FULL_CONSENT)
+        val collectDispatcher = CollectDispatcher(config, client = mockNetworkClient)
+        collectDispatcher.onBatchDispatchSend(listOf(testDispatch, mockDispatch, mockDispatch, mockDispatch))
+
+        testDispatch.addAll(mapOf(TEALIUM_PROFILE to "testingProfile"))
+        val str = JSONObject(testDispatch.payload()).toString()
+
+        coVerify {
+            collectDispatcher.onDispatchSend(testDispatch)
+            mockNetworkClient.post(
+                str,
+                "https://customUrl.com/my-endpoint",
+                any()
+            )
+        }
+    }
+
+    @Test
+    fun consentLogging_BatchEvents_NoOverrides() = runBlocking {
+        val config = TealiumConfig(mockApplication,
+            mockConfig.accountName,
+            mockConfig.profileName,
+            mockConfig.environment,
+            dataSourceId = mockConfig.dataSourceId)
+
+        val testDispatch = TealiumEvent(ConsentManagerConstants.GRANT_FULL_CONSENT)
+        val collectDispatcher = CollectDispatcher(config, client = mockNetworkClient)
+        collectDispatcher.onBatchDispatchSend(listOf(testDispatch, mockDispatch, mockDispatch, mockDispatch))
+
+        coVerify {
+            mockNetworkClient.post(
+                match { str ->
+                    JSONObject(str).let { payload ->
+                        payload.getJSONObject("shared").getString("tealium_account") == "test-account"
+                                && payload.getJSONObject("shared").getString("tealium_profile") == "test-profile"
+                                && payload.getJSONArray("events").length() == 4
+                    }
+                },
+                CollectDispatcher.BULK_URL,
+                any()
             )
         }
     }

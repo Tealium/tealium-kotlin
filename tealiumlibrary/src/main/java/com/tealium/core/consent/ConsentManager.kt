@@ -1,37 +1,28 @@
 package com.tealium.core.consent
 
-import TealiumCollectorConstants.TEALIUM_VISITOR_ID
 import com.tealium.core.*
 import com.tealium.core.messaging.EventRouter
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
 import com.tealium.core.settings.LibrarySettings
-import com.tealium.core.network.ConnectivityRetriever
-import com.tealium.core.network.NetworkClient
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
+import com.tealium.dispatcher.TealiumEvent
 import com.tealium.tealiumlibrary.BuildConfig
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.launch
-import org.json.JSONObject
 import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
-class ConsentManager(private val context: TealiumContext,
-                     private val eventRouter: EventRouter,
-                     private var librarySettings: LibrarySettings,
-                     val policy: ConsentPolicy? = context.config.consentManagerPolicy
+class ConsentManager(
+    private val context: TealiumContext,
+    private val eventRouter: EventRouter,
+    private var librarySettings: LibrarySettings,
+    val policy: ConsentPolicy? = context.config.consentManagerPolicy
 ) : Collector, DispatchValidator, LibrarySettingsUpdatedListener {
 
     override val name: String = MODULE_NAME
     override var enabled: Boolean = context.config.consentManagerEnabled ?: false
-
-    private val consentLoggingUrl = context.config.consentManagerLoggingUrl
-            ?: "https://collect.tealiumiq.com/event"
-    private val connectivity = ConnectivityRetriever.getInstance(context.config.application)
     private val consentSharedPreferences = ConsentSharedPreferences(context.config)
     private val consentManagementPolicy: ConsentManagementPolicy?
-    private val httpClient: NetworkClient = context.httpClient
+
     val expiry: ConsentExpiry
 
     init {
@@ -101,22 +92,8 @@ class ConsentManager(private val context: TealiumContext,
     private fun logConsentUpdate() {
         consentManagementPolicy?.let { policy ->
             if (policy.consentLoggingEnabled) {
-                if ((connectivity.isConnected() && !librarySettings.wifiOnly) || connectivity.isConnectedWifi()) {
-                    // TODO: consider implementing a general network queue
-                    CoroutineScope(IO).launch {
-                        val json = JSONObject()
-                        policy.policyStatusInfo().forEach {
-                            json.put(it.key, it.value)
-                        }
-                        json.put(CoreConstant.TEALIUM_EVENT, policy.consentLoggingEventName)
-
-                        json.put(TEALIUM_ACCOUNT, context.config.accountName)
-                        json.put(TEALIUM_PROFILE, context.config.profileName)
-                        json.put(TEALIUM_VISITOR_ID, context.visitorId)
-
-                        httpClient.post(json.toString(), consentLoggingUrl, false)
-                    }
-                }
+                // profile override checked in dispatchers, url override checked in Collect dispatcher
+                context.track(TealiumEvent(policy.consentLoggingEventName, policy.policyStatusInfo()))
             }
         }
     }
@@ -137,7 +114,9 @@ class ConsentManager(private val context: TealiumContext,
      * Checks if value is expired.
      */
     private fun isExpired(timestamp: Long): Boolean {
-        if (timestamp == 0.toLong()) { return false }
+        if (timestamp == 0.toLong()) {
+            return false
+        }
         return (timestamp <
                 System.currentTimeMillis() - expiry.unit.toMillis(expiry.time))
     }
@@ -154,7 +133,10 @@ class ConsentManager(private val context: TealiumContext,
      * Sets the given ConsentStatus and set of ConsentCategory items into storage. Also notifies
      * any listeners.
      */
-    private fun setUserConsentStatus(userConsentStatus: ConsentStatus, userConsentCategories: Set<ConsentCategory>?) {
+    private fun setUserConsentStatus(
+        userConsentStatus: ConsentStatus,
+        userConsentCategories: Set<ConsentCategory>?
+    ) {
         if (consentSharedPreferences.consentStatus == userConsentStatus && consentSharedPreferences.consentCategories == userConsentCategories) return
 
         consentSharedPreferences.setConsentStatus(userConsentStatus, userConsentCategories)
@@ -165,7 +147,10 @@ class ConsentManager(private val context: TealiumContext,
      * Constructs a new [UserConsentPreferences] object with the current state and notifies the [ConsentPolicy]
      * that's in force and then any any other listeners.
      */
-    private fun notifyPreferencesUpdated(userConsentStatus: ConsentStatus, userConsentCategories: Set<ConsentCategory>?) {
+    private fun notifyPreferencesUpdated(
+        userConsentStatus: ConsentStatus,
+        userConsentCategories: Set<ConsentCategory>?
+    ) {
         consentManagementPolicy?.let {
             val preferences = UserConsentPreferences(userConsentStatus, userConsentCategories)
             it.userConsentPreferences = preferences
@@ -183,7 +168,7 @@ class ConsentManager(private val context: TealiumContext,
     override fun shouldQueue(dispatch: Dispatch?): Boolean {
         expireConsent()
         return consentManagementPolicy?.shouldQueue()
-                ?: false
+            ?: false
     }
 
     /**
@@ -191,7 +176,7 @@ class ConsentManager(private val context: TealiumContext,
      */
     override fun shouldDrop(dispatch: Dispatch): Boolean {
         return consentManagementPolicy?.shouldDrop()
-                ?: false
+            ?: false
     }
 
     /**
@@ -210,5 +195,10 @@ class ConsentManager(private val context: TealiumContext,
     companion object {
         const val MODULE_NAME = "ConsentManager"
         const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
+
+        fun isConsentGrantedEvent(dispatch: Dispatch): Boolean {
+            return (ConsentManagerConstants.GRANT_FULL_CONSENT == dispatch[CoreConstant.TEALIUM_EVENT]
+                    || ConsentManagerConstants.GRANT_PARTIAL_CONSENT == dispatch[CoreConstant.TEALIUM_EVENT])
+        }
     }
 }

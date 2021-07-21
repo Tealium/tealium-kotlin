@@ -38,8 +38,8 @@ class AppCollector(private val context: Context, private val dataLayer: DataLaye
         }
     override val appRdns: String = context.applicationContext.packageName
     override val appName: String = if (context.applicationInfo.labelRes != 0) context.getString(context.applicationInfo.labelRes) else ""
-    override val appBuild: String = getPackageContext().versionName?.toString() ?: ""
-    override val appVersion: String = getPackageContext().versionCode.toString()
+    override val appBuild: String = getPackageContext().versionCode.toString()
+    override val appVersion: String = getPackageContext().versionName?.toString() ?: ""
     override val appMemoryUsage: Long
         get() {
             var memoryUsage = 0L

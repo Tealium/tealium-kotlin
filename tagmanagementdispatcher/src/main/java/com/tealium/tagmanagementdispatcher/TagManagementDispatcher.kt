@@ -3,8 +3,7 @@ package com.tealium.tagmanagementdispatcher
 import android.os.Build
 import android.webkit.*
 import com.tealium.core.*
-import com.tealium.core.consent.ConsentManagementPolicy
-import com.tealium.core.consent.UserConsentPreferences
+import com.tealium.core.consent.*
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.messaging.DispatchReadyListener
 import com.tealium.core.validation.DispatchValidator
@@ -64,10 +63,16 @@ class TagManagementDispatcher(private val context: TealiumContext,
     }
 
     private fun track(dispatch: Dispatch) {
-        val callType = dispatch.payload()[CoreConstant.TEALIUM_EVENT_TYPE]
-        var javascriptCall = ""
+        if (ConsentManager.isConsentGrantedEvent(dispatch)) {
+            context.config.consentManagerLoggingProfile?.let {
+                dispatch.addAll(
+                    mapOf(TEALIUM_PROFILE to it)
+                )
+            }
+        }
 
-        javascriptCall = callType?.let {
+        val callType = dispatch.payload()[CoreConstant.TEALIUM_EVENT_TYPE]
+        val javascriptCall = callType?.let {
             when (it) {
                 TagManagementConstants.EVENT -> "utag.track(\"link\", ${dispatch.toJsonString()})"
                 else -> "utag.track(\"$it\", ${dispatch.toJsonString()})"
