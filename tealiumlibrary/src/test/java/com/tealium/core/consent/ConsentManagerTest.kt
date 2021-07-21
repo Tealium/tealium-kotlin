@@ -254,38 +254,6 @@ class ConsentManagerTest {
     }
 
     @Test
-    fun consentLoggingEnabled_SendsUpdatedTealiumVisitorId() {
-        config.consentManagerLoggingEnabled = true
-        val mockSettings: LibrarySettings = mockk()
-        every { mockSettings.wifiOnly } returns false
-
-        val mockConnectivity: Connectivity = mockk()
-        every { mockConnectivity.isConnected() } returns true
-        every { mockConnectivity.isConnectedWifi() } returns true
-
-        mockkObject(ConnectivityRetriever)
-        every { ConnectivityRetriever.getInstance(any<Application>()) } returns mockConnectivity
-
-        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockSettings, ConsentPolicy.GDPR)
-        consentManager.userConsentStatus = ConsentStatus.CONSENTED
-
-        verify {
-            mockTealiumContext.track(match {
-                it["tealium_visitor_id"] == "visitor1234567890"
-            })
-        }
-
-        every { mockTealiumContext.visitorId } returns "newVisitor"
-        consentManager.userConsentStatus = ConsentStatus.NOT_CONSENTED
-
-        verify {
-            mockTealiumContext.track(match {
-                it["tealium_visitor_id"] == "newVisitor"
-            })
-        }
-    }
-
-    @Test
     fun consentLoggingEnabled_DoesNotSendWhenNotConnected() {
         config.consentManagerLoggingEnabled = true
         val mockSettings: LibrarySettings = mockk()
@@ -343,9 +311,7 @@ class ConsentManagerTest {
         consentManager.userConsentStatus = ConsentStatus.CONSENTED
 
         verify {
-            mockTealiumContext.track(match {
-                it[TEALIUM_PROFILE] == "profile12345"
-            })
+            mockTealiumContext.track(any())
         }
     }
 
@@ -368,9 +334,7 @@ class ConsentManagerTest {
         consentManager.userConsentStatus = ConsentStatus.CONSENTED
 
         verify {
-            mockTealiumContext.track(match {
-                it[TEALIUM_PROFILE] == "newProfile"
-            })
+            mockTealiumContext.track(any())
         }
     }
 

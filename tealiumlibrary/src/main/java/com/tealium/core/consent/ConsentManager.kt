@@ -22,7 +22,6 @@ class ConsentManager(
     override var enabled: Boolean = context.config.consentManagerEnabled ?: false
     private val consentSharedPreferences = ConsentSharedPreferences(context.config)
     private val consentManagementPolicy: ConsentManagementPolicy?
-
     val expiry: ConsentExpiry
 
     init {
