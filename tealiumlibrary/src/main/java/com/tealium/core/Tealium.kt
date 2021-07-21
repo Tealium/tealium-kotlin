@@ -285,7 +285,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
         return dataLayer.getString("tealium_visitor_id") ?: run {
              return config.existingVisitorId?.also {
                  dataLayer.putString("tealium_visitor_id", it, Expiry.FOREVER)
-             } ?: ""//?: createVisitorId()
+             } ?: createVisitorId()
          }
     }
 

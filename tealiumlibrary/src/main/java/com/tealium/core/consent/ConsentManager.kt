@@ -20,7 +20,6 @@ class ConsentManager(
 
     override val name: String = MODULE_NAME
     override var enabled: Boolean = context.config.consentManagerEnabled ?: false
-//    private val consentLoggingProfile: String? = context.config.consentManagerLoggingProfile
     private val consentSharedPreferences = ConsentSharedPreferences(context.config)
     private val consentManagementPolicy: ConsentManagementPolicy?
 

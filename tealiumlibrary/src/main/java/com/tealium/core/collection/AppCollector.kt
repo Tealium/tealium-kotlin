@@ -5,7 +5,6 @@ import android.app.ActivityManager
 import android.app.Service
 import android.content.Context
 import android.content.pm.PackageInfo
-import android.os.Build
 import android.os.Process
 import com.tealium.core.*
 import com.tealium.core.persistence.DataLayer

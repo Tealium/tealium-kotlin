@@ -63,7 +63,6 @@ class TagManagementDispatcher(private val context: TealiumContext,
     }
 
     private fun track(dispatch: Dispatch) {
-        // does this apply here too?
         if (ConsentManager.isConsentGrantedEvent(dispatch)) {
             context.config.consentManagerLoggingProfile?.let {
                 dispatch.addAll(
