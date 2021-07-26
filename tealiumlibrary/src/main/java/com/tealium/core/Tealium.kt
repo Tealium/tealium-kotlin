@@ -282,10 +282,17 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
      * a replacement.
      */
     private fun getOrCreateVisitorId(): String {
-        return dataLayer.getString("tealium_visitor_id")
-                ?: UUID.randomUUID().toString().replace("-", "").also {
-                    dataLayer.putString("tealium_visitor_id", it, Expiry.FOREVER)
-                }
+        return dataLayer.getString("tealium_visitor_id") ?: run {
+             return config.existingVisitorId?.also {
+                 dataLayer.putString("tealium_visitor_id", it, Expiry.FOREVER)
+             } ?: createVisitorId()
+         }
+    }
+
+    private fun createVisitorId(): String {
+        return UUID.randomUUID().toString().replace("-", "").also {
+            dataLayer.putString("tealium_visitor_id", it, Expiry.FOREVER)
+        }
     }
 
     /**
@@ -318,7 +325,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
      */
     fun resetVisitorId() {
         dataLayer.remove("tealium_visitor_id")
-        _visitorId = getOrCreateVisitorId()
+        _visitorId = createVisitorId()
     }
 
     /**

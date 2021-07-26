@@ -3,6 +3,7 @@ package com.tealium.core.consent
 import android.app.Application
 import android.content.SharedPreferences
 import com.tealium.core.Environment
+import com.tealium.core.TEALIUM_PROFILE
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
@@ -14,6 +15,7 @@ import com.tealium.core.network.Connectivity
 import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.network.HttpClient
 import com.tealium.core.settings.LibrarySettings
+import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
@@ -70,10 +72,11 @@ class ConsentManagerTest {
         every { editor.putString(KEY_STATUS, "unknown") } returns editor
         every { editor.remove(any()) } returns editor
 
-        config = TealiumConfig(context, "test", "profile", Environment.QA)
+        config = TealiumConfig(context, "test", "profile12345", Environment.QA)
         every { mockTealiumContext.config } returns config
         every { mockTealiumContext.visitorId } returns "visitor1234567890"
         every { mockTealiumContext.httpClient } returns mockHttpClient
+        every { mockTealiumContext.track(any()) } just Runs
         config.consentExpiry = ConsentExpiry(1, TimeUnit.MINUTES)
         consentManager = ConsentManager(mockTealiumContext, eventRouter, mockk())
     }
@@ -251,38 +254,7 @@ class ConsentManagerTest {
     }
 
     @Test
-    fun consentLoggingEnabled_SendsUpdatedTealiumVisitorId() = runBlocking {
-        config.consentManagerLoggingEnabled = true
-        val mockSettings: LibrarySettings = mockk()
-        every { mockSettings.wifiOnly } returns false
-
-        val mockConnectivity: Connectivity = mockk()
-        every { mockConnectivity.isConnected() } returns true
-        every { mockConnectivity.isConnectedWifi() } returns true
-
-        mockkObject(ConnectivityRetriever)
-        every { ConnectivityRetriever.getInstance(any<Application>()) } returns mockConnectivity
-
-        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockSettings, ConsentPolicy.GDPR)
-        consentManager.userConsentStatus = ConsentStatus.CONSENTED
-        coVerify(timeout = 500) {
-            mockHttpClient.post(match {
-                it.contains("visitor1234567890")
-            }, any(), any())
-        }
-
-        every { mockTealiumContext.visitorId } returns "newVisitor"
-        consentManager.userConsentStatus = ConsentStatus.NOT_CONSENTED
-
-        coVerify(timeout = 500) {
-            mockHttpClient.post(match {
-                it.contains("newVisitor")
-            }, any(), any())
-        }
-    }
-
-    @Test
-    fun consentLoggingEnabled_DoesNotSendWhenNotConnected() = runBlocking {
+    fun consentLoggingEnabled_DoesNotSendWhenNotConnected() {
         config.consentManagerLoggingEnabled = true
         val mockSettings: LibrarySettings = mockk()
         every { mockSettings.wifiOnly } returns false
@@ -296,13 +268,13 @@ class ConsentManagerTest {
 
         consentManager = ConsentManager(mockTealiumContext, eventRouter, mockSettings, ConsentPolicy.GDPR)
         consentManager.userConsentStatus = ConsentStatus.UNKNOWN
-        coVerify(exactly = 0, timeout = 500) {
-            mockHttpClient.post(any(), any(), any())
+        verify(exactly = 0){
+            mockTealiumContext.track(any())
         }
     }
 
     @Test
-    fun consentLoggingEnabled_DoesNotSendWhenWifiOnly() = runBlocking {
+    fun consentLoggingEnabled_DoesNotSendWhenWifiOnly() {
         config.consentManagerLoggingEnabled = true
         val mockSettings: LibrarySettings = mockk()
         every { mockSettings.wifiOnly } returns true
@@ -316,8 +288,53 @@ class ConsentManagerTest {
 
         consentManager = ConsentManager(mockTealiumContext, eventRouter, mockSettings, ConsentPolicy.GDPR)
         consentManager.userConsentStatus = ConsentStatus.UNKNOWN
-        coVerify(exactly = 0, timeout = 500) {
-            mockHttpClient.post(any(), any(), any())
+        verify(exactly = 0) {
+            mockTealiumContext.track(any())
+        }
+    }
+
+    @Test
+    fun consentLoggingEnabled_VerifyOriginalProfile() {
+        config.consentManagerLoggingEnabled = true
+        val mockSettings: LibrarySettings = mockk()
+        every { mockSettings.wifiOnly } returns false
+
+
+        val mockConnectivity: Connectivity = mockk()
+        every { mockConnectivity.isConnected() } returns true
+        every { mockConnectivity.isConnectedWifi() } returns true
+
+        mockkObject(ConnectivityRetriever)
+        every { ConnectivityRetriever.getInstance(any<Application>()) } returns mockConnectivity
+
+        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockSettings, ConsentPolicy.GDPR)
+        consentManager.userConsentStatus = ConsentStatus.CONSENTED
+
+        verify {
+            mockTealiumContext.track(any())
+        }
+    }
+
+    @Test
+    fun consentLoggingEnabled_VerifyOverrideProfile() {
+        config.consentManagerLoggingEnabled = true
+        config.consentManagerLoggingProfile = "newProfile"
+        val mockSettings: LibrarySettings = mockk()
+        every { mockSettings.wifiOnly } returns false
+
+
+        val mockConnectivity: Connectivity = mockk()
+        every { mockConnectivity.isConnected() } returns true
+        every { mockConnectivity.isConnectedWifi() } returns true
+
+        mockkObject(ConnectivityRetriever)
+        every { ConnectivityRetriever.getInstance(any<Application>()) } returns mockConnectivity
+
+        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockSettings, ConsentPolicy.GDPR)
+        consentManager.userConsentStatus = ConsentStatus.CONSENTED
+
+        verify {
+            mockTealiumContext.track(any())
         }
     }
 
