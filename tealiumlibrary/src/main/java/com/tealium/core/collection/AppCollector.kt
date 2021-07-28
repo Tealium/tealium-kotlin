@@ -1,6 +1,10 @@
 package com.tealium.core.collection
 
+import AppCollectorConstants.APP_BUILD
+import AppCollectorConstants.APP_NAME
+import AppCollectorConstants.APP_RDNS
 import AppCollectorConstants.APP_UUID
+import AppCollectorConstants.APP_VERSION
 import android.app.ActivityManager
 import android.app.Service
 import android.content.Context
@@ -29,17 +33,32 @@ class AppCollector(private val context: Context, private val dataLayer: DataLaye
 
     private val activityManager = context.applicationContext.getSystemService(Service.ACTIVITY_SERVICE) as ActivityManager
 
+    private var _appUuid: String
+    private var _appRdns: String
+    private var _appName: String
+    private var _appBuild: String
+    private var _appVersion: String
+
+    init {
+        _appUuid = appUuid
+        _appRdns = appRdns
+        _appName = appName
+        _appBuild = appBuild
+        _appVersion = appVersion
+    }
+
     override val appUuid: String
         get() {
-            return dataLayer.getString(APP_UUID)
-                    ?: UUID.randomUUID().toString().also {
-                        dataLayer.putString(APP_UUID, it, Expiry.FOREVER)
-                    }
-        }
-    override val appRdns: String = context.applicationContext.packageName
-    override val appName: String = if (context.applicationInfo.labelRes != 0) context.getString(context.applicationInfo.labelRes) else ""
-    override val appBuild: String = getPackageContext().versionCode.toString()
-    override val appVersion: String = getPackageContext().versionName?.toString() ?: ""
+            return dataLayer.getOrPutString(APP_UUID, { UUID.randomUUID().toString() }, Expiry.FOREVER)
+          }
+    override val appRdns: String
+        get() = dataLayer.getOrPutString(APP_RDNS, { context.applicationContext.packageName }, Expiry.UNTIL_RESTART)
+    override val appName: String
+        get() = dataLayer.getOrPutString(APP_NAME, { if (context.applicationInfo.labelRes != 0) context.getString(context.applicationInfo.labelRes) else "" }, Expiry.UNTIL_RESTART)
+    override val appBuild: String
+        get() = dataLayer.getOrPutString(APP_BUILD, { getPackageContext().versionCode.toString() }, Expiry.UNTIL_RESTART)
+    override val appVersion: String
+        get() = dataLayer.getOrPutString(APP_VERSION, { getPackageContext().versionName?.toString() ?: "" }, Expiry.UNTIL_RESTART)
     override val appMemoryUsage: Long
         get() {
             var memoryUsage = 0L
@@ -60,10 +79,11 @@ class AppCollector(private val context: Context, private val dataLayer: DataLaye
     }
 
     override suspend fun collect(): Map<String, Any> {
-        return mapOf(AppCollectorConstants.APP_RDNS to appRdns,
-                    AppCollectorConstants.APP_NAME to appName,
-                    AppCollectorConstants.APP_VERSION to appVersion,
-                    AppCollectorConstants.APP_BUILD to appBuild,
+        return mapOf(
+//                AppCollectorConstants.APP_RDNS to appRdns,
+//                    AppCollectorConstants.APP_NAME to appName,
+//                    AppCollectorConstants.APP_VERSION to appVersion,
+//                    AppCollectorConstants.APP_BUILD to appBuild,
                     AppCollectorConstants.APP_MEMORY_USAGE to appMemoryUsage)
     }
 

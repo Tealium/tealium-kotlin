@@ -198,6 +198,60 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
         }
     }
 
+    private fun reflectDispatchers() : Set<DispatcherFactory> {
+        val dispatchers: MutableSet<DispatcherFactory> = mutableSetOf()
+        val dispatcherClasses = listOf(
+                "com.tealium.collectdispatcher.CollectDispatcher",
+                "com.tealium.tagmanagementdispatcher.TagManagementDispatcher",
+                "com.tealium.remotecommanddispatcher.RemoteCommandDispatcher"
+        )
+
+        dispatcherClasses.forEach {
+            try {
+                val clazz: Class<*> = Class.forName(it)
+                val companionField = clazz.getDeclaredField("Companion")
+
+//                val clazzInstance = clazz.newInstance() as? DispatcherFactory
+                val clazzInstance = companionField.get(clazz) as? DispatcherFactory
+                if (clazzInstance != null) dispatchers.add(clazzInstance)
+
+            } catch (ex: ClassNotFoundException) {
+                Logger.dev(BuildConfig.TAG, "Could not find $it")
+            }
+        }
+
+        return dispatchers
+    }
+
+    private fun reflectModules() : Set<ModuleFactory> {
+        val dispatchers: MutableSet<ModuleFactory> = mutableSetOf()
+        val dispatcherClasses = listOf(
+                "com.tealium.visitorservice.VisitorService",
+                "com.tealium.location.LocationManager",
+                "com.tealium.lifecycle.Lifecycle",
+                "com.tealium.installreferrer.InstallReferrer",
+                "com.tealium.hosteddatalayer.HostedDataLayer",
+                "com.tealium.crashreporter.CrashReporter",
+                "com.tealium.adidentifier.AdIdentifier"
+        )
+
+        dispatcherClasses.forEach {
+            try {
+                val clazz: Class<*> = Class.forName(it)
+                val companionField = clazz.getDeclaredField("Companion")
+
+//                val clazzInstance = clazz.newInstance() as? DispatcherFactory
+                val clazzInstance = companionField.get(clazz) as? ModuleFactory
+                if (clazzInstance != null) dispatchers.add(clazzInstance)
+
+            } catch (ex: ClassNotFoundException) {
+                Logger.dev(BuildConfig.TAG, "Could not find $it")
+            }
+        }
+
+        return dispatchers.toSet()
+    }
+
     /**
      * Sets up all non-critical objects - should be called on a background thread.
      * Reports as ready once it's completed by calling [onInstanceReady].
@@ -210,8 +264,13 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
 
         collectors = mutableSetOf(TealiumCollector(context), SessionCollector(session.id), dataLayer).union(initializeCollectors(config.collectors))
         validators = initializeValidators(config.validators)
-        dispatchers = initializeDispatchers(config.dispatchers)
-        val genericModules = setOf(consentManager, timedEvents).union(initializeModules(config.modules))
+
+        val dispatcherFactories: Set<DispatcherFactory> = if (!config.dispatchers.isEmpty()) config.dispatchers else reflectDispatchers()
+        dispatchers = initializeDispatchers(dispatcherFactories)
+
+
+        val moduleFactories: Set<ModuleFactory> = if (!config.modules.isEmpty()) config.modules else reflectModules()
+        val genericModules = setOf(consentManager, timedEvents).union(initializeModules(moduleFactories))
 
         val modulesList = collectors.union(validators)
                 .union(dispatchers)
