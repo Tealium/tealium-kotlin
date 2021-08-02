@@ -9,8 +9,10 @@ import java.util.*
  * Session sends recorded media details for standard events, as well as milestones reached for
  * 10%, 25%, 50%, 75%, 90%, 100% of video content played.
  */
-open class MilestoneSession(private val mediaContent: MediaContent,
-                            private val mediaDispatcher: MediaDispatcher) : FullPlaybackSession(mediaContent, mediaDispatcher) {
+open class MilestoneSession(
+    private val mediaContent: MediaContent,
+    private val mediaDispatcher: MediaDispatcher
+) : FullPlaybackSession(mediaContent, mediaDispatcher) {
 
     private val contentDuration: Long? = mediaContent.duration?.toLong()
     private var timer: Timer? = null
@@ -51,18 +53,18 @@ open class MilestoneSession(private val mediaContent: MediaContent,
         super.endContent()
     }
 
-    override fun play() {
+    override fun play(data: Map<String, Any>?) {
         if (lastPlayTimestamp == null) {
             lastPlayTimestamp = System.currentTimeMillis()
         }
         startTimer()
-        super.play()
+        super.play(data)
     }
 
-    override fun pause() {
+    override fun pause(data: Map<String, Any>?) {
         processPause()
         cancelTimer()
-        super.pause()
+        super.pause(data)
     }
 
     override fun startAdBreak(adBreak: AdBreak) {
@@ -78,20 +80,20 @@ open class MilestoneSession(private val mediaContent: MediaContent,
         super.endAdBreak()
     }
 
-    override fun startSeek(position: Int) {
+    override fun startSeek(position: Int, data: Map<String, Any>?) {
         startSeekPosition = position
         cancelTimer()
-        super.startSeek(0)
+        super.startSeek(position, data)
     }
 
-    override fun endSeek(position: Int) {
+    override fun endSeek(position: Int, data: Map<String, Any>?) {
         startSeekPosition?.let {
             totalPlaybackTime += position - it
         }
 
         milestonesAchieved.clear()
         startTimer()
-        super.endSeek(0)
+        super.endSeek(position, data)
     }
 
     override fun sendMilestone() {
@@ -101,12 +103,12 @@ open class MilestoneSession(private val mediaContent: MediaContent,
     private fun startTimer() {
         timer = Timer("Milestone", true).apply {
             scheduleAtFixedRate(
-                    // check timeElapsed every 1 second
-                    object : TimerTask() {
-                        override fun run() {
-                            ping()
-                        }
-                    }, 0, DEFAULT_MILESTONE_INTERVAL
+                // check timeElapsed every 1 second
+                object : TimerTask() {
+                    override fun run() {
+                        ping()
+                    }
+                }, 0, DEFAULT_MILESTONE_INTERVAL
             )
         }
     }

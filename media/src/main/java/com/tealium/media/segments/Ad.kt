@@ -1,6 +1,7 @@
 package com.tealium.media.segments
 
 import com.tealium.media.AdKey
+import com.tealium.media.ChapterKey
 import com.tealium.media.Media
 import java.util.*
 
@@ -16,7 +17,8 @@ data class Ad(val id: String? = null,
               var creativeUrl: String? = null,
               var numberOfLoads: Int? = null,
               var pod: String? = null,
-              var playerName: String? = null) : Segment {
+              var playerName: String? = null,
+              var metadata: Map<String, Any>? = null) : Segment {
 
     val uuid: String = UUID.randomUUID().toString()
 
@@ -62,6 +64,7 @@ data class Ad(val id: String? = null,
         pod?.let { data[AdKey.POD] = it }
         playerName?.let { data[AdKey.PLAYER_NAME] = it }
         duration?.let { data[AdKey.DURATION] = it }
+        metadata?.let { data[ChapterKey.METADATA] = it.toMap() }
 
         return data.toMap()
     }

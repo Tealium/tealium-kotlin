@@ -150,7 +150,7 @@ class Media(private val context: TealiumContext,
     /**
      * Records play event for media session
      */
-    fun play() = currentSession?.play()
+    fun play(data: Map<String, Any>?) = currentSession?.play(data)
 
     /**
      * Records pause event for media session

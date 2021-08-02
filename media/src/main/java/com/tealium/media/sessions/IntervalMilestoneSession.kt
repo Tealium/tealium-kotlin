@@ -9,8 +9,10 @@ import com.tealium.media.MediaDispatcher
  * Combination of Interval and Milestone sessions. Sends recorded media details for standard
  * events, milestones, and pings every 10 seconds
  */
-class IntervalMilestoneSession(private val mediaContent: MediaContent,
-                               private val mediaDispatcher: MediaDispatcher) : MilestoneSession(mediaContent, mediaDispatcher) {
+class IntervalMilestoneSession(
+    private val mediaContent: MediaContent,
+    private val mediaDispatcher: MediaDispatcher
+) : MilestoneSession(mediaContent, mediaDispatcher) {
 
     private val interval: Long = Media.DEFAULT_SESSION_INTERVAL
     private var intervalCount = 0

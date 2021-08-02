@@ -17,15 +17,15 @@ interface Session {
     fun startBuffer()
     fun endBuffer()
 
-    fun play()
-    fun pause()
+    fun play(data: Map<String, Any>? = null)
+    fun pause(data: Map<String, Any>? = null)
 
     fun startChapter(chapter: Chapter)
     fun skipChapter()
     fun endChapter()
 
-    fun startSeek(position: Int)
-    fun endSeek(position: Int)
+    fun startSeek(position: Int, data: Map<String, Any>? = null)
+    fun endSeek(position: Int, data: Map<String, Any>? = null)
 
     fun startAdBreak(adBreak: AdBreak)
     fun endAdBreak()

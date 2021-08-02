@@ -42,7 +42,7 @@ data class Chapter(val name: String,
         duration?.let { data[ChapterKey.DURATION] = it }
         position?.let { data[ChapterKey.POSITION] = it }
         startTime?.let { data[ChapterKey.START_TIME] = it }
-        metadata?.let { data[ChapterKey.METADATA] = it }
+        metadata?.let { data[ChapterKey.METADATA] = it.toMap() }
 
         return data.toMap()
     }

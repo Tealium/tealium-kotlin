@@ -29,6 +29,57 @@ data class MediaContent(var name: String,
     var endTime: Long? = null
     var percentContentComplete: Double? = null
 
+    internal fun toMap(): Map<String, Any> {
+        val data = mutableMapOf<String, Any>(
+            SessionKey.UUID to uuid,
+            SessionKey.NAME to name,
+            SessionKey.STREAM_TYPE to streamType.value,
+            SessionKey.MEDIA_TYPE to mediaType.value,
+            SessionKey.TRACKING_TYPE to trackingType.value
+        )
+
+        data.putAll(QoE.toMap(qoe))
+        data.putAll(metadata.toMap())
+
+        percentContentComplete?.let {
+            data[SessionKey.PERCENT_COMPLETE] = it
+        }
+
+        startTime?.let {
+            data[SessionKey.START_TIME] = it
+        }
+
+        state?.let {
+            data[SessionKey.STATE] = it.value
+        }
+
+        customId?.let {
+            data[SessionKey.CUSTOM_ID] = it
+        }
+
+        duration?.let {
+            data[SessionKey.DURATION] = it
+        }
+
+        playerName?.let {
+            data[SessionKey.PLAYER_NAME] = it
+        }
+
+        channelName?.let {
+            data[SessionKey.CHANNEL_NAME] = it
+        }
+
+        milestone?.let {
+            data[SessionKey.MILESTONE] = it.value
+        }
+
+        summary?.let {
+            data.putAll(MediaSummary.toMap(it))
+        }
+
+        return data
+    }
+
     companion object {
         fun toMap(mediaContent: MediaContent): Map<String, Any> {
             val data = mutableMapOf<String, Any>(

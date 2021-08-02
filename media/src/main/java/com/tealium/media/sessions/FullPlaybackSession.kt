@@ -8,8 +8,10 @@ import com.tealium.media.segments.Chapter
 /**
  * Session sends media details at playback events, like play, pause, stop, etc.
  */
-open class FullPlaybackSession(private val mediaContent: MediaContent,
-                               private val mediaDispatcher: MediaDispatcher) : Session {
+open class FullPlaybackSession(
+    private val mediaContent: MediaContent,
+    private val mediaDispatcher: MediaDispatcher
+) : Session {
 
     override var isBackgrounded: Boolean = false
 
@@ -103,20 +105,20 @@ open class FullPlaybackSession(private val mediaContent: MediaContent,
         mediaDispatcher.track(MediaEvent.BUFFER_COMPLETE, mediaContent)
     }
 
-    override fun play() {
-        mediaDispatcher.track(MediaEvent.PLAY, mediaContent)
+    override fun play(data: Map<String, Any>?) {
+        mediaDispatcher.track(MediaEvent.PLAY, mediaContent, customData = data)
     }
 
-    override fun pause() {
-        mediaDispatcher.track(MediaEvent.PAUSE, mediaContent)
+    override fun pause(data: Map<String, Any>?) {
+        mediaDispatcher.track(MediaEvent.PAUSE, mediaContent, customData = data)
     }
 
-    override fun startSeek(position: Int) {
-        mediaDispatcher.track(MediaEvent.SEEK_START, mediaContent)
+    override fun startSeek(position: Int, data: Map<String, Any>?) {
+        mediaDispatcher.track(MediaEvent.SEEK_START, mediaContent, customData = data)
     }
 
-    override fun endSeek(position: Int) {
-        mediaDispatcher.track(MediaEvent.SEEK_COMPLETE, mediaContent)
+    override fun endSeek(position: Int, data: Map<String, Any>?) {
+        mediaDispatcher.track(MediaEvent.SEEK_COMPLETE, mediaContent, customData = data)
     }
 
     override fun updateBitrate(rate: Int) {

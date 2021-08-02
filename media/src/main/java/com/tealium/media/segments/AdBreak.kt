@@ -1,6 +1,7 @@
 package com.tealium.media.segments
 
 import com.tealium.media.AdBreakKey
+import com.tealium.media.ChapterKey
 import com.tealium.media.Media
 import java.util.*
 
@@ -8,7 +9,8 @@ data class AdBreak(var id: String? = null,
                    val name: String? = null,
                    var duration: Double? = null,
                    var index: Int? = null,
-                   var position: Int? = null) : Segment {
+                   var position: Int? = null,
+                   var metadata: Map<String, Any>? = null) : Segment {
 
     private val uuid: String = UUID.randomUUID().toString()
     private val adBreakName: String = name ?: uuid
@@ -40,6 +42,7 @@ data class AdBreak(var id: String? = null,
         index?.let { data[AdBreakKey.INDEX] = it }
         position?.let { data[AdBreakKey.POSITION] = it }
         duration?.let { data[AdBreakKey.DURATION] = it }
+        metadata?.let { data[ChapterKey.METADATA] = it.toMap() }
 
         return data.toMap()
     }

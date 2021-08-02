@@ -7,10 +7,13 @@ import com.tealium.media.segments.Segment
 class MediaSessionDispatcher(private val context: TealiumContext) : MediaDispatcher {
 
     @Suppress("UNCHECKED_CAST")
-    override fun track(event: String, mediaContent: MediaContent, segment: Segment?) {
+    override fun track(event: String, mediaContent: MediaContent, segment: Segment?, customData: Map<String, Any>?) {
         val data = mutableMapOf<String, Any>()
 
-        data.putAll(MediaContent.toMap(mediaContent))
+        data.putAll(mediaContent.toMap())
+        customData?.let {
+            data.putAll(it)
+        }
 
         segment?.let {
             // merge MediaContent metadata with Chapter metadata (chapter data overwrites mediaContent data)

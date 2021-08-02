@@ -13,8 +13,10 @@ import java.util.*
  * Records session summary from startSession() to endSession(). Keeps track of recorded plays, pauses,
  * and stops of media. Details captured are sent after endSession() is called.
  */
-class SummarySession(private val mediaContent: MediaContent,
-                     mediaDispatcher: MediaDispatcher) : FullPlaybackSession(mediaContent, mediaDispatcher) {
+class SummarySession(
+    private val mediaContent: MediaContent,
+    mediaDispatcher: MediaDispatcher
+) : FullPlaybackSession(mediaContent, mediaDispatcher) {
 
     override fun startSession() {
         mediaContent.summary = MediaSummary()
@@ -33,19 +35,20 @@ class SummarySession(private val mediaContent: MediaContent,
         mediaContent.summary?.playToEnd = true
         mediaContent.summary?.playStartTime?.let {
             mediaContent.summary?.totalPlayTime =
-                    Media.timeMillisToSeconds(System.currentTimeMillis() - it)
+                Media.timeMillisToSeconds(System.currentTimeMillis() - it)
         }
         super.endContent()
     }
 
-    override fun play() {
+    override fun play(data: Map<String, Any>?) {
         mediaContent.summary?.let {
             it.playStartTime = System.currentTimeMillis()
             it.plays++
         }
+        super.play(data)
     }
 
-    override fun pause() {
+    override fun pause(data: Map<String, Any>?) {
         mediaContent.summary?.let { summary ->
             summary.pauses++
             summary.playStartTime?.let { start ->
@@ -123,13 +126,13 @@ class SummarySession(private val mediaContent: MediaContent,
         }
     }
 
-    override fun startSeek(position: Int) {
+    override fun startSeek(position: Int, data: Map<String, Any>?) {
         mediaContent.summary?.let {
             it.seekStartTime = System.currentTimeMillis()
         }
     }
 
-    override fun endSeek(position: Int) {
+    override fun endSeek(position: Int, data: Map<String, Any>?) {
         mediaContent.summary?.let { summary ->
             summary.seekStartTime?.let { start ->
                 val timeElapse = Media.timeMillisToSeconds(System.currentTimeMillis() - start)
@@ -155,7 +158,8 @@ class SummarySession(private val mediaContent: MediaContent,
             }
 
             if (summary.chapterStarts > 0) {
-                summary.percentageChapterComplete = percentage(summary.chapterEnds, summary.chapterStarts)
+                summary.percentageChapterComplete =
+                    percentage(summary.chapterEnds, summary.chapterStarts)
             }
 
             if (summary.ads > 0) {

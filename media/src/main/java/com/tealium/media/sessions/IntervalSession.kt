@@ -7,8 +7,10 @@ import java.util.*
  * Session sends recorded standard events, as well as a "ping" every 10 seconds to record media
  * is playing
  */
-class IntervalSession(private val mediaContent: MediaContent,
-                      private val mediaDispatcher: MediaDispatcher) : FullPlaybackSession(mediaContent, mediaDispatcher) {
+class IntervalSession(
+    private val mediaContent: MediaContent,
+    private val mediaDispatcher: MediaDispatcher
+) : FullPlaybackSession(mediaContent, mediaDispatcher) {
 
     private val interval: Long = Media.DEFAULT_SESSION_INTERVAL
     private var timer: Timer? = null
@@ -31,27 +33,27 @@ class IntervalSession(private val mediaContent: MediaContent,
         super.endSession()
     }
 
-    override fun play() {
+    override fun play(data: Map<String, Any>?) {
         if (timer == null) {
             startTimer()
         }
-        super.play()
+        super.play(data)
     }
 
-    override fun pause() {
+    override fun pause(data: Map<String, Any>?) {
         timer?.cancel()
         timer = null
-        super.pause()
+        super.pause(data)
     }
 
     private fun startTimer() {
         timer = Timer("interval", true).apply {
             scheduleAtFixedRate(
-                    object : TimerTask() {
-                        override fun run() {
-                            ping()
-                        }
-                    }, 0, interval
+                object : TimerTask() {
+                    override fun run() {
+                        ping()
+                    }
+                }, 0, interval
             )
         }
     }
