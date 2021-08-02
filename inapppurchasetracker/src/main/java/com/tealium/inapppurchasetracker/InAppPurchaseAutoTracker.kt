@@ -11,22 +11,13 @@ class InAppPurchaseAutoTracker(
     private val billingClient: BillingClient = BillingClient.newBuilder(context.config.application)
         .setListener(purchaseListener)
         .build()
-) : InAppPurchaseTracker {
+) : InAppPurchaseTracker, BillingClientStateListener {
 
     private var isBillingServiceConnected: Boolean = false
 
-    init {
-        billingClient.startConnection(object : BillingClientStateListener {
-            override fun onBillingSetupFinished(p0: BillingResult) {
-                // do something
-                isBillingServiceConnected = true
-            }
 
-            override fun onBillingServiceDisconnected() {
-                // do something
-                isBillingServiceConnected = false
-            }
-        })
+    init {
+        billingClient.startConnection(this)
     }
 
 
@@ -34,18 +25,15 @@ class InAppPurchaseAutoTracker(
         billingClient.startConnection(billingClientStateListener)
     }
 
-    private fun createPurchaseUpdateListener() : PurchasesUpdatedListener {
-        return PurchasesUpdatedListener { billingResult, purchases ->
-            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                Tealium.names().forEach { instanceName ->
-                    purchases?.forEach {  purchaseItem ->
-                        if (purchaseItem.purchaseState == Purchase.PurchaseState.PURCHASED) {
-                            Tealium[instanceName]?.inAppPurchaseManager?.trackInAppPurchase(purchaseItem)
-                        }
-                    }
-                }
-            }
-        }
+    override fun onBillingSetupFinished(p0: BillingResult) {
+        // do something
+        isBillingServiceConnected = true
+    }
+
+    override fun onBillingServiceDisconnected() {
+        // do something
+        isBillingServiceConnected = false
+        restartConnection(this)
     }
 
     override fun trackInAppPurchase(purchaseItem: Purchase) {
