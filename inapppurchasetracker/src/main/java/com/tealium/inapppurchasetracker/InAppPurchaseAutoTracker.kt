@@ -20,7 +20,6 @@ class InAppPurchaseAutoTracker(
         billingClient.startConnection(this)
     }
 
-
     private fun restartConnection(billingClientStateListener: BillingClientStateListener) {
         billingClient.startConnection(billingClientStateListener)
     }
