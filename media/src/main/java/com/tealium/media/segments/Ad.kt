@@ -3,6 +3,7 @@ package com.tealium.media.segments
 import com.tealium.media.AdKey
 import com.tealium.media.ChapterKey
 import com.tealium.media.Media
+import com.tealium.media.SegmentKey
 import java.util.*
 
 data class Ad(val id: String? = null,
@@ -64,7 +65,7 @@ data class Ad(val id: String? = null,
         pod?.let { data[AdKey.POD] = it }
         playerName?.let { data[AdKey.PLAYER_NAME] = it }
         duration?.let { data[AdKey.DURATION] = it }
-        metadata?.let { data[ChapterKey.METADATA] = it.toMap() }
+        metadata?.let { data[SegmentKey.METADATA] = it.toMap() }
 
         return data.toMap()
     }

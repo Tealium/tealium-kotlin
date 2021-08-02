@@ -35,6 +35,10 @@ object MediaEvent {
     const val CONTENT_END = "media_content_end"
 }
 
+object SegmentKey {
+    const val METADATA = "media_segment_metadata"
+}
+
 object ChapterKey {
     const val UUID = "media_chapter_uuid"
     const val NAME = "media_chapter_name"
@@ -42,7 +46,6 @@ object ChapterKey {
     const val POSITION = "media_chapter_position"
     const val START_TIME = "media_chapter_start_time"
     const val SKIPPED = "media_chapter_skipped"
-    const val METADATA = "media_chapter_metadata"
 }
 
 object AdKey {

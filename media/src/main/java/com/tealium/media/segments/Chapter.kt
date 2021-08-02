@@ -2,6 +2,7 @@ package com.tealium.media.segments
 
 import com.tealium.media.ChapterKey
 import com.tealium.media.Media
+import com.tealium.media.SegmentKey
 import java.util.*
 
 data class Chapter(val name: String,
@@ -42,7 +43,7 @@ data class Chapter(val name: String,
         duration?.let { data[ChapterKey.DURATION] = it }
         position?.let { data[ChapterKey.POSITION] = it }
         startTime?.let { data[ChapterKey.START_TIME] = it }
-        metadata?.let { data[ChapterKey.METADATA] = it.toMap() }
+        metadata?.let { data[SegmentKey.METADATA] = it.toMap() }
 
         return data.toMap()
     }

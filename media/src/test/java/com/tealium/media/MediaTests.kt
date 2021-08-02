@@ -137,6 +137,33 @@ class MediaTests {
     }
 
     @Test
+    fun testMedia_AdBreakMetadataTrackSuccess() {
+        mediaContent = MediaContent("test_media",
+            StreamType.PODCAST,
+            MediaType.AUDIO,
+            mockQoE,
+            TrackingType.FULL_PLAYBACK)
+
+        val media = Media(mockTealiumContext)
+        media.startSession(mediaContent)
+
+        val adBreak = AdBreak(metadata = mapOf("adBreak_key1" to "value1", "adBreak_key2" to "value2"))
+
+        media.startAdBreak(adBreak)
+
+        verify {
+            mockTealiumContext.track(match {
+                it["tealium_event"] == MediaEvent.SESSION_START
+            })
+            mockTealiumContext.track(match {
+                it["tealium_event"] == MediaEvent.ADBREAK_START
+                it["adBreak_key1"] == "value1"
+                it["adBreak_key2"] == "value2"
+            })
+        }
+    }
+
+    @Test
     fun testMedia_AdBreakEndSuccess() {
         mediaContent = MediaContent("test_media",
                 mockk(),
@@ -210,6 +237,33 @@ class MediaTests {
         }
 
         Assert.assertTrue(mediaContent.adList.size == 1)
+    }
+
+    @Test
+    fun testMedia_AdMetadataTrackSuccess() {
+        mediaContent = MediaContent("test_media",
+            StreamType.PODCAST,
+            MediaType.AUDIO,
+            mockQoE,
+            TrackingType.FULL_PLAYBACK)
+
+        val media = Media(mockTealiumContext)
+        media.startSession(mediaContent)
+
+        val ad = Ad(metadata = mapOf("ad_key1" to "value1", "ad_key2" to "value2"))
+
+        media.startAd(ad)
+
+        verify {
+            mockTealiumContext.track(match {
+                it["tealium_event"] == MediaEvent.SESSION_START
+            })
+            mockTealiumContext.track(match {
+                it["tealium_event"] == MediaEvent.AD_START
+                it["ad_key1"] == "value1"
+                it["ad_key2"] == "value2"
+            })
+        }
     }
 
     @Test
@@ -373,6 +427,33 @@ class MediaTests {
         }
 
         Assert.assertTrue(mediaContent.chapterList.size == 1)
+    }
+
+    @Test
+    fun testMedia_ChapterMetadataTrackSuccess() {
+        mediaContent = MediaContent("test_media",
+            StreamType.PODCAST,
+            MediaType.AUDIO,
+            mockQoE,
+            TrackingType.FULL_PLAYBACK)
+
+        val media = Media(mockTealiumContext)
+        media.startSession(mediaContent)
+
+        val chapter = Chapter("testChapter", metadata = mapOf("chapter_key1" to "value1", "chapter_key2" to "value2"))
+
+        media.startChapter(chapter)
+
+        verify {
+            mockTealiumContext.track(match {
+                it["tealium_event"] == MediaEvent.SESSION_START
+            })
+            mockTealiumContext.track(match {
+                it["tealium_event"] == MediaEvent.CHAPTER_START
+                it["chapter_key1"] == "value1"
+                it["chapter_key2"] == "value2"
+            })
+        }
     }
 
     @Test
@@ -544,6 +625,34 @@ class MediaTests {
     }
 
     @Test
+    fun testMedia_ValidPlayEventWithData() {
+        mediaContent = MediaContent("test_media",
+            mockk(),
+            mockk(),
+            mockk(),
+            TrackingType.FULL_PLAYBACK)
+
+        val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
+        media.startSession(mediaContent)
+
+        val testData = mapOf(
+            "play_key1" to "value1",
+            "play_key2" to "value2",
+            "play_key3" to "value3"
+        )
+
+        media.play(testData)
+
+        verify {
+            mockMediaSessionDispatcher.track(MediaEvent.PLAY, mediaContent, customData = match {
+                it.containsKey("play_key1")
+                it.containsKey("play_key2")
+                it.containsKey("play_key3")
+            })
+        }
+    }
+
+    @Test
     fun testMedia_PlayPauseStopSuccess() {
         mediaContent = MediaContent("test_media",
                 mockk(),
@@ -561,6 +670,35 @@ class MediaTests {
             mockMediaSessionDispatcher.track(MediaEvent.SESSION_START, any(), any())
             mockMediaSessionDispatcher.track(MediaEvent.PLAY, any(), any())
             mockMediaSessionDispatcher.track(MediaEvent.PAUSE, any(), any())
+        }
+    }
+
+    @Test
+    fun testMedia_ValidPauseEventWithData() {
+        mediaContent = MediaContent("test_media",
+            mockk(),
+            mockk(),
+            mockk(),
+            TrackingType.FULL_PLAYBACK)
+
+        val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
+        media.startSession(mediaContent)
+
+        val testData = mapOf(
+            "pause_key1" to "value1",
+            "pause_key2" to "value2",
+            "pause_key3" to "value3"
+        )
+
+        media.play()
+        media.pause(testData)
+
+        verify {
+            mockMediaSessionDispatcher.track(MediaEvent.PAUSE, mediaContent, customData = match {
+                it.containsKey("pause_key1")
+                it.containsKey("pause_key2")
+                it.containsKey("pause_key3")
+            })
         }
     }
 
@@ -599,6 +737,62 @@ class MediaTests {
             mockMediaSessionDispatcher.track(MediaEvent.SESSION_START, any(), any())
             mockMediaSessionDispatcher.track(MediaEvent.SEEK_START, any(), any())
             mockMediaSessionDispatcher.track(MediaEvent.SEEK_COMPLETE, any(), any())
+        }
+    }
+
+    @Test
+    fun testMedia_ValidSeekStartEventWithData() {
+        mediaContent = MediaContent("test_media",
+            mockk(),
+            mockk(),
+            mockk(),
+            TrackingType.FULL_PLAYBACK)
+
+        val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
+        media.startSession(mediaContent)
+
+        val testData = mapOf(
+            "seek_start_key1" to "value1",
+            "seek_start_key2" to "value2",
+            "seek_start_key3" to "value3"
+        )
+
+        media.startSeek(10, testData)
+
+        verify {
+            mockMediaSessionDispatcher.track(MediaEvent.SEEK_START, mediaContent, customData = match {
+                it.containsKey("seek_start_key1")
+                it.containsKey("seek_start_key2")
+                it.containsKey("seek_start_key3")
+            })
+        }
+    }
+
+    @Test
+    fun testMedia_ValidSeekEndEventWithData() {
+        mediaContent = MediaContent("test_media",
+            mockk(),
+            mockk(),
+            mockk(),
+            TrackingType.FULL_PLAYBACK)
+
+        val media = Media(mockTealiumContext, mockMediaSessionDispatcher)
+        media.startSession(mediaContent)
+
+        val testData = mapOf(
+            "seek_end_key1" to "value1",
+            "seek_end_key2" to "value2",
+            "seek_end_key3" to "value3"
+        )
+
+        media.startSeek(10, testData)
+
+        verify {
+            mockMediaSessionDispatcher.track(MediaEvent.SEEK_START, mediaContent, customData = match {
+                it.containsKey("seek_end_key1")
+                it.containsKey("seek_end_key2")
+                it.containsKey("seek_end_key3")
+            })
         }
     }
 
@@ -728,7 +922,7 @@ class MediaTests {
 
         media.startSession(mediaContent)
 
-        Assert.assertEquals(false, media.currentSession?.isBackgrounded)
+        assertEquals(false, media.currentSession?.isBackgrounded)
     }
 
     @Test
@@ -744,7 +938,7 @@ class MediaTests {
 
         media.startSession(mediaContent)
 
-        Assert.assertEquals(false, media.currentSession?.isBackgrounded)
+        assertEquals(false, media.currentSession?.isBackgrounded)
 
         verify(exactly = 1) {
             mockMediaSessionDispatcher.track(any(), any())
@@ -765,7 +959,7 @@ class MediaTests {
 
         media.startSession(mediaContent)
 
-        Assert.assertEquals(false, media.currentSession?.isBackgrounded)
+        assertEquals(false, media.currentSession?.isBackgrounded)
 
         media.onActivityResumed()
         media.onActivityStopped(testActivity, false)
@@ -793,12 +987,12 @@ class MediaTests {
 
         media.startSession(mediaContent)
 
-        Assert.assertEquals(false, media.currentSession?.isBackgrounded)
+        assertEquals(false, media.currentSession?.isBackgrounded)
 
         media.onActivityResumed()
         media.onActivityStopped(testActivity, false)
 
-        Assert.assertEquals(true, media.currentSession?.isBackgrounded)
+        assertEquals(true, media.currentSession?.isBackgrounded)
 
         delay(9000)
         media.onActivityResumed(testActivity)
@@ -827,7 +1021,7 @@ class MediaTests {
         media.startSession(mediaContent)
         media.onActivityStopped(testActivity, false)
 
-        Assert.assertEquals(false, media.currentSession?.isBackgrounded)
+        assertEquals(false, media.currentSession?.isBackgrounded)
 
         verify (exactly = 1) {
             mockMediaSessionDispatcher.track(any(), any())
@@ -850,7 +1044,7 @@ class MediaTests {
         media.onActivityStopped(testActivity, false)
         media.onActivityResumed(testActivity)
 
-        Assert.assertEquals(false, media.currentSession?.isBackgrounded)
+        assertEquals(false, media.currentSession?.isBackgrounded)
 
         verify {
             mockMediaSessionDispatcher.track(MediaEvent.SESSION_START, any())

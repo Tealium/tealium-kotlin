@@ -3,6 +3,7 @@ package com.tealium.media.segments
 import com.tealium.media.AdBreakKey
 import com.tealium.media.ChapterKey
 import com.tealium.media.Media
+import com.tealium.media.SegmentKey
 import java.util.*
 
 data class AdBreak(var id: String? = null,
@@ -42,7 +43,7 @@ data class AdBreak(var id: String? = null,
         index?.let { data[AdBreakKey.INDEX] = it }
         position?.let { data[AdBreakKey.POSITION] = it }
         duration?.let { data[AdBreakKey.DURATION] = it }
-        metadata?.let { data[ChapterKey.METADATA] = it.toMap() }
+        metadata?.let { data[SegmentKey.METADATA] = it.toMap() }
 
         return data.toMap()
     }

@@ -138,24 +138,24 @@ class Media(private val context: TealiumContext,
      *
      * @param position media position in seconds where seek started
      */
-    fun startSeek(position: Int) = currentSession?.startSeek(position)
+    fun startSeek(position: Int, data: Map<String, Any>? = null) = currentSession?.startSeek(position, data)
 
     /**
      * Records seek ended at given position
      *
      * @param position media position in seconds where seek ended
      */
-    fun endSeek(position: Int) = currentSession?.endSeek(position)
+    fun endSeek(position: Int, data: Map<String, Any>? = null) = currentSession?.endSeek(position, data)
 
     /**
      * Records play event for media session
      */
-    fun play(data: Map<String, Any>?) = currentSession?.play(data)
+    fun play(data: Map<String, Any>? = null) = currentSession?.play(data)
 
     /**
      * Records pause event for media session
      */
-    fun pause() = currentSession?.pause()
+    fun pause(data: Map<String, Any>? = null) = currentSession?.pause(data)
 
     /**
      * Sends a custom event with current media content status
