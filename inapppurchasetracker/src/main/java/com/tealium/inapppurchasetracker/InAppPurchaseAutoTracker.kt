@@ -35,7 +35,7 @@ class InAppPurchaseAutoTracker(
         restartConnection(this)
     }
 
-    override fun trackInAppPurchase(purchaseItem: Purchase) {
+    override fun trackInAppPurchase(purchaseItem: Purchase, data: Map<String, Any>?) {
         val purchaseData = mutableMapOf<String, Any>(
             "purchase" to purchaseItem.orderId,
             "purchase_timestamp" to purchaseItem.purchaseTime,
@@ -43,6 +43,10 @@ class InAppPurchaseAutoTracker(
             "purchase_skus" to purchaseItem.skus,
             "purchase_is_auto_renewing" to purchaseItem.isAutoRenewing
         )
+
+        data?.let {
+            purchaseData.putAll(it)
+        }
 
         context.track(TealiumEvent(IN_APP_PURCHASE_EVENT_NAME, purchaseData))
     }

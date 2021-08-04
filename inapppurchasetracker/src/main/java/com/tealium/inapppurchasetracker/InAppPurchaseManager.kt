@@ -12,8 +12,9 @@ class InAppPurchaseManager(
     override val name: String = ""
     override var enabled: Boolean = true
 
-    fun trackInAppPurchase(purchaseItem: Purchase) {
-        purchaseTracker.trackInAppPurchase(purchaseItem)
+    // Manually track purchase
+    fun trackInAppPurchase(purchaseItem: Purchase, data: Map<String, Any>? = null) {
+        purchaseTracker.trackInAppPurchase(purchaseItem, data)
     }
 
     companion object : ModuleFactory {

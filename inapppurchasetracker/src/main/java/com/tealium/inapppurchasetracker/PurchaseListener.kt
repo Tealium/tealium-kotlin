@@ -11,13 +11,18 @@ class PurchaseListener: PurchasesUpdatedListener {
         Tealium.names().forEach { instanceName ->
             purchases?.forEach {  purchaseItem ->
                 when(purchaseItem.purchaseState) {
-                    Purchase.PurchaseState.PURCHASED -> Tealium[instanceName]?.inAppPurchaseManager?.trackInAppPurchase(purchaseItem)
+                    Purchase.PurchaseState.PURCHASED -> {
+                        Logger.dev(
+                            BuildConfig.TAG,
+                            "Tracking purchase with order id: ${purchaseItem.orderId}"
+                        )
+                        Tealium[instanceName]?.inAppPurchaseManager?.trackInAppPurchase(purchaseItem)
+                    }
                     Purchase.PurchaseState.PENDING -> {
                         // track?
                     }
                     else -> {
-                        // log nothing tracked
-                        Logger.dev("Tealium-InAppPurchaseTracker", "Unable to track purchase: ${purchaseItem.orderId}")
+                        Logger.dev(BuildConfig.TAG, "Unable to track purchase: ${purchaseItem.orderId}")
                     }
                 }
             }
