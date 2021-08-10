@@ -1,4 +1,4 @@
-package com.tealium.inapppurchasetracker
+package com.tealium.inapppurchase
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

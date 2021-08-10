@@ -1,4 +1,4 @@
-package com.tealium.inapppurchasetracker
+package com.tealium.inapppurchase
 
 import com.android.billingclient.api.*
 import com.tealium.core.*
@@ -9,7 +9,7 @@ class InAppPurchaseManager(
     private val purchaseTracker: InAppPurchaseTracker = InAppPurchaseAutoTracker(context, purchaseListener)
 ) : Module {
 
-    override val name: String = ""
+    override val name: String = MODULE_NAME
     override var enabled: Boolean = true
 
     // Manually track purchase
@@ -18,6 +18,7 @@ class InAppPurchaseManager(
     }
 
     companion object : ModuleFactory {
+        const val MODULE_NAME = "InAppPurchaseManager"
         @Volatile private var instance: InAppPurchaseManager? = null
         private val contexts = mutableListOf<TealiumContext>()
 
@@ -32,8 +33,8 @@ class InAppPurchaseManager(
     }
 }
 
-val Modules.PurchaseReporter: ModuleFactory
-    get() = com.tealium.inapppurchasetracker.InAppPurchaseManager
+val Modules.PurchaseManager: ModuleFactory
+    get() = com.tealium.inapppurchase.InAppPurchaseManager
 
 val Tealium.inAppPurchaseManager: InAppPurchaseManager?
     get() = modules.getModule(InAppPurchaseManager::class.java)
