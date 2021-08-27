@@ -12,8 +12,6 @@ class InAppPurchaseAutoTracker(
     private var billingClient: BillingClient? = null
 ) : InAppPurchaseTracker {
 
-    private var isBillingServiceConnected: Boolean = false // should I still make use of this??
-
     private fun startConnection() {
         if (billingClient == null) {
             billingClient = BillingClient.newBuilder(context.config.application)
@@ -35,7 +33,6 @@ class InAppPurchaseAutoTracker(
     override fun onBillingSetupFinished(billingResult: BillingResult) {
         when (billingResult.responseCode) {
             BillingClient.BillingResponseCode.OK -> {
-                isBillingServiceConnected = true
                 Logger.dev(BuildConfig.TAG, "Connection established to BillingClient")
             }
             else -> {
@@ -45,7 +42,6 @@ class InAppPurchaseAutoTracker(
     }
 
     override fun onBillingServiceDisconnected() {
-        isBillingServiceConnected = false
         // retry here to connect? - startConnection() called again on new activity
 //        startConnection()
     }
@@ -82,7 +78,9 @@ class InAppPurchaseAutoTracker(
     override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
         // end connection
         billingClient?.let {
-            endConnection()
+            if (it.connectionState == BillingClient.ConnectionState.CLOSED) {
+                endConnection()
+            }
         }
     }
 

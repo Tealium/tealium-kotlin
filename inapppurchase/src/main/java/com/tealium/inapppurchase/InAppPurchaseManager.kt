@@ -19,6 +19,8 @@ class InAppPurchaseManager(
 
     companion object : ModuleFactory {
         const val MODULE_NAME = "InAppPurchaseManager"
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
+
         @Volatile private var instance: InAppPurchaseManager? = null
         private val contexts = mutableListOf<TealiumContext>()
 
@@ -33,7 +35,7 @@ class InAppPurchaseManager(
     }
 }
 
-val Modules.PurchaseManager: ModuleFactory
+val Modules.InAppPurchaseManager: ModuleFactory
     get() = com.tealium.inapppurchase.InAppPurchaseManager
 
 val Tealium.inAppPurchaseManager: InAppPurchaseManager?
