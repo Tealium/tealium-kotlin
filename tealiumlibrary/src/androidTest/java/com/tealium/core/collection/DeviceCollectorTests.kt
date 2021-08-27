@@ -73,6 +73,7 @@ class DeviceCollectorTests {
         assertEquals("Android", data[DeviceCollectorConstants.DEVICE_OS_NAME])
         assertNotNull(data[DeviceCollectorConstants.DEVICE_RUNTIME])
         assertTrue("[0-9]+x[0-9]+".toRegex().matches(data[DeviceCollectorConstants.DEVICE_RESOLUTION] as String))
+        assertTrue("[0-9]+x[0-9]+".toRegex().matches(data[DeviceCollectorConstants.DEVICE_LOGICAL_RESOLUTION] as String))
 
         assertSame(DeviceCollector.create(tealiumContext), DeviceCollector.create(tealiumContext))
     }
