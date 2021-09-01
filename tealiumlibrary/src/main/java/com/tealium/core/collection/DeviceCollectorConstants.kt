@@ -7,6 +7,7 @@ object DeviceCollectorConstants {
     const val DEVICE_ARCHITECTURE = "device_architecture"
     const val DEVICE_CPU_TYPE = "device_cputype"
     const val DEVICE_RESOLUTION = "device_resolution"
+    const val DEVICE_LOGICAL_RESOLUTION = "device_logical_resolution"
     const val DEVICE_RUNTIME = "device_android_runtime"
     const val DEVICE_ORIGIN = "origin"
     const val DEVICE_PLATFORM = "platform"
