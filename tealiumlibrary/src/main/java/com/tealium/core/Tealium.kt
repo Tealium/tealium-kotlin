@@ -136,7 +136,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
     init {
         migratePersistentData()
 
-        Logger.logLevel = when (config.environment) {
+        Logger.logLevel = config.logLevel ?: when(config.environment) {
             Environment.DEV -> LogLevel.DEV
             Environment.QA -> LogLevel.QA
             Environment.PROD -> LogLevel.PROD

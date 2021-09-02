@@ -22,10 +22,12 @@ class TealiumTests {
     lateinit var mockDataLayer: DataLayer
     lateinit var mockTealium: Tealium
     val application = ApplicationProvider.getApplicationContext<Application>()
-    val configWithNoModules = TealiumConfig(application,
-            "test",
-            "test",
-            Environment.DEV)
+    val configWithNoModules = TealiumConfig(
+        application,
+        "test",
+        "test",
+        Environment.DEV
+    )
     val configWithQRTraceDisabled
         get(): TealiumConfig {
             val config = configWithNoModules
@@ -69,6 +71,72 @@ class TealiumTests {
     }
 
     @Test
+    fun testConfig_LogLevel_SetFromEnvironment() {
+        Tealium.create(
+            "loglevel", TealiumConfig(
+                application,
+                configWithNoModules.accountName,
+                configWithNoModules.profileName,
+                Environment.PROD
+            )
+        )
+        assertEquals(Logger.logLevel, LogLevel.PROD)
+
+        Tealium.create(
+            "loglevel", TealiumConfig(
+                application,
+                configWithNoModules.accountName,
+                configWithNoModules.profileName,
+                Environment.QA
+            )
+        )
+        assertEquals(Logger.logLevel, LogLevel.QA)
+
+        Tealium.create(
+            "loglevel", TealiumConfig(
+                application,
+                configWithNoModules.accountName,
+                configWithNoModules.profileName,
+                Environment.DEV
+            )
+        )
+        assertEquals(Logger.logLevel, LogLevel.DEV)
+    }
+
+    @Test
+    fun testConfig_LogLevel_OverridesEnvironment() {
+        Tealium.create(
+            "loglevel", TealiumConfig(
+                application,
+                configWithNoModules.accountName,
+                configWithNoModules.profileName,
+                Environment.PROD
+            ).apply { logLevel = LogLevel.DEV }
+        )
+        assertEquals(Logger.logLevel, LogLevel.DEV)
+
+        Tealium.create(
+            "loglevel", TealiumConfig(
+                application,
+                configWithNoModules.accountName,
+                configWithNoModules.profileName,
+                Environment.QA
+            ).apply { logLevel = LogLevel.PROD }
+        )
+        assertEquals(Logger.logLevel, LogLevel.PROD)
+
+        Tealium.create(
+            "loglevel", TealiumConfig(
+                application,
+                configWithNoModules.accountName,
+                configWithNoModules.profileName,
+                Environment.DEV
+            ).apply { logLevel = LogLevel.QA }
+        )
+        assertEquals(Logger.logLevel, LogLevel.QA)
+    }
+
+    @Test
     fun testVisitorIdIsGenerated() {
         assertNotNull(tealium.visitorId)
         assertEquals(32, tealium.visitorId.length)
@@ -93,10 +161,12 @@ class TealiumTests {
 
     @Test
     fun existingVisitorId() {
-        val config = TealiumConfig(application,
+        val config = TealiumConfig(
+            application,
             "testAccount",
             "testProfile",
-            Environment.DEV)
+            Environment.DEV
+        )
         config.existingVisitorId = "testExistingVisitorId"
         val test = Tealium.create("tester", config)
 
@@ -104,15 +174,16 @@ class TealiumTests {
         assertNotNull(vid)
         assertEquals("testExistingVisitorId", test.visitorId)
         assertEquals(test.visitorId, test.dataLayer.getString("tealium_visitor_id"))
-
     }
 
     @Test
     fun resetExistingVisitorId() {
-        val config = TealiumConfig(application,
+        val config = TealiumConfig(
+            application,
             "testAccount2",
             "testProfile2",
-            Environment.DEV)
+            Environment.DEV
+        )
         config.existingVisitorId = "testExistingVisitorId"
         val teal = Tealium.create("tester", config)
 
@@ -126,7 +197,6 @@ class TealiumTests {
         assertNotEquals(vid, resetVid)
         assertNotEquals(storedVid, storedResetVid)
         assertEquals(teal.visitorId, teal.dataLayer.getString("tealium_visitor_id"))
-
     }
 
     @Test
@@ -150,14 +220,16 @@ class TealiumTests {
         val mockActivityObserverListener = DeepLinkHandler(context)
 
         val builder = Uri.Builder()
-        val queryParams = mapOf<String, Any>("_dfgsdftwet" to "sdgfdgfdfg",
-                "_fbclid" to "1234567",
-                "tealium" to "cdh",
-                "bool" to true,
-                "int" to 123)
+        val queryParams = mapOf<String, Any>(
+            "_dfgsdftwet" to "sdgfdgfdfg",
+            "_fbclid" to "1234567",
+            "tealium" to "cdh",
+            "bool" to true,
+            "int" to 123
+        )
         val uri = builder.scheme("https")
-                .authority("tealium.com")
-                .path("/")
+            .authority("tealium.com")
+            .path("/")
 
         queryParams.forEach { entry ->
             uri.appendQueryParameter(entry.key, entry.value.toString())
@@ -168,7 +240,13 @@ class TealiumTests {
             delay(100)
         }
 
-        verify(exactly = 1) { mockDataLayer.putString("deep_link_url", builtURI.toString(), Expiry.SESSION) }
+        verify(exactly = 1) {
+            mockDataLayer.putString(
+                "deep_link_url",
+                builtURI.toString(),
+                Expiry.SESSION
+            )
+        }
     }
 
     @Test
@@ -179,14 +257,16 @@ class TealiumTests {
         val mockActivityObserverListener = DeepLinkHandler(context)
 
         val builder = Uri.Builder()
-        val queryParams = mapOf<String, Any>("_dfgsdftwet" to "sdgfdgfdfg",
-                "_fbclid" to "1234567",
-                "tealium" to "cdh",
-                "bool" to true,
-                "int" to 123)
+        val queryParams = mapOf<String, Any>(
+            "_dfgsdftwet" to "sdgfdgfdfg",
+            "_fbclid" to "1234567",
+            "tealium" to "cdh",
+            "bool" to true,
+            "int" to 123
+        )
         val uri = builder.scheme("https")
-                .authority("tealium.com")
-                .path("/")
+            .authority("tealium.com")
+            .path("/")
 
         queryParams.forEach { entry ->
             uri.appendQueryParameter(entry.key, entry.value.toString())
@@ -200,9 +280,14 @@ class TealiumTests {
             mockActivityObserverListener.onActivityResumed(activity)
             delay(100)
         }
-        verify(exactly = 0) { mockDataLayer.putString("deep_link_url", builtURI.toString(), Expiry.SESSION) }
+        verify(exactly = 0) {
+            mockDataLayer.putString(
+                "deep_link_url",
+                builtURI.toString(),
+                Expiry.SESSION
+            )
+        }
     }
-
 
     @Test
     fun testHandleDeepLinkFromActivityResume() {
@@ -212,14 +297,16 @@ class TealiumTests {
         val mockActivityObserverListener = DeepLinkHandler(context)
 
         val builder = Uri.Builder()
-        val queryParams = mapOf<String, Any>("_dfgsdftwet" to "sdgfdgfdfg",
-                "_fbclid" to "1234567",
-                "tealium" to "cdh",
-                "bool" to true,
-                "int" to 123)
+        val queryParams = mapOf<String, Any>(
+            "_dfgsdftwet" to "sdgfdgfdfg",
+            "_fbclid" to "1234567",
+            "tealium" to "cdh",
+            "bool" to true,
+            "int" to 123
+        )
         val uri = builder.scheme("https")
-                .authority("tealium.com")
-                .path("/")
+            .authority("tealium.com")
+            .path("/")
 
         queryParams.forEach { entry ->
             uri.appendQueryParameter(entry.key, entry.value.toString())
@@ -234,7 +321,13 @@ class TealiumTests {
             delay(100)
         }
 
-        verify(exactly = 1) { mockDataLayer.putString("deep_link_url", builtURI.toString(), Expiry.SESSION) }
+        verify(exactly = 1) {
+            mockDataLayer.putString(
+                "deep_link_url",
+                builtURI.toString(),
+                Expiry.SESSION
+            )
+        }
     }
 
     @Test
@@ -248,8 +341,8 @@ class TealiumTests {
         val traceId = "abc123"
         val queryParams = mapOf<String, Any>("tealium_trace_id" to traceId)
         val uri = builder.scheme("https")
-                .authority("tealium.com")
-                .path("/")
+            .authority("tealium.com")
+            .path("/")
 
         queryParams.forEach { entry ->
             uri.appendQueryParameter(entry.key, entry.value.toString())
@@ -264,7 +357,13 @@ class TealiumTests {
             delay(100)
         }
 
-        verify(exactly = 1) { mockDataLayer.putString(CoreConstant.TRACE_ID, traceId, Expiry.SESSION) }
+        verify(exactly = 1) {
+            mockDataLayer.putString(
+                CoreConstant.TRACE_ID,
+                traceId,
+                Expiry.SESSION
+            )
+        }
     }
 
     @Test
@@ -277,11 +376,13 @@ class TealiumTests {
 
         val builder = Uri.Builder()
         val traceId = "abc123"
-        val queryParams = mapOf<String, Any>("tealium_trace_id" to traceId,
-                CoreConstant.LEAVE_TRACE_QUERY_PARAM to "true")
+        val queryParams = mapOf<String, Any>(
+            "tealium_trace_id" to traceId,
+            CoreConstant.LEAVE_TRACE_QUERY_PARAM to "true"
+        )
         val uri = builder.scheme("https")
-                .authority("tealium.com")
-                .path("/")
+            .authority("tealium.com")
+            .path("/")
 
         queryParams.forEach { entry ->
             uri.appendQueryParameter(entry.key, entry.value.toString())
@@ -311,11 +412,13 @@ class TealiumTests {
 
             val builder = Uri.Builder()
             val traceId = "abc123"
-            val queryParams = mapOf<String, Any>("tealium_trace_id" to traceId,
-                    CoreConstant.KILL_VISITOR_SESSION to "true")
+            val queryParams = mapOf<String, Any>(
+                "tealium_trace_id" to traceId,
+                CoreConstant.KILL_VISITOR_SESSION to "true"
+            )
             val uri = builder.scheme("https")
-                    .authority("tealium.com")
-                    .path("/")
+                .authority("tealium.com")
+                .path("/")
 
             queryParams.forEach { entry ->
                 uri.appendQueryParameter(entry.key, entry.value.toString())
@@ -332,10 +435,10 @@ class TealiumTests {
 
             verify(exactly = 1) {
                 context.track(
-                        withArg { dispatch ->
-                            assertEquals("kill_visitor_session", dispatch["tealium_event"])
-                            assertEquals("kill_visitor_session", dispatch["event"])
-                        })
+                    withArg { dispatch ->
+                        assertEquals("kill_visitor_session", dispatch["tealium_event"])
+                        assertEquals("kill_visitor_session", dispatch["event"])
+                    })
             }
         }
     }
@@ -351,8 +454,8 @@ class TealiumTests {
         val traceId = "abc123"
         val queryParams = mapOf<String, Any>("tealium_trace_id" to traceId)
         val uri = builder.scheme("https")
-                .authority("tealium.com")
-                .path("/")
+            .authority("tealium.com")
+            .path("/")
 
         queryParams.forEach { entry ->
             uri.appendQueryParameter(entry.key, entry.value.toString())
@@ -401,10 +504,10 @@ class TealiumTests {
 
         verify(exactly = 1) {
             context.track(
-                    withArg { dispatch ->
-                        assertEquals("kill_visitor_session", dispatch["tealium_event"])
-                        assertEquals("kill_visitor_session", dispatch["event"])
-                    })
+                withArg { dispatch ->
+                    assertEquals("kill_visitor_session", dispatch["tealium_event"])
+                    assertEquals("kill_visitor_session", dispatch["event"])
+                })
         }
     }
 
@@ -446,7 +549,10 @@ class TealiumTests {
     @Test
     fun testCompanion_CreateMultipleWithDifferentConfig() {
         val instance = Tealium.create("instance_1", configWithNoModules)
-        val instance2 = Tealium.create("instance_2", TealiumConfig(application, "test2", "test2", Environment.DEV))
+        val instance2 = Tealium.create(
+            "instance_2",
+            TealiumConfig(application, "test2", "test2", Environment.DEV)
+        )
         assertSame(instance, Tealium["instance_1"])
         assertSame(instance, Tealium.get("instance_1"))
         assertSame(instance2, Tealium["instance_2"])
