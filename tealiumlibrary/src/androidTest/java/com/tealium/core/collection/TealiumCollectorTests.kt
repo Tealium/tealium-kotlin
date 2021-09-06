@@ -6,6 +6,7 @@ import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.persistence.DataLayer
+import com.tealium.dispatcher.Dispatch
 import com.tealium.tealiumlibrary.BuildConfig
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -54,17 +55,17 @@ class TealiumCollectorTests {
         val tealiumCollector = TealiumCollector(tealiumContext)
         var data = tealiumCollector.collect()
 
-        assertEquals(config.accountName, data[TealiumCollectorConstants.TEALIUM_ACCOUNT])
-        assertEquals(config.profileName, data[TealiumCollectorConstants.TEALIUM_PROFILE])
-        assertEquals(config.environment.environment, data[TealiumCollectorConstants.TEALIUM_ENVIRONMENT])
-        assertEquals(config.dataSourceId, data[TealiumCollectorConstants.TEALIUM_DATASOURCE_ID])
-        assertEquals("visitor_id", data[TealiumCollectorConstants.TEALIUM_VISITOR_ID])
-        assertEquals(BuildConfig.LIBRARY_VERSION, data[TealiumCollectorConstants.TEALIUM_LIBRARY_VERSION])
-        assertEquals(BuildConfig.LIBRARY_NAME, data[TealiumCollectorConstants.TEALIUM_LIBRARY_NAME])
+        assertEquals(config.accountName, data[Dispatch.Keys.TEALIUM_ACCOUNT])
+        assertEquals(config.profileName, data[Dispatch.Keys.TEALIUM_PROFILE])
+        assertEquals(config.environment.environment, data[Dispatch.Keys.TEALIUM_ENVIRONMENT])
+        assertEquals(config.dataSourceId, data[Dispatch.Keys.TEALIUM_DATASOURCE_ID])
+        assertEquals("visitor_id", data[Dispatch.Keys.TEALIUM_VISITOR_ID])
+        assertEquals(BuildConfig.LIBRARY_VERSION, data[Dispatch.Keys.TEALIUM_LIBRARY_VERSION])
+        assertEquals(BuildConfig.LIBRARY_NAME, data[Dispatch.Keys.TEALIUM_LIBRARY_NAME])
 
         every { config.dataSourceId } returns null
         data = tealiumCollector.collect()
-        assertNotNull(data[TealiumCollectorConstants.TEALIUM_DATASOURCE_ID])
+        assertNotNull(data[Dispatch.Keys.TEALIUM_DATASOURCE_ID])
     }
 
     @Test

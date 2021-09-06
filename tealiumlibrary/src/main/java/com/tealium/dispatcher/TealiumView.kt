@@ -1,5 +1,6 @@
 package com.tealium.dispatcher
 
+import com.tealium.core.DispatchType
 import java.util.*
 
 data class TealiumView(var viewName: String) : Dispatch {
@@ -9,9 +10,9 @@ data class TealiumView(var viewName: String) : Dispatch {
     private var mutableMap: MutableMap<String, Any> = mutableMapOf()
 
     init {
-        mutableMap[CoreConstant.TEALIUM_EVENT_TYPE] = DispatchType.VIEW
-        mutableMap[CoreConstant.TEALIUM_EVENT] = viewName
-        mutableMap[CoreConstant.REQUEST_UUID] = id
+        mutableMap[Dispatch.Keys.TEALIUM_EVENT_TYPE] = DispatchType.VIEW
+        mutableMap[Dispatch.Keys.TEALIUM_EVENT] = viewName
+        mutableMap[Dispatch.Keys.REQUEST_UUID] = id
     }
 
     constructor(viewName: String, data: Map<String, Any>? = null) : this(viewName) {

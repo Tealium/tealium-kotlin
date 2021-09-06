@@ -1,9 +1,7 @@
 package com.tealium.core.consent
 import android.content.SharedPreferences
 import com.tealium.core.TealiumConfig
-import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
-import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
-import com.tealium.core.consent.ConsentManagerConstants.KEY_LAST_STATUS_UPDATE
+import com.tealium.dispatcher.Dispatch
 
 /**
  * This class is responsible for the persistence of consent preferences as defined by [ConsentStatus]
@@ -16,19 +14,22 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
     var consentStatus: ConsentStatus = ConsentStatus.UNKNOWN
         get() {
             return ConsentStatus.consentStatus(
-                    sharedPreferences.getString(KEY_STATUS, ConsentStatus.default().value)!!
+                    sharedPreferences.getString(
+                        Dispatch.Keys.CONSENT_STATUS,
+                        ConsentStatus.default().value
+                    )!!
             )
         }
         set(value) {
             field = value
             sharedPreferences.edit()
-                    .putString(KEY_STATUS, field.value)
+                    .putString(Dispatch.Keys.CONSENT_STATUS, field.value)
                     .apply()
         }
 
     var consentCategories: Set<ConsentCategory>? = null
         get() {
-            return sharedPreferences.getStringSet(KEY_CATEGORIES, null)?.let {
+            return sharedPreferences.getStringSet(Dispatch.Keys.CONSENT_CATEGORIES, null)?.let {
                 ConsentCategory.consentCategories(it.filterNotNull().toSet())
             }
         }
@@ -36,22 +37,25 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
             field = value
             value?.let { categories ->
                 sharedPreferences.edit()
-                        .putStringSet(KEY_CATEGORIES, categories.map { category -> category.value }.toSet())
+                        .putStringSet(
+                            Dispatch.Keys.CONSENT_CATEGORIES,
+                            categories.map { category -> category.value }.toSet()
+                        )
                         .apply()
             } ?: run {
-                sharedPreferences.edit().remove(KEY_CATEGORIES).apply()
+                sharedPreferences.edit().remove(Dispatch.Keys.CONSENT_CATEGORIES).apply()
             }
         }
 
     var lastUpdate: Long? = null
         get() {
-            return sharedPreferences.getLong(KEY_LAST_STATUS_UPDATE, 0)
+            return sharedPreferences.getLong(Dispatch.Keys.CONSENT_LAST_STATUS_UPDATE, 0)
         }
         set(value) {
             field = value
             field?.let {
                 sharedPreferences.edit()
-                        .putLong(KEY_LAST_STATUS_UPDATE, it)
+                        .putLong(Dispatch.Keys.CONSENT_LAST_STATUS_UPDATE, it)
                         .apply()
             }
         }

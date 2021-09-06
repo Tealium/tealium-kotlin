@@ -1,6 +1,5 @@
 package com.tealium.core.collection
 
-import AppCollectorConstants.APP_UUID
 import android.app.ActivityManager
 import android.app.Service
 import android.content.Context
@@ -9,6 +8,8 @@ import android.os.Process
 import com.tealium.core.*
 import com.tealium.core.persistence.DataLayer
 import com.tealium.core.persistence.Expiry
+import com.tealium.dispatcher.Dispatch
+import com.tealium.dispatcher.Dispatch.Keys.APP_UUID
 import com.tealium.tealiumlibrary.BuildConfig
 import java.util.*
 
@@ -60,11 +61,12 @@ class AppCollector(private val context: Context, private val dataLayer: DataLaye
     }
 
     override suspend fun collect(): Map<String, Any> {
-        return mapOf(AppCollectorConstants.APP_RDNS to appRdns,
-                    AppCollectorConstants.APP_NAME to appName,
-                    AppCollectorConstants.APP_VERSION to appVersion,
-                    AppCollectorConstants.APP_BUILD to appBuild,
-                    AppCollectorConstants.APP_MEMORY_USAGE to appMemoryUsage)
+        return mapOf(
+            Dispatch.Keys.APP_RDNS to appRdns,
+                    Dispatch.Keys.APP_NAME to appName,
+                    Dispatch.Keys.APP_VERSION to appVersion,
+                    Dispatch.Keys.APP_BUILD to appBuild,
+                    Dispatch.Keys.APP_MEMORY_USAGE to appMemoryUsage)
     }
 
     companion object: CollectorFactory {

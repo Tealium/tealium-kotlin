@@ -196,8 +196,8 @@ class ConsentManager(
         const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
         fun isConsentGrantedEvent(dispatch: Dispatch): Boolean {
-            return (ConsentManagerConstants.GRANT_FULL_CONSENT == dispatch[CoreConstant.TEALIUM_EVENT]
-                    || ConsentManagerConstants.GRANT_PARTIAL_CONSENT == dispatch[CoreConstant.TEALIUM_EVENT])
+            return (ConsentManagerConstants.GRANT_FULL_CONSENT == dispatch[Dispatch.Keys.TEALIUM_EVENT]
+                    || ConsentManagerConstants.GRANT_PARTIAL_CONSENT == dispatch[Dispatch.Keys.TEALIUM_EVENT])
         }
     }
 }

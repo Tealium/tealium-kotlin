@@ -4,9 +4,8 @@ import android.app.Application
 import android.content.SharedPreferences
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.consent.ConsentCategory
-import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
-import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
 import com.tealium.core.consent.ConsentStatus
+import com.tealium.dispatcher.Dispatch
 import io.mockk.MockKAnnotations
 import org.junit.After
 import org.junit.Assert.*
@@ -45,8 +44,8 @@ class MigrationTests {
     @Test
     fun constants_consent_areSameAsLegacyJavaLibrary() {
         // consent manager
-        assertEquals("status", KEY_STATUS)
-        assertEquals("categories", KEY_CATEGORIES)
+        assertEquals("status", Dispatch.Keys.CONSENT_STATUS)
+        assertEquals("categories", Dispatch.Keys.CONSENT_CATEGORIES)
         // consent status
         assertEquals("unknown", ConsentStatus.UNKNOWN.value)
         assertEquals("consented", ConsentStatus.CONSENTED.value)

@@ -2,7 +2,6 @@ package com.tealium.collectdispatcher
 
 import com.tealium.core.*
 import com.tealium.core.consent.ConsentManager
-import com.tealium.core.consent.ConsentManagerConstants
 import com.tealium.core.consent.consentManagerLoggingProfile
 import com.tealium.core.consent.consentManagerLoggingUrl
 import com.tealium.core.messaging.*
@@ -60,7 +59,7 @@ class CollectDispatcher(private val config: TealiumConfig,
             ConsentManager.isConsentGrantedEvent(dispatch) -> {
                 config.consentManagerLoggingProfile?.let {
                     dispatch.addAll(
-                        mapOf(TEALIUM_PROFILE to it)
+                        mapOf(Dispatch.Keys.TEALIUM_PROFILE to it)
                     )
                 }
                 config.consentManagerLoggingUrl?.let { consentUrl ->
@@ -71,7 +70,7 @@ class CollectDispatcher(private val config: TealiumConfig,
             }
             profileOverride != null -> {
                 dispatch.addAll(
-                    mapOf(TEALIUM_PROFILE to profileOverride)
+                    mapOf(Dispatch.Keys.TEALIUM_PROFILE to profileOverride)
                 )
             }
         }
@@ -100,7 +99,7 @@ class CollectDispatcher(private val config: TealiumConfig,
         val batchDispatch = BatchDispatch.create(dispatchList.toList())
         batchDispatch?.let {
             if (profileOverride != null) {
-                batchDispatch.shared[TEALIUM_PROFILE] = profileOverride
+                batchDispatch.shared[Dispatch.Keys.TEALIUM_PROFILE] = profileOverride
             }
             client.post(JSONObject(batchDispatch.payload()).toString(), batchEventUrl, true)
         }

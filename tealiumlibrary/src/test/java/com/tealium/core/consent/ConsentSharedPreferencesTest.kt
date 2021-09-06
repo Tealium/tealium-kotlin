@@ -4,8 +4,7 @@ import android.app.Application
 import android.content.SharedPreferences
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
-import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
-import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
+import com.tealium.dispatcher.Dispatch
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import org.junit.Assert.assertEquals
@@ -44,14 +43,14 @@ class ConsentSharedPreferencesTest {
 
     @Test
     fun testConsentStatus_InitialValueIsUnknown() {
-        every { sharedPreferences.getString(KEY_STATUS, any()) } returns ConsentStatus.default().value
+        every { sharedPreferences.getString(Dispatch.Keys.CONSENT_STATUS, any()) } returns ConsentStatus.default().value
 
         assertEquals(ConsentStatus.UNKNOWN, consentSharedPreferences.consentStatus)
     }
 
     @Test
     fun testConsentStatus_InitialValueIsNotUnknown() {
-        every { sharedPreferences.getString(KEY_STATUS, any()) } returns ConsentStatus.NOT_CONSENTED.value
+        every { sharedPreferences.getString(Dispatch.Keys.CONSENT_STATUS, any()) } returns ConsentStatus.NOT_CONSENTED.value
 
         assertEquals(ConsentStatus.NOT_CONSENTED, consentSharedPreferences.consentStatus)
     }
@@ -61,35 +60,38 @@ class ConsentSharedPreferencesTest {
         every { editor.remove(any()) } returns editor
         consentSharedPreferences.consentCategories = null
 
-        verify { editor.remove(KEY_CATEGORIES) }
+        verify { editor.remove(Dispatch.Keys.CONSENT_CATEGORIES) }
     }
 
     @Test
     fun testConsentCategories_UpdatesStoredCategories() {
-        every { editor.putStringSet(KEY_CATEGORIES, any()) } returns editor
+        every { editor.putStringSet(Dispatch.Keys.CONSENT_CATEGORIES, any()) } returns editor
         consentSharedPreferences.consentCategories = setOf(
                 ConsentCategory.MONITORING,
                 ConsentCategory.CDP,
                 ConsentCategory.EMAIL)
 
         verify {
-            editor.putStringSet(KEY_CATEGORIES, setOf(
-                ConsentCategory.MONITORING.value,
-                ConsentCategory.CDP.value,
-                ConsentCategory.EMAIL.value))
+            editor.putStringSet(
+                Dispatch.Keys.CONSENT_CATEGORIES, setOf(
+                    ConsentCategory.MONITORING.value,
+                    ConsentCategory.CDP.value,
+                    ConsentCategory.EMAIL.value
+                )
+            )
         }
     }
 
     @Test
     fun testConsentReset_GetsReset() {
-        every { editor.putString(KEY_STATUS, any()) } returns editor
+        every { editor.putString(Dispatch.Keys.CONSENT_STATUS, any()) } returns editor
         every { editor.remove(any()) } returns editor
 
         consentSharedPreferences.reset()
 
         verify {
-            editor.putString(KEY_STATUS, "unknown")
-            editor.remove(KEY_CATEGORIES)
+            editor.putString(Dispatch.Keys.CONSENT_STATUS, "unknown")
+            editor.remove(Dispatch.Keys.CONSENT_CATEGORIES)
         }
     }
 }

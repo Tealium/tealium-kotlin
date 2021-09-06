@@ -12,7 +12,21 @@ object ConsentManagerConstants {
     const val GRANT_PARTIAL_CONSENT = "grant_partial_consent"
     const val DECLINE_CONSENT = "decline_consent"
 
+    @Deprecated(
+        "Constant has been moved.",
+        ReplaceWith("Dispatch.Keys.CONSENT_STATUS", "com.tealium.dispatcher.Dispatch")
+    )
     const val KEY_STATUS = "status"
+
+    @Deprecated(
+        "Constant has been moved.",
+        ReplaceWith("Dispatch.Keys.CONSENT_CATEGORIES", "com.tealium.dispatcher.Dispatch")
+    )
     const val KEY_CATEGORIES = "categories"
+
+    @Deprecated(
+        "Constant has been moved.",
+        ReplaceWith("Dispatch.Keys.CONSENT_LAST_STATUS_UPDATE", "com.tealium.dispatcher.Dispatch")
+    )
     const val KEY_LAST_STATUS_UPDATE = "last_updated"
 }

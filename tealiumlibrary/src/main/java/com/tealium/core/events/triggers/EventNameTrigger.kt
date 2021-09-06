@@ -10,13 +10,13 @@ internal class EventNameTrigger(val startName: String,
     override val eventName: String = eventName ?: "$startName::$stopName"
 
     override fun shouldStart(dispatch: Dispatch): Boolean {
-        return dispatch[CoreConstant.TEALIUM_EVENT]?.let {
+        return dispatch[Dispatch.Keys.TEALIUM_EVENT]?.let {
             it == startName
         } ?: false
     }
 
     override fun shouldStop(dispatch: Dispatch): Boolean {
-        return dispatch[CoreConstant.TEALIUM_EVENT]?.let {
+        return dispatch[Dispatch.Keys.TEALIUM_EVENT]?.let {
             it == stopName
         } ?: false
     }

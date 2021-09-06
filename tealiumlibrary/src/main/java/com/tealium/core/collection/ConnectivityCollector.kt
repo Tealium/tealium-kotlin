@@ -6,6 +6,7 @@ import android.telephony.TelephonyManager
 import com.tealium.core.*
 import com.tealium.core.network.Connectivity
 import com.tealium.core.network.ConnectivityRetriever
+import com.tealium.dispatcher.Dispatch
 import com.tealium.tealiumlibrary.BuildConfig
 
 interface ConnectivityData : Collector {
@@ -30,12 +31,12 @@ class ConnectivityCollector(context: Context, private val connectivityRetriever:
 
     override suspend fun collect(): Map<String, Any> {
         return mapOf(
-                ConnectivityCollectorConstants.CONNECTION_TYPE to connectivityRetriever.connectionType(),
-                ConnectivityCollectorConstants.IS_CONNECTED to connectivityRetriever.isConnected(),
-                ConnectivityCollectorConstants.CARRIER to carrier,
-                ConnectivityCollectorConstants.CARRIER_ISO to carrierIso,
-                ConnectivityCollectorConstants.CARRIER_MCC to carrierMcc,
-                ConnectivityCollectorConstants.CARRIER_MNC to carrierMnc
+                Dispatch.Keys.CONNECTION_TYPE to connectivityRetriever.connectionType(),
+                Dispatch.Keys.IS_CONNECTED to connectivityRetriever.isConnected(),
+                Dispatch.Keys.CARRIER to carrier,
+                Dispatch.Keys.CARRIER_ISO to carrierIso,
+                Dispatch.Keys.CARRIER_MCC to carrierMcc,
+                Dispatch.Keys.CARRIER_MNC to carrierMnc
         )
     }
 
