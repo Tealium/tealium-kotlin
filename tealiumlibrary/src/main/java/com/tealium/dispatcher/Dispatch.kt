@@ -118,9 +118,11 @@ interface Dispatch {
         const val TIMESTAMP_UNIX_MILLISECONDS = "timestamp_unix_milliseconds"
 
         // ConsentManager
-        const val CONSENT_STATUS = "status"
-        const val CONSENT_CATEGORIES = "categories"
-        const val CONSENT_LAST_STATUS_UPDATE = "last_updated"
+        const val CONSENT_POLICY = "policy"
+        const val CONSENT_STATUS = "consent_status"
+        const val CONSENT_CATEGORIES = "consent_categories"
+        const val CONSENT_DO_NOT_SELL = "do_not_sell"
+        const val CONSENT_LAST_UPDATED = "consent_last_updated"
 
         // TimedEvents
         const val TIMED_EVENT_NAME = "timed_event_name"

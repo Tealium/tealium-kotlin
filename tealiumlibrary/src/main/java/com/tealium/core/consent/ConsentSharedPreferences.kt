@@ -1,6 +1,9 @@
 package com.tealium.core.consent
 import android.content.SharedPreferences
 import com.tealium.core.TealiumConfig
+import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
+import com.tealium.core.consent.ConsentManagerConstants.KEY_LAST_STATUS_UPDATE
+import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
 import com.tealium.dispatcher.Dispatch
 
 /**
@@ -15,7 +18,7 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
         get() {
             return ConsentStatus.consentStatus(
                     sharedPreferences.getString(
-                        Dispatch.Keys.CONSENT_STATUS,
+                        KEY_STATUS,
                         ConsentStatus.default().value
                     )!!
             )
@@ -23,13 +26,13 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
         set(value) {
             field = value
             sharedPreferences.edit()
-                    .putString(Dispatch.Keys.CONSENT_STATUS, field.value)
+                    .putString(KEY_STATUS, field.value)
                     .apply()
         }
 
     var consentCategories: Set<ConsentCategory>? = null
         get() {
-            return sharedPreferences.getStringSet(Dispatch.Keys.CONSENT_CATEGORIES, null)?.let {
+            return sharedPreferences.getStringSet(KEY_CATEGORIES, null)?.let {
                 ConsentCategory.consentCategories(it.filterNotNull().toSet())
             }
         }
@@ -38,24 +41,24 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
             value?.let { categories ->
                 sharedPreferences.edit()
                         .putStringSet(
-                            Dispatch.Keys.CONSENT_CATEGORIES,
+                            KEY_CATEGORIES,
                             categories.map { category -> category.value }.toSet()
                         )
                         .apply()
             } ?: run {
-                sharedPreferences.edit().remove(Dispatch.Keys.CONSENT_CATEGORIES).apply()
+                sharedPreferences.edit().remove(KEY_CATEGORIES).apply()
             }
         }
 
     var lastUpdate: Long? = null
         get() {
-            return sharedPreferences.getLong(Dispatch.Keys.CONSENT_LAST_STATUS_UPDATE, 0)
+            return sharedPreferences.getLong(KEY_LAST_STATUS_UPDATE, 0)
         }
         set(value) {
             field = value
             field?.let {
                 sharedPreferences.edit()
-                        .putLong(Dispatch.Keys.CONSENT_LAST_STATUS_UPDATE, it)
+                        .putLong(KEY_LAST_STATUS_UPDATE, it)
                         .apply()
             }
         }
