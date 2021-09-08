@@ -4,7 +4,6 @@ import com.tealium.core.TealiumConfig
 import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
 import com.tealium.core.consent.ConsentManagerConstants.KEY_LAST_STATUS_UPDATE
 import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
-import com.tealium.dispatcher.Dispatch
 
 /**
  * This class is responsible for the persistence of consent preferences as defined by [ConsentStatus]
