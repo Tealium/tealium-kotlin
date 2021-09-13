@@ -92,7 +92,12 @@ class ConsentManager(
         consentManagementPolicy?.let { policy ->
             if (policy.consentLoggingEnabled) {
                 // profile override checked in dispatchers, url override checked in Collect dispatcher
-                context.track(TealiumEvent(policy.consentLoggingEventName, policy.policyStatusInfo()))
+                context.track(
+                    TealiumEvent(
+                        policy.consentLoggingEventName,
+                        policy.policyStatusInfo()
+                    )
+                )
             }
         }
     }
@@ -182,9 +187,13 @@ class ConsentManager(
      * Returns the status information from the current [ConsentPolicy] in force, else an empty map.
      */
     override suspend fun collect(): Map<String, Any> {
-        return if (userConsentStatus != ConsentStatus.UNKNOWN && consentManagementPolicy != null)
-            consentManagementPolicy.policyStatusInfo()
-        else emptyMap()
+        return (if (userConsentStatus != ConsentStatus.UNKNOWN && consentManagementPolicy != null) {
+            consentManagementPolicy.policyStatusInfo().toMutableMap()
+        } else mutableMapOf()).apply {
+            lastConsentUpdate?.let {
+                put(Dispatch.Keys.CONSENT_LAST_UPDATED, it)
+            }
+        }
     }
 
     override fun onLibrarySettingsUpdated(settings: LibrarySettings) {
