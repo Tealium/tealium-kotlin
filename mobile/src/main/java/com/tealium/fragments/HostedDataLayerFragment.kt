@@ -8,20 +8,26 @@ import androidx.fragment.app.Fragment
 import com.tealium.core.Tealium
 import com.tealium.hosteddatalayer.hostedDataLayer
 import com.tealium.mobile.BuildConfig
-import com.tealium.mobile.R
-import kotlinx.android.synthetic.main.fragment_hosted_data_layer.*
+import com.tealium.mobile.databinding.FragmentHostedDataLayerBinding
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class HostedDataLayerFragment : Fragment() {
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_hosted_data_layer, container, false)
+    private lateinit var binding: FragmentHostedDataLayerBinding
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentHostedDataLayerBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        clearCacheButton.setOnClickListener {
+        binding.clearCacheButton.setOnClickListener {
             onClearCache()
         }
     }

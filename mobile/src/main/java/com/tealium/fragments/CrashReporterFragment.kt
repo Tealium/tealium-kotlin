@@ -5,18 +5,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.tealium.mobile.R
-import kotlinx.android.synthetic.main.fragment_crash_reporter.*
+import com.tealium.mobile.databinding.FragmentCrashReporterBinding
 
 class CrashReporterFragment : Fragment() {
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_crash_reporter, container, false)
+    private lateinit var binding: FragmentCrashReporterBinding
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        binding = FragmentCrashReporterBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        createCrashButton.setOnClickListener {
+        binding.createCrashButton.setOnClickListener {
             causeCrash()
         }
     }

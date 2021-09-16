@@ -7,12 +7,13 @@ import android.view.ViewGroup
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import androidx.fragment.app.Fragment
-import com.tealium.mobile.R
 import com.tealium.mobile.TealiumHelper
+import com.tealium.mobile.databinding.FragmentConsentSyncBinding
 import org.json.JSONObject
 
 class ConsentSyncFragment : Fragment() {
 
+    private lateinit var binding: FragmentConsentSyncBinding
     private var categories: String? = TealiumHelper.fetchConsentCategories()
     private val url =
         "https://tags.tiqcdn.com/utag/tealiummobile/consent-manager-demo/prod/mobile.html?consent_categories=${categories ?: ""}"
@@ -21,14 +22,15 @@ class ConsentSyncFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_consent_sync, container, false)
+    ): View {
+        binding = FragmentConsentSyncBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val webView: WebView = view.findViewById(R.id.consentSyncWebView)
+        val webView: WebView = binding.consentSyncWebView
         webView.settings.run {
             javaScriptEnabled = true
             useWideViewPort = true
