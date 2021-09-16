@@ -115,6 +115,7 @@ class DeviceCollector private constructor(context: Context) : Collector, DeviceD
 
     companion object : CollectorFactory {
         const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
+
         @Volatile
         private var instance: Collector? = null
 
