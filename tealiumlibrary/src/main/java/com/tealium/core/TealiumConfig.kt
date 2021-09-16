@@ -14,7 +14,16 @@ enum class Environment(val environment: String) {
     PROD("prod")
 }
 
+@Deprecated(
+    "Constant has been moved.",
+    ReplaceWith("Dispatch.Keys.TEALIUM_ACCOUNT", "com.tealium.dispatcher.Dispatch")
+)
 const val TEALIUM_ACCOUNT = "tealium_account"
+
+@Deprecated(
+    "Constant has been moved.",
+    ReplaceWith("Dispatch.Keys.TEALIUM_PROFILE", "com.tealium.dispatcher.Dispatch")
+)
 const val TEALIUM_PROFILE = "tealium_profile"
 
 object Collectors {

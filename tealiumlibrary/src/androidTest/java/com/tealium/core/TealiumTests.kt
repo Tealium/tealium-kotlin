@@ -7,6 +7,7 @@ import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.persistence.DataLayer
 import com.tealium.core.persistence.Expiry
+import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
 import kotlinx.coroutines.delay
@@ -359,7 +360,7 @@ class TealiumTests {
 
         verify(exactly = 1) {
             mockDataLayer.putString(
-                CoreConstant.TRACE_ID,
+                Dispatch.Keys.TRACE_ID,
                 traceId,
                 Expiry.SESSION
             )
@@ -378,7 +379,7 @@ class TealiumTests {
         val traceId = "abc123"
         val queryParams = mapOf<String, Any>(
             "tealium_trace_id" to traceId,
-            CoreConstant.LEAVE_TRACE_QUERY_PARAM to "true"
+            DeepLinkHandler.LEAVE_TRACE_QUERY_PARAM to "true"
         )
         val uri = builder.scheme("https")
             .authority("tealium.com")
@@ -396,7 +397,7 @@ class TealiumTests {
             mockActivityObserverListener.onActivityResumed(activity)
             delay(100)
         }
-        verify(exactly = 1) { mockDataLayer.remove(CoreConstant.TRACE_ID) }
+        verify(exactly = 1) { mockDataLayer.remove(Dispatch.Keys.TRACE_ID) }
     }
 
     @Test
@@ -414,7 +415,7 @@ class TealiumTests {
             val traceId = "abc123"
             val queryParams = mapOf<String, Any>(
                 "tealium_trace_id" to traceId,
-                CoreConstant.KILL_VISITOR_SESSION to "true"
+                DeepLinkHandler.KILL_VISITOR_SESSION to "true"
             )
             val uri = builder.scheme("https")
                 .authority("tealium.com")

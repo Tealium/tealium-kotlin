@@ -2,6 +2,7 @@ package com.tealium.core.collection
 
 import com.tealium.core.*
 import com.tealium.core.persistence.getTimestampMilliseconds
+import com.tealium.dispatcher.Dispatch
 import com.tealium.test.OpenForTesting
 import java.text.SimpleDateFormat
 import java.util.*
@@ -35,7 +36,11 @@ class TimeCollector : Collector, TimeData {
         get() = localDateFormat.format(Date(timestampUnixMilliseconds))
 
     override val timestampOffset: String
-        get() = String.format(Locale.ROOT, "%.0f", (TimeZone.getDefault().getOffset(timestampUnixMilliseconds)).toFloat().div(hourInMs))
+        get() = String.format(
+            Locale.ROOT,
+            "%.0f",
+            (TimeZone.getDefault().getOffset(timestampUnixMilliseconds)).toFloat().div(hourInMs)
+        )
 
     override val timestampUnix: Long
         get() = timestampUnixMilliseconds.div(1000)
@@ -45,11 +50,11 @@ class TimeCollector : Collector, TimeData {
 
     override suspend fun collect(): Map<String, Any> {
         return mapOf(
-                TimeCollectorConstants.TIMESTAMP to timestamp,
-                TimeCollectorConstants.TIMESTAMP_LOCAL to timestampLocal,
-                TimeCollectorConstants.TIMESTAMP_OFFSET to timestampOffset,
-                TimeCollectorConstants.TIMESTAMP_UNIX to timestampUnix,
-                TimeCollectorConstants.TIMESTAMP_UNIX_MILLISECONDS to timestampUnixMilliseconds
+            Dispatch.Keys.TIMESTAMP to timestamp,
+            Dispatch.Keys.TIMESTAMP_LOCAL to timestampLocal,
+            Dispatch.Keys.TIMESTAMP_OFFSET to timestampOffset,
+            Dispatch.Keys.TIMESTAMP_UNIX to timestampUnix,
+            Dispatch.Keys.TIMESTAMP_UNIX_MILLISECONDS to timestampUnixMilliseconds
         )
     }
 

@@ -7,6 +7,7 @@ import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.network.Connectivity
 import com.tealium.core.persistence.DataLayer
+import com.tealium.dispatcher.Dispatch
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -57,18 +58,18 @@ class ConnectivityCollectorTests {
 
         val connectivityCollector = ConnectivityCollector(context, mockConnectivityRetriever)
         var data = connectivityCollector.collect()
-        assertNotNull(data[ConnectivityCollectorConstants.CARRIER])
-        assertNotNull(data[ConnectivityCollectorConstants.CARRIER_ISO])
-        assertNotNull(data[ConnectivityCollectorConstants.CARRIER_MCC])
-        assertNotNull(data[ConnectivityCollectorConstants.CARRIER_MNC])
-        assertEquals(true, data[ConnectivityCollectorConstants.IS_CONNECTED])
-        assertEquals("wifi", data[ConnectivityCollectorConstants.CONNECTION_TYPE])
+        assertNotNull(data[Dispatch.Keys.CARRIER])
+        assertNotNull(data[Dispatch.Keys.CARRIER_ISO])
+        assertNotNull(data[Dispatch.Keys.CARRIER_MCC])
+        assertNotNull(data[Dispatch.Keys.CARRIER_MNC])
+        assertEquals(true, data[Dispatch.Keys.IS_CONNECTED])
+        assertEquals("wifi", data[Dispatch.Keys.CONNECTION_TYPE])
 
         every { mockConnectivityRetriever.isConnected() } returns false
         every { mockConnectivityRetriever.connectionType() } returns "cellular"
         data = connectivityCollector.collect()
-        assertEquals(false, data[ConnectivityCollectorConstants.IS_CONNECTED])
-        assertEquals("cellular", data[ConnectivityCollectorConstants.CONNECTION_TYPE])
+        assertEquals(false, data[Dispatch.Keys.IS_CONNECTED])
+        assertEquals("cellular", data[Dispatch.Keys.CONNECTION_TYPE])
     }
 
     @Test

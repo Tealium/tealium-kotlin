@@ -10,6 +10,7 @@ import android.os.StatFs
 import android.view.Surface
 import android.view.WindowManager
 import com.tealium.core.*
+import com.tealium.dispatcher.Dispatch
 import com.tealium.tealiumlibrary.BuildConfig
 import java.util.*
 
@@ -92,28 +93,29 @@ class DeviceCollector private constructor(context: Context) : Collector, DeviceD
 
     override suspend fun collect(): Map<String, Any> {
         return mapOf(
-            DeviceCollectorConstants.DEVICE to device,
-            DeviceCollectorConstants.DEVICE_MODEL to deviceModel,
-            DeviceCollectorConstants.DEVICE_MANUFACTURER to deviceManufacturer,
-            DeviceCollectorConstants.DEVICE_ARCHITECTURE to deviceArchitecture,
-            DeviceCollectorConstants.DEVICE_CPU_TYPE to deviceCpuType,
-            DeviceCollectorConstants.DEVICE_RESOLUTION to deviceResolution,
-            DeviceCollectorConstants.DEVICE_LOGICAL_RESOLUTION to deviceLogicalResolution,
-            DeviceCollectorConstants.DEVICE_RUNTIME to deviceRuntime,
-            DeviceCollectorConstants.DEVICE_ORIGIN to deviceOrigin,
-            DeviceCollectorConstants.DEVICE_PLATFORM to devicePlatform,
-            DeviceCollectorConstants.DEVICE_OS_NAME to deviceOsName,
-            DeviceCollectorConstants.DEVICE_OS_BUILD to deviceOsBuild,
-            DeviceCollectorConstants.DEVICE_OS_VERSION to deviceOsVersion,
-            DeviceCollectorConstants.DEVICE_AVAILABLE_SYSTEM_STORAGE to deviceAvailableSystemStorage,
-            DeviceCollectorConstants.DEVICE_AVAILABLE_EXTERNAL_STORAGE to deviceAvailableExternalStorage,
-            DeviceCollectorConstants.DEVICE_ORIENTATION to deviceOrientation,
-            DeviceCollectorConstants.DEVICE_LANGUAGE to deviceLanguage
+            Dispatch.Keys.DEVICE to device,
+            Dispatch.Keys.DEVICE_MODEL to deviceModel,
+            Dispatch.Keys.DEVICE_MANUFACTURER to deviceManufacturer,
+            Dispatch.Keys.DEVICE_ARCHITECTURE to deviceArchitecture,
+            Dispatch.Keys.DEVICE_CPU_TYPE to deviceCpuType,
+            Dispatch.Keys.DEVICE_RESOLUTION to deviceResolution,
+            Dispatch.Keys.DEVICE_LOGICAL_RESOLUTION to deviceLogicalResolution,
+            Dispatch.Keys.DEVICE_RUNTIME to deviceRuntime,
+            Dispatch.Keys.DEVICE_ORIGIN to deviceOrigin,
+            Dispatch.Keys.DEVICE_PLATFORM to devicePlatform,
+            Dispatch.Keys.DEVICE_OS_NAME to deviceOsName,
+            Dispatch.Keys.DEVICE_OS_BUILD to deviceOsBuild,
+            Dispatch.Keys.DEVICE_OS_VERSION to deviceOsVersion,
+            Dispatch.Keys.DEVICE_AVAILABLE_SYSTEM_STORAGE to deviceAvailableSystemStorage,
+            Dispatch.Keys.DEVICE_AVAILABLE_EXTERNAL_STORAGE to deviceAvailableExternalStorage,
+            Dispatch.Keys.DEVICE_ORIENTATION to deviceOrientation,
+            Dispatch.Keys.DEVICE_LANGUAGE to deviceLanguage
         )
     }
 
     companion object : CollectorFactory {
         const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
+
         @Volatile
         private var instance: Collector? = null
 

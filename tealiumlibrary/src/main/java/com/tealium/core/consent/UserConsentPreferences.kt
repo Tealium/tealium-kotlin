@@ -1,5 +1,6 @@
 package com.tealium.core.consent
 
+import com.tealium.dispatcher.Dispatch
 import org.json.JSONArray
 import java.lang.Exception
 import java.util.*
@@ -245,11 +246,11 @@ private class GdprConsentManagementPolicy(initialConsentPreferences: UserConsent
 
     override fun policyStatusInfo(): Map<String, Any> {
         return mutableMapOf(
-                ConsentManagerConstants.CONSENT_POLICY to name,
-                ConsentManagerConstants.CONSENT_STATUS to userConsentPreferences.consentStatus
+            Dispatch.Keys.CONSENT_POLICY to name,
+            Dispatch.Keys.CONSENT_STATUS to userConsentPreferences.consentStatus
         ).apply {
             userConsentPreferences.consentCategories?.let {
-                this[ConsentManagerConstants.CONSENT_CATEGORIES] = it.toJsonArray()
+                this[Dispatch.Keys.CONSENT_CATEGORIES] = it.toJsonArray()
             }
         }
     }
@@ -278,8 +279,8 @@ private class CcpaConsentManagementPolicy(initialConsentPreferences: UserConsent
 
     override fun policyStatusInfo(): Map<String, Any> {
         return mapOf(
-                ConsentManagerConstants.CONSENT_POLICY to name,
-                ConsentManagerConstants.CONSENT_DO_NOT_SELL to (userConsentPreferences.consentStatus == ConsentStatus.CONSENTED)
+            Dispatch.Keys.CONSENT_POLICY to name,
+            Dispatch.Keys.CONSENT_DO_NOT_SELL to (userConsentPreferences.consentStatus == ConsentStatus.CONSENTED)
         )
     }
 

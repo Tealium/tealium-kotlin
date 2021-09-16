@@ -4,6 +4,7 @@ import android.app.Activity
 import android.net.Uri
 import com.tealium.core.messaging.ActivityObserverListener
 import com.tealium.core.persistence.Expiry
+import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 
 class DeepLinkHandler(private val context: TealiumContext): ActivityObserverListener {
@@ -12,7 +13,7 @@ class DeepLinkHandler(private val context: TealiumContext): ActivityObserverList
      * Adds the supplied Trace ID to the data layer for the current session.
      */
     fun joinTrace(id: String) {
-        context.dataLayer.putString(CoreConstant.TRACE_ID, id, Expiry.SESSION)
+        context.dataLayer.putString(Dispatch.Keys.TRACE_ID, id, Expiry.SESSION)
     }
 
     /**
@@ -20,7 +21,7 @@ class DeepLinkHandler(private val context: TealiumContext): ActivityObserverList
      */
     @Suppress("unused")
     fun leaveTrace() {
-        context.dataLayer.remove(CoreConstant.TRACE_ID)
+        context.dataLayer.remove(Dispatch.Keys.TRACE_ID)
     }
 
     /**
@@ -28,8 +29,10 @@ class DeepLinkHandler(private val context: TealiumContext): ActivityObserverList
      * or reset the session ID).
      */
     fun killTraceVisitorSession() {
-        val dispatch = TealiumEvent(eventName = CoreConstant.KILL_VISITOR_SESSION,
-                data = hashMapOf(CoreConstant.KILL_VISITOR_SESSION_EVENT_KEY to  CoreConstant.KILL_VISITOR_SESSION))
+        val dispatch = TealiumEvent(
+            eventName = KILL_VISITOR_SESSION,
+            data = hashMapOf(Dispatch.Keys.EVENT to KILL_VISITOR_SESSION)
+        )
         context.track(dispatch)
     }
 
@@ -37,10 +40,10 @@ class DeepLinkHandler(private val context: TealiumContext): ActivityObserverList
      * If the app was launched from a deep link, adds the link and query parameters to the data layer for the current session.
      */
     fun handleDeepLink(uri: Uri) {
-            context.dataLayer.putString(CoreConstant.DEEP_LINK_URL, uri.toString(), Expiry.SESSION)
+            context.dataLayer.putString(Dispatch.Keys.DEEP_LINK_URL, uri.toString(), Expiry.SESSION)
             uri.queryParameterNames.forEach { name ->
                 uri.getQueryParameter(name)?.let { value ->
-                    context.dataLayer.putString("${CoreConstant.DEEP_LINK_QUERY_PREFIX}_$name", value, Expiry.SESSION)
+                    context.dataLayer.putString("${Dispatch.Keys.DEEP_LINK_QUERY_PREFIX}_$name", value, Expiry.SESSION)
                 }
             }
     }
@@ -55,12 +58,12 @@ class DeepLinkHandler(private val context: TealiumContext): ActivityObserverList
     override fun onActivityResumed(activity: Activity?) {
             activity?.intent?.let { intent ->
                 intent.data?.let { uri ->
-                    uri.getQueryParameter(CoreConstant.TRACE_ID_QUERY_PARAM)?.let { traceId ->
+                    uri.getQueryParameter(TRACE_ID_QUERY_PARAM)?.let { traceId ->
                         if (context.config.qrTraceEnabled) {
-                            uri.getQueryParameter(CoreConstant.KILL_VISITOR_SESSION)?.let {
+                            uri.getQueryParameter(KILL_VISITOR_SESSION)?.let {
                                 killTraceVisitorSession()
                             }
-                            uri.getQueryParameter(CoreConstant.LEAVE_TRACE_QUERY_PARAM)?.let {
+                            uri.getQueryParameter(LEAVE_TRACE_QUERY_PARAM)?.let {
                                 leaveTrace()
                             } ?:
                             joinTrace(traceId)
@@ -75,5 +78,11 @@ class DeepLinkHandler(private val context: TealiumContext): ActivityObserverList
 
     override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
         // not used
+    }
+
+    internal companion object {
+        internal const val TRACE_ID_QUERY_PARAM = Dispatch.Keys.TEALIUM_TRACE_ID
+        internal const val LEAVE_TRACE_QUERY_PARAM = "leave_trace"
+        internal const val KILL_VISITOR_SESSION = "kill_visitor_session"
     }
 }

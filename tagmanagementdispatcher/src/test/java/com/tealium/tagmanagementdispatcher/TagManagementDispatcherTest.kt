@@ -10,6 +10,7 @@ import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.network.Connectivity
+import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -105,9 +106,9 @@ class TagManagementDispatcherTest {
         val queryParams = url.query.split("&").associate { param ->
             Pair(param.split("=")[0], param.split("=")[1])
         }
-        assertEquals("android", queryParams[DeviceCollectorConstants.DEVICE_PLATFORM])
-        assertEquals(Build.VERSION.RELEASE, queryParams[DeviceCollectorConstants.DEVICE_OS_VERSION])
-        assertEquals(BuildConfig.VERSION_NAME, queryParams[CoreConstant.LIBRARY_VERSION])
+        assertEquals("android", queryParams[Dispatch.Keys.DEVICE_PLATFORM])
+        assertEquals(Build.VERSION.RELEASE, queryParams[Dispatch.Keys.DEVICE_OS_VERSION])
+        assertEquals(BuildConfig.VERSION_NAME, queryParams[Dispatch.Keys.LIBRARY_VERSION])
         assertEquals("true", queryParams["sdk_session_count"])
     }
 
