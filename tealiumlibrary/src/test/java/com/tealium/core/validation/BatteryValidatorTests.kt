@@ -2,12 +2,8 @@ package com.tealium.core.validation
 
 import android.app.Application
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.BatteryManager
-import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
-import com.tealium.core.TealiumContext
-import com.tealium.core.consent.ConsentManagerConstants
 import com.tealium.core.messaging.EventDispatcher
 import com.tealium.core.messaging.EventRouter
 import com.tealium.core.settings.LibrarySettings
@@ -20,16 +16,11 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
-import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 class BatteryValidatorTests {
 
     val eventRouter: EventRouter = spyk(EventDispatcher())
-
-    @MockK
-    lateinit var mockFile: File
 
     @MockK
     lateinit var mockSettings: LibrarySettings

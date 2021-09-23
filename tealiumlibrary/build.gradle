@@ -33,6 +33,7 @@ android {
             testCoverageEnabled true
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
@@ -49,7 +50,6 @@ android {
     }
 
     packagingOptions {
-//        pickFirst("META-INF/atomicfu.kotlin_module")
         pickFirst("META-INF/AL2.0")
         pickFirst("META-INF/LGPL2.1")
     }

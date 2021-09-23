@@ -51,12 +51,6 @@ class CollectDispatcherTests {
     fun setUp() {
         MockKAnnotations.init(this)
         every { mockNetworkClient.networkClientListener = any() } just Runs
-//        every { config.accountName } returns "test-account"
-//        every { config.profileName } returns "test-profile"
-//        every { config.environment } returns Environment.DEV
-//        every { config.dataSourceId } returns "test-datasource"
-//        every { config.application } returns mockApplication
-//        every { config.options } returns mutableMapOf()
         every { mockApplication.filesDir } returns mockFile
 
         config = TealiumConfig(mockApplication, "test", "profile12345", Environment.QA)
@@ -305,7 +299,6 @@ class CollectDispatcherTests {
 
     @Test
     fun consentLogging_BatchEvents_ProfileOverridden() = runBlocking {
-//        config.options = mutableMapOf()
         config.consentManagerLoggingProfile = "testingProfile"
         config.consentManagerLoggingUrl = null
 
