@@ -38,7 +38,7 @@ class ActivityObserver(config: TealiumConfig, val eventRouter: EventRouter) {
             }
 
             override fun onActivityStopped(activity: Activity) {
-                eventRouter.onActivityStopped(activity, activity.isChangingConfigurations ?: false)
+                eventRouter.onActivityStopped(activity, activity.isChangingConfigurations)
             }
 
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {

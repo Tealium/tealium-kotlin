@@ -42,7 +42,7 @@ class ConsentSyncFragment : Fragment() {
     }
 
     @JavascriptInterface
-    fun postMessage(str: String?) {
+    fun postMessage(str: String) {
         val consentObj = JSONObject(str)
         val categories = consentObj.optString(CONSENT_CATEGORIES, "")
         if (!categories.isNullOrEmpty()) {

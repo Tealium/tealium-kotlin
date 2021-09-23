@@ -30,7 +30,7 @@ class TimedEventsFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
+    ): View? {
         binding = FragmentTimedEventsBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -38,12 +38,13 @@ class TimedEventsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.buttonTriggerTimedEvent.setOnClickListener {
+        triggerTimedEventButton = binding.buttonTriggerTimedEvent
+        triggerTimedEventButton.setOnClickListener {
             onTriggerTimedEvent()
         }
 
-        eventNameEditText = view.findViewById(R.id.edit_timed_event_name)
-        timedEventStatusText = view.findViewById(R.id.txt_timed_event_status)
+        eventNameEditText = binding.editTimedEventName
+        timedEventStatusText = binding.txtTimedEventStatus
     }
 
     private fun onTriggerTimedEvent() {

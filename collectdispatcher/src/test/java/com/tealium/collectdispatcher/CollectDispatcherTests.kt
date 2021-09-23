@@ -13,9 +13,7 @@ import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import io.mockk.MockKAnnotations
 import io.mockk.*
-import io.mockk.InternalPlatformDsl.toStr
 import io.mockk.impl.annotations.MockK
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Assert.*
@@ -28,7 +26,7 @@ import java.io.File
 
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [21, 28])
+@Config(sdk = [21, 29])
 class CollectDispatcherTests {
 
     @MockK
@@ -36,9 +34,6 @@ class CollectDispatcherTests {
 
     @MockK
     lateinit var mockContext: TealiumContext
-
-    @MockK
-    lateinit var mockConfig: TealiumConfig
 
     @MockK
     lateinit var mockNetworkClient: NetworkClient
@@ -50,24 +45,28 @@ class CollectDispatcherTests {
     lateinit var mockFile: File
 
     lateinit var mockDispatch: Dispatch
+    lateinit var config: TealiumConfig
 
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
         every { mockNetworkClient.networkClientListener = any() } just Runs
-        every { mockConfig.accountName } returns "test-account"
-        every { mockConfig.profileName } returns "test-profile"
-        every { mockConfig.environment } returns Environment.DEV
-        every { mockConfig.dataSourceId } returns "test-datasource"
-        every { mockConfig.application } returns mockApplication
+//        every { config.accountName } returns "test-account"
+//        every { config.profileName } returns "test-profile"
+//        every { config.environment } returns Environment.DEV
+//        every { config.dataSourceId } returns "test-datasource"
+//        every { config.application } returns mockApplication
+//        every { config.options } returns mutableMapOf()
         every { mockApplication.filesDir } returns mockFile
-        every { mockContext.config } returns mockConfig
+
+        config = TealiumConfig(mockApplication, "test", "profile12345", Environment.QA)
+        every { mockContext.config } returns config
 
         // no overrides byt default
-        every { mockConfig.overrideCollectDomain } returns null
-        every { mockConfig.overrideCollectUrl } returns null
-        every { mockConfig.overrideCollectBatchUrl } returns null
-        every { mockConfig.overrideCollectProfile } returns null
+        config.overrideCollectDomain = null
+        config.overrideCollectUrl = null
+        config.overrideCollectBatchUrl = null
+        config.overrideCollectProfile = null
         coEvery { mockNetworkClient.post(any(), any(), any()) } just Runs
 
         mockDispatch = spyk(TealiumEvent("my-event", mapOf(
@@ -98,10 +97,10 @@ class CollectDispatcherTests {
     @Test
     fun config_OverridesAreSetCorrectly() {
         val config = TealiumConfig(mockApplication,
-                mockConfig.accountName,
-                mockConfig.profileName,
-                mockConfig.environment,
-                dataSourceId = mockConfig.dataSourceId)
+                config.accountName,
+                config.profileName,
+                config.environment,
+                dataSourceId = config.dataSourceId)
 
         config.overrideCollectDomain = null
         assertNull(config.overrideCollectDomain)
@@ -127,7 +126,7 @@ class CollectDispatcherTests {
     @Test
     fun urls_DefaultsAreUsedWhenNotOverridden() {
         // no overrides set in [setUp]
-        val collectDispatcher = CollectDispatcher(mockConfig, mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(config, mockNetworkClient)
 
         assertEquals(CollectDispatcher.COLLECT_URL, collectDispatcher.eventUrl)
         assertEquals(CollectDispatcher.BULK_URL, collectDispatcher.batchEventUrl)
@@ -135,11 +134,11 @@ class CollectDispatcherTests {
 
     @Test
     fun urls_DefaultDomainGetsOverridden() {
-        every { mockConfig.overrideCollectDomain } returns "cname.domain.com"
-        every { mockConfig.overrideCollectUrl } returns null
-        every { mockConfig.overrideCollectBatchUrl } returns null
+        config.overrideCollectDomain = "cname.domain.com"
+        config.overrideCollectUrl = null
+        config.overrideCollectBatchUrl = null
 
-        val collectDispatcher = CollectDispatcher(mockConfig, mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(config, mockNetworkClient)
 
         assertEquals("https://cname.domain.com/event", collectDispatcher.eventUrl)
         assertEquals("https://cname.domain.com/bulk-event", collectDispatcher.batchEventUrl)
@@ -147,12 +146,12 @@ class CollectDispatcherTests {
 
     @Test
     fun urls_DefaultUrlsAreOverridden() {
-        every { mockConfig.overrideCollectDomain } returns "cname.domain.com"
+        config.overrideCollectDomain = "cname.domain.com"
         // URL Overrides should take precedence
-        every { mockConfig.overrideCollectUrl } returns "https://my.website.com/my-endpoint"
-        every { mockConfig.overrideCollectBatchUrl } returns "https://my.website.com/my-bulk-endpoint"
+        config.overrideCollectUrl = "https://my.website.com/my-endpoint"
+        config.overrideCollectBatchUrl = "https://my.website.com/my-bulk-endpoint"
 
-        val collectDispatcher = CollectDispatcher(mockConfig, mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(config, mockNetworkClient)
 
         assertEquals("https://my.website.com/my-endpoint", collectDispatcher.eventUrl)
         assertEquals("https://my.website.com/my-bulk-endpoint", collectDispatcher.batchEventUrl)
@@ -160,12 +159,12 @@ class CollectDispatcherTests {
 
     @Test
     fun consentLogging_OverrideProfile() = runBlocking {
-        every { mockConfig.consentManagerLoggingProfile } returns "testingProfile"
-        every { mockConfig.consentManagerLoggingUrl } returns null
+        config.consentManagerLoggingProfile = "testingProfile"
+        config.consentManagerLoggingUrl = null
         every { mockDispatch.addAll(any()) } just Runs
 
         val testDispatch = TealiumEvent(ConsentManagerConstants.GRANT_FULL_CONSENT)
-        val collectDispatcher = CollectDispatcher(mockConfig, mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(config, mockNetworkClient)
         collectDispatcher.onDispatchSend(testDispatch)
 
         coVerify {
@@ -183,11 +182,11 @@ class CollectDispatcherTests {
 
     @Test
     fun consentLogging_OverrideUrl() = runBlocking {
-        every { mockConfig.consentManagerLoggingProfile } returns null
-        every { mockConfig.consentManagerLoggingUrl } returns "https://customUrl.com/my-endpoint"
+        config.consentManagerLoggingProfile = null
+        config.consentManagerLoggingUrl = "https://customUrl.com/my-endpoint"
 
         val testDispatch = TealiumEvent(ConsentManagerConstants.GRANT_FULL_CONSENT)
-        val collectDispatcher = CollectDispatcher(mockConfig, mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(config, mockNetworkClient)
         collectDispatcher.onDispatchSend(testDispatch)
 
         coVerify {
@@ -201,12 +200,12 @@ class CollectDispatcherTests {
 
     @Test
     fun consentLogging_OverrideProfileAndUrl() = runBlocking {
-        every { mockConfig.consentManagerLoggingProfile } returns "testingProfile"
-        every { mockConfig.consentManagerLoggingUrl } returns "https://customUrl.com/my-endpoint"
+        config.consentManagerLoggingProfile = "testingProfile"
+        config.consentManagerLoggingUrl = "https://customUrl.com/my-endpoint"
         every { mockDispatch.addAll(any()) } just Runs
 
         val testDispatch = TealiumEvent(ConsentManagerConstants.GRANT_FULL_CONSENT)
-        val collectDispatcher = CollectDispatcher(mockConfig, mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(config, mockNetworkClient)
         collectDispatcher.onDispatchSend(testDispatch)
 
         coVerify {
@@ -224,7 +223,7 @@ class CollectDispatcherTests {
 
     @Test
     fun events_IndividualEvents_AreEncodedCorrectly() = runBlocking {
-        val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(config, client = mockNetworkClient)
         collectDispatcher.onDispatchSend(mockDispatch)
 
         coVerify {
@@ -243,9 +242,9 @@ class CollectDispatcherTests {
 
     @Test
     fun events_IndividualEvents_HaveProfileOverridden() = runBlocking {
-        every { mockConfig.overrideCollectProfile } returns "test-override"
+        config.overrideCollectProfile = "test-override"
 
-        val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(config, client = mockNetworkClient)
         collectDispatcher.onDispatchSend(mockDispatch)
 
         coVerify {
@@ -264,7 +263,7 @@ class CollectDispatcherTests {
 
     @Test
     fun events_BatchEvents_AreEncodedCorrectly(): Unit = runBlocking {
-        val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(config, client = mockNetworkClient)
         collectDispatcher.onBatchDispatchSend(listOf(mockDispatch, mockDispatch))
 
         coVerify {
@@ -284,9 +283,9 @@ class CollectDispatcherTests {
 
     @Test
     fun events_BatchEvents_HaveProfileOverridden() = runBlocking {
-        every { mockConfig.overrideCollectProfile } returns "test-override"
+        config.overrideCollectProfile = "test-override"
 
-        val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(config, client = mockNetworkClient)
         collectDispatcher.onBatchDispatchSend(listOf(mockDispatch, mockDispatch))
 
         coVerify {
@@ -306,12 +305,13 @@ class CollectDispatcherTests {
 
     @Test
     fun consentLogging_BatchEvents_ProfileOverridden() = runBlocking {
-        every { mockConfig.consentManagerLoggingProfile } returns "testingProfile"
-        every { mockConfig.consentManagerLoggingUrl } returns null
+//        config.options = mutableMapOf()
+        config.consentManagerLoggingProfile = "testingProfile"
+        config.consentManagerLoggingUrl = null
 
 
         val testDispatch = TealiumEvent(ConsentManagerConstants.GRANT_FULL_CONSENT)
-        val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(config, client = mockNetworkClient)
         collectDispatcher.onBatchDispatchSend(listOf(testDispatch, mockDispatch, mockDispatch, mockDispatch))
 
         testDispatch.addAll(mapOf(TEALIUM_PROFILE to "testingProfile"))
@@ -339,10 +339,10 @@ class CollectDispatcherTests {
     @Test
     fun consentLogging_BatchEvents_UrlOverridden() = runBlocking {
         val config = TealiumConfig(mockApplication,
-            mockConfig.accountName,
-            mockConfig.profileName,
-            mockConfig.environment,
-            dataSourceId = mockConfig.dataSourceId)
+            config.accountName,
+            config.profileName,
+            config.environment,
+            dataSourceId = config.dataSourceId)
         config.consentManagerLoggingUrl = "https://customUrl.com/my-endpoint"
 
         val testDispatch = TealiumEvent(ConsentManagerConstants.GRANT_FULL_CONSENT)
@@ -373,10 +373,10 @@ class CollectDispatcherTests {
     @Test
     fun consentLogging_BatchEvents_ProfileAndUrlOverridden() = runBlocking {
         val config = TealiumConfig(mockApplication,
-            mockConfig.accountName,
-            mockConfig.profileName,
-            mockConfig.environment,
-            dataSourceId = mockConfig.dataSourceId)
+            config.accountName,
+            config.profileName,
+            config.environment,
+            dataSourceId = config.dataSourceId)
         config.consentManagerLoggingProfile  = "testingProfile"
         config.consentManagerLoggingUrl = "https://customUrl.com/my-endpoint"
 
@@ -400,10 +400,10 @@ class CollectDispatcherTests {
     @Test
     fun consentLogging_BatchEvents_NoOverrides() = runBlocking {
         val config = TealiumConfig(mockApplication,
-            mockConfig.accountName,
-            mockConfig.profileName,
-            mockConfig.environment,
-            dataSourceId = mockConfig.dataSourceId)
+            config.accountName,
+            config.profileName,
+            config.environment,
+            dataSourceId = config.dataSourceId)
 
         val testDispatch = TealiumEvent(ConsentManagerConstants.GRANT_FULL_CONSENT)
         val collectDispatcher = CollectDispatcher(config, client = mockNetworkClient)
@@ -430,8 +430,8 @@ class CollectDispatcherTests {
         every { listener.successfulTrack() } just Runs
         every { listener.unsuccessfulTrack(any()) } just Runs
 
-        val networkClient = spyk(HttpClient(mockConfig))
-        val collectDispatcher = CollectDispatcher(mockConfig,
+        val networkClient = spyk(HttpClient(config))
+        val collectDispatcher = CollectDispatcher(config,
                 client = networkClient,
                 collectDispatchListener = listener)
 
@@ -447,7 +447,7 @@ class CollectDispatcherTests {
 
     @Test
     fun serialization_Arrays_AreSerializedCorrectly() = runBlocking {
-        val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(config, client = mockNetworkClient)
         every { mockDispatch.payload() } returns mapOf(
                 "string_array" to arrayOf("value_1", "value_2"),
                 "int_array" to arrayOf(10, 20),
@@ -483,7 +483,7 @@ class CollectDispatcherTests {
 
     @Test
     fun serialization_Lists_AreSerializedCorrectly() = runBlocking {
-        val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(config, client = mockNetworkClient)
         every { mockDispatch.payload() } returns mapOf(
                 "string_list" to listOf("value_1", "value_2"),
                 "int_list" to listOf(10, 20),
@@ -519,7 +519,7 @@ class CollectDispatcherTests {
 
     @Test
     fun serialization_Maps_AreSerializedCorrectly() = runBlocking {
-        val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
+        val collectDispatcher = CollectDispatcher(config, client = mockNetworkClient)
         every { mockDispatch.payload() } returns mapOf(
                 "string_map" to mapOf("string" to "value"),
                 "int_map" to mapOf("int" to 20),

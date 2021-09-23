@@ -104,7 +104,6 @@ class TealiumTests {
         assertNotNull(vid)
         assertEquals("testExistingVisitorId", test.visitorId)
         assertEquals(test.visitorId, test.dataLayer.getString("tealium_visitor_id"))
-
     }
 
     @Test
@@ -114,7 +113,7 @@ class TealiumTests {
             "testProfile2",
             Environment.DEV)
         config.existingVisitorId = "testExistingVisitorId"
-        val teal = Tealium.create("tester", config)
+        val teal = Tealium.create("tester2", config)
 
         val vid = teal.visitorId
         val storedVid = teal.dataLayer.getString("tealium_visitor_id")
@@ -126,7 +125,6 @@ class TealiumTests {
         assertNotEquals(vid, resetVid)
         assertNotEquals(storedVid, storedResetVid)
         assertEquals(teal.visitorId, teal.dataLayer.getString("tealium_visitor_id"))
-
     }
 
     @Test
