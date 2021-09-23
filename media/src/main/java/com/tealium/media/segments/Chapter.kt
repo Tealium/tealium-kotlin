@@ -33,7 +33,7 @@ data class Chapter(val name: String,
     }
 
     override fun segmentInfo(): Map<String, Any> {
-        val data = mutableMapOf(
+        val data = mutableMapOf<String, Any>(
                 ChapterKey.NAME to name,
                 ChapterKey.UUID to uuid,
                 ChapterKey.SKIPPED to skipped

@@ -245,7 +245,7 @@ private class GdprConsentManagementPolicy(initialConsentPreferences: UserConsent
     override val cookieUpdateEventName: String = "update_consent_cookie"
 
     override fun policyStatusInfo(): Map<String, Any> {
-        return mutableMapOf(
+        return mutableMapOf<String, Any>(
             Dispatch.Keys.CONSENT_POLICY to name,
             Dispatch.Keys.CONSENT_STATUS to userConsentPreferences.consentStatus
         ).apply {
