@@ -24,6 +24,7 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
@@ -135,12 +136,14 @@ class DispatchRouterTests {
     }
 
     @Test
-    fun testIsCollected() {
+    fun testIsCollected() = runBlocking {
         dispatchRouter.track(eventDispatch)
 
         coVerify(timeout = 1000) {
             collector.collect()
         }
+
+        delay(10)
         assertTrue(eventDispatch["key"] == "value")
     }
 
