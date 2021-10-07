@@ -7,7 +7,7 @@ import com.tealium.core.persistence.Expiry
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 
-class DeepLinkHandler(private val context: TealiumContext): ActivityObserverListener {
+class DeepLinkHandler(private val context: TealiumContext) : ActivityObserverListener {
 
     /**
      * Adds the supplied Trace ID to the data layer for the current session.
@@ -40,11 +40,26 @@ class DeepLinkHandler(private val context: TealiumContext): ActivityObserverList
      * If the app was launched from a deep link, adds the link and query parameters to the data layer for the current session.
      */
     fun handleDeepLink(uri: Uri) {
-            context.dataLayer.putString(Dispatch.Keys.DEEP_LINK_URL, uri.toString(), Expiry.SESSION)
-            uri.queryParameterNames.forEach { name ->
-                uri.getQueryParameter(name)?.let { value ->
-                    context.dataLayer.putString("${Dispatch.Keys.DEEP_LINK_QUERY_PREFIX}_$name", value, Expiry.SESSION)
-                }
+        removeOldDeepLinkData()
+        context.dataLayer.putString(Dispatch.Keys.DEEP_LINK_URL, uri.toString(), Expiry.SESSION)
+        uri.queryParameterNames.forEach { name ->
+            uri.getQueryParameter(name)?.let { value ->
+                context.dataLayer.putString(
+                    "${Dispatch.Keys.DEEP_LINK_QUERY_PREFIX}_$name",
+                    value,
+                    Expiry.SESSION
+                )
+            }
+        }
+    }
+
+    /**
+     * Removes all the Deep Link data related to any previous Deep Link.
+     */
+    fun removeOldDeepLinkData() {
+        context.dataLayer.keys().filter { it.startsWith(Dispatch.Keys.DEEP_LINK_QUERY_PREFIX) }
+            .forEach { key ->
+                context.dataLayer.remove(key)
             }
     }
 
@@ -56,24 +71,23 @@ class DeepLinkHandler(private val context: TealiumContext): ActivityObserverList
      * Handles deep linking and joinTrace, leaveTrace, killVisitorSession requests.
      */
     override fun onActivityResumed(activity: Activity?) {
-            activity?.intent?.let { intent ->
-                intent.data?.let { uri ->
-                    uri.getQueryParameter(TRACE_ID_QUERY_PARAM)?.let { traceId ->
-                        if (context.config.qrTraceEnabled) {
-                            uri.getQueryParameter(KILL_VISITOR_SESSION)?.let {
-                                killTraceVisitorSession()
-                            }
-                            uri.getQueryParameter(LEAVE_TRACE_QUERY_PARAM)?.let {
-                                leaveTrace()
-                            } ?:
-                            joinTrace(traceId)
+        activity?.intent?.let { intent ->
+            intent.data?.let { uri ->
+                uri.getQueryParameter(TRACE_ID_QUERY_PARAM)?.let { traceId ->
+                    if (context.config.qrTraceEnabled) {
+                        uri.getQueryParameter(KILL_VISITOR_SESSION)?.let {
+                            killTraceVisitorSession()
                         }
-                    }
-                    if (context.config.deepLinkTrackingEnabled) {
-                        handleDeepLink(uri)
+                        uri.getQueryParameter(LEAVE_TRACE_QUERY_PARAM)?.let {
+                            leaveTrace()
+                        } ?: joinTrace(traceId)
                     }
                 }
+                if (context.config.deepLinkTrackingEnabled) {
+                    handleDeepLink(uri)
+                }
             }
+        }
     }
 
     override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
