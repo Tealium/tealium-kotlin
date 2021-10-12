@@ -23,9 +23,28 @@ data class TimedEvent(
 
     companion object {
         const val TIMED_EVENT_NAME = "timed_event"
+        @Deprecated(
+            "Constant has been moved.",
+            ReplaceWith("Dispatch.Keys.TIMED_EVENT_NAME", "com.tealium.dispatcher.Dispatch")
+        )
         const val KEY_TIMED_EVENT_NAME = "timed_event_name"
+
+        @Deprecated(
+            "Constant has been moved.",
+            ReplaceWith("Dispatch.Keys.TIMED_EVENT_START", "com.tealium.dispatcher.Dispatch")
+        )
         const val KEY_TIMED_EVENT_START = "timed_event_start"
+
+        @Deprecated(
+            "Constant has been moved.",
+            ReplaceWith("Dispatch.Keys.TIMED_EVENT_END", "com.tealium.dispatcher.Dispatch")
+        )
         const val KEY_TIMED_EVENT_END = "timed_event_end"
+
+        @Deprecated(
+            "Constant has been moved.",
+            ReplaceWith("Dispatch.Keys.TIMED_EVENT_DURATION", "com.tealium.dispatcher.Dispatch")
+        )
         const val KEY_TIMED_EVENT_DURATION = "timed_event_duration"
 
         private fun isValid(timedEvent: TimedEvent): Boolean {
@@ -52,10 +71,10 @@ data class TimedEvent(
                     val duration = timedEvent.duration ?: return null
 
                     mutableMapOf(
-                            KEY_TIMED_EVENT_NAME to timedEvent.eventName,
-                            KEY_TIMED_EVENT_START to timedEvent.startTime,
-                            KEY_TIMED_EVENT_END to stopTime,
-                            KEY_TIMED_EVENT_DURATION to duration
+                        Dispatch.Keys.TIMED_EVENT_NAME to timedEvent.eventName,
+                        Dispatch.Keys.TIMED_EVENT_START to timedEvent.startTime,
+                        Dispatch.Keys.TIMED_EVENT_END to stopTime,
+                        Dispatch.Keys.TIMED_EVENT_DURATION to duration
                     ).also {
                         if (timedEvent.data != null) it.putAll(timedEvent.data)
                     }

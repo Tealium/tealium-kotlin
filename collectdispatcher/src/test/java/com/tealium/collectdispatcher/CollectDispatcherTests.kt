@@ -314,7 +314,7 @@ class CollectDispatcherTests {
         val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
         collectDispatcher.onBatchDispatchSend(listOf(testDispatch, mockDispatch, mockDispatch, mockDispatch))
 
-        testDispatch.addAll(mapOf(TEALIUM_PROFILE to "testingProfile"))
+        testDispatch.addAll(mapOf(Dispatch.Keys.TEALIUM_PROFILE to "testingProfile"))
         val testConsentPayload = JSONObject(testDispatch.payload()).toString()
 
         val batchPayload = BatchDispatch.create(listOf(mockDispatch, mockDispatch, mockDispatch))
@@ -384,7 +384,7 @@ class CollectDispatcherTests {
         val collectDispatcher = CollectDispatcher(config, client = mockNetworkClient)
         collectDispatcher.onBatchDispatchSend(listOf(testDispatch, mockDispatch, mockDispatch, mockDispatch))
 
-        testDispatch.addAll(mapOf(TEALIUM_PROFILE to "testingProfile"))
+        testDispatch.addAll(mapOf(Dispatch.Keys.TEALIUM_PROFILE to "testingProfile"))
         val str = JSONObject(testDispatch.payload()).toString()
 
         coVerify {

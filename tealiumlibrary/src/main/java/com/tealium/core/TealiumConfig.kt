@@ -14,7 +14,16 @@ enum class Environment(val environment: String) {
     PROD("prod")
 }
 
+@Deprecated(
+    "Constant has been moved.",
+    ReplaceWith("Dispatch.Keys.TEALIUM_ACCOUNT", "com.tealium.dispatcher.Dispatch")
+)
 const val TEALIUM_ACCOUNT = "tealium_account"
+
+@Deprecated(
+    "Constant has been moved.",
+    ReplaceWith("Dispatch.Keys.TEALIUM_PROFILE", "com.tealium.dispatcher.Dispatch")
+)
 const val TEALIUM_PROFILE = "tealium_profile"
 
 object Collectors {
@@ -100,6 +109,11 @@ class TealiumConfig @JvmOverloads constructor(
      * Sets a visitor id for existing user. Must be a unique identifier, like UUID.
      */
     var existingVisitorId: String? = null
+
+    /**
+     * Overrides the default LogLevel.
+     */
+    var logLevel: LogLevel? = null
 
     init {
         tealiumDirectory.mkdirs()

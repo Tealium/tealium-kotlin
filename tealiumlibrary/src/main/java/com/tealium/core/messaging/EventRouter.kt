@@ -10,6 +10,7 @@ import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.remotecommands.RemoteCommandRequest
 import java.lang.ref.WeakReference
+import java.util.concurrent.CopyOnWriteArraySet
 
 interface EventRouter :
         DispatchReadyListener,
@@ -34,7 +35,7 @@ interface EventRouter :
 
 class EventDispatcher : EventRouter {
 
-    private val listeners = mutableSetOf<Listener>()
+    private val listeners = CopyOnWriteArraySet<Listener>()
 
     override fun <T : Listener> send(messenger: Messenger<T>) {
         listeners.filterIsInstance(messenger.listenerClass.java).forEach {
@@ -46,6 +47,12 @@ class EventDispatcher : EventRouter {
         if (listener == this) return
 
         listeners.add(listener)
+    }
+
+    fun subscribeAll(listenerList: List<Listener>) {
+        val filtered = listenerList.filterNot { it == this }
+
+        listeners.addAll(filtered)
     }
 
     override fun unsubscribe(listener: Listener) {

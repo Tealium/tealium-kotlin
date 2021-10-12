@@ -6,6 +6,7 @@ import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.persistence.DataLayer
+import com.tealium.dispatcher.Dispatch
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -59,11 +60,11 @@ class TimeCollectorTests {
         timeCollector.localDateFormat.timeZone = losAngeles
 
         val data = timeCollector.collect()
-        assertEquals("2000-01-01T00:00:00Z", data[TimeCollectorConstants.TIMESTAMP])
-        assertEquals("1999-12-31T16:00:00", data[TimeCollectorConstants.TIMESTAMP_LOCAL])
-        assertEquals("-8", data[TimeCollectorConstants.TIMESTAMP_OFFSET])
-        assertEquals(946684800L, data[TimeCollectorConstants.TIMESTAMP_UNIX])
-        assertEquals(946684800000L, data[TimeCollectorConstants.TIMESTAMP_UNIX_MILLISECONDS])
+        assertEquals("2000-01-01T00:00:00Z", data[Dispatch.Keys.TIMESTAMP])
+        assertEquals("1999-12-31T16:00:00", data[Dispatch.Keys.TIMESTAMP_LOCAL])
+        assertEquals("-8", data[Dispatch.Keys.TIMESTAMP_OFFSET])
+        assertEquals(946684800L, data[Dispatch.Keys.TIMESTAMP_UNIX])
+        assertEquals(946684800000L, data[Dispatch.Keys.TIMESTAMP_UNIX_MILLISECONDS])
     }
 
     @Test

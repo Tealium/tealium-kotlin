@@ -98,7 +98,8 @@
                     com.tealium.core.TealiumConfigKt,
                     com.tealium.core.TealiumContext,
                     com.tealium.core.TealiumEncoder,
-                    com.tealium.core.TealiumEncoder$Companion {
+                    com.tealium.core.TealiumEncoder$Companion,
+                    com.tealium.core.DispatchType {
     public protected *;
 }
 
@@ -114,7 +115,7 @@
 }
 
 # Keep public Dispatch implementatations
--keep class com.tealium.dispatcher.TealiumEvent,com.tealium.dispatcher.TealiumView { *; }
+-keep class com.tealium.dispatcher.TealiumEvent,com.tealium.dispatcher.TealiumView, com.tealium.dispatcher.Dispatch$Keys { *; }
 
 # OpenForTesting Annotation
 -keep class com.tealium.test.* { *; }
