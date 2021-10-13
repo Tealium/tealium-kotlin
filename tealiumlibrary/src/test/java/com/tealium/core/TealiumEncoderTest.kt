@@ -23,6 +23,7 @@ class TealiumEncoderTest {
         val result = TealiumEncoder.encode(dispatch)
         var expected = "${Dispatch.Keys.TEALIUM_EVENT_TYPE}=view"
         expected += "&${Dispatch.Keys.TEALIUM_EVENT}=my_view"
+        expected += "&${Dispatch.Keys.SCREEN_TITLE}=my_view"
         expected += "&${Dispatch.Keys.REQUEST_UUID}=test_id"
         expected += "&test_key=test_value"
         assertTrue("Expected \n$expected does not match \n$result", expected == result)
@@ -34,6 +35,7 @@ class TealiumEncoderTest {
         val result = TealiumEncoder.encode(dispatch)
         var expected = "${Dispatch.Keys.TEALIUM_EVENT_TYPE}=view"
         expected += "&${Dispatch.Keys.TEALIUM_EVENT}=my_view"
+        expected += "&${Dispatch.Keys.SCREEN_TITLE}=my_view"
         expected += "&${Dispatch.Keys.REQUEST_UUID}=test_id"
         expected += "&test_key=value+with+spaces"
         assertTrue("Expected \n$expected does not match \n$result", expected == result)
@@ -45,6 +47,7 @@ class TealiumEncoderTest {
         val result = TealiumEncoder.encode(dispatch)
         var expected = "${Dispatch.Keys.TEALIUM_EVENT_TYPE}=view"
         expected += "&${Dispatch.Keys.TEALIUM_EVENT}=my_view"
+        expected += "&${Dispatch.Keys.SCREEN_TITLE}=my_view"
         expected += "&${Dispatch.Keys.REQUEST_UUID}=test_id"
         expected += "&test_key=1234"
         assertTrue("Expected $expected does not match $result", expected == result)
@@ -56,6 +59,7 @@ class TealiumEncoderTest {
         val result = TealiumEncoder.encode(dispatch)
         var expected = "${Dispatch.Keys.TEALIUM_EVENT_TYPE}=view"
         expected += "&${Dispatch.Keys.TEALIUM_EVENT}=my_view"
+        expected += "&${Dispatch.Keys.SCREEN_TITLE}=my_view"
         expected += "&${Dispatch.Keys.REQUEST_UUID}=test_id"
         expected += "&test_key=12.34"
         assertTrue("Expected $expected does not match $result", expected == result)
@@ -68,6 +72,7 @@ class TealiumEncoderTest {
         val commaEncoded = "%2C"
         var expected = "${Dispatch.Keys.TEALIUM_EVENT_TYPE}=view"
         expected += "&${Dispatch.Keys.TEALIUM_EVENT}=my_view"
+        expected += "&${Dispatch.Keys.SCREEN_TITLE}=my_view"
         expected += "&${Dispatch.Keys.REQUEST_UUID}=test_id"
         expected += "&test_key=1${commaEncoded}2${commaEncoded}3"
         assertTrue("Expected $expected does not match $result", expected == result)
