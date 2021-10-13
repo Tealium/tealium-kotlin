@@ -7,17 +7,15 @@ data class TealiumEvent(var eventName: String) : Dispatch {
 
     override val id: String = UUID.randomUUID().toString()
     override var timestamp: Long? = System.currentTimeMillis()
-    private var mutableMap: MutableMap<String, Any> = mutableMapOf()
-
-    init {
-        mutableMap[Dispatch.Keys.TEALIUM_EVENT_TYPE] = DispatchType.EVENT
-        mutableMap[Dispatch.Keys.TEALIUM_EVENT] = eventName
-        mutableMap[Dispatch.Keys.REQUEST_UUID] = id
-    }
+    private var mutableMap: MutableMap<String, Any> = mutableMapOf(
+        Dispatch.Keys.TEALIUM_EVENT_TYPE to DispatchType.EVENT,
+        Dispatch.Keys.TEALIUM_EVENT to eventName,
+        Dispatch.Keys.REQUEST_UUID to id
+    )
 
     constructor(eventName: String, data: Map<String, Any>? = null) : this(eventName) {
         data?.forEach {
-            mutableMap[it.key]= it.value
+            mutableMap[it.key] = it.value
         }
     }
 
