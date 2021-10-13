@@ -3,7 +3,6 @@ package com.tealium.core.consent
 import android.app.Application
 import android.content.SharedPreferences
 import com.tealium.core.Environment
-import com.tealium.core.TEALIUM_PROFILE
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
@@ -15,6 +14,7 @@ import com.tealium.core.network.Connectivity
 import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.network.HttpClient
 import com.tealium.core.settings.LibrarySettings
+import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -166,7 +166,10 @@ class ConsentManagerTest {
     @Test
     fun setUserConsentStatusConsentedSetsAllCategories() {
         every { editor.putString(KEY_STATUS, "consented") } returns editor
-        every { editor.putStringSet(KEY_CATEGORIES, ConsentCategory.ALL.map { it.value }.toMutableSet()) } returns editor
+        every { editor.putStringSet(
+            KEY_CATEGORIES,
+            ConsentCategory.ALL.map { it.value }.toMutableSet()
+        ) } returns editor
         every { sharedPreferences.getString(any(), any()) } returns "consented"
         every { sharedPreferences.getStringSet(KEY_CATEGORIES, null) } returns ConsentCategory.ALL.map { it.value }.toMutableSet()
         consentManager.userConsentStatus = ConsentStatus.CONSENTED
@@ -233,7 +236,8 @@ class ConsentManagerTest {
         consentManager.userConsentStatus = ConsentStatus.UNKNOWN
 
         val data = consentManager.collect()
-        assertTrue(data.isEmpty())
+        assertEquals(1, data.count())
+        assertTrue(data.containsKey(Dispatch.Keys.CONSENT_LAST_UPDATED))
     }
 
     @Test
@@ -360,6 +364,27 @@ class ConsentManagerTest {
         verify(exactly = 1) {
             editor.putLong(KEY_LAST_STATUS_UPDATE, any())
         }
+    }
+
+    @Test
+    fun consentManagerLastSetAddedToPayload() = runBlocking {
+        every { editor.putLong(KEY_LAST_STATUS_UPDATE, 1234) } returns editor
+        every { sharedPreferences.getLong(any(), any()) } returns 1234
+
+        consentManager.userConsentStatus = ConsentStatus.CONSENTED
+        var payload = consentManager.collect()
+        assertTrue(payload.containsKey(Dispatch.Keys.CONSENT_LAST_UPDATED))
+        assertEquals(1234L, payload[Dispatch.Keys.CONSENT_LAST_UPDATED])
+
+        consentManager.userConsentStatus = ConsentStatus.NOT_CONSENTED
+        payload = consentManager.collect()
+        assertTrue(payload.containsKey(Dispatch.Keys.CONSENT_LAST_UPDATED))
+        assertEquals(1234L, payload[Dispatch.Keys.CONSENT_LAST_UPDATED])
+
+        consentManager.userConsentStatus = ConsentStatus.UNKNOWN
+        payload = consentManager.collect()
+        assertTrue(payload.containsKey(Dispatch.Keys.CONSENT_LAST_UPDATED))
+        assertEquals(1234L, payload[Dispatch.Keys.CONSENT_LAST_UPDATED])
     }
 
     @Test

@@ -1,13 +1,12 @@
 package com.tealium.core.collection
 
-import AppCollectorConstants.APP_UUID
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.persistence.DataLayer
-import com.tealium.test.OpenForTesting
+import com.tealium.dispatcher.Dispatch
 import io.mockk.MockKAnnotations
 import io.mockk.Runs
 import io.mockk.every
@@ -54,27 +53,27 @@ class AppCollectorTests {
         val appCollector = AppCollector(context, tealiumContext.dataLayer)
         val data = appCollector.collect()
 
-        assertNotNull(data[AppCollectorConstants.APP_NAME])
-        assertNotNull(data[AppCollectorConstants.APP_BUILD])
-        assertNotNull(data[AppCollectorConstants.APP_VERSION])
+        assertNotNull(data[Dispatch.Keys.APP_NAME])
+        assertNotNull(data[Dispatch.Keys.APP_BUILD])
+        assertNotNull(data[Dispatch.Keys.APP_VERSION])
 
-        assertTrue(data[AppCollectorConstants.APP_RDNS] is String)
-        assertTrue((data[AppCollectorConstants.APP_RDNS] as String).startsWith("com.tealium"))
+        assertTrue(data[Dispatch.Keys.APP_RDNS] is String)
+        assertTrue((data[Dispatch.Keys.APP_RDNS] as String).startsWith("com.tealium"))
 
-        assertTrue(data[AppCollectorConstants.APP_MEMORY_USAGE] is Long)
-        assertTrue((data[AppCollectorConstants.APP_MEMORY_USAGE] as Long) > 0)
+        assertTrue(data[Dispatch.Keys.APP_MEMORY_USAGE] is Long)
+        assertTrue((data[Dispatch.Keys.APP_MEMORY_USAGE] as Long) > 0)
     }
 
     @Test
     fun testAppUuid_GetsReturnedWhenNotNull() {
-        every { dataLayer.getString(APP_UUID) } returns "my_uuid"
+        every { dataLayer.getString(Dispatch.Keys.APP_UUID) } returns "my_uuid"
         val appCollector = AppCollector(context.applicationContext, tealiumContext.dataLayer)
         assertEquals("my_uuid", appCollector.appUuid)
     }
 
     @Test
     fun testAppUuid_GetsGeneratedWhenNull() {
-        every { dataLayer.getString(APP_UUID) } returns null
+        every { dataLayer.getString(Dispatch.Keys.APP_UUID) } returns null
         every { dataLayer.putString(any(), any(), any()) } just Runs
         val appCollector = AppCollector(context.applicationContext, tealiumContext.dataLayer)
         assertNotNull(appCollector.appUuid)

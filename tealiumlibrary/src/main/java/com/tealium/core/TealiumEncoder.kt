@@ -38,8 +38,8 @@ class TealiumEncoder private constructor() {
         }
 
         override fun encode(config: TealiumConfig): String {
-            return "${URLEncoder.encode(TEALIUM_ACCOUNT, encoding)}=${URLEncoder.encode(config.accountName, encoding)}&" +
-                    "${URLEncoder.encode(TEALIUM_PROFILE, encoding)}=${URLEncoder.encode(config.profileName, encoding)}"
+            return "${URLEncoder.encode(Dispatch.Keys.TEALIUM_ACCOUNT, encoding)}=${URLEncoder.encode(config.accountName, encoding)}&" +
+                    "${URLEncoder.encode(Dispatch.Keys.TEALIUM_PROFILE, encoding)}=${URLEncoder.encode(config.profileName, encoding)}"
         }
 
         private fun <T> encodeCollection(key: String, value: Array<T>): String {

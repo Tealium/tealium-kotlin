@@ -1,5 +1,7 @@
 package com.tealium.core.dispatcher
 
+import com.tealium.core.DispatchType
+import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import org.junit.Test
 import org.junit.Assert.*
@@ -12,8 +14,8 @@ class EventDispatchTest {
         val eventDispatch = TealiumEvent("test", data)
 
         assertSame("value", eventDispatch.payload()["key"])
-        assertSame(DispatchType.EVENT, eventDispatch.payload()[CoreConstant.TEALIUM_EVENT_TYPE])
-        assertSame("test", eventDispatch.payload()[CoreConstant.TEALIUM_EVENT])
-        assertSame(eventDispatch.id, eventDispatch.payload()[CoreConstant.REQUEST_UUID])
+        assertSame(DispatchType.EVENT, eventDispatch.payload()[Dispatch.Keys.TEALIUM_EVENT_TYPE])
+        assertSame("test", eventDispatch.payload()[Dispatch.Keys.TEALIUM_EVENT])
+        assertSame(eventDispatch.id, eventDispatch.payload()[Dispatch.Keys.REQUEST_UUID])
     }
 }
