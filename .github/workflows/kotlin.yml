@@ -23,7 +23,7 @@ jobs:
           name: mobile
           path: mobile/build/outputs/apk/debug/mobile-debug.apk
       - name: Run MobSF Analysis
-        uses: fundacaocerti/mobsf-action@v1.6
+        uses: fundacaocerti/mobsf-action@v1.5
         env:
           INPUT_FILE_NAME: mobile/build/outputs/apk/debug/mobile-debug.apk
           SCAN_TYPE: apk
