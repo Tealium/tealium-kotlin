@@ -142,11 +142,8 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
             Environment.PROD -> LogLevel.PROD
         }
 
-        eventRouter.subscribe(Logger)
-        eventRouter.subscribe(sessionManager)
-
         deepLinkHandler = DeepLinkHandler(context)
-        eventRouter.subscribe(deepLinkHandler)
+        eventRouter.subscribeAll(listOf(Logger, sessionManager, deepLinkHandler))
         timedEvents = TimedEventsManager(context)
 
         // Initialize everything else in the background.
@@ -219,8 +216,8 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
                 .toList()
         val moduleCollector = ModuleCollector(modulesList)
 
-        modulesList.filterIsInstance<Listener>().forEach {
-            eventRouter.subscribe(it)
+        modulesList.filterIsInstance<Listener>().let {
+            eventRouter.subscribeAll(it)
         }
         _modules = ModuleManager(modulesList)
 
@@ -233,8 +230,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
                 connectivity,
                 consentManager,
                 eventRouter)
-        eventRouter.subscribe(dispatchRouter)
-        eventRouter.subscribe(dispatchStore)
+        eventRouter.subscribeAll(listOf(dispatchRouter, dispatchStore))
         onInstanceReady()
     }
 

@@ -10,10 +10,19 @@ class ViewDispatchTest {
 
     @Test
     fun payloadHasDefaultValues() {
-        val data: MutableMap<String, Any> = mutableMapOf("key" to "value", "screen_title" to "home")
-        val viewDispatch = TealiumView("test", data)
+        var data: MutableMap<String, Any> = mutableMapOf("key" to "value", "screen_title" to "home")
+        var viewDispatch = TealiumView("test", data)
 
-        assertSame("home", viewDispatch.payload()["screen_title"])
+        assertSame("home", viewDispatch.payload()[Dispatch.Keys.SCREEN_TITLE])
+        assertSame(DispatchType.VIEW, viewDispatch.payload()[Dispatch.Keys.TEALIUM_EVENT_TYPE])
+        assertSame("test", viewDispatch.payload()[Dispatch.Keys.TEALIUM_EVENT])
+        assertSame(viewDispatch.id, viewDispatch.payload()[Dispatch.Keys.REQUEST_UUID])
+
+        data = mutableMapOf("key" to "value")
+        viewDispatch = TealiumView("test", data)
+
+        // Default to viewName if no screen_title in the initial payload.
+        assertSame("test", viewDispatch.payload()[Dispatch.Keys.SCREEN_TITLE])
         assertSame(DispatchType.VIEW, viewDispatch.payload()[Dispatch.Keys.TEALIUM_EVENT_TYPE])
         assertSame("test", viewDispatch.payload()[Dispatch.Keys.TEALIUM_EVENT])
         assertSame(viewDispatch.id, viewDispatch.payload()[Dispatch.Keys.REQUEST_UUID])

@@ -51,6 +51,7 @@ interface Dispatch {
     object Keys {
         const val TEALIUM_EVENT_TYPE = "tealium_event_type"
         const val TEALIUM_EVENT = "tealium_event"
+        const val SCREEN_TITLE = "screen_title"
         const val LIBRARY_VERSION = "library_version"
         const val TRACE_ID = "cp.trace_id"
         const val TEALIUM_TRACE_ID = "tealium_trace_id"
