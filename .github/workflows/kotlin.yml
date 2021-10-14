@@ -5,39 +5,39 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
-    name: Run Unit Tests
-    runs-on: macos-10.15
-    strategy:
-      matrix:
-        api-level: [21, 29]
-    steps:
-      - uses: actions/checkout@v1
-      - name: Set up JDK 1.8
-        uses: actions/setup-java@v1
-        with:
-          java-version: 1.8
-      - name: Unit tests
-        run: ./run_tests.sh
-      - name: Instrumented Tests
-        uses: reactivecircus/android-emulator-runner@v2
-        continue-on-error: true
-        with:
-          api-level: ${{ matrix.api-level }}
-          arch: x86
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          disable-animations: true
-          emulator-build: 6110076
-          script: ./run_instrumented_tests.sh
-      - name: Test Coverage
-        continue-on-error: true
-        run: ./verify_coverage.sh
-      - name: Upload Reports
-        continue-on-error: true
-        uses: actions/upload-artifact@v2
-        with:
-          name: Reports API ${{ matrix.api-level }}
-          path: reports/*.zip
+#  test:
+#    name: Run Unit Tests
+#    runs-on: macos-10.15
+#    strategy:
+#      matrix:
+#        api-level: [21, 29]
+#    steps:
+#      - uses: actions/checkout@v1
+#      - name: Set up JDK 1.8
+#        uses: actions/setup-java@v1
+#        with:
+#          java-version: 1.8
+#      - name: Unit tests
+#        run: ./run_tests.sh
+#      - name: Instrumented Tests
+#        uses: reactivecircus/android-emulator-runner@v2
+#        continue-on-error: true
+#        with:
+#          api-level: ${{ matrix.api-level }}
+#          arch: x86
+#          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+#          disable-animations: true
+#          emulator-build: 6110076
+#          script: ./run_instrumented_tests.sh
+#      - name: Test Coverage
+#        continue-on-error: true
+#        run: ./verify_coverage.sh
+#      - name: Upload Reports
+#        continue-on-error: true
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: Reports API ${{ matrix.api-level }}
+#          path: reports/*.zip
     # Create APK. To download APK file, click on Artifacts within the Actions tab
   apk:
     needs: test
@@ -56,6 +56,23 @@ jobs:
         with:
           name: mobile
           path: mobile/build/outputs/apk/debug/mobile-debug.apk
+      - name: Run MobSF Analysis
+        uses: fundacaocerti/mobsf-action@v1.6
+        env:
+          INPUT_FILE_NAME: mobile/build/outputs/apk/debug/mobile-debug.apk
+          SCAN_TYPE: apk
+          OUTPUT_FILE_NAME: mobsf-report
+      - name: Upload MobSF Analysis PDF Result
+        uses: actions/upload-artifact@v2
+        with:
+          name: mobsf-report.pdf
+          path: mobsf-report.pdf
+
+      - name: Upload MobSF Analysis JSON Result
+        uses: actions/upload-artifact@v2
+        with:
+          name: mobsf-report.json
+          path: mobsf-report.json
 #       - name: Send for Security Scan
 #         uses: veracode/veracode-uploadandscan-action@master # Run the uploadandscan action. Inputs are described above.
 #         with:
