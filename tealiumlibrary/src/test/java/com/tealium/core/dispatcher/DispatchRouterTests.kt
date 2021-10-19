@@ -273,6 +273,8 @@ class DispatchRouterTests {
             eventRouter.onDispatchQueued(eventDispatch)
         }
 
+        assertTrue(eventDispatch[Dispatch.Keys.WAS_QUEUED] == true)
+
         verify(exactly = 0) {
             // no further routing should happen
             dispatchRouter.dequeue(eventDispatch)
@@ -293,6 +295,8 @@ class DispatchRouterTests {
             dispatchStore.enqueue(eventDispatch)
             eventRouter.onDispatchQueued(eventDispatch)
         }
+
+        assertTrue(eventDispatch[Dispatch.Keys.WAS_QUEUED] == true)
 
         verify(exactly = 0) {
             // no further routing should happen

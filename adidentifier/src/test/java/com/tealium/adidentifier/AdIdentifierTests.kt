@@ -1,8 +1,9 @@
 package com.tealium.adidentifier
 
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailabilityLight
+import com.google.android.gms.appset.AppSet
+import com.google.android.gms.appset.AppSetIdClient
+import com.google.android.gms.appset.AppSetIdInfo
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.persistence.DataLayer
@@ -24,10 +25,14 @@ class AdIdentifierTests {
     lateinit var dataLayer: DataLayer
 
     @MockK
-    lateinit var googleApi: GoogleApiAvailabilityLight
+    lateinit var adInfo: AdvertisingIdClient.Info
 
     @MockK
-    lateinit var adInfo: AdvertisingIdClient.Info
+    lateinit var appSetClient: AppSetIdClient
+
+    @MockK
+    lateinit var appSetIdInfo: AppSetIdInfo
+
 
     @Before
     fun setUp() {
@@ -36,21 +41,23 @@ class AdIdentifierTests {
         every { tealiumContext.config } returns config
         every { tealiumContext.dataLayer } returns dataLayer
 
-        mockkStatic(GoogleApiAvailabilityLight::class)
         mockkStatic(AdvertisingIdClient::class)
 
-        every { GoogleApiAvailabilityLight.getInstance() } returns googleApi
-        // Default google api available
-        every { googleApi.isGooglePlayServicesAvailable(any()) } returns 0
         every { AdvertisingIdClient.getAdvertisingIdInfo(any()) } returns adInfo
-
         every { adInfo.id } returns "ad_id"
         every { adInfo.isLimitAdTrackingEnabled } returns false
+
+        every { appSetIdInfo.scope } returns 1
+        every { appSetIdInfo.id } returns "app_set_id"
+
+        mockkStatic(AppSet::class)
+        every { AppSet.getClient(any()) } returns appSetClient
+        every { appSetClient.appSetIdInfo } returns AppSetIdInfoTask(appSetIdInfo)
     }
 
     @Test
     fun fetchAdInfo_AddsToDataLayer_WhenAdInfoAvailable() {
-        val adIdentifier = AdIdentifier.create(tealiumContext) as AdIdentifier
+        AdIdentifier.create(tealiumContext) as AdIdentifier
 
         verify(timeout = 100) {
             dataLayer.putString("google_adid", "ad_id", any())
@@ -59,9 +66,9 @@ class AdIdentifierTests {
     }
 
     @Test
-    fun fetchAdInfo_DoesNotAddToDataLayer_WhenAdInfoUnvailable() {
+    fun fetchAdInfo_DoesNotAddToDataLayer_WhenAdInfoUnavailable() {
         every { AdvertisingIdClient.getAdvertisingIdInfo(any()) } returns null
-        val adIdentifier = AdIdentifier.create(tealiumContext) as AdIdentifier
+        AdIdentifier.create(tealiumContext) as AdIdentifier
 
         verify(timeout = 100) {
             dataLayer wasNot Called
@@ -70,8 +77,7 @@ class AdIdentifierTests {
 
     @Test
     fun fetchAdInfo_DoesNotAddToDataLayer_WhenGoogleApiUnavailable() {
-        every { googleApi.isGooglePlayServicesAvailable(any()) } returns ConnectionResult.SERVICE_MISSING
-        val adIdentifier = AdIdentifier.create(tealiumContext) as AdIdentifier
+        AdIdentifier.create(tealiumContext) as AdIdentifier
 
         verify(timeout = 100) {
             dataLayer wasNot Called
@@ -86,6 +92,31 @@ class AdIdentifierTests {
         verify {
             dataLayer.remove("google_adid")
             dataLayer.remove("google_limit_ad_tracking")
+        }
+    }
+
+    @Test
+    fun fetchAppSetIdInfo() {
+//        mockkStatic(AppSet::class)
+//        every { AppSet.getClient(any()) } returns appSetClient
+//        every { appSetClient.appSetIdInfo } returns AppSetIdInfoTask(appSetIdInfo)
+
+        AdIdentifier.create(tealiumContext) as AdIdentifier
+
+//        verify {
+//            dataLayer.putInt("google_app_set_scope", 1, any())
+//            dataLayer.putString("google_app_set_id", "app_set_id", any())
+//        }
+    }
+
+    @Test
+    fun removeAppSetIdInfo() {
+        val adIdentifier = AdIdentifier.create(tealiumContext) as AdIdentifier
+        adIdentifier.removeAppSetIdInfo()
+
+        verify {
+            dataLayer.remove("google_app_set_id")
+            dataLayer.remove("google_app_set_scope")
         }
     }
 }
