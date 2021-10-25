@@ -10,6 +10,9 @@ import android.os.StatFs
 import android.view.Surface
 import android.view.WindowManager
 import com.tealium.core.*
+import com.tealium.dispatcher.Dispatch
+import com.tealium.tealiumlibrary.BuildConfig
+import java.util.*
 
 interface DeviceData {
     val device: String
@@ -18,20 +21,23 @@ interface DeviceData {
     val deviceArchitecture: String
     val deviceCpuType: String
     val deviceResolution: String
+    val deviceLogicalResolution: String
     val deviceRuntime: String
     val deviceOrigin: String
     val devicePlatform: String
+    val deviceOsName: String
     val deviceOsBuild: String
     val deviceOsVersion: String
     val deviceAvailableSystemStorage: Long
     val deviceAvailableExternalStorage: Long
     val deviceOrientation: String
+    val deviceLanguage: String
 }
 
 class DeviceCollector private constructor(context: Context) : Collector, DeviceData {
 
     override val name: String
-        get() = "DEVICE_COLLECTOR"
+        get() = "DeviceData"
     override var enabled: Boolean = true
 
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -39,18 +45,25 @@ class DeviceCollector private constructor(context: Context) : Collector, DeviceD
     private val point = Point()
 
     override val device = if (Build.MODEL.startsWith(Build.MANUFACTURER)) Build.MODEL
-            ?: "" else "${Build.MANUFACTURER} ${Build.MODEL}"
+        ?: "" else "${Build.MANUFACTURER} ${Build.MODEL}"
     override val deviceModel: String = Build.MODEL
     override val deviceManufacturer: String = Build.MANUFACTURER
-    override val deviceArchitecture = if (Build.SUPPORTED_64_BIT_ABIS.isNotEmpty()) "64bit" else "32bit"
+    override val deviceArchitecture =
+        if (Build.SUPPORTED_64_BIT_ABIS.isNotEmpty()) "64bit" else "32bit"
     override val deviceCpuType = System.getProperty("os.arch") ?: "unknown"
     override val deviceResolution = point.let {
         windowManager.defaultDisplay.getSize(it)
         "${it.x}x${it.y}"
     }
+    override val deviceLogicalResolution = point.let {
+        windowManager.defaultDisplay.getRealSize(it)
+        "${it.x}x${it.y}"
+    }
     override val deviceRuntime = System.getProperty("java.vm.version") ?: "unknown"
-    override val deviceOrigin = if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) "tv" else "mobile"
+    override val deviceOrigin =
+        if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) "tv" else "mobile"
     override val devicePlatform = "android"
+    override val deviceOsName = "Android"
     override val deviceOsBuild = Build.VERSION.INCREMENTAL ?: ""
     override val deviceOsVersion = Build.VERSION.RELEASE ?: ""
     override val deviceAvailableSystemStorage: Long
@@ -75,30 +88,38 @@ class DeviceCollector private constructor(context: Context) : Collector, DeviceD
                 else -> "Portrait"
             }
         }
+    override val deviceLanguage: String
+        get() = Locale.getDefault().toLanguageTag()
 
     override suspend fun collect(): Map<String, Any> {
         return mapOf(
-                DeviceCollectorConstants.DEVICE to device,
-                DeviceCollectorConstants.DEVICE_MODEL to deviceModel,
-                DeviceCollectorConstants.DEVICE_MANUFACTURER to deviceManufacturer,
-                DeviceCollectorConstants.DEVICE_ARCHITECTURE to deviceArchitecture,
-                DeviceCollectorConstants.DEVICE_CPU_TYPE to deviceCpuType,
-                DeviceCollectorConstants.DEVICE_RESOLUTION to deviceResolution,
-                DeviceCollectorConstants.DEVICE_RUNTIME to deviceRuntime,
-                DeviceCollectorConstants.DEVICE_ORIGIN to deviceOrigin,
-                DeviceCollectorConstants.DEVICE_PLATFORM to devicePlatform,
-                DeviceCollectorConstants.DEVICE_OS_BUILD to deviceOsBuild,
-                DeviceCollectorConstants.DEVICE_OS_VERSION to deviceOsVersion,
-                DeviceCollectorConstants.DEVICE_AVAILABLE_SYSTEM_STORAGE to deviceAvailableSystemStorage,
-                DeviceCollectorConstants.DEVICE_AVAILABLE_EXTERNAL_STORAGE to deviceAvailableExternalStorage,
-                DeviceCollectorConstants.DEVICE_ORIENTATION to deviceOrientation
+            Dispatch.Keys.DEVICE to device,
+            Dispatch.Keys.DEVICE_MODEL to deviceModel,
+            Dispatch.Keys.DEVICE_MANUFACTURER to deviceManufacturer,
+            Dispatch.Keys.DEVICE_ARCHITECTURE to deviceArchitecture,
+            Dispatch.Keys.DEVICE_CPU_TYPE to deviceCpuType,
+            Dispatch.Keys.DEVICE_RESOLUTION to deviceResolution,
+            Dispatch.Keys.DEVICE_LOGICAL_RESOLUTION to deviceLogicalResolution,
+            Dispatch.Keys.DEVICE_RUNTIME to deviceRuntime,
+            Dispatch.Keys.DEVICE_ORIGIN to deviceOrigin,
+            Dispatch.Keys.DEVICE_PLATFORM to devicePlatform,
+            Dispatch.Keys.DEVICE_OS_NAME to deviceOsName,
+            Dispatch.Keys.DEVICE_OS_BUILD to deviceOsBuild,
+            Dispatch.Keys.DEVICE_OS_VERSION to deviceOsVersion,
+            Dispatch.Keys.DEVICE_AVAILABLE_SYSTEM_STORAGE to deviceAvailableSystemStorage,
+            Dispatch.Keys.DEVICE_AVAILABLE_EXTERNAL_STORAGE to deviceAvailableExternalStorage,
+            Dispatch.Keys.DEVICE_ORIENTATION to deviceOrientation,
+            Dispatch.Keys.DEVICE_LANGUAGE to deviceLanguage
         )
     }
 
     companion object : CollectorFactory {
-        @Volatile private var instance: Collector? = null
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
-        override fun create(context: TealiumContext): Collector = instance ?: synchronized(this){
+        @Volatile
+        private var instance: Collector? = null
+
+        override fun create(context: TealiumContext): Collector = instance ?: synchronized(this) {
             instance ?: DeviceCollector(context.config.application).also { instance = it }
         }
     }

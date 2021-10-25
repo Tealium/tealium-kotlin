@@ -1,5 +1,6 @@
 package com.tealium.core
 
+import com.tealium.core.collection.ModuleCollector
 import com.tealium.core.collection.SessionCollector
 import com.tealium.core.collection.TealiumCollector
 import com.tealium.core.consent.ConsentManager
@@ -135,17 +136,14 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
     init {
         migratePersistentData()
 
-        Logger.logLevel = when (config.environment) {
+        Logger.logLevel = config.logLevel ?: when(config.environment) {
             Environment.DEV -> LogLevel.DEV
             Environment.QA -> LogLevel.QA
             Environment.PROD -> LogLevel.PROD
         }
 
-        eventRouter.subscribe(Logger)
-        eventRouter.subscribe(sessionManager)
-
         deepLinkHandler = DeepLinkHandler(context)
-        eventRouter.subscribe(deepLinkHandler)
+        eventRouter.subscribeAll(listOf(Logger, sessionManager, deepLinkHandler))
         timedEvents = TimedEventsManager(context)
 
         // Initialize everything else in the background.
@@ -216,16 +214,17 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
                 .union(dispatchers)
                 .union(genericModules)
                 .toList()
+        val moduleCollector = ModuleCollector(modulesList)
 
-        modulesList.filterIsInstance<Listener>().forEach {
-            eventRouter.subscribe(it)
+        modulesList.filterIsInstance<Listener>().let {
+            eventRouter.subscribeAll(it)
         }
         modulesList.forEach {
             _modules.add(it)
         }
 
         dispatchRouter = DispatchRouter(singleThreadedBackground,
-                modules.getModulesForType(Collector::class.java),
+                modules.getModulesForType(Collector::class.java).union(setOf(moduleCollector)),
                 modules.getModulesForType(Transformer::class.java),
                 modules.getModulesForType(DispatchValidator::class.java),
                 dispatchStore,
@@ -233,8 +232,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
                 connectivity,
                 consentManager,
                 eventRouter)
-        eventRouter.subscribe(dispatchRouter)
-        eventRouter.subscribe(dispatchStore)
+        eventRouter.subscribeAll(listOf(dispatchRouter, dispatchStore))
         onInstanceReady()
     }
 
@@ -282,10 +280,17 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
      * a replacement.
      */
     private fun getOrCreateVisitorId(): String {
-        return dataLayer.getString("tealium_visitor_id")
-                ?: UUID.randomUUID().toString().replace("-", "").also {
-                    dataLayer.putString("tealium_visitor_id", it, Expiry.FOREVER)
-                }
+        return dataLayer.getString("tealium_visitor_id") ?: run {
+             return config.existingVisitorId?.also {
+                 dataLayer.putString("tealium_visitor_id", it, Expiry.FOREVER)
+             } ?: createVisitorId()
+         }
+    }
+
+    private fun createVisitorId(): String {
+        return UUID.randomUUID().toString().replace("-", "").also {
+            dataLayer.putString("tealium_visitor_id", it, Expiry.FOREVER)
+        }
     }
 
     /**
@@ -318,7 +323,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
      */
     fun resetVisitorId() {
         dataLayer.remove("tealium_visitor_id")
-        _visitorId = getOrCreateVisitorId()
+        _visitorId = createVisitorId()
     }
 
     /**

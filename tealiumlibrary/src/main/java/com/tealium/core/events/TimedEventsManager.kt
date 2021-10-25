@@ -9,7 +9,7 @@ import com.tealium.tealiumlibrary.BuildConfig
 internal class TimedEventsManager(private val context: TealiumContext) : TimedEvents,
         Transformer {
 
-    override val name: String = "TIMED_EVENTS"
+    override val name: String = "TimedEvents"
     override var enabled: Boolean = true
 
     val timestamp: Long

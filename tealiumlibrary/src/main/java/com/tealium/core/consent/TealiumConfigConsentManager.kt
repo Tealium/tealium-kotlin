@@ -7,6 +7,7 @@ import com.tealium.core.TealiumConfig
 const val CONSENT_MANAGER_ENABLED = "consent_manager_enabled"
 const val CONSENT_MANAGER_LOGGING_ENABLED = "consent_manager_logging_enabled"
 const val CONSENT_MANAGER_LOGGING_URL = "consent_manager_logging_url"
+const val CONSENT_MANAGER_LOGGING_PROFILE = "consent_manager_logging_profile"
 const val CONSENT_MANAGER_POLICY = "consent_manager_policy"
 const val CONSENT_EXPIRY = "consent_expiry"
 
@@ -42,6 +43,14 @@ var TealiumConfig.consentManagerLoggingUrl: String?
             options[CONSENT_MANAGER_LOGGING_URL] = it
         }
     }
+
+var TealiumConfig.consentManagerLoggingProfile: String?
+get() = options[CONSENT_MANAGER_LOGGING_PROFILE] as? String
+set(value) {
+    value?.let {
+        options[CONSENT_MANAGER_LOGGING_PROFILE] = it
+    }
+}
 
 var TealiumConfig.consentManagerPolicy: ConsentPolicy?
     get() = options[CONSENT_MANAGER_POLICY] as? ConsentPolicy

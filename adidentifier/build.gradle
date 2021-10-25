@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'maven-publish'
 apply from: '../jacoco.gradle'
 
-version = '1.0.0'
+version = '1.0.2'
 
 android {
     compileSdkVersion 29
@@ -16,16 +16,20 @@ android {
         versionCode 1
         versionName "1.0"
         buildConfigField 'String', 'TAG', "\"Tealium-AdIdentifier-$version\""
+        buildConfigField 'String', 'LIBRARY_VERSION', "\"$version\""
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             testCoverageEnabled true
         }
     }
@@ -46,7 +50,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
     implementation 'com.google.android.gms:play-services-ads:19.6.0'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
     testImplementation 'junit:junit:4.+'
     testImplementation "io.mockk:mockk:$mockk_version"
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
@@ -63,7 +67,7 @@ afterEvaluate {
                 artifactId = 'kotlin-ad-identifier'
             }
         }
-//        repositories {
+        repositories {
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
 //                credentials(AwsCredentials) {
@@ -71,6 +75,6 @@ afterEvaluate {
 //                    secretKey AWS_SECRET_KEY
 //                }
 //            }
-//        }
+        }
     }
 }

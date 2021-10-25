@@ -27,6 +27,16 @@ sealed class Expiry {
         }
     }
 
+    private class UntilRestart: Expiry() {
+        override fun expiryTime(): Long {
+            return -3L
+        }
+
+        override fun timeRemaining(): Long {
+            return -3L
+        }
+    }
+
     private class After internal constructor(private val timeDifference: Long,
                                      private val creationTime: Long = getTimestamp()): Expiry() {
 
@@ -57,6 +67,7 @@ sealed class Expiry {
 
         @JvmField val SESSION: Expiry = Session()
         @JvmField val FOREVER: Expiry = Forever()
+        @JvmField val UNTIL_RESTART: Expiry = UntilRestart()
 
         /**
          * @return Sum of the value in Seconds and the current system time in seconds to give a valid

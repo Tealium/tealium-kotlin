@@ -1,12 +1,11 @@
 package com.tealium.remotecommanddispatcher
 
-import CoreConstant
-import DispatchType
 import com.tealium.core.*
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.messaging.RemoteCommandListener
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
+import com.tealium.core.DispatchType
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
 import com.tealium.dispatcher.DispatcherListener
@@ -82,7 +81,7 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
             config?.mappings?.let { mappings ->
                 // map the dispatch with the lookup
                 val mappedDispatch = RemoteCommandParser.mapPayload(dispatch.payload(), mappings)
-                val eventName = dispatch[CoreConstant.TEALIUM_EVENT] as? String
+                val eventName = dispatch[Dispatch.Keys.TEALIUM_EVENT] as? String
                 config.apiConfig?.let {
                     mappedDispatch.putAll(it)
                 }
@@ -133,10 +132,12 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
         // do nothing - individual dispatch sent through onProcessRemoteCommand without batching
     }
 
-    override val name = "REMOTE_COMMAND_DISPATCHER"
+    override val name = "RemoteCommands"
     override var enabled: Boolean = true
 
     companion object : DispatcherFactory {
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
+
         override fun create(context: TealiumContext, callbacks: AfterDispatchSendCallbacks): Dispatcher {
             return RemoteCommandDispatcher(context)
         }

@@ -1,8 +1,8 @@
 package com.tealium.core.collection
 
 import com.tealium.core.Collector
-import com.tealium.core.Session
 import com.tealium.core.messaging.NewSessionListener
+import com.tealium.dispatcher.Dispatch
 
 class SessionCollector(private var sessionId: Long) : NewSessionListener, Collector {
 
@@ -18,7 +18,7 @@ class SessionCollector(private var sessionId: Long) : NewSessionListener, Collec
      */
     override suspend fun collect(): Map<String, Any> {
         return mapOf(
-                Session.KEY_SESSION_ID to sessionId
+            Dispatch.Keys.TEALIUM_SESSION_ID to sessionId
         )
     }
 
@@ -26,6 +26,6 @@ class SessionCollector(private var sessionId: Long) : NewSessionListener, Collec
     override var enabled: Boolean = true
 
     companion object {
-        const val MODULE_NAME = "SESSION_COLLECTOR"
+        const val MODULE_NAME = "SessionCollector"
     }
 }

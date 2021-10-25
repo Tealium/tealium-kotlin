@@ -9,7 +9,9 @@ object TagManagementRemoteCommand {
     const val TIQ_CONFIG = "remote_command_config_tiq"
 }
 
-object PageStatus {
-    const val LOADED_SUCCESS = true
-    const val LOADED_ERROR = false
+enum class PageStatus {
+    LOADED_SUCCESS,
+    LOADED_ERROR,
+    LOADING,
+    INIT
 }

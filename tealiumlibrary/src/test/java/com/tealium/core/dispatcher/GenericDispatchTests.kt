@@ -1,6 +1,6 @@
 package com.tealium.core.dispatcher
 
-import CoreConstant.TEALIUM_EVENT
+import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.GenericDispatch
 import com.tealium.dispatcher.TealiumEvent
 import com.tealium.dispatcher.TealiumView
@@ -69,13 +69,13 @@ class GenericDispatchTests {
 
     @Test
     fun create_PayloadUpdate_ExistingDataDoesNotAffectOriginal() {
-        view.addAll(mapOf(TEALIUM_EVENT to "new_value_1"))
-        assertTrue(view.payload()[TEALIUM_EVENT] == "new_value_1")
-        assertTrue(genericView.payload()[TEALIUM_EVENT] == "view_name")
+        view.addAll(mapOf(Dispatch.Keys.TEALIUM_EVENT to "new_value_1"))
+        assertTrue(view.payload()[Dispatch.Keys.TEALIUM_EVENT] == "new_value_1")
+        assertTrue(genericView.payload()[Dispatch.Keys.TEALIUM_EVENT] == "view_name")
 
-        genericView.addAll(mapOf(TEALIUM_EVENT to "new_value_2"))
-        assertTrue(view.payload()[TEALIUM_EVENT] == "new_value_1")
-        assertTrue(genericView.payload()[TEALIUM_EVENT] == "new_value_2")
+        genericView.addAll(mapOf(Dispatch.Keys.TEALIUM_EVENT to "new_value_2"))
+        assertTrue(view.payload()[Dispatch.Keys.TEALIUM_EVENT] == "new_value_1")
+        assertTrue(genericView.payload()[Dispatch.Keys.TEALIUM_EVENT] == "new_value_2")
     }
 
     @Suppress("UNCHECKED_CAST")

@@ -20,6 +20,10 @@ import com.tealium.dispatcher.TealiumView
 import com.tealium.hosteddatalayer.HostedDataLayer
 import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
 import com.tealium.lifecycle.Lifecycle
+import com.tealium.media.Media
+import com.tealium.media.mediaBackgroundSessionEnabled
+import com.tealium.media.mediaBackgroundSessionEndInterval
+import com.tealium.location.Location
 import com.tealium.remotecommanddispatcher.RemoteCommands
 import com.tealium.remotecommanddispatcher.remoteCommands
 import com.tealium.remotecommands.RemoteCommand
@@ -36,12 +40,18 @@ object TealiumHelper : ActivityDataCollector {
                 "tealiummobile",
                 "android",
                 Environment.DEV,
-                modules = mutableSetOf(Modules.Lifecycle, Modules.VisitorService, Modules.HostedDataLayer, Modules.CrashReporter, Modules.AdIdentifier, Modules.AutoTracking),
+                modules = mutableSetOf(
+                        Modules.Lifecycle,
+                        Modules.VisitorService,
+                        Modules.HostedDataLayer,
+                        Modules.CrashReporter,
+                        Modules.AdIdentifier,
+                        Modules.AutoTracking,
+                        Modules.Media),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
             useRemoteLibrarySettings = true
             hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
-
             // Uncomment one of the following lines to set the appropriate Consent Policy
             // and enable the consent manager
             consentManagerPolicy = ConsentPolicy.GDPR
@@ -51,6 +61,9 @@ object TealiumHelper : ActivityDataCollector {
             timedEventTriggers = mutableListOf(
                     EventTrigger.forEventName("start_event", "end_event")
             )
+
+            mediaBackgroundSessionEnabled = false
+            mediaBackgroundSessionEndInterval = 5000L  // end session after 5 seconds
 
             autoTrackingMode = if (BuildConfig.AUTO_TRACKING) AutoTrackingMode.FULL else AutoTrackingMode.NONE
             // autoTrackingBlocklistFilename = "autotracking-blocklist.json"
@@ -91,6 +104,14 @@ object TealiumHelper : ActivityDataCollector {
         override fun onInvoke(response: Response) {
             Logger.dev(BuildConfig.TAG, "ResponsePayload for local JSON RemoteCommand ${response.requestPayload}")
         }
+    }
+
+    fun fetchConsentCategories(): String? {
+        return Tealium[BuildConfig.TEALIUM_INSTANCE]?.consentManager?.userConsentCategories?.joinToString(",")
+    }
+
+    fun setConsentCategories(categories: Set<String>) {
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.consentManager?.userConsentCategories = ConsentCategory.consentCategories(categories)
     }
 
     fun trackView(name: String, data: Map<String, Any>?) {

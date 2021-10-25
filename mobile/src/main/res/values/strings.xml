@@ -21,6 +21,16 @@
     <string name="timed_events_event_name_hint">Timed Event Name</string>
     <string name="timed_events_no_events">No Timed Event Running</string>
     <string name="create_crash">Create Crash</string>
+
+    <string name="media_start">Start Media Tracking Session</string>
+    <string name="media_adbreak_start">Start Ad Break</string>
+    <string name="media_adbreak_end">End Ad Break</string>
+    <string name="media_ad_start">Start Ad</string>
+    <string name="media_ad_end">End Ad</string>
+    <string name="media_chapter_start">Start Chapter</string>
+    <string name="media_chapter_end">End Chapter</string>
+    <string name="media_end">End Media Session</string>
+
     <string name="second_activity">Second Activity</string>
     <string name="second_activity_text_view">Second Activity</string>
     <string name="third_activity">Third Activity</string>

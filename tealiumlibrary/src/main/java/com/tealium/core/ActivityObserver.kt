@@ -10,11 +10,11 @@ import kotlinx.coroutines.launch
 class ActivityObserver(config: TealiumConfig, val eventRouter: EventRouter, private val backgroundScope: CoroutineScope) {
 
     private val application: Application = config.application
-    private val activityLifecylceCallbacks: Application.ActivityLifecycleCallbacks
+    private val activityLifecycleCallbacks: Application.ActivityLifecycleCallbacks
 
     init {
-        activityLifecylceCallbacks = createActivityLifecycleCallbacks()
-        application.registerActivityLifecycleCallbacks(activityLifecylceCallbacks)
+        activityLifecycleCallbacks = createActivityLifecycleCallbacks()
+        application.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
     }
 
     private fun createActivityLifecycleCallbacks(): Application.ActivityLifecycleCallbacks {

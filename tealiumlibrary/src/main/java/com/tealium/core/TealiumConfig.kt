@@ -14,16 +14,27 @@ enum class Environment(val environment: String) {
     PROD("prod")
 }
 
+@Deprecated(
+    "Constant has been moved.",
+    ReplaceWith("Dispatch.Keys.TEALIUM_ACCOUNT", "com.tealium.dispatcher.Dispatch")
+)
 const val TEALIUM_ACCOUNT = "tealium_account"
+
+@Deprecated(
+    "Constant has been moved.",
+    ReplaceWith("Dispatch.Keys.TEALIUM_PROFILE", "com.tealium.dispatcher.Dispatch")
+)
 const val TEALIUM_PROFILE = "tealium_profile"
 
 object Collectors {
     // for extension methods to register CollectorFactory types.
     @JvmStatic
-    val core = mutableSetOf(AppCollector,
+    val core = mutableSetOf(
+        AppCollector,
         ConnectivityCollector,
         DeviceCollector,
-        TimeCollector)
+        TimeCollector
+    )
 }
 
 object Dispatchers {
@@ -35,14 +46,16 @@ object Modules {
 }
 
 @OpenForTesting
-class TealiumConfig @JvmOverloads constructor(val application: Application,
-                    val accountName: String,
-                    val profileName: String,
-                    val environment: Environment,
-                    var dataSourceId: String? = null,
-                    val collectors: MutableSet<CollectorFactory> = Collectors.core,
-                    val dispatchers: MutableSet<DispatcherFactory> = mutableSetOf(),
-                    val modules: MutableSet<ModuleFactory> = mutableSetOf()) {
+class TealiumConfig @JvmOverloads constructor(
+    val application: Application,
+    val accountName: String,
+    val profileName: String,
+    val environment: Environment,
+    var dataSourceId: String? = null,
+    val collectors: MutableSet<CollectorFactory> = Collectors.core,
+    val dispatchers: MutableSet<DispatcherFactory> = mutableSetOf(),
+    val modules: MutableSet<ModuleFactory> = mutableSetOf()
+) {
 
     /**
      * A set of validators where any custom [DispatchValidator]s can be added. These will be merged
@@ -50,7 +63,8 @@ class TealiumConfig @JvmOverloads constructor(val application: Application,
      */
     val validators: MutableSet<DispatchValidator> = mutableSetOf()
 
-    private val pathName = "${application.filesDir}${File.separatorChar}tealium${File.separatorChar}${accountName}${File.separatorChar}${profileName}${File.separatorChar}${environment.environment}"
+    private val pathName =
+        "${application.filesDir}${File.separatorChar}tealium${File.separatorChar}${accountName}${File.separatorChar}${profileName}${File.separatorChar}${environment.environment}"
     val tealiumDirectory: File = File(pathName)
 
     /**
@@ -90,6 +104,16 @@ class TealiumConfig @JvmOverloads constructor(val application: Application,
      * A list of EventTriggers for automatically starting and stopping TimedEvents.
      */
     var timedEventTriggers: MutableList<EventTrigger> = mutableListOf()
+
+    /**
+     * Sets a visitor id for existing user. Must be a unique identifier, like UUID.
+     */
+    var existingVisitorId: String? = null
+
+    /**
+     * Overrides the default LogLevel.
+     */
+    var logLevel: LogLevel? = null
 
     init {
         tealiumDirectory.mkdirs()

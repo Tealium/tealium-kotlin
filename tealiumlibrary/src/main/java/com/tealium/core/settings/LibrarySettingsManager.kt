@@ -12,11 +12,13 @@ import java.io.File
 import java.lang.Exception
 import kotlin.properties.Delegates
 
-class LibrarySettingsManager(private val config: TealiumConfig,
-                             networkClient: NetworkClient,
-                             private var loader: Loader = JsonLoader.getInstance(config.application),
-                             private var eventRouter: EventRouter,
-                             private val backgroundScope: CoroutineScope) {
+class LibrarySettingsManager(
+    private val config: TealiumConfig,
+    networkClient: NetworkClient,
+    private var loader: Loader = JsonLoader.getInstance(config.application),
+    private var eventRouter: EventRouter,
+    private val backgroundScope: CoroutineScope
+) {
 
     private val resourceRetriever: ResourceRetriever
     private var job: Deferred<String?>? = null
@@ -29,17 +31,17 @@ class LibrarySettingsManager(private val config: TealiumConfig,
     private var cachedSettingsFile: File = File(config.tealiumDirectory.canonicalPath, assetString)
     private val urlString: String
         get() = config.overrideLibrarySettingsUrl
-                ?: "https://tags.tiqcdn.com/utag/${config.accountName}/${config.profileName}/${config.environment.environment}/mobile.html"
+            ?: "https://tags.tiqcdn.com/utag/${config.accountName}/${config.profileName}/${config.environment.environment}/mobile.html"
 
     init {
         resourceRetriever = ResourceRetriever(config, urlString, networkClient)
     }
 
     var librarySettings: LibrarySettings by Delegates.observable(
-            initialValue = loadSettings(),
-            onChange = { _, _, new ->
-                eventRouter.onLibrarySettingsUpdated(new)
-            }
+        initialValue = loadSettings(),
+        onChange = { _, _, new ->
+            eventRouter.onLibrarySettingsUpdated(new)
+        }
     )
     private val defaultInitialSettings: LibrarySettings
         get() = config.overrideDefaultLibrarySettings ?: LibrarySettings()
@@ -80,9 +82,9 @@ class LibrarySettingsManager(private val config: TealiumConfig,
                 cachedSettings
             }
             false -> {
-                loadFromAsset(assetString)?.also {
+                loadFromAsset(assetString).also {
+                    if (it != null) Logger.dev(BuildConfig.TAG, "Loaded local library settings.")
                     isAssetSettingsLoaded = true
-                    Logger.dev(BuildConfig.TAG, "Loaded local library settings.")
                 }
             }
         } ?: defaultInitialSettings
@@ -132,7 +134,10 @@ class LibrarySettingsManager(private val config: TealiumConfig,
                         librarySettings = it
                     }
                 } catch (ex: JSONException) {
-                    Logger.qa(BuildConfig.TAG, "Failed to extract remote Library Settings from HTML.")
+                    Logger.qa(
+                        BuildConfig.TAG,
+                        "Failed to extract remote Library Settings from HTML."
+                    )
                 }
             }
         }

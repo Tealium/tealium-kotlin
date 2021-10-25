@@ -33,37 +33,42 @@ class HttpClient(var config: TealiumConfig,
             false
         } else true
 
-    override suspend fun post(payload: String, urlString: String, gzip: Boolean) = coroutineScope {
-        if (isActive && isConnected) {
-            try {
-                with(URL(urlString).openConnection() as HttpURLConnection) {
-                    try {
-                        doOutput = true
-                        setRequestProperty("Content-Type", "application/json")
-                        val dataOutputStream = when (gzip) {
-                            true -> {
-                                setRequestProperty("Content-Encoding", "gzip")
-                                DataOutputStream(GZIPOutputStream(outputStream))
+    override suspend fun post(payload: String, urlString: String, gzip: Boolean): Unit = coroutineScope {
+        withContext(Dispatchers.IO) {
+                try {
+                    with(URL(urlString).openConnection() as HttpURLConnection) {
+                        if (isActive && isConnected) {
+                            try {
+                                doOutput = true
+                                setRequestProperty("Content-Type", "application/json")
+                                val dataOutputStream = when (gzip) {
+                                    true -> {
+                                        setRequestProperty("Content-Encoding", "gzip")
+                                        DataOutputStream(GZIPOutputStream(outputStream))
+                                    }
+                                    false -> {
+                                        DataOutputStream(outputStream)
+                                    }
+                                }
+                                dataOutputStream.write(payload.toByteArray(Charsets.UTF_8))
+                                dataOutputStream.flush()
+                                dataOutputStream.close()
+                            } catch (e: Exception) {
+                                networkClientListener?.onNetworkError(e.toString())
                             }
-                            false -> {
-                                DataOutputStream(outputStream)
-                            }
+                            val code = responseCode
+                            val message = responseMessage
+                            networkClientListener?.onNetworkResponse(code, message)
                         }
-                        dataOutputStream.write(payload.toByteArray(Charsets.UTF_8))
-                        dataOutputStream.flush()
-                        dataOutputStream.close()
-                    } catch (e: Exception) {
-                        networkClientListener?.onNetworkError(e.toString())
                     }
-                    networkClientListener?.onNetworkResponse(responseCode, responseMessage)
+                } catch (e: ConnectException) {
+                    Logger.prod(BuildConfig.TAG, "Could not connect to host: $e.")
+                    networkClientListener?.onNetworkError(e.toString())
+                } catch (e: Exception) {
+                    Logger.prod(BuildConfig.TAG, "An unknown exception occurred: $e.")
+                    networkClientListener?.onNetworkError(e.toString())
                 }
-            } catch (e: ConnectException) {
-                Logger.prod(BuildConfig.TAG, "Could not connect to host: $e.")
-                networkClientListener?.onNetworkError(e.toString())
-            } catch (e: Exception) {
-                Logger.prod(BuildConfig.TAG, "An unknown exception occurred: $e.")
-                networkClientListener?.onNetworkError(e.toString())
-            }
+            Unit
         }
     }
 
@@ -71,7 +76,7 @@ class HttpClient(var config: TealiumConfig,
      * Checks if the resource has been modified from the timestamp.
      */
     override suspend fun ifModified(urlString: String, timestamp: Long): Boolean? = coroutineScope {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             try {
                 with(URL(urlString).openConnection() as HttpURLConnection) {
                     var isModified: Boolean? = null
@@ -99,7 +104,7 @@ class HttpClient(var config: TealiumConfig,
     }
 
     override suspend fun get(urlString: String): String? = coroutineScope {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             try {
                 with(URL(urlString).openConnection() as HttpURLConnection) {
                     if (isActive && isConnected) {

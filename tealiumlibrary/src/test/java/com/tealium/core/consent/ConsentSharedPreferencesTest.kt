@@ -4,8 +4,8 @@ import android.app.Application
 import android.content.SharedPreferences
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
-import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
 import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
+import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import org.junit.Assert.assertEquals
@@ -73,10 +73,13 @@ class ConsentSharedPreferencesTest {
                 ConsentCategory.EMAIL)
 
         verify {
-            editor.putStringSet(KEY_CATEGORIES, setOf(
-                ConsentCategory.MONITORING.value,
-                ConsentCategory.CDP.value,
-                ConsentCategory.EMAIL.value))
+            editor.putStringSet(
+                KEY_CATEGORIES, setOf(
+                    ConsentCategory.MONITORING.value,
+                    ConsentCategory.CDP.value,
+                    ConsentCategory.EMAIL.value
+                )
+            )
         }
     }
 

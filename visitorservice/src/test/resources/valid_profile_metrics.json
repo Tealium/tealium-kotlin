@@ -15,14 +15,16 @@
   },
   "metric_lists": {
     "5132": [
-      5
+      5,
+      1585244808000
     ]
   },
   "metric_sets": {
     "5136": {
       "blue_shoes": 1,
       "red_shoes": 5,
-      "yellow_shoes": 100.0
+      "yellow_shoes": 100.0,
+      "long_yellow_shoes": 1585244808000
     },
     "1234": {
       "blue_shirts": 100.0,
