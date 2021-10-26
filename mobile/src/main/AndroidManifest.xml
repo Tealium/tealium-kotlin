@@ -41,7 +41,7 @@
         <activity android:name=".ThirdActivity" />
 
         <service
-            android:name="com.tealium.autotracking.TealiumFirebaseService"
+            android:name="com.tealium.autotracking.push.TealiumFirebaseService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

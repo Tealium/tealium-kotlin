@@ -1,4 +1,4 @@
-package com.tealium.autotracking
+package com.tealium.autotracking.push
 
 import com.google.firebase.messaging.RemoteMessage
 

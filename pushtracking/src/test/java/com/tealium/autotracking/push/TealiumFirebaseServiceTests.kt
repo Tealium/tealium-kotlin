@@ -1,9 +1,7 @@
-package com.tealium.autotracking
+package com.tealium.autotracking.push
 
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import com.tealium.autotracking.push.PushTracking
-import com.tealium.autotracking.push.pushTracking
 import com.tealium.core.Tealium
 import io.mockk.*
 import io.mockk.impl.annotations.RelaxedMockK

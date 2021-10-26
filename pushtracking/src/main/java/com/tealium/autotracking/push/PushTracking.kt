@@ -1,11 +1,10 @@
 package com.tealium.autotracking.push
 
 import com.google.firebase.messaging.RemoteMessage
-import com.tealium.autotracking.internal.PushNotificationAutoTracker
+import com.tealium.autotracking.push.internal.PushNotificationAutoTracker
 import com.tealium.core.Module
 import com.tealium.core.ModuleFactory
 import com.tealium.core.TealiumContext
-import com.tealium.autotracking.PushNotificationTracker
 
 class PushTracking(
     private val context: TealiumContext,

@@ -1,7 +1,7 @@
 package com.tealium.autotracking.push
 
 import com.google.firebase.messaging.RemoteMessage
-import com.tealium.autotracking.PushNotificationTracker
+import com.tealium.autotracking.push.PushNotificationTracker
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.MessengerService
