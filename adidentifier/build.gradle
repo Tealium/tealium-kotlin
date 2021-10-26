@@ -6,12 +6,11 @@ apply from: '../jacoco.gradle'
 version = '1.1.0'
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 31
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 31
         buildConfigField 'String', 'TAG', "\"Tealium-AdIdentifier-$version\""
         buildConfigField 'String', 'LIBRARY_VERSION', "\"$version\""
 
@@ -44,7 +43,7 @@ android {
     }
 }
 
-dependencies {
+dependencies {''
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     api project(':tealiumlibrary')
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -53,9 +52,11 @@ dependencies {
     implementation 'com.google.android.material:material:1.2.1'
     implementation 'com.google.android.gms:play-services-ads-identifier:17.1.0'
     implementation 'com.google.android.gms:play-services-base:17.6.0'
+    implementation 'com.google.android.gms:play-services-appset:16.0.0'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
     testImplementation 'junit:junit:4.+'
     testImplementation "io.mockk:mockk:$mockk_version"
+    testImplementation "org.robolectric:robolectric:$robolectric_version"
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     androidTestImplementation "io.mockk:mockk-android:$mockk_version"
@@ -76,6 +77,7 @@ afterEvaluate {
 //                credentials(AwsCredentials) {
 //                    accessKey AWS_ACCESS_KEY
 //                    secretKey AWS_SECRET_KEY
+//                    sessionToken AWS_SESSION_TOKEN
 //                }
 //            }
         }
