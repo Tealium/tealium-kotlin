@@ -1,12 +1,9 @@
 package com.tealium.adidentifier
 
-import android.annotation.TargetApi
 import android.content.Context
 import android.os.Build
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import com.google.android.gms.appset.AppSet
-import com.google.android.gms.appset.AppSetIdInfo
-import com.google.android.gms.tasks.Task
 import com.tealium.core.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -78,8 +75,6 @@ class AdIdentifier(private val tealiumContext: TealiumContext) : Module {
     init {
         scope.launch {
             fetchAdInfo(tealiumContext.config.application)
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             fetchAppSetInfo(tealiumContext.config.application)
         }
     }
@@ -96,12 +91,14 @@ class AdIdentifier(private val tealiumContext: TealiumContext) : Module {
     }
 
     private fun fetchAppSetInfo(context: Context) {
-        val client = AppSet.getClient(context)
-        val task = client.appSetIdInfo
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val client = AppSet.getClient(context)
+            val task = client.appSetIdInfo
 
-        task.addOnSuccessListener {
-            appSetId = it.id
-            appSetScope = it.scope
+            task.addOnSuccessListener {
+                appSetId = it.id
+                appSetScope = it.scope
+            }
         }
     }
 

@@ -7,7 +7,6 @@ version = '1.1.0'
 
 android {
     compileSdkVersion 31
-    buildToolsVersion "31.0.0"
 
     defaultConfig {
         minSdkVersion 21
@@ -41,6 +40,7 @@ android {
 
     testOptions {
         unitTests.returnDefaultValues = true
+//        unitTests.includeAndroidResources = true
     }
 }
 
@@ -57,6 +57,7 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
     testImplementation 'junit:junit:4.+'
     testImplementation "io.mockk:mockk:$mockk_version"
+    testImplementation "org.robolectric:robolectric:$robolectric_version"
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     androidTestImplementation "io.mockk:mockk-android:$mockk_version"

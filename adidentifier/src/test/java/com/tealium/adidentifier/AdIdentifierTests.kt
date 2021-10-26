@@ -1,5 +1,6 @@
 package com.tealium.adidentifier
 
+import android.app.Application
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import com.google.android.gms.appset.AppSet
 import com.google.android.gms.appset.AppSetIdClient
@@ -12,8 +13,15 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
 class AdIdentifierTests {
+
+    @MockK
+    lateinit var mockApplication: Application
 
     @MockK
     lateinit var tealiumContext: TealiumContext
@@ -39,6 +47,7 @@ class AdIdentifierTests {
         MockKAnnotations.init(this)
 
         every { tealiumContext.config } returns config
+        every { tealiumContext.config.application } returns mockApplication
         every { tealiumContext.dataLayer } returns dataLayer
 
         mockkStatic(AdvertisingIdClient::class)
@@ -95,7 +104,9 @@ class AdIdentifierTests {
         }
     }
 
+    // TODO Test currently ignored - robolectric does not support SDK 31
     @Test
+    @Config(sdk = [31])
     fun fetchAppSetIdInfo() {
         mockkStatic(AppSet::class)
         every { AppSet.getClient(any()) } returns appSetClient
