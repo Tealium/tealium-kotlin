@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application
         android:name="com.tealium.mobile.App"
@@ -38,13 +39,7 @@
         <activity android:name=".SecondActivity" />
         <activity android:name=".ThirdActivity" />
 
-        <service
-            android:name="com.tealium.autotracking.TealiumFirebaseService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
+        <service android:name="com.tealium.media.MediaService"/>
     </application>
 
 </manifest>

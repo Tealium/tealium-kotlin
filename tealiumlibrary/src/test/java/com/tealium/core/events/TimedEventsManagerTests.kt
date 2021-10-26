@@ -1,6 +1,5 @@
 package com.tealium.core.events
 
-import CoreConstant.TEALIUM_EVENT
 import com.tealium.core.LogLevel
 import com.tealium.core.Logger
 import com.tealium.core.TealiumConfig
@@ -81,10 +80,10 @@ class TimedEventsManagerTests {
         assertNull(timedEventsManager.timedEvents.find { it.eventName == "test" })
         verify {
             mockContext.track(match {
-                it[TEALIUM_EVENT] == TimedEvent.TIMED_EVENT_NAME
-                        && it[TimedEvent.KEY_TIMED_EVENT_NAME] == "test"
-                        && it[TimedEvent.KEY_TIMED_EVENT_START] == startTime
-                        && it[TimedEvent.KEY_TIMED_EVENT_END] == stopTime
+                it[Dispatch.Keys.TEALIUM_EVENT] == TimedEvent.TIMED_EVENT_NAME
+                        && it[Dispatch.Keys.TIMED_EVENT_NAME] == "test"
+                        && it[Dispatch.Keys.TIMED_EVENT_START] == startTime
+                        && it[Dispatch.Keys.TIMED_EVENT_END] == stopTime
             })
         }
     }
@@ -186,10 +185,10 @@ class TimedEventsManagerTests {
         timedEventsManager.transform(dispatch)
 
         val payload = dispatch.payload()
-        assertFalse(payload.containsKey(TimedEvent.KEY_TIMED_EVENT_NAME))
-        assertFalse(payload.containsKey(TimedEvent.KEY_TIMED_EVENT_START))
-        assertFalse(payload.containsKey(TimedEvent.KEY_TIMED_EVENT_END))
-        assertFalse(payload.containsKey(TimedEvent.KEY_TIMED_EVENT_DURATION))
+        assertFalse(payload.containsKey(Dispatch.Keys.TIMED_EVENT_NAME))
+        assertFalse(payload.containsKey(Dispatch.Keys.TIMED_EVENT_START))
+        assertFalse(payload.containsKey(Dispatch.Keys.TIMED_EVENT_END))
+        assertFalse(payload.containsKey(Dispatch.Keys.TIMED_EVENT_DURATION))
     }
 
     @Test
@@ -250,11 +249,11 @@ class TimedEventsManagerTests {
 
         verify {
             mockContext.track(match {
-                it[TEALIUM_EVENT] == TimedEvent.TIMED_EVENT_NAME
-                        && it[TimedEvent.KEY_TIMED_EVENT_NAME] == "test_trigger"
-                        && it[TimedEvent.KEY_TIMED_EVENT_START] == startTime
-                        && it[TimedEvent.KEY_TIMED_EVENT_END] == startTime + 1000L
-                        && it[TimedEvent.KEY_TIMED_EVENT_DURATION] == 1000L
+                it[Dispatch.Keys.TEALIUM_EVENT] == TimedEvent.TIMED_EVENT_NAME
+                        && it[Dispatch.Keys.TIMED_EVENT_NAME] == "test_trigger"
+                        && it[Dispatch.Keys.TIMED_EVENT_START] == startTime
+                        && it[Dispatch.Keys.TIMED_EVENT_END] == startTime + 1000L
+                        && it[Dispatch.Keys.TIMED_EVENT_DURATION] == 1000L
             })
         }
     }
@@ -276,18 +275,18 @@ class TimedEventsManagerTests {
 
         verify {
             mockContext.track(match {
-                it[TEALIUM_EVENT] == TimedEvent.TIMED_EVENT_NAME
-                        && it[TimedEvent.KEY_TIMED_EVENT_NAME] == "test_trigger_1"
-                        && it[TimedEvent.KEY_TIMED_EVENT_START] == event1.startTime
-                        && it[TimedEvent.KEY_TIMED_EVENT_END] == event1.stopTime
-                        && it[TimedEvent.KEY_TIMED_EVENT_DURATION] == event1.duration
+                it[Dispatch.Keys.TEALIUM_EVENT] == TimedEvent.TIMED_EVENT_NAME
+                        && it[Dispatch.Keys.TIMED_EVENT_NAME] == "test_trigger_1"
+                        && it[Dispatch.Keys.TIMED_EVENT_START] == event1.startTime
+                        && it[Dispatch.Keys.TIMED_EVENT_END] == event1.stopTime
+                        && it[Dispatch.Keys.TIMED_EVENT_DURATION] == event1.duration
             })
             mockContext.track(match {
-                it[TEALIUM_EVENT] == TimedEvent.TIMED_EVENT_NAME
-                        && it[TimedEvent.KEY_TIMED_EVENT_NAME] == "test_trigger_2"
-                        && it[TimedEvent.KEY_TIMED_EVENT_START] == event2.startTime
-                        && it[TimedEvent.KEY_TIMED_EVENT_END] == event2.stopTime
-                        && it[TimedEvent.KEY_TIMED_EVENT_DURATION] == event2.duration
+                it[Dispatch.Keys.TEALIUM_EVENT] == TimedEvent.TIMED_EVENT_NAME
+                        && it[Dispatch.Keys.TIMED_EVENT_NAME] == "test_trigger_2"
+                        && it[Dispatch.Keys.TIMED_EVENT_START] == event2.startTime
+                        && it[Dispatch.Keys.TIMED_EVENT_END] == event2.stopTime
+                        && it[Dispatch.Keys.TIMED_EVENT_DURATION] == event2.duration
             })
         }
     }

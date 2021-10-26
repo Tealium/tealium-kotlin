@@ -28,6 +28,16 @@
 
 # Keep all public interfaces
 -keep public interface com.tealium.** { *; }
+-keep public class com.tealium.**$DefaultImpls { *; }
+-keep public class AppCollectorConstants,
+                    DeviceCollectorConstants,
+                     TealiumCollectorConstants,
+                     ConnectivityCollectorConstants,
+                     TimeCollectorConstants,
+                     CoreConstant,
+                     DispatchType {
+    public protected *;
+}
 
 # Keep all Collectors except internal ones
 -keep public class !com.tealium.core.collection.Session**,
@@ -62,7 +72,7 @@
 }
 
 # Keep expiry definitions.
--keep public class com.tealium.core.persistence.Expiry {
+-keep public class com.tealium.core.persistence.Expiry,com.tealium.core.persistence.Expiry$* {
     public protected *;
 }
 
@@ -79,6 +89,7 @@
                     com.tealium.core.JsonUtils$Companion,
                     com.tealium.core.Logger,
                     com.tealium.core.Logger$Companion,
+                    com.tealium.core.LogLevel$Companion,
                     com.tealium.core.ModuleManager,
                     com.tealium.core.Session,
                     com.tealium.core.Tealium,
@@ -87,7 +98,8 @@
                     com.tealium.core.TealiumConfigKt,
                     com.tealium.core.TealiumContext,
                     com.tealium.core.TealiumEncoder,
-                    com.tealium.core.TealiumEncoder$Companion {
+                    com.tealium.core.TealiumEncoder$Companion,
+                    com.tealium.core.DispatchType {
     public protected *;
 }
 
@@ -103,7 +115,7 @@
 }
 
 # Keep public Dispatch implementatations
--keep class com.tealium.dispatcher.TealiumEvent,com.tealium.dispatcher.TealiumView { *; }
+-keep class com.tealium.dispatcher.TealiumEvent,com.tealium.dispatcher.TealiumView, com.tealium.dispatcher.Dispatch$Keys { *; }
 
 # OpenForTesting Annotation
 -keep class com.tealium.test.* { *; }

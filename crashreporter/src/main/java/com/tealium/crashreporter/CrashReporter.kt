@@ -19,7 +19,8 @@ class CrashReporter(private val context: TealiumContext,
     }
 
     companion object : ModuleFactory {
-        private const val MODULE_NAME = "CRASH_REPORTER"
+        private const val MODULE_NAME = "Crash"
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
         @JvmStatic
         internal fun getSharedPreferencesName(config: TealiumConfig): String {

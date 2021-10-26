@@ -1,9 +1,9 @@
 package com.tealium.core.consent
 import android.content.SharedPreferences
 import com.tealium.core.TealiumConfig
-import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
 import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
 import com.tealium.core.consent.ConsentManagerConstants.KEY_LAST_STATUS_UPDATE
+import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
 
 /**
  * This class is responsible for the persistence of consent preferences as defined by [ConsentStatus]
@@ -16,7 +16,10 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
     var consentStatus: ConsentStatus = ConsentStatus.UNKNOWN
         get() {
             return ConsentStatus.consentStatus(
-                    sharedPreferences.getString(KEY_STATUS, ConsentStatus.default().value)!!
+                    sharedPreferences.getString(
+                        KEY_STATUS,
+                        ConsentStatus.default().value
+                    )!!
             )
         }
         set(value) {
@@ -36,7 +39,10 @@ internal class ConsentSharedPreferences(config: TealiumConfig) {
             field = value
             value?.let { categories ->
                 sharedPreferences.edit()
-                        .putStringSet(KEY_CATEGORIES, categories.map { category -> category.value }.toSet())
+                        .putStringSet(
+                            KEY_CATEGORIES,
+                            categories.map { category -> category.value }.toSet()
+                        )
                         .apply()
             } ?: run {
                 sharedPreferences.edit().remove(KEY_CATEGORIES).apply()

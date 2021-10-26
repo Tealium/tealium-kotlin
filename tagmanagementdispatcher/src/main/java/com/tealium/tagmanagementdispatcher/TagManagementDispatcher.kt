@@ -3,8 +3,7 @@ package com.tealium.tagmanagementdispatcher
 import android.os.Build
 import android.webkit.*
 import com.tealium.core.*
-import com.tealium.core.consent.ConsentManagementPolicy
-import com.tealium.core.consent.UserConsentPreferences
+import com.tealium.core.consent.*
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.messaging.DispatchReadyListener
 import com.tealium.core.validation.DispatchValidator
@@ -36,15 +35,19 @@ class TagManagementDispatcher(private val context: TealiumContext,
                 "${context.config.accountName}/" +
                 "${context.config.profileName}/" +
                 "${context.config.environment.environment}/mobile.html?" +
-                "${DeviceCollectorConstants.DEVICE_PLATFORM}=android" +
-                "&${DeviceCollectorConstants.DEVICE_OS_VERSION}=${Build.VERSION.RELEASE}" +
-                "&${CoreConstant.LIBRARY_VERSION}=${BuildConfig.VERSION_NAME}" +
+                "${Dispatch.Keys.DEVICE_PLATFORM}=android" +
+                "&${Dispatch.Keys.DEVICE_OS_VERSION}=${Build.VERSION.RELEASE}" +
+                "&${Dispatch.Keys.LIBRARY_VERSION}=${BuildConfig.VERSION_NAME}" +
                 "&sdk_session_count=true"
+
+    private val remoteApiEnabled: Boolean = context.config.remoteApiEnabled ?: true
 
     private val scope = CoroutineScope(Dispatchers.Main)
     internal var webViewLoader = WebViewLoader(context, urlString, afterDispatchSendCallbacks, connectivityRetriever = connectivity)
 
     fun callRemoteCommandTags(dispatch: Dispatch) {
+        if (!remoteApiEnabled) return
+
         val remoteCommandScript = "utag.track(\"remote_api\", ${dispatch.toJsonString()})"
         onEvaluateJavascript(remoteCommandScript)
     }
@@ -60,10 +63,16 @@ class TagManagementDispatcher(private val context: TealiumContext,
     }
 
     private fun track(dispatch: Dispatch) {
-        val callType = dispatch.payload()[CoreConstant.TEALIUM_EVENT_TYPE]
-        var javascriptCall = ""
+        if (ConsentManager.isConsentGrantedEvent(dispatch)) {
+            context.config.consentManagerLoggingProfile?.let {
+                dispatch.addAll(
+                    mapOf(Dispatch.Keys.TEALIUM_PROFILE to it)
+                )
+            }
+        }
 
-        javascriptCall = callType?.let {
+        val callType = dispatch.payload()[Dispatch.Keys.TEALIUM_EVENT_TYPE]
+        val javascriptCall = callType?.let {
             when (it) {
                 TagManagementConstants.EVENT -> "utag.track(\"link\", ${dispatch.toJsonString()})"
                 else -> "utag.track(\"$it\", ${dispatch.toJsonString()})"
@@ -80,22 +89,28 @@ class TagManagementDispatcher(private val context: TealiumContext,
     }
 
     override fun onDispatchReady(dispatch: Dispatch) {
-        when (webViewLoader.isWebViewLoaded.get()) {
-            PageStatus.LOADED_ERROR -> {
-                webViewLoader.initializeWebView()
-                return
-            }
+        when (webViewLoader.webViewStatus.get()) {
             PageStatus.LOADED_SUCCESS -> {
                 callRemoteCommandTags(dispatch)
                 return
             }
+            PageStatus.LOADED_ERROR -> {
+                if (webViewLoader.isTimedOut()) {
+                    webViewLoader.loadUrlToWebView()
+                }
+            }
+            PageStatus.INIT -> {
+                Logger.qa(BuildConfig.TAG, "WebView not loaded yet.")
+                webViewLoader.loadUrlToWebView()
+            }
+            PageStatus.LOADING -> {
+                Logger.qa(BuildConfig.TAG, "WebView loading.")
+            }
         }
-
-        webViewLoader.loadUrlToWebView()
     }
 
     override fun onEvaluateJavascript(js: String) {
-        if (webViewLoader.isWebViewLoaded.get() != PageStatus.LOADED_SUCCESS) {
+        if (webViewLoader.webViewStatus.get() != PageStatus.LOADED_SUCCESS) {
             return
         }
 
@@ -110,7 +125,7 @@ class TagManagementDispatcher(private val context: TealiumContext,
     }
 
     override fun shouldQueue(dispatch: Dispatch?): Boolean {
-        return !webViewLoader.isWebViewLoaded.get()
+        return webViewLoader.webViewStatus.get() != PageStatus.LOADED_SUCCESS
     }
 
     override fun shouldDrop(dispatch: Dispatch): Boolean {
@@ -121,13 +136,14 @@ class TagManagementDispatcher(private val context: TealiumContext,
         if (!policy.cookieUpdateRequired) return
 
         val dispatch = TealiumEvent(policy.cookieUpdateEventName, policy.policyStatusInfo())
-        dispatch.addAll(mapOf(CoreConstant.TEALIUM_EVENT_TYPE to policy.cookieUpdateEventName))
+        dispatch.addAll(mapOf(Dispatch.Keys.TEALIUM_EVENT_TYPE to policy.cookieUpdateEventName))
 
         track(dispatch)
     }
 
     companion object : DispatcherFactory {
-        const val MODULE_NAME = "TAG_MANAGEMENT_DISPATCHER"
+        const val MODULE_NAME = "TagManagement"
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
         override fun create(context: TealiumContext, callbacks: AfterDispatchSendCallbacks): Dispatcher {
             return TagManagementDispatcher(context, callbacks)

@@ -18,21 +18,21 @@ internal class LifecycleService(private val lifecycleSharedPreferences: Lifecycl
 
     fun getCurrentState(timestamp: Long): MutableMap<String, Any> {
         val data = mutableMapOf(
-                LifecycleStateKey.LIFECYCLE_DAYOFWEEK_LOCAL to getDayOfWeekLocal(timestamp),
-                LifecycleStateKey.LIFECYCLE_DAYSSINCELAUNCH to ((timestamp - lifecycleSharedPreferences.timestampFirstLaunch) / LifecycleDefaults.DAY_IN_MS).toString(),
-                LifecycleStateKey.LIFECYCLE_DAYSSINCELASTWAKE to (if (lifecycleSharedPreferences.timestampLastWake == LifecycleDefaults.TIMESTAMP_INVALID) "0" else ((timestamp - lifecycleSharedPreferences.timestampLastWake) / LifecycleDefaults.DAY_IN_MS).toString()),
-                LifecycleStateKey.LIFECYCLE_HOUROFDAY_LOCAL to getHourOfDayLocal(timestamp).toString(),
-                LifecycleStateKey.LIFECYCLE_LAUNCHCOUNT to lifecycleSharedPreferences.countLaunch,
-                LifecycleStateKey.LIFECYCLE_SLEEPCOUNT to lifecycleSharedPreferences.countSleep,
-                LifecycleStateKey.LIFECYCLE_WAKECOUNT to lifecycleSharedPreferences.countWake,
-                LifecycleStateKey.LIFECYCLE_TOTALCRASHCOUNT to lifecycleSharedPreferences.countTotalCrash,
-                LifecycleStateKey.LIFECYCLE_TOTALLAUNCHCOUNT to lifecycleSharedPreferences.countTotalLaunch,
-                LifecycleStateKey.LIFECYCLE_TOTALSLEEPCOUNT to lifecycleSharedPreferences.countSleep.toString(),
-                LifecycleStateKey.LIFECYCLE_TOTALWAKECOUNT to lifecycleSharedPreferences.countWake.toString(),
-                LifecycleStateKey.LIFECYCLE_TOTALSECONDSAWAKE to lifecycleSharedPreferences.totalSecondsAwake.toString(),
-                LifecycleStateKey.LIFECYCLE_LASTWAKEDATE to lifecycleSharedPreferences.timestampLastWake,
-                LifecycleStateKey.LIFECYCLE_LASTSLEEPDATE to lifecycleSharedPreferences.timestampLastSleep,
-                LifecycleStateKey.LIFECYCLE_DAYSSINCEUPDATE to ((timestamp - lifecycleSharedPreferences.timestampUpdate) / LifecycleDefaults.DAY_IN_MS).toString()
+            LifecycleStateKey.LIFECYCLE_DAYOFWEEK_LOCAL to getDayOfWeekLocal(timestamp),
+            LifecycleStateKey.LIFECYCLE_DAYSSINCELAUNCH to ((timestamp - lifecycleSharedPreferences.timestampFirstLaunch) / LifecycleDefaults.DAY_IN_MS).toString(),
+            LifecycleStateKey.LIFECYCLE_DAYSSINCELASTWAKE to (if (lifecycleSharedPreferences.timestampLastWake == LifecycleDefaults.TIMESTAMP_INVALID) "0" else ((timestamp - lifecycleSharedPreferences.timestampLastWake) / LifecycleDefaults.DAY_IN_MS).toString()),
+            LifecycleStateKey.LIFECYCLE_HOUROFDAY_LOCAL to getHourOfDayLocal(timestamp).toString(),
+            LifecycleStateKey.LIFECYCLE_LAUNCHCOUNT to lifecycleSharedPreferences.countLaunch,
+            LifecycleStateKey.LIFECYCLE_SLEEPCOUNT to lifecycleSharedPreferences.countSleep,
+            LifecycleStateKey.LIFECYCLE_WAKECOUNT to lifecycleSharedPreferences.countWake,
+            LifecycleStateKey.LIFECYCLE_TOTALCRASHCOUNT to lifecycleSharedPreferences.countTotalCrash,
+            LifecycleStateKey.LIFECYCLE_TOTALLAUNCHCOUNT to lifecycleSharedPreferences.countTotalLaunch,
+            LifecycleStateKey.LIFECYCLE_TOTALSLEEPCOUNT to lifecycleSharedPreferences.countSleep.toString(),
+            LifecycleStateKey.LIFECYCLE_TOTALWAKECOUNT to lifecycleSharedPreferences.countWake.toString(),
+            LifecycleStateKey.LIFECYCLE_TOTALSECONDSAWAKE to lifecycleSharedPreferences.totalSecondsAwake.toString(),
+            LifecycleStateKey.LIFECYCLE_LASTWAKEDATE to lifecycleSharedPreferences.timestampLastWake,
+            LifecycleStateKey.LIFECYCLE_LASTSLEEPDATE to lifecycleSharedPreferences.timestampLastSleep,
+            LifecycleStateKey.LIFECYCLE_DAYSSINCEUPDATE to ((timestamp - lifecycleSharedPreferences.timestampUpdate) / LifecycleDefaults.DAY_IN_MS).toString()
         )
 
         lifecycleSharedPreferences.firstLaunch?.let {
@@ -56,25 +56,35 @@ internal class LifecycleService(private val lifecycleSharedPreferences: Lifecycl
         lifecycleSharedPreferences.lastLaunch?.let {
             data[LifecycleStateKey.LIFECYCLE_LASTLAUNCHDATE] = it
         } ?: run {
-            lifecycleSharedPreferences.lastLaunch = getLastEvent(LifecycleSPKey.TIMESTAMP_LAST_LAUNCH, lifecycleSharedPreferences.timestampLaunch)
+            lifecycleSharedPreferences.lastLaunch = getLastEvent(
+                LifecycleSPKey.TIMESTAMP_LAST_LAUNCH,
+                lifecycleSharedPreferences.timestampLaunch
+            )
         }
 
         lifecycleSharedPreferences.lastWake?.let {
             data[LifecycleStateKey.LIFECYCLE_LASTWAKEDATE] = it
         } ?: run {
-            lifecycleSharedPreferences.lastWake = getLastEvent(LifecycleSPKey.TIMESTAMP_LAST_WAKE, lifecycleSharedPreferences.timestampLaunch)
+            lifecycleSharedPreferences.lastWake = getLastEvent(
+                LifecycleSPKey.TIMESTAMP_LAST_WAKE,
+                lifecycleSharedPreferences.timestampLaunch
+            )
         }
 
         lifecycleSharedPreferences.lastSleep?.let {
             data[LifecycleStateKey.LIFECYCLE_LASTSLEEPDATE] = it
         } ?: run {
-            lifecycleSharedPreferences.lastSleep = getLastEvent(LifecycleSPKey.TIMESTAMP_LAST_SLEEP, LifecycleDefaults.TIMESTAMP_INVALID)
+            lifecycleSharedPreferences.lastSleep = getLastEvent(
+                LifecycleSPKey.TIMESTAMP_LAST_SLEEP,
+                LifecycleDefaults.TIMESTAMP_INVALID
+            )
         }
 
         if (lifecycleSharedPreferences.timestampUpdate != LifecycleDefaults.TIMESTAMP_INVALID) {
             lifecycleSharedPreferences.updateLaunchDate?.let {
                 data[LifecycleStateKey.LIFECYCLE_UPDATELAUNCHDATE] = it
-                data[LifecycleStateKey.LIFECYCLE_DAYSSINCEUPDATE] = ((timestamp - lifecycleSharedPreferences.timestampUpdate) / LifecycleDefaults.DAY_IN_MS)
+                data[LifecycleStateKey.LIFECYCLE_DAYSSINCEUPDATE] =
+                    ((timestamp - lifecycleSharedPreferences.timestampUpdate) / LifecycleDefaults.DAY_IN_MS)
             } ?: run {
                 lifecycleSharedPreferences.updateLaunchDate = getUpdateLaunchDate()
             }
@@ -88,7 +98,8 @@ internal class LifecycleService(private val lifecycleSharedPreferences: Lifecycl
 
         lastEvent?.let {
             val lastIsForegrounding = LifecycleEvent.LAUNCH == it || LifecycleEvent.WAKE == it
-            val currentIsForegrounding = LifecycleEvent.LAUNCH == event || LifecycleEvent.WAKE == event
+            val currentIsForegrounding =
+                LifecycleEvent.LAUNCH == event || LifecycleEvent.WAKE == event
 
             val crashDetected = lastIsForegrounding && currentIsForegrounding
 
@@ -116,7 +127,10 @@ internal class LifecycleService(private val lifecycleSharedPreferences: Lifecycl
         val cachedVersion = lifecycleSharedPreferences.currentAppVersion
 
         if (initializedCurrentVersion != cachedVersion) {
-            lifecycleSharedPreferences.resetCountsAfterAppUpdate(timestamp, initializedCurrentVersion)
+            lifecycleSharedPreferences.resetCountsAfterAppUpdate(
+                timestamp,
+                initializedCurrentVersion
+            )
             return true
         }
 

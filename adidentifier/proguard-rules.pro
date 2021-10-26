@@ -26,5 +26,6 @@
 
 -keep class kotlin.Metadata { *; }
 
--keep interface com.tealium.adidentifier.AdIdentifier { *; }
--keep interface com.tealium.adidentifier.AdIdentifierKt { *; }
+-keep class com.tealium.adidentifier.AdIdentifier { *; }
+-keep class com.tealium.adidentifier.AdIdentifier$Companion { *; }
+-keep class com.tealium.adidentifier.AdIdentifierKt { *; }

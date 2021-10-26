@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'maven-publish'
 apply from: '../jacoco.gradle'
 
-version = '1.0.2'
+version = '1.0.5'
 
 android {
     compileSdkVersion 29
@@ -16,6 +16,7 @@ android {
         versionCode 1
         versionName "1.0"
         buildConfigField 'String', 'TAG', "\"Tealium-VisitorService-$version\""
+        buildConfigField 'String', 'LIBRARY_VERSION', "\"$version\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
@@ -64,7 +65,7 @@ afterEvaluate {
                 artifactId = 'kotlin-visitor-service'
             }
         }
-//        repositories {
+        repositories {
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
 //                credentials(AwsCredentials) {
@@ -72,6 +73,6 @@ afterEvaluate {
 //                    secretKey AWS_SECRET_KEY
 //                }
 //            }
-//        }
+        }
     }
 }

@@ -1,6 +1,5 @@
 package com.tealium.hosteddatalayer
 
-import CoreConstant.TEALIUM_EVENT
 import com.tealium.core.*
 import com.tealium.core.network.*
 import com.tealium.core.validation.DispatchValidator
@@ -51,7 +50,7 @@ class HostedDataLayer(private val config: TealiumConfig,
      * from the Hosted Data Layer CDN.
      */
     override suspend fun transform(dispatch: Dispatch) {
-        val eventName = dispatch[TEALIUM_EVENT]
+        val eventName = dispatch[Dispatch.Keys.TEALIUM_EVENT]
         val key = eventMappings[eventName]
         if (!key.isNullOrEmpty()) {
             // Found event mapping.
@@ -149,7 +148,8 @@ class HostedDataLayer(private val config: TealiumConfig,
 
     companion object : ModuleFactory {
 
-        const val MODULE_NAME = "HOSTED_DATA_LAYER"
+        const val MODULE_NAME = "HostedDataLayer"
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
         override fun create(context: TealiumContext): Module {
             return HostedDataLayer(context.config)

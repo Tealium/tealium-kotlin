@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'maven-publish'
 apply from: '../jacoco.gradle'
 
-version = '1.0.1'
+version = '1.0.7'
 
 android {
     compileSdkVersion 29
@@ -16,6 +16,7 @@ android {
 
         buildConfigField 'String', 'TAG', "\"Tealium-TagManagementDispatcher-$version\""
         buildConfigField 'String', 'VERSION_NAME', "\"$version\""
+        buildConfigField 'String', 'LIBRARY_VERSION', "\"$version\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -25,6 +26,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             testCoverageEnabled true
         }
     }
@@ -66,7 +69,7 @@ afterEvaluate {
                 artifactId = 'kotlin-tagmanagement-dispatcher'
             }
         }
-//        repositories {
+        repositories {
 //            maven {
 //                url "s3://maven.tealiumiq.com/android/releases/"
 //                credentials(AwsCredentials) {
@@ -74,6 +77,6 @@ afterEvaluate {
 //                    secretKey AWS_SECRET_KEY
 //                }
 //            }
-//        }
+        }
     }
 }

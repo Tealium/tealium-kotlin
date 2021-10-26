@@ -111,8 +111,8 @@ internal class CrashHandler(private val context: TealiumContext,
         internal const val CRASH_EVENT = "crash"
         internal const val CRASH_COUNT = "crash_count"
         internal const val CRASH_BUILD_ID = "crash_build_id"
-        internal const val CRASH_EXCEPTION_CAUSE = "crash_exception_cause"
-        internal const val CRASH_EXCEPTION_NAME = "crash_exception_name"
+        internal const val CRASH_EXCEPTION_CAUSE = "crash_cause"
+        internal const val CRASH_EXCEPTION_NAME = "crash_name"
         internal const val CRASH_UUID = "crash_uuid"
         internal const val CRASH_THREADS = "crash_threads"
     }

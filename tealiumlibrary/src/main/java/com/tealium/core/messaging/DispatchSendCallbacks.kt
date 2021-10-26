@@ -1,6 +1,5 @@
 package com.tealium.core.messaging
 
-import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandRequest
 
 interface AfterDispatchSendCallbacks {

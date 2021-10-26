@@ -11,7 +11,7 @@ import com.tealium.core.persistence.Expiry
 class InstallReferrer(private val context: TealiumContext) : Module {
 
     override val name: String
-        get() = "INSTALL_REFERRER_COLLECTOR"
+        get() = "InstallReferrer"
     override var enabled: Boolean = true
 
     private var referrerClient = InstallReferrerClient.newBuilder(context.config.application).build()
@@ -86,6 +86,8 @@ class InstallReferrer(private val context: TealiumContext) : Module {
     }
 
     companion object : ModuleFactory {
+        const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
+
         override fun create(context: TealiumContext): Module {
             return InstallReferrer(context)
         }

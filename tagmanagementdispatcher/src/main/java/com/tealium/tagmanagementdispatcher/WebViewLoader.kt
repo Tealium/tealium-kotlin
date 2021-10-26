@@ -18,12 +18,11 @@ import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandRequest
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 class WebViewLoader(private val context: TealiumContext,
                     private val urlString: String,
@@ -32,8 +31,8 @@ class WebViewLoader(private val context: TealiumContext,
     : LibrarySettingsUpdatedListener,
         SessionStartedListener {
 
-    val isWebViewLoaded = AtomicBoolean(false)
-    var lastUrlLoadTimestamp = Long.MIN_VALUE
+    val webViewStatus = AtomicReference<PageStatus>(PageStatus.INIT)
+    var lastUrlLoadTimestamp = 0L
     private var isWifiOnlySending = false
     private var timeoutInterval = -1
     private val scope = CoroutineScope(Dispatchers.Main)
@@ -44,12 +43,158 @@ class WebViewLoader(private val context: TealiumContext,
     @Volatile
     lateinit var webView: WebView
 
+    internal val webViewClient = object : WebViewClient() {
+        override fun onPageFinished(view: WebView?, url: String?) {
+            super.onPageFinished(view, url)
+
+            lastUrlLoadTimestamp = SystemClock.elapsedRealtime()
+
+            if (PageStatus.LOADED_ERROR == webViewStatus.get()) {
+                webViewStatus.set(PageStatus.LOADED_ERROR)
+                Logger.dev(BuildConfig.TAG, "Error loading URL $url in WebView $view")
+                return
+            }
+            webViewStatus.set(PageStatus.LOADED_SUCCESS)
+
+            registerNewSessionIfNeeded(sessionId)
+            context.events.send(ValidationChangedMessenger())
+
+            // Run JS evaluation here
+            view?.loadUrl("javascript:(function(){\n" +
+                    "    var payload = {};\n" +
+                    "    try {\n" +
+                    "        var ts = new RegExp(\"ut[0-9]+\\.[0-9]+\\.[0-9]{12}\").exec(document.childNodes[0].textContent)[0];\n" +
+                    "        ts = ts.substring(ts.length - 12, ts.length);\n" +
+                    "        var y = ts.substring(0, 4);\n" +
+                    "        var mo = ts.substring(4, 6);\n" +
+                    "        var d = ts.substring(6, 8);\n" +
+                    "        var h = ts.substring(8, 10);\n" +
+                    "        var mi = ts.substring(10, 12);\n" +
+                    "        var t = Date.from(y+'/'+mo+'/'+d+' '+h+':'+mi+' UTC');\n" +
+                    "        if(!isNaN(t)){\n" +
+                    "            payload.published = t;\n" +
+                    "        }\n" +
+                    "    } catch(e) {    }\n" +
+                    "    var f=document.cookie.indexOf('trace_id=');\n" +
+                    "    if(f>=0){\n" +
+                    "        payload.trace_id = document.cookie.substring(f+9).split(';')[0];\n" +
+                    "    }\n" +
+                    "})()"
+            )
+        }
+
+        override fun onLoadResource(view: WebView?, url: String?) {
+            super.onLoadResource(view, url)
+            Logger.dev(BuildConfig.TAG, "Loaded Resource: $url")
+        }
+
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        override fun onReceivedHttpError(view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?) {
+            super.onReceivedHttpError(view, request, errorResponse)
+
+            // Main resource failed to load; set status to error.
+            request?.let {
+                if (it.url.toString().startsWith(urlString)) {
+                    webViewStatus.set(PageStatus.LOADED_ERROR)
+                }
+            }
+
+            errorResponse?.let { error ->
+                request?.let { req ->
+                    Logger.prod(BuildConfig.TAG,
+                            "Received http error with ${req.url}: ${error.statusCode}: ${error.reasonPhrase}")
+                }
+            }
+        }
+
+        @TargetApi(Build.VERSION_CODES.M)
+        override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+            error?.let {
+                onReceivedError(view, it.errorCode, it.description.toString(), request?.url.toString())
+            }
+            super.onReceivedError(view, request, error)
+        }
+
+        // deprecated in API 23, but still supporting API level
+        override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
+            failingUrl?.let {
+                if (isFavicon(it)) {
+                    return
+                }
+                if (isAboutScheme(it)) {
+                    return
+                }
+            }
+
+            super.onReceivedError(view, errorCode, description, failingUrl)
+
+            if (PageStatus.LOADED_ERROR == webViewStatus.getAndSet(PageStatus.LOADED_ERROR)) {
+                // error already occurred
+                return
+            }
+
+            lastUrlLoadTimestamp = SystemClock.uptimeMillis()
+            Logger.prod(BuildConfig.TAG, "Received err: {\n" +
+                    "\tcode: $errorCode,\n" +
+                    "\tdesc:\"${description?.replace("\"", "\\\"")}\",\n" +
+                    "\turl:\"$failingUrl\"\n" +
+                    "}")
+        }
+
+        override fun shouldInterceptRequest(view: WebView?, url: String?): WebResourceResponse? {
+            url?.let {
+                if (!isFavicon(it)) {
+                    return null
+                }
+            }
+
+            return WebResourceResponse("image/png", null, null)
+        }
+
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
+            return shouldInterceptRequest(view, request?.url.toString())
+        }
+
+        override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+            url?.let {
+                if (url.startsWith(TagManagementRemoteCommand.PREFIX)) {
+                    backgroundScope.launch {
+                        afterDispatchSendCallbacks.sendRemoteCommand(RemoteCommandRequest(createResponseHandler(), url))
+                    }
+                }
+            }
+            return true
+        }
+
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+            return shouldOverrideUrlLoading(view, request?.url.toString())
+        }
+
+        override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
+            webViewStatus.set(PageStatus.LOADED_ERROR)
+
+            view?.let {
+                Logger.dev(BuildConfig.TAG, "Received SSL Error in WebView $it (${it.url}): $error")
+            }
+            super.onReceivedSslError(view, handler, error)
+        }
+
+        override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+            view?.destroy()
+            webViewStatus.set(PageStatus.LOADED_ERROR)
+            initializeWebView()
+            return true
+        }
+    }
+
     init {
         initializeWebView()
         context.events.subscribe(this)
     }
 
-    fun initializeWebView() {
+    private fun initializeWebView() {
         scope.launch {
             webView = WebView(context.config.application.applicationContext)
             webView.let { view ->
@@ -64,161 +209,16 @@ class WebViewLoader(private val context: TealiumContext,
                 // unrendered webview, disable hardware acceleration
                 view.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
                 view.webChromeClient = WebChromeClientLoader()
-                view.webViewClient = createWebViewClient()
+                view.webViewClient = webViewClient
             }
 
             loadUrlToWebView()
             enableCookieManager()
-            isWebViewLoaded.set(PageStatus.LOADED_SUCCESS)
-        }
-    }
-
-    fun createWebViewClient(): WebViewClient {
-        return object : WebViewClient() {
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-
-                lastUrlLoadTimestamp = SystemClock.elapsedRealtime()
-
-                val webViewStatus = isWebViewLoaded.getAndSet(PageStatus.LOADED_SUCCESS)
-                if (PageStatus.LOADED_ERROR == webViewStatus) {
-                    isWebViewLoaded.set(PageStatus.LOADED_ERROR)
-                    Logger.dev(BuildConfig.TAG, "Error loading URL $url in WebView $view")
-                    return
-                }
-
-                registerNewSessionIfNeeded(sessionId)
-                context.events.send(ValidationChangedMessenger())
-
-                // Run JS evaluation here
-                view?.loadUrl("javascript:(function(){\n" +
-                        "    var payload = {};\n" +
-                        "    try {\n" +
-                        "        var ts = new RegExp(\"ut[0-9]+\\.[0-9]+\\.[0-9]{12}\").exec(document.childNodes[0].textContent)[0];\n" +
-                        "        ts = ts.substring(ts.length - 12, ts.length);\n" +
-                        "        var y = ts.substring(0, 4);\n" +
-                        "        var mo = ts.substring(4, 6);\n" +
-                        "        var d = ts.substring(6, 8);\n" +
-                        "        var h = ts.substring(8, 10);\n" +
-                        "        var mi = ts.substring(10, 12);\n" +
-                        "        var t = Date.from(y+'/'+mo+'/'+d+' '+h+':'+mi+' UTC');\n" +
-                        "        if(!isNaN(t)){\n" +
-                        "            payload.published = t;\n" +
-                        "        }\n" +
-                        "    } catch(e) {    }\n" +
-                        "    var f=document.cookie.indexOf('trace_id=');\n" +
-                        "    if(f>=0){\n" +
-                        "        payload.trace_id = document.cookie.substring(f+9).split(';')[0];\n" +
-                        "    }\n" +
-                        "})()"
-                )
-            }
-
-            override fun onLoadResource(view: WebView?, url: String?) {
-                super.onLoadResource(view, url)
-                Logger.dev(BuildConfig.TAG, "Loaded Resource: $url")
-            }
-
-            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-            override fun onReceivedHttpError(view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?) {
-                super.onReceivedHttpError(view, request, errorResponse)
-
-                errorResponse?.let { error ->
-                    request?.let { req ->
-                        Logger.prod(BuildConfig.TAG,
-                                "Received http error with ${req.url}: ${error.statusCode}: ${error.reasonPhrase}")
-                    }
-                }
-            }
-
-            @TargetApi(Build.VERSION_CODES.M)
-            override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
-                error?.let {
-                    request?.let { req ->
-                        onReceivedError(view, it.errorCode, it.description.toString(), req.url.toString())
-                    }
-                }
-                super.onReceivedError(view, request, error)
-            }
-
-            // deprecated in API 23, but still supporting API level
-            override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
-                failingUrl?.let {
-                    if (it.toLowerCase().contains("favicon.ico")) {
-                        return
-                    }
-                }
-
-                super.onReceivedError(view, errorCode, description, failingUrl)
-
-                if (PageStatus.LOADED_ERROR == isWebViewLoaded.getAndSet(PageStatus.LOADED_ERROR)) {
-                    // error already occurred
-                    return
-                }
-
-                lastUrlLoadTimestamp = SystemClock.uptimeMillis()
-                Logger.prod(BuildConfig.TAG, "Received err: {\n" +
-                        "\tcode: $errorCode,\n" +
-                        "\tdesc:\"${description?.replace("\"", "\\\"")}\",\n" +
-                        "\turl:\"$failingUrl\"\n" +
-                        "}")
-            }
-
-            override fun shouldInterceptRequest(view: WebView?, url: String?): WebResourceResponse? {
-                val faviconUrl = "/favicon.ico"
-
-                url?.let {
-                    if (!url.toLowerCase().contains(faviconUrl)) {
-                        return null
-                    }
-                }
-
-                return WebResourceResponse("image/png", null, null)
-            }
-
-            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-            override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
-                return shouldInterceptRequest(view, request?.url.toString())
-            }
-
-            override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                context.config.options[TagManagementRemoteCommand.TIQ_CONFIG].let {
-                    url?.let {
-                        if (url.startsWith(TagManagementRemoteCommand.PREFIX)) {
-                            backgroundScope.launch {
-                                afterDispatchSendCallbacks.sendRemoteCommand(RemoteCommandRequest(createResponseHandler(), url))
-                            }
-                        }
-                    }
-                }
-                return true
-            }
-
-            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                return shouldOverrideUrlLoading(view, request?.url.toString())
-            }
-
-            override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
-                isWebViewLoaded.set(PageStatus.LOADED_ERROR)
-
-                view?.let {
-                    Logger.dev(BuildConfig.TAG, "Received SSL Error in WebView $it (${it.url}): $error")
-                }
-                super.onReceivedSslError(view, handler, error)
-            }
-
-            override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
-                view?.destroy()
-                isWebViewLoaded.set(PageStatus.LOADED_ERROR)
-                initializeWebView()
-                return true
-            }
         }
     }
 
     private fun createResponseHandler(): RemoteCommand.ResponseHandler {
-        return object: RemoteCommand.ResponseHandler {
+        return object : RemoteCommand.ResponseHandler {
             override fun onHandle(response: RemoteCommand.Response?) {
                 var js = ""
                 response?.id?.let {
@@ -263,28 +263,32 @@ class WebViewLoader(private val context: TealiumContext,
             return
         }
 
-        val webViewStatus = isWebViewLoaded.getAndSet(PageStatus.LOADED_SUCCESS)
-        if (PageStatus.LOADED_SUCCESS == webViewStatus) {
-            return // already loading
-        }
+        val oldStatus = webViewStatus.getAndSet(PageStatus.LOADING)
+        if (oldStatus != PageStatus.LOADING) {
+            val cacheBuster = if (urlString.contains("?")) '&' else '?'
+            val timestamp = "timestamp_unix=${(System.currentTimeMillis() / 1000)}"
+            val url = "$urlString$cacheBuster$timestamp"
 
-        val cacheBuster = if (urlString.contains("?")) '&' else '?'
-        val timestamp = "timestamp_unix=${(System.currentTimeMillis() / 1000)}"
-        val url = "$urlString$cacheBuster$timestamp"
-
-        try {
-            scope.launch {
-                webView.loadUrl(url)
+            try {
+                scope.launch {
+                    webView.loadUrl(url)
+                }
+            } catch (t: Throwable) {
+                Logger.prod(BuildConfig.TAG, t.localizedMessage)
             }
-        } catch (t: Throwable) {
-            Logger.prod(BuildConfig.TAG, t.localizedMessage)
         }
     }
 
+    fun isTimedOut(): Boolean {
+        return SystemClock.elapsedRealtime() - lastUrlLoadTimestamp >= timeoutInterval.coerceAtLeast(0) * 1000;
+    }
+
     override fun onLibrarySettingsUpdated(settings: LibrarySettings) {
-        loadUrlToWebView()
         isWifiOnlySending = settings.wifiOnly
-        timeoutInterval = settings.refreshInterval
+        timeoutInterval = settings.refreshInterval // seconds
+        if (isTimedOut()) {
+            loadUrlToWebView()
+        }
     }
 
     override fun onSessionStarted(sessionId: Long) {
@@ -300,7 +304,7 @@ class WebViewLoader(private val context: TealiumContext,
         }
 
         if (connectivityRetriever.isConnected() &&
-                isWebViewLoaded.get() == PageStatus.LOADED_SUCCESS &&
+                webViewStatus.get() == PageStatus.LOADED_SUCCESS &&
                 shouldRegisterSession.compareAndSet(true, false)) {
             backgroundScope.launch {
                 val url = createSessionUrl(context.config, sessionId)
@@ -313,6 +317,14 @@ class WebViewLoader(private val context: TealiumContext,
     companion object {
         const val SESSION_URL_TEMPLATE = "https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=%s/%s/%s&cb=%s"
         const val INVALID_SESSION_ID = -1L
+
+        private fun isFavicon(url: String): Boolean {
+            return url.toLowerCase(Locale.ROOT).contains("favicon.ico")
+        }
+
+        private fun isAboutScheme(url: String): Boolean {
+            return url.toLowerCase(Locale.ROOT).startsWith("about:")
+        }
 
         fun createSessionUrl(config: TealiumConfig, sessionId: Long): String {
             return String.format(Locale.ROOT, SESSION_URL_TEMPLATE,

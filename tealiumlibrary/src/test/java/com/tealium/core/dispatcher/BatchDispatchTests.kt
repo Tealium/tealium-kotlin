@@ -1,8 +1,5 @@
 package com.tealium.core.dispatcher
 
-import TealiumCollectorConstants.TEALIUM_ACCOUNT
-import TealiumCollectorConstants.TEALIUM_ENVIRONMENT
-import TealiumCollectorConstants.TEALIUM_PROFILE
 import com.tealium.dispatcher.BatchDispatch
 import com.tealium.dispatcher.BatchDispatch.Companion.KEY_EVENTS
 import com.tealium.dispatcher.BatchDispatch.Companion.KEY_SHARED
@@ -24,9 +21,9 @@ class BatchDispatchTests {
             assertTrue(it.shared.isNotEmpty())
             assertEquals(5, it.events.count())
 
-            assertEquals("account", it.shared[TEALIUM_ACCOUNT])
-            assertEquals("profile", it.shared[TEALIUM_PROFILE])
-            assertEquals("dev", it.shared[TEALIUM_ENVIRONMENT])
+            assertEquals("account", it.shared[Dispatch.Keys.TEALIUM_ACCOUNT])
+            assertEquals("profile", it.shared[Dispatch.Keys.TEALIUM_PROFILE])
+            assertEquals("dev", it.shared[Dispatch.Keys.TEALIUM_ENVIRONMENT])
 
             batch.events.forEachIndexed { index, e ->
                 // no compression on shared objects at this time
@@ -34,6 +31,10 @@ class BatchDispatchTests {
                 assertEquals("shared_value_2", e["shared_key_2"])
                 assertEquals("unique_value_$index", e["shared_key"])
                 assertEquals("unique_value_$index", e["unique_key_$index"])
+
+                assertNull(e[Dispatch.Keys.TEALIUM_ACCOUNT])
+                assertNull(e[Dispatch.Keys.TEALIUM_PROFILE])
+                assertNull(e[Dispatch.Keys.TEALIUM_ENVIRONMENT])
             }
         } ?: Assert.fail()
     }
@@ -61,10 +62,9 @@ class BatchDispatchTests {
         repeat(count) {
             val data = mutableMapOf<String, Any>()
 
-            data[TEALIUM_ACCOUNT] = "account"
-            data[TEALIUM_PROFILE] = "profile"
-            data[TEALIUM_ENVIRONMENT] = "dev"
-
+            data[Dispatch.Keys.TEALIUM_ACCOUNT] = "account"
+            data[Dispatch.Keys.TEALIUM_PROFILE] = "profile"
+            data[Dispatch.Keys.TEALIUM_ENVIRONMENT] = "dev"
 
             // shared keys
             data["shared_key_1"] = "shared_value_1"
