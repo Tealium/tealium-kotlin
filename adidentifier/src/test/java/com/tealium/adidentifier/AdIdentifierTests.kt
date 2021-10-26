@@ -97,16 +97,16 @@ class AdIdentifierTests {
 
     @Test
     fun fetchAppSetIdInfo() {
-//        mockkStatic(AppSet::class)
-//        every { AppSet.getClient(any()) } returns appSetClient
-//        every { appSetClient.appSetIdInfo } returns AppSetIdInfoTask(appSetIdInfo)
+        mockkStatic(AppSet::class)
+        every { AppSet.getClient(any()) } returns appSetClient
+        every { appSetClient.appSetIdInfo } returns AppSetIdInfoTask(appSetIdInfo)
 
         AdIdentifier.create(tealiumContext) as AdIdentifier
 
-//        verify {
-//            dataLayer.putInt("google_app_set_scope", 1, any())
-//            dataLayer.putString("google_app_set_id", "app_set_id", any())
-//        }
+        verify {
+            dataLayer.putInt("google_app_set_scope", 1, any())
+            dataLayer.putString("google_app_set_id", "app_set_id", any())
+        }
     }
 
     @Test

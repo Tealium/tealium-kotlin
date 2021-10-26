@@ -1,6 +1,8 @@
 package com.tealium.adidentifier
 
+import android.annotation.TargetApi
 import android.content.Context
+import android.os.Build
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import com.google.android.gms.appset.AppSet
 import com.google.android.gms.appset.AppSetIdInfo
@@ -76,6 +78,8 @@ class AdIdentifier(private val tealiumContext: TealiumContext) : Module {
     init {
         scope.launch {
             fetchAdInfo(tealiumContext.config.application)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             fetchAppSetInfo(tealiumContext.config.application)
         }
     }
