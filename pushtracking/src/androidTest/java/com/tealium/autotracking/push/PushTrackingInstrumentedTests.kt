@@ -35,7 +35,15 @@ class PushTrackingInstrumentedTests {
         MockKAnnotations.init(this)
         val config = TealiumConfig(application, "account", "profile", Environment.DEV)
         val messengerService = MessengerService(mockEventRouter, CoroutineScope(Dispatchers.IO))
-        tealiumContext = TealiumContext(config, "visitor-1", Logger, mockk(), HttpClient(config), messengerService, mockTealium)
+        tealiumContext = TealiumContext(
+            config,
+            "visitor-1",
+            Logger,
+            mockk(),
+            HttpClient(config),
+            messengerService,
+            mockTealium
+        )
     }
 
     @Test
@@ -50,7 +58,13 @@ class PushTrackingInstrumentedTests {
 
     @Test
     fun extension_ReturnsModule() = runBlocking {
-        val config = TealiumConfig(application, "tealiummobile", "test", Environment.DEV)
+        val config = TealiumConfig(
+            application,
+            "tealiummobile",
+            "test",
+            Environment.DEV,
+            collectors = mutableSetOf()
+        )
         config.modules.add(Modules.PushTracking)
         val tealium = Tealium.create("test", config)
 

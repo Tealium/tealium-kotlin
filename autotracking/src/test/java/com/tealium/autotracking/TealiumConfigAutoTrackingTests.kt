@@ -74,15 +74,4 @@ class TealiumConfigLocationTests {
         assertNull(config.autoTrackingCollectorDelegate)
         assertNull(config.options[AUTOTRACKING_COLLECTOR_DELEGATE])
     }
-
-    @Test
-    fun setters_SetPushTrackingEnabled() {
-        assertNull(config.autoTrackingPushEnabled)
-        config.autoTrackingPushEnabled = true
-        assertEquals(true, config.autoTrackingPushEnabled)
-        assertEquals(true, config.options[AUTOTRACKING_PUSH_ENABLED])
-        config.autoTrackingPushEnabled = false
-        assertEquals(false, config.autoTrackingPushEnabled)
-        assertEquals(false, config.options[AUTOTRACKING_PUSH_ENABLED])
-    }
 }

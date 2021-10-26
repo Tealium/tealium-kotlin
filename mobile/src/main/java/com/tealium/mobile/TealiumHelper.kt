@@ -6,6 +6,7 @@ import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.messaging.FirebaseMessaging
 import com.tealium.adidentifier.AdIdentifier
 import com.tealium.autotracking.*
+import com.tealium.autotracking.push.autoTrackingPushEnabled
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
 import com.tealium.core.consent.*

@@ -71,6 +71,7 @@ dependencies {
     implementation project(':adidentifier')
     implementation project(':media')
     implementation project(':autotracking')
+    implementation project(':pushtracking')
 
     implementation platform('com.google.firebase:firebase-bom:26.5.0')
     implementation 'com.google.firebase:firebase-messaging-ktx'
