@@ -100,24 +100,18 @@ class DeviceCollector private constructor(private val context: Context) : Collec
         get() = Locale.getDefault().toLanguageTag()
 
     override val deviceBatteryPercent: Int
-        get() = getBatteryPercent()
+        get() {
+            val level = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+            val scale = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+
+            return ((level.toFloat() / scale.toFloat()) * 100).roundToInt()
+        }
 
     override val deviceIsCharging: Boolean
-        get() = getBatteryChargingStatus()
-
-    private fun getBatteryPercent(): Int {
-        val level = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
-        val scale = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
-
-        return ((level.toFloat() / scale.toFloat()) * 100).roundToInt()
-    }
-
-    private fun getBatteryChargingStatus(): Boolean {
-        val status = batteryStatus?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
-        return status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
-    }
-
-
+        get() {
+            val status = batteryStatus?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+            return status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
+        }
 
     override suspend fun collect(): Map<String, Any> {
         return mapOf(

@@ -20,6 +20,7 @@ class TealiumCollector(private val context: TealiumContext) : Collector, Tealium
     override val name: String
         get() = "TealiumCollector"
     override var enabled: Boolean = true
+    private val secureRandom = SecureRandom()
 
     private val config = context.config
     override val account: String = config.accountName
@@ -28,7 +29,7 @@ class TealiumCollector(private val context: TealiumContext) : Collector, Tealium
     override val dataSource: String? = config.dataSourceId
     override val random: String
         get() {
-            val rand = SecureRandom().nextLong() % 10000000000000000L
+            val rand = secureRandom.nextLong() % 10000000000000000L
             return String.format(Locale.ROOT, "%016d", abs(rand));
         }
 
