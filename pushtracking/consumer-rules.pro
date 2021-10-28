@@ -1,1 +1,0 @@
--keep class com.tealium.autotracking.TealiumFirebaseService
