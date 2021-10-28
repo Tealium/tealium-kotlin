@@ -13,9 +13,7 @@ import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import io.mockk.MockKAnnotations
 import io.mockk.*
-import io.mockk.InternalPlatformDsl.toStr
 import io.mockk.impl.annotations.MockK
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Assert.*
@@ -309,10 +307,8 @@ class CollectDispatcherTests {
 
     @Test
     fun consentLogging_BatchEvents_ProfileOverridden() = runBlocking {
-//        mockkStatic("com.tealium.core.consent.TealiumConfigConsentManagerKt")
         every { mockConfig.consentManagerLoggingProfile } returns "testingProfile"
         every { mockConfig.consentManagerLoggingUrl } returns null
-
 
         val testDispatch = TealiumEvent(ConsentManagerConstants.GRANT_FULL_CONSENT)
         val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
@@ -382,7 +378,6 @@ class CollectDispatcherTests {
             mockConfig.profileName,
             mockConfig.environment,
             dataSourceId = mockConfig.dataSourceId)
-        mockkStatic("com.tealium.core.consent.TealiumConfigConsentManagerKt")
         config.consentManagerLoggingProfile  = "testingProfile"
         config.consentManagerLoggingUrl = "https://customUrl.com/my-endpoint"
 

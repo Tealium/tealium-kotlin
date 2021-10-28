@@ -4,9 +4,6 @@ import android.content.Context
 import android.os.Build
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import com.google.android.gms.appset.AppSet
-import com.google.android.gms.common.GoogleApiAvailability
-import com.google.android.gms.common.GoogleApiAvailabilityLight
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.tealium.core.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
