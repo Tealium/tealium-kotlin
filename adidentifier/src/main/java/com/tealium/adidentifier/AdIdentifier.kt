@@ -8,6 +8,7 @@ import com.tealium.core.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.lang.Exception
 
 /**
  * Module to retrieve Advertising ID from Google Play and save to Data Layer
@@ -83,11 +84,15 @@ class AdIdentifier(private val tealiumContext: TealiumContext) : Module {
      * Fetches Advertising Info from AdvertisingIdClient
      */
     private fun fetchAdInfo(context: Context) {
-        val adInfo = AdvertisingIdClient.getAdvertisingIdInfo(context)
-        if (adInfo.id != null) {
-            adid = adInfo.id
+        try {
+            val adInfo = AdvertisingIdClient.getAdvertisingIdInfo(context)
+            if (adInfo.id != null) {
+                adid = adInfo.id
+            }
+            isLimitAdTrackingEnabled = adInfo.isLimitAdTrackingEnabled
+        } catch (ex: Exception) {
+            Logger.dev(BuildConfig.TAG, "Unable to retrieve AdvertisingIdInfo. See: ${ex.message}")
         }
-        isLimitAdTrackingEnabled = adInfo.isLimitAdTrackingEnabled
     }
 
     private fun fetchAppSetInfo(context: Context) {

@@ -5,6 +5,7 @@ import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import com.google.android.gms.appset.AppSet
 import com.google.android.gms.appset.AppSetIdClient
 import com.google.android.gms.appset.AppSetIdInfo
+import com.google.android.gms.tasks.Task
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.persistence.DataLayer
@@ -49,12 +50,23 @@ class AdIdentifierTests {
         every { tealiumContext.config.application } returns mockApplication
         every { tealiumContext.dataLayer } returns dataLayer
 
+        every { mockApplication.packageName } returns "testPackage"
+
         mockkStatic(AdvertisingIdClient::class)
 
         every { AdvertisingIdClient.getAdvertisingIdInfo(any()) } returns adInfo
 
         every { adInfo.id } returns "ad_id"
         every { adInfo.isLimitAdTrackingEnabled } returns false
+
+        val mockAdInfoIdTask = mockk<Task<AppSetIdInfo>>()
+        every { mockAdInfoIdTask.isSuccessful } returns true
+        every { mockAdInfoIdTask.result } returns appSetIdInfo
+        every { mockAdInfoIdTask.addOnSuccessListener{ any<AppSetIdInfo>()} } returns mockAdInfoIdTask
+
+        mockkStatic(AppSet::class)
+        every { AppSet.getClient(any()) } returns appSetClient
+        every { appSetClient.appSetIdInfo } returns mockAdInfoIdTask
     }
 
     @Test
@@ -101,10 +113,6 @@ class AdIdentifierTests {
     @Test
     @Config(sdk = [31])
     fun fetchAppSetIdInfo() {
-        mockkStatic(AppSet::class)
-        every { AppSet.getClient(any()) } returns appSetClient
-        every { appSetClient.appSetIdInfo } returns AppSetIdInfoTask(appSetIdInfo)
-
         AdIdentifier.create(tealiumContext) as AdIdentifier
 
         verify {
