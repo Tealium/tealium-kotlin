@@ -13,6 +13,7 @@ interface TimeData {
     val timestampOffset: String
     val timestampUnix: Long
     val timestampUnixMilliseconds: Long
+    val timestampEpoch: Long
 }
 
 @OpenForTesting
@@ -37,9 +38,9 @@ class TimeCollector : Collector, TimeData {
 
     override val timestampOffset: String
         get() = String.format(
-            Locale.ROOT,
-            "%.0f",
-            (TimeZone.getDefault().getOffset(timestampUnixMilliseconds)).toFloat().div(hourInMs)
+                Locale.ROOT,
+                "%.0f",
+                (TimeZone.getDefault().getOffset(timestampUnixMilliseconds)).toFloat().div(hourInMs)
         )
 
     override val timestampUnix: Long
@@ -48,13 +49,17 @@ class TimeCollector : Collector, TimeData {
     override val timestampUnixMilliseconds: Long
         get() = getTimestampMilliseconds()
 
+    override val timestampEpoch: Long
+        get() = getTimestampMilliseconds().div(1000)
+
     override suspend fun collect(): Map<String, Any> {
         return mapOf(
-            Dispatch.Keys.TIMESTAMP to timestamp,
-            Dispatch.Keys.TIMESTAMP_LOCAL to timestampLocal,
-            Dispatch.Keys.TIMESTAMP_OFFSET to timestampOffset,
-            Dispatch.Keys.TIMESTAMP_UNIX to timestampUnix,
-            Dispatch.Keys.TIMESTAMP_UNIX_MILLISECONDS to timestampUnixMilliseconds
+                Dispatch.Keys.TIMESTAMP to timestamp,
+                Dispatch.Keys.TIMESTAMP_LOCAL to timestampLocal,
+                Dispatch.Keys.TIMESTAMP_OFFSET to timestampOffset,
+                Dispatch.Keys.TIMESTAMP_UNIX to timestampUnix,
+                Dispatch.Keys.TIMESTAMP_UNIX_MILLISECONDS to timestampUnixMilliseconds,
+                Dispatch.Keys.TIMESTAMP_EPOCH to timestampEpoch
         )
     }
 

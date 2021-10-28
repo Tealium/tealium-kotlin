@@ -9,30 +9,32 @@ import com.tealium.core.Tealium
 import com.tealium.core.consent.ConsentCategory
 import com.tealium.core.consent.ConsentStatus
 import com.tealium.mobile.BuildConfig
-import com.tealium.mobile.R
-import kotlinx.android.synthetic.main.fragment_consent.*
+import com.tealium.mobile.databinding.FragmentConsentBinding
 
 class ConsentFragment : Fragment() {
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_consent, container, false)
+    private lateinit var binding: FragmentConsentBinding
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        binding = FragmentConsentBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        consentButton.setOnClickListener {
+        binding.consentButton.setOnClickListener {
             onConsented()
         }
 
-        notConsentedButton.setOnClickListener {
+        binding.notConsentedButton.setOnClickListener {
             onNotConsented()
         }
 
-        resetConsentButton.setOnClickListener {
+        binding.resetConsentButton.setOnClickListener {
             onResetConsentStatus()
         }
 
-        categoriesButton.setOnClickListener {
+        binding.categoriesButton.setOnClickListener {
             onCategoriesButton()
         }
     }

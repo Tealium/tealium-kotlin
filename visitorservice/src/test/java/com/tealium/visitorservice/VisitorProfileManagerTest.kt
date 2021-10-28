@@ -30,7 +30,7 @@ class VisitorProfileManagerTest {
     @MockK
     private lateinit var mockContext: TealiumContext
 
-    @MockK
+    @RelaxedMockK
     private lateinit var mockConfig: TealiumConfig
 
     @RelaxedMockK
@@ -53,6 +53,7 @@ class VisitorProfileManagerTest {
         directory = File("test")
         directory.mkdir()
 
+        mockkStatic("com.tealium.visitorservice.TealiumConfigVisitorServiceKt")
         every { mockContext.config } returns mockConfig
         every { mockContext.events } returns mockMessengerService
         every { mockContext.visitorId } returns "visitorId"
