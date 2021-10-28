@@ -40,6 +40,8 @@ class DeepLinkHandler(private val context: TealiumContext) : ActivityObserverLis
      * If the app was launched from a deep link, adds the link and query parameters to the data layer for the current session.
      */
     fun handleDeepLink(uri: Uri) {
+        if (uri.isOpaque) return
+
         removeOldDeepLinkData()
         context.dataLayer.putString(Dispatch.Keys.DEEP_LINK_URL, uri.toString(), Expiry.SESSION)
         uri.queryParameterNames.forEach { name ->
@@ -73,8 +75,10 @@ class DeepLinkHandler(private val context: TealiumContext) : ActivityObserverLis
     override fun onActivityResumed(activity: Activity?) {
         activity?.intent?.let { intent ->
             intent.data?.let { uri ->
-                uri.getQueryParameter(TRACE_ID_QUERY_PARAM)?.let { traceId ->
-                    if (context.config.qrTraceEnabled) {
+                if (uri.isOpaque) return
+
+                if (context.config.qrTraceEnabled) {
+                    uri.getQueryParameter(TRACE_ID_QUERY_PARAM)?.let { traceId ->
                         uri.getQueryParameter(KILL_VISITOR_SESSION)?.let {
                             killTraceVisitorSession()
                         }
