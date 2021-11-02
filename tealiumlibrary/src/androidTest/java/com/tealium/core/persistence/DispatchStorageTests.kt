@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
+import com.tealium.core.persistence.internal.*
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.*
@@ -29,10 +30,11 @@ class DispatchStorageTests {
     @Test
     fun testPushPopIndividual() {
         val timestamp = getTimestamp()
-        val item = PersistentJsonObject("key_1",
-                JSONObject(),
-                Expiry.FOREVER,
-                timestamp)
+        val item = PersistentItem("key_1",
+                JSONObject().toString(),
+            Expiry.FOREVER,
+                timestamp, Serialization.JSON_OBJECT
+        )
         dispatchStore.enqueue(item)
 
         val fromStore = dispatchStore.dequeue()
@@ -80,18 +82,21 @@ class DispatchStorageTests {
     fun testPopOrdering() {
         val timestamp = getTimestamp()
         // three items with the same timestamp.
-        val item1 = PersistentJsonObject("key_1",
-                JSONObject(),
-                Expiry.FOREVER,
-                timestamp)
-        val item2 = PersistentJsonObject("key_2",
-                JSONObject(),
-                Expiry.FOREVER,
-                timestamp)
-        val item3 = PersistentJsonObject("key_3",
-                JSONObject(),
-                Expiry.FOREVER,
-                timestamp)
+        val item1 = PersistentItem("key_1",
+                JSONObject().toString(),
+            Expiry.FOREVER,
+                timestamp, Serialization.JSON_OBJECT
+        )
+        val item2 = PersistentItem("key_2",
+                JSONObject().toString(),
+            Expiry.FOREVER,
+                timestamp, Serialization.JSON_OBJECT
+        )
+        val item3 = PersistentItem("key_3",
+                JSONObject().toString(),
+            Expiry.FOREVER,
+                timestamp, Serialization.JSON_OBJECT
+        )
 
         dispatchStore.enqueue(item2)
         dispatchStore.enqueue(item1)
@@ -129,10 +134,11 @@ class DispatchStorageTests {
 
     @Test
     fun testTimestampNotNull() {
-        val item = PersistentJsonObject("key",
-                JSONObject(),
-                Expiry.FOREVER,
-                null)
+        val item = PersistentItem("key",
+                JSONObject().toString(),
+            Expiry.FOREVER,
+                null, Serialization.JSON_OBJECT
+        )
 
         dispatchStore.enqueue(item)
         val fromStore = dispatchStore.dequeue()
@@ -159,10 +165,11 @@ class DispatchStorageTests {
         prepopulate(20, timestamp)
 
         assertEquals(dispatchStore.maxQueueSize, dispatchStore.count())
-        val item21 = PersistentJsonObject("key_21",
-                JSONObject(),
-                Expiry.FOREVER,
-                timestamp + 100 * 21)
+        val item21 = PersistentItem("key_21",
+                JSONObject().toString(),
+            Expiry.FOREVER,
+                timestamp + 100 * 21, Serialization.JSON_OBJECT
+        )
         dispatchStore.enqueue(item21)
 
         // should still be size 20
@@ -182,13 +189,14 @@ class DispatchStorageTests {
         prepopulate(count, timestamp)
 
         // enqueue another 5 onto the queue
-        val listOfFive = mutableListOf<PersistentJsonObject>()
+        val listOfFive = mutableListOf<PersistentItem>()
         repeat(5) {
             val i = 21 + it
-            val item = PersistentJsonObject("key_$i",
-                    JSONObject(),
-                    Expiry.FOREVER,
-                    timestamp + 100 * i)
+            val item = PersistentItem("key_$i",
+                    JSONObject().toString(),
+                Expiry.FOREVER,
+                    timestamp + 100 * i, Serialization.JSON_OBJECT
+            )
             listOfFive.add(item)
         }
         dispatchStore.enqueue(listOfFive)
@@ -241,16 +249,18 @@ class DispatchStorageTests {
     fun testExpiryDates() {
         for (days in arrayOf(-1, 1, 10)) {
             dispatchStore.expiryDays = days
-            val nullExpiry = PersistentJsonObject("null",
-                    JSONObject(),
+            val nullExpiry = PersistentItem("null",
+                    JSONObject().toString(),
                     null,
-                    null)
+                    null, Serialization.JSON_OBJECT
+            )
 
             val tomorrow = Expiry.afterTimeUnit(1L, TimeUnit.DAYS)
-            val expiresTomorrow = PersistentJsonObject("tomorrow",
-                    JSONObject(),
+            val expiresTomorrow = PersistentItem("tomorrow",
+                    JSONObject().toString(),
                     tomorrow,
-                    null)
+                    null, Serialization.JSON_OBJECT
+            )
 
             dispatchStore.enqueue(nullExpiry)
             dispatchStore.enqueue(expiresTomorrow)
@@ -273,22 +283,26 @@ class DispatchStorageTests {
     fun testPurgeExpired() {
         val timestamp = getTimestamp()
         // three items with the same timestamp.
-        val expired = PersistentJsonObject("key_1",
-                JSONObject(),
-                Expiry.afterEpochTime(timestamp - 1000), // already expired
-                timestamp)
-        val notExpired = PersistentJsonObject("key_2",
-                JSONObject(),
-                Expiry.afterEpochTime(timestamp + 1000),
-                timestamp)
-        val forever = PersistentJsonObject("key_3",
-                JSONObject(),
-                Expiry.FOREVER,
-                timestamp)
-        val session = PersistentJsonObject("key_4",
-                JSONObject(),
-                Expiry.SESSION,
-                timestamp)
+        val expired = PersistentItem("key_1",
+                JSONObject().toString(),
+            Expiry.afterEpochTime(timestamp - 1000), // already expired
+                timestamp, Serialization.JSON_OBJECT
+        )
+        val notExpired = PersistentItem("key_2",
+                JSONObject().toString(),
+            Expiry.afterEpochTime(timestamp + 1000),
+                timestamp, Serialization.JSON_OBJECT
+        )
+        val forever = PersistentItem("key_3",
+                JSONObject().toString(),
+            Expiry.FOREVER,
+                timestamp, Serialization.JSON_OBJECT
+        )
+        val session = PersistentItem("key_4",
+                JSONObject().toString(),
+            Expiry.SESSION,
+                timestamp, Serialization.JSON_OBJECT
+        )
 
         dispatchStore.enqueue(expired)
         dispatchStore.enqueue(notExpired)
@@ -330,10 +344,11 @@ class DispatchStorageTests {
             // reverse the key_X and timestamp
             // puts in order of key_10 -> key_1
             val i = n - it
-            val item = PersistentJsonObject("key_$i",
-                    JSONObject(),
-                    Expiry.FOREVER,
-                    startingTimestamp + 100 * i)
+            val item = PersistentItem("key_$i",
+                    JSONObject().toString(),
+                Expiry.FOREVER,
+                    startingTimestamp + 100 * i, Serialization.JSON_OBJECT
+            )
             dispatchStore.enqueue(item)
         }
     }

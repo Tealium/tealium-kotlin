@@ -9,7 +9,7 @@ import org.json.JSONObject
 internal class DispatchStorage(dbHelper: DatabaseHelper,
                                tableName: String)
     : LibrarySettingsUpdatedListener,
-        QueueingDao<String, Dispatch> {
+    QueueingDao<String, Dispatch> {
 
     private val dao = DispatchStorageDao(dbHelper, tableName)
 
@@ -45,20 +45,20 @@ internal class DispatchStorage(dbHelper: DatabaseHelper,
     }
 
     override fun getAll(): Map<String, Dispatch> {
-        return dao.getAll().mapValues { (key, value) ->
+        return dao.getAll().mapValues { (_, value) ->
             convertToDispatch(value)
         }
     }
 
     override fun insert(item: Dispatch) {
         dao.insert(
-                convertToPersistentJson(item)
+            convertToPersistentJson(item)
         )
     }
 
     override fun update(item: Dispatch) {
         dao.update(
-                convertToPersistentJson(item)
+            convertToPersistentJson(item)
         )
     }
 
@@ -68,7 +68,7 @@ internal class DispatchStorage(dbHelper: DatabaseHelper,
 
     override fun upsert(item: Dispatch) {
         dao.upsert(
-                convertToPersistentJson(item)
+            convertToPersistentJson(item)
         )
     }
 
@@ -78,17 +78,18 @@ internal class DispatchStorage(dbHelper: DatabaseHelper,
     override fun contains(key: String): Boolean = dao.contains(key)
     override fun purgeExpired() = dao.purgeExpired()
 
-    private fun convertToDispatch(json: PersistentJsonObject): Dispatch {
+    private fun convertToDispatch(json: PersistentItem): Dispatch {
         return JsonDispatch(json)
     }
 
-    private fun convertToPersistentJson(dispatch: Dispatch): PersistentJsonObject {
+    private fun convertToPersistentJson(dispatch: Dispatch): PersistentItem {
         val payload = dispatch.payload()
-        return PersistentJsonObject(
-                dispatch.id,
-                JSONObject(payload),
-                null,
-                dispatch.timestamp
+        return PersistentItem(
+            dispatch.id,
+            Serdes.jsonObjectSerde().serializer.serialize(JSONObject(payload)),
+            null,
+            dispatch.timestamp,
+            Serialization.JSON_OBJECT
         )
     }
 

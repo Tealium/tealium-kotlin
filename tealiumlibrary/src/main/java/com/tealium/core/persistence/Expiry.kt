@@ -1,5 +1,6 @@
 package com.tealium.core.persistence
 
+import com.tealium.core.persistence.getTimestamp
 import java.util.concurrent.TimeUnit
 
 sealed class Expiry {
@@ -103,6 +104,7 @@ sealed class Expiry {
          */
         @JvmStatic fun fromLongValue(long: Long) : Expiry {
             return when (long) {
+                -3L -> UNTIL_RESTART
                 -2L -> SESSION
                 -1L -> FOREVER
                 else -> {
@@ -120,6 +122,7 @@ sealed class Expiry {
                 null -> false
                 is Forever -> false
                 is Session -> false
+                is UntilRestart -> false
                 else -> {
                     expiry.timeRemaining() < 0
                 }

@@ -1,8 +1,11 @@
 package com.tealium.core.persistence
 
+import com.tealium.core.Logger
 import com.tealium.core.messaging.NewSessionListener
-import kotlinx.coroutines.CoroutineScope
+import com.tealium.tealiumlibrary.BuildConfig
+import org.json.JSONArray
 import org.json.JSONObject
+import java.lang.Exception
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -20,142 +23,207 @@ import java.util.concurrent.ConcurrentHashMap
  *  @param tableName table name of the underlying SQL table. Is expected to have already been created
  *                      in the [DatabaseHelper].
  */
-internal class PersistentStorage(dbHelper: DatabaseHelper,
-                        private val tableName: String,
-                        private val volatileData: MutableMap<String, PersistentItem<*>> = ConcurrentHashMap())
-    : SqlDataLayer,
-        NewSessionListener,
-        CoroutineScope by dbHelper.scope {
+internal class PersistentStorage(
+    dbHelper: DatabaseHelper,
+    private val tableName: String,
+    private val dao: KeyValueDao<String, PersistentItem> = PersistentStorageDao(
+        dbHelper,
+        tableName,
+        false
+    ).also { it.purgeExpired() },
+    private val volatileData: MutableMap<String, Any> = ConcurrentHashMap()
+) : DataLayer,
+    NewSessionListener {
 
     override val name: String = "DataLayer"
     override var enabled: Boolean = true
 
-    private val dao = PersistentStorageDao<PersistentItem<*>>(dbHelper, tableName, false).also { it.purgeExpired() }
+    override fun putString(key: String, value: String, expiry: Expiry?) =
+        put(key, value, Serdes.stringSerde().serializer, expiry, type = Serialization.STRING)
 
-    override fun putString(key: String, value: String, expiry: Expiry?) {
-        put(PersistentString(key, value, expiry))
-    }
+    override fun putInt(key: String, value: Int, expiry: Expiry?) =
+        put(key, value, Serdes.intSerde().serializer, expiry, type = Serialization.INT)
 
-    override fun putInt(key: String, value: Int, expiry: Expiry?) {
-        put(PersistentInt(key, value, expiry))
-    }
+    override fun putLong(key: String, value: Long, expiry: Expiry?) =
+        put(key, value, Serdes.longSerde().serializer, expiry, type = Serialization.LONG)
 
-    override fun putLong(key: String, value: Long, expiry: Expiry?) {
-        put(PersistentLong(key, value, expiry))
-    }
+    override fun putDouble(key: String, value: Double, expiry: Expiry?) =
+        put(key, value, Serdes.doubleSerde().serializer, expiry, type = Serialization.DOUBLE)
 
-    override fun putDouble(key: String, value: Double, expiry: Expiry?) {
-        put(PersistentDouble(key, value, expiry))
-    }
+    override fun putBoolean(key: String, value: Boolean, expiry: Expiry?) =
+        put(key, value, Serdes.booleanSerde().serializer, expiry, type = Serialization.BOOLEAN)
 
-    override fun putBoolean(key: String, value: Boolean, expiry: Expiry?) {
-        put(PersistentBoolean(key, value, expiry))
-    }
+    override fun putStringArray(key: String, value: Array<String>, expiry: Expiry?) = put(
+        key,
+        value,
+        Serdes.stringArraySerde().serializer,
+        expiry,
+        type = Serialization.STRING_ARRAY
+    )
 
-    override fun putStringArray(key: String, value: Array<String>, expiry: Expiry?) {
-        put(PersistentStringArray(key, value, expiry))
-    }
+    override fun putIntArray(key: String, value: Array<Int>, expiry: Expiry?) =
+        put(key, value, Serdes.intArraySerde().serializer, expiry, type = Serialization.INT_ARRAY)
 
-    override fun putIntArray(key: String, value: Array<Int>, expiry: Expiry?) {
-        put(PersistentIntArray(key, value, expiry))
-    }
+    override fun putLongArray(key: String, value: Array<Long>, expiry: Expiry?) =
+        put(key, value, Serdes.longArraySerde().serializer, expiry, type = Serialization.LONG_ARRAY)
 
-    override fun putLongArray(key: String, value: Array<Long>, expiry: Expiry?) {
-        put(PersistentLongArray(key, value, expiry))
-    }
+    override fun putDoubleArray(key: String, value: Array<Double>, expiry: Expiry?) = put(
+        key,
+        value,
+        Serdes.doubleArraySerde().serializer,
+        expiry,
+        type = Serialization.DOUBLE_ARRAY
+    )
 
-    override fun putDoubleArray(key: String, value: Array<Double>, expiry: Expiry?) {
-        put(PersistentDoubleArray(key, value, expiry))
-    }
+    override fun putBooleanArray(key: String, value: Array<Boolean>, expiry: Expiry?) = put(
+        key,
+        value,
+        Serdes.booleanArraySerde().serializer,
+        expiry,
+        type = Serialization.BOOLEAN_ARRAY
+    )
 
-    override fun putBooleanArray(key: String, value: Array<Boolean>, expiry: Expiry?) {
-        put(PersistentBooleanArray(key, value, expiry))
-    }
+    override fun putJsonObject(key: String, value: JSONObject, expiry: Expiry?) = put(
+        key,
+        value,
+        Serdes.jsonObjectSerde().serializer,
+        expiry,
+        type = Serialization.JSON_OBJECT
+    )
 
-    override fun putJsonObject(key: String, value: JSONObject, expiry: Expiry?) {
-        put(PersistentJsonObject(key, value, expiry))
-    }
+    override fun putJsonArray(key: String, value: JSONArray, expiry: Expiry?) = put(
+        key,
+        value,
+        Serdes.jsonArraySerde().serializer,
+        expiry,
+        type = Serialization.JSON_ARRAY
+    )
 
-    private fun put(item: PersistentItem<*>) {
-        item.value?.let {
-            if (item.expiry == Expiry.UNTIL_RESTART) {
-                volatileData[item.key] = item
-                dao.delete(item.key)
-            } else {
-                dao.upsert(item)
-                volatileData.remove(item.key);
-            }
+    private fun <T> put(
+        key: String,
+        value: T,
+        serializer: Serializer<T>,
+        expiry: Expiry?,
+        type: Serialization
+    ) {
+        if (expiry == Expiry.UNTIL_RESTART) {
+            volatileData[key] = value as Any
+            dao.delete(key)
+        } else {
+            dao.upsert(PersistentItem(key, serializer.serialize(value), expiry, type = type))
+            volatileData.remove(key);
         }
     }
 
     override fun getString(key: String): String? {
-        val item = getItem(key)
-        return (item as? PersistentString)?.value
+        return volatileData[key]?.let { it as? String } ?: getItem(
+            key,
+            Serdes.stringSerde().deserializer
+        )
     }
 
     override fun getInt(key: String): Int? {
-        val item = getItem(key)
-        return (item as? PersistentInt)?.value
+        return volatileData[key]?.let { it as? Int } ?: getItem(key, Serdes.intSerde().deserializer)
     }
 
     override fun getLong(key: String): Long? {
-        val item = getItem(key)
-        return (item as? PersistentLong)?.value
+        return volatileData[key]?.let { it as? Long } ?: getItem(
+            key,
+            Serdes.longSerde().deserializer
+        )
     }
 
     override fun getDouble(key: String): Double? {
-        val item = getItem(key)
-        return (item as? PersistentDouble)?.value
+        return volatileData[key]?.let { it as? Double } ?: getItem(
+            key,
+            Serdes.doubleSerde().deserializer
+        )
     }
 
     override fun getBoolean(key: String): Boolean? {
-        val item = getItem(key)
-        return (item as? PersistentBoolean)?.value
+        return volatileData[key]?.let { it as? Boolean } ?: getItem(
+            key,
+            Serdes.booleanSerde().deserializer
+        )
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun getStringArray(key: String): Array<String>? {
-        val item = getItem(key)
-        return (item as? PersistentStringArray)?.value
+        return volatileData[key]?.let { it as? Array<String> } ?: getItem(
+            key,
+            Serdes.stringArraySerde().deserializer
+        )
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun getIntArray(key: String): Array<Int>? {
-        val item = getItem(key)
-        return (item as? PersistentIntArray)?.value
+        return volatileData[key]?.let { it as? Array<Int> } ?: getItem(
+            key,
+            Serdes.intArraySerde().deserializer
+        )
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun getLongArray(key: String): Array<Long>? {
-        val item = getItem(key)
-        return (item as? PersistentLongArray)?.value
+        return volatileData[key]?.let { it as? Array<Long> } ?: getItem(
+            key,
+            Serdes.longArraySerde().deserializer
+        )
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun getDoubleArray(key: String): Array<Double>? {
-        val item = getItem(key)
-        return (item as? PersistentDoubleArray)?.value
+        return volatileData[key]?.let { it as? Array<Double> } ?: getItem(
+            key,
+            Serdes.doubleArraySerde().deserializer
+        )
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun getBooleanArray(key: String): Array<Boolean>? {
-        val item = getItem(key)
-        return (item as? PersistentBooleanArray)?.value
+        return volatileData[key]?.let { it as? Array<Boolean> } ?: getItem(
+            key,
+            Serdes.booleanArraySerde().deserializer
+        )
     }
 
     override fun getJsonObject(key: String): JSONObject? {
-        val item = getItem(key)
-        return (item as? PersistentJsonObject)?.value
+        return volatileData[key]?.let { it as? JSONObject } ?: getItem(
+            key,
+            Serdes.jsonObjectSerde().deserializer
+        )
+    }
+
+    override fun getJsonArray(key: String): JSONArray? {
+        return volatileData[key]?.let { it as? JSONArray } ?: getItem(
+            key,
+            Serdes.jsonArraySerde().deserializer
+        )
     }
 
     override fun get(key: String): Any? {
-        val item = getItem(key)
-        return item?.value
-    }
-
-    private fun getItem(key: String) : PersistentItem<*>? {
-        return volatileData[key] ?: dao.get(key)
+        return volatileData[key] ?: dao.get(key)?.let {
+            Serdes.serdeFor(it.type.clazz)?.deserializer?.deserialize(it.value)
+        }
     }
 
     override fun all(): Map<String, Any> {
-        return dao.getAll().plus(volatileData).mapValues {
-            it.value.value!!
-        }
+        return dao.getAll().mapValues {
+            val serde = Serdes.serdeFor(it.value.type.clazz)
+            serde?.deserializer?.deserialize(it.value.value) ?: it.value.value
+        }.plus(volatileData)
+    }
+
+    private fun <T> getItem(key: String, deserializer: Deserializer<T>): T? {
+        return dao.get(key)
+            ?.let {
+                try {
+                    deserializer.deserialize(it.value)
+                } catch (e: Exception) {
+                    Logger.dev(BuildConfig.TAG, "Exception deserializing ${it.value}")
+                    null
+                }
+            }
     }
 
     override fun remove(key: String) {
@@ -184,7 +252,7 @@ internal class PersistentStorage(dbHelper: DatabaseHelper,
     }
 
     override fun getExpiry(key: String): Expiry? {
-        return volatileData[key]?.expiry ?: dao.get(key)?.expiry
+        return if (volatileData.containsKey(key)) Expiry.UNTIL_RESTART else dao.get(key)?.expiry
     }
 
     override fun onNewSession(sessionId: Long) {
