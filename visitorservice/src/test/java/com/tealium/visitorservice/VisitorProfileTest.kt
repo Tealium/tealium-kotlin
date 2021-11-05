@@ -1,6 +1,7 @@
 package com.tealium.visitorservice
 
 import com.tealium.visitorservice.TestUtils.Companion.loadJson
+import io.mockk.InternalPlatformDsl.toStr
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
