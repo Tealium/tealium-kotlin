@@ -12,17 +12,17 @@ import java.util.concurrent.TimeUnit
  * JSON.
  * Items are pushed and popped from the queue in timestamp order, and then First-In-First-Out (FIFO)
  * order if more than one entry has the same timestamp. Defaults for Expiry time and Timestamp will
- * be generated if missing from the [PersistentJsonObject] being pushed onto the queue.
+ * be generated if missing from the [PersistentItem] being pushed onto the queue.
  */
 internal class DispatchStorageDao(
     private val dbHelper: DatabaseHelper,
     private val tableName: String,
     maxQueueSize: Int = -1,
-    expiryDays: Int = -1
-) : QueueingDao<String, PersistentItem> {
+    expiryDays: Int = -1,
+    private val kvDao: KeyValueDao<String, PersistentItem> = PersistentStorageDao(dbHelper, tableName, false)
+) : QueueingDao<String, PersistentItem>, KeyValueDao<String, PersistentItem> by kvDao {
 
     val db = dbHelper.writableDatabase
-    private val kvDao = PersistentStorageDao(dbHelper, tableName, false)
 
     /**
      * Sets the maximum number of items allowed in the queue.
@@ -39,16 +39,6 @@ internal class DispatchStorageDao(
         set(value) {
             if (value >= -1) field = value
         }
-
-    // Delegated methods.
-    override fun get(key: String): PersistentItem? = kvDao.get(key)
-    override fun getAll(): Map<String, PersistentItem> = kvDao.getAll()
-    override fun delete(key: String) = kvDao.delete(key)
-    override fun clear() = kvDao.clear()
-    override fun keys() = kvDao.keys()
-    override fun count() = kvDao.count()
-    override fun contains(key: String) = kvDao.contains(key)
-    override fun purgeExpired() = kvDao.purgeExpired()
 
     /**
      * Inserts the [item] by pushing it onto the queue.
@@ -151,7 +141,7 @@ internal class DispatchStorageDao(
         val cursor = db.query(
             tableName,
             null,
-            kvDao.IS_NOT_EXPIRED_CLAUSE,
+            PersistentStorageDao.IS_NOT_EXPIRED_CLAUSE,
             arrayOf(getTimestamp().toString()),
             null,
             null,

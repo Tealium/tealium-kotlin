@@ -98,7 +98,7 @@ class PerformanceTests {
             TestTask("expiry") {
                 commonKeys.forEach { storage.getExpiry(it) }
             },
-            TestTask("expiry") {
+            TestTask("remove") {
                 commonKeys.forEach { storage.remove(it) }
             })
 

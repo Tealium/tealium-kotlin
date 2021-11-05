@@ -14,11 +14,11 @@ internal class DispatchStorage(dbHelper: DatabaseHelper,
     private val dao = DispatchStorageDao(dbHelper, tableName)
 
     override fun enqueue(item: Dispatch) {
-        dao.enqueue(convertToPersistentJson(item))
+        dao.enqueue(convertToPersistentItem(item))
     }
 
     override fun enqueue(items: List<Dispatch>) {
-        val list = items.map { convertToPersistentJson(it) }
+        val list = items.map { convertToPersistentItem(it) }
         dao.enqueue(list)
     }
 
@@ -52,13 +52,13 @@ internal class DispatchStorage(dbHelper: DatabaseHelper,
 
     override fun insert(item: Dispatch) {
         dao.insert(
-            convertToPersistentJson(item)
+            convertToPersistentItem(item)
         )
     }
 
     override fun update(item: Dispatch) {
         dao.update(
-            convertToPersistentJson(item)
+            convertToPersistentItem(item)
         )
     }
 
@@ -68,7 +68,7 @@ internal class DispatchStorage(dbHelper: DatabaseHelper,
 
     override fun upsert(item: Dispatch) {
         dao.upsert(
-            convertToPersistentJson(item)
+            convertToPersistentItem(item)
         )
     }
 
@@ -82,7 +82,7 @@ internal class DispatchStorage(dbHelper: DatabaseHelper,
         return JsonDispatch(json)
     }
 
-    private fun convertToPersistentJson(dispatch: Dispatch): PersistentItem {
+    private fun convertToPersistentItem(dispatch: Dispatch): PersistentItem {
         val payload = dispatch.payload()
         return PersistentItem(
             dispatch.id,

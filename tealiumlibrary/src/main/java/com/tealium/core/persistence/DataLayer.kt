@@ -203,10 +203,10 @@ interface DataLayer : Collector {
     fun getJsonObject(key: String): JSONObject?
 
     /**
-     * Retrieves a JSONObject value for the given key.
+     * Retrieves a JSONArray value for the given key.
      *
-     * @return JSONObject value associated with the key, else null where the key doesn't exist or if
-     *  the value stored for this key is not a JSONObject.
+     * @return JSONArray value associated with the key, else null where the key doesn't exist or if
+     *  the value stored for this key is not a JSONArray.
      */
     fun getJsonArray(key: String): JSONArray?
 

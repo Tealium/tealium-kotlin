@@ -29,12 +29,6 @@ internal open class PersistentStorageDao(
 
     private val db = dbHelper.writableDatabase
 
-    internal val IS_NOT_EXPIRED_CLAUSE =
-        "($COLUMN_EXPIRY < 0 OR $COLUMN_EXPIRY > ?)"
-
-    internal val IS_EXPIRED_CLAUSE =
-        "($COLUMN_EXPIRY >= 0 AND $COLUMN_EXPIRY < ?)"
-
     override fun getAll(): Map<String, PersistentItem> {
         val map = mutableMapOf<String, PersistentItem>()
         val selection = if (shouldIncludeExpired) null else IS_NOT_EXPIRED_CLAUSE
@@ -229,5 +223,13 @@ internal open class PersistentStorageDao(
             IS_EXPIRED_CLAUSE,
             arrayOf(getTimestamp().toString())
         )
+    }
+
+    companion object {
+        internal val IS_NOT_EXPIRED_CLAUSE =
+            "($COLUMN_EXPIRY < 0 OR $COLUMN_EXPIRY > ?)"
+
+        internal val IS_EXPIRED_CLAUSE =
+            "($COLUMN_EXPIRY >= 0 AND $COLUMN_EXPIRY < ?)"
     }
 }
