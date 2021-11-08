@@ -1,6 +1,5 @@
 package com.tealium.core.persistence
 
-import com.tealium.core.persistence.getTimestamp
 import java.util.concurrent.TimeUnit
 
 sealed class Expiry {

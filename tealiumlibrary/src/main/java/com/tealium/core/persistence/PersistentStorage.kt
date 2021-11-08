@@ -11,11 +11,6 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  *  Key Value storage backed by a SQLite database.
  *
- *  All *put* type methods are launched onto a separate single threaded executor so as not to be blocking,
- *  but also FIFO. All *get* type methods, including count/contains, are executed in the same Coroutine Context
- *  as the *put* methods, but *are* still blocking so would be advisable not to be called on the Main
- *  thread.
- *
  *  Any stored values should be retrieved in the same type - there is no type coercion performed. i.e.
  *  if you store using [putInt] then you should retrieve using [getInt] and so on.
  *

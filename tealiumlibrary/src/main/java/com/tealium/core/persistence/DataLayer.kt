@@ -106,7 +106,7 @@ interface DataLayer : Collector {
     fun putJsonObject(key: String, value: JSONObject, expiry: Expiry? = null)
 
     /**
-     * Stores a JSONObject [value] referenced by the [key], with an optional expiry time.
+     * Stores a JSONArray [value] referenced by the [key], with an optional expiry time.
      *
      * @param key string value identifying the [value]
      * @param value JSONArray value to be stored

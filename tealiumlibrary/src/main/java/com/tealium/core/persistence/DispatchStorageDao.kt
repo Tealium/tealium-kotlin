@@ -68,11 +68,9 @@ internal class DispatchStorageDao(
      * Executed in the context of a single database thread, to ensure data consistency.
      */
     override fun enqueue(item: PersistentItem) {
-//        launch(Logger.exceptionHandler) {
         createSpaceIfRequired(1)
         setItemDefaults(item)
         kvDao.upsert(item)
-//        }
     }
 
     /**
@@ -82,13 +80,11 @@ internal class DispatchStorageDao(
      * Executed in the context of a single database thread, to ensure data consistency.
      */
     override fun enqueue(items: List<PersistentItem>) {
-//        launch(Logger.exceptionHandler) {
         createSpaceIfRequired(items.count())
         items.forEach {
             setItemDefaults(it)
             kvDao.upsert(it)
         }
-//        }
     }
 
     /**
@@ -96,10 +92,8 @@ internal class DispatchStorageDao(
      * Executed in the context of a single database thread, to ensure data consistency.
      */
     override fun dequeue(): PersistentItem? {
-//        return runBlocking(coroutineContext) {
         val items = internalPop(1)
         return if (items.count() > 0) items.first() else null
-//        }
     }
 
     /**
@@ -110,9 +104,7 @@ internal class DispatchStorageDao(
      * dequeue all currently queued items.
      */
     override fun dequeue(count: Int): List<PersistentItem> {
-//        return runBlocking(coroutineContext) {
         return internalPop(count)
-//        }
     }
 
     /**
@@ -178,9 +170,7 @@ internal class DispatchStorageDao(
      */
     override fun resize(size: Int) {
         maxQueueSize = size
-//        launch(Logger.exceptionHandler) {
         createSpaceIfRequired(0)
-//        }
     }
 
     /**
