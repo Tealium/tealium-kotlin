@@ -33,16 +33,11 @@ object TealiumHelper {
 
     fun init(application: Application) {
         val config = TealiumConfig(application,
-                "tealiummobile",
-                "android",
+                "services-karen",
+                "mobile",
                 Environment.DEV,
                 modules = mutableSetOf(
-                        Modules.Lifecycle,
-                        Modules.VisitorService,
-                        Modules.HostedDataLayer,
-                        Modules.CrashReporter,
-                        Modules.AdIdentifier,
-                        Modules.Media),
+                        Modules.Lifecycle),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
             useRemoteLibrarySettings = true
