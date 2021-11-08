@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import kotlinx.coroutines.runBlocking
+import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert
@@ -308,7 +309,8 @@ class KeyValueStorageTests {
         storage.putDouble("double", 2.0)
         storage.putLong("long", 2L)
         storage.putBoolean("boolean", true)
-        storage.putJsonObject("json", JSONObject())
+        storage.putJsonObject("json_obj", JSONObject())
+        storage.putJsonArray("json_arr", JSONArray())
         storage.putStringArray("string_array", arrayOf("String"))
         storage.putIntArray("int_array", arrayOf(1))
         storage.putDoubleArray("double_array", arrayOf(2.0))
@@ -321,7 +323,8 @@ class KeyValueStorageTests {
         assertEquals(2.0, map["double"])
         assertEquals(2L, map["long"])
         assertEquals(true, map["boolean"])
-        assertEquals(JSONObject().toString(), (map["json"] as JSONObject).toString())
+        assertEquals(JSONObject().toString(), (map["json_obj"] as JSONObject).toString())
+        assertEquals(JSONArray().toString(), (map["json_arr"] as JSONArray).toString())
         assertArrayEquals(arrayOf("String"), map["string_array"] as Array<*>)
         assertArrayEquals(arrayOf(1), map["int_array"] as Array<*>)
         assertArrayEquals(arrayOf(2.0), map["double_array"] as Array<*>)
@@ -336,7 +339,8 @@ class KeyValueStorageTests {
         storage.putDouble("double", 2.0)
         storage.putLong("long", 2L)
         storage.putBoolean("boolean", true)
-        storage.putJsonObject("json", JSONObject())
+        storage.putJsonObject("json_obj", JSONObject())
+        storage.putJsonArray("json_arr", JSONArray())
         storage.putStringArray("string_array", arrayOf("String"))
         storage.putIntArray("int_array", arrayOf(1))
         storage.putDoubleArray("double_array", arrayOf(2.0))
@@ -353,8 +357,10 @@ class KeyValueStorageTests {
         assertTrue(storage.get("long") is Long)
         assertEquals(true, storage.get("boolean"))
         assertTrue(storage.get("boolean") is Boolean)
-        assertEquals(JSONObject().toString(), (storage.get("json") as JSONObject).toString())
-        assertTrue(storage.get("json") is JSONObject)
+        assertEquals(JSONObject().toString(), (storage.get("json_obj") as JSONObject).toString())
+        assertTrue(storage.get("json_obj") is JSONObject)
+        assertEquals(JSONArray().toString(), (storage.get("json_arr") as JSONArray).toString())
+        assertTrue(storage.get("json_arr") is JSONArray)
         assertArrayEquals(arrayOf("String"), storage.get("string_array") as Array<*>)
         assertArrayEquals(arrayOf(1), storage.get("int_array") as Array<*>)
         assertArrayEquals(arrayOf(2.0), storage.get("double_array") as Array<*>)
@@ -534,8 +540,11 @@ class KeyValueStorageTests {
             arrayOf(true, false, true),
             Expiry.UNTIL_RESTART
         )
-        val json = JSONObject("{\"key\":\"value\"}")
-        storage.putJsonObject("until_restart_json", json, Expiry.UNTIL_RESTART)
+        val json_obj = JSONObject("{\"key\":\"value\"}")
+        storage.putJsonObject("until_restart_json_obj", json_obj, Expiry.UNTIL_RESTART)
+
+        val json_arr = JSONArray("[\"key\",\"value\"]")
+        storage.putJsonArray("until_restart_json_arr", json_arr, Expiry.UNTIL_RESTART)
 
         assertEquals("string", storage.get("until_restart_string"))
         assertEquals(10, storage.get("until_restart_int"))
@@ -559,7 +568,8 @@ class KeyValueStorageTests {
             arrayOf(true, false, true),
             storage.getBooleanArray("until_restart_boolean_array")
         )
-        assertEquals(json.toString(), (storage.get("until_restart_json") as JSONObject).toString())
+        assertEquals(json_obj.toString(), (storage.get("until_restart_json_obj") as JSONObject).toString())
+        assertEquals(json_arr.toString(), (storage.get("until_restart_json_arr") as JSONArray).toString())
     }
 
     @Test

@@ -5,7 +5,6 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
-import com.tealium.core.persistence.internal.*
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.*
