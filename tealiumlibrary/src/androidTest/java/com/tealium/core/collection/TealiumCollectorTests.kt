@@ -62,6 +62,7 @@ class TealiumCollectorTests {
         assertEquals("visitor_id", data[Dispatch.Keys.TEALIUM_VISITOR_ID])
         assertEquals(BuildConfig.LIBRARY_VERSION, data[Dispatch.Keys.TEALIUM_LIBRARY_VERSION])
         assertEquals(BuildConfig.LIBRARY_NAME, data[Dispatch.Keys.TEALIUM_LIBRARY_NAME])
+        assertNotNull(data[Dispatch.Keys.TEALIUM_RANDOM])
 
         every { config.dataSourceId } returns null
         data = tealiumCollector.collect()

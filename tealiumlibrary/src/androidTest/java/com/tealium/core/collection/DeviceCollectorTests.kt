@@ -70,6 +70,8 @@ class DeviceCollectorTests {
         assertNotNull(data[Dispatch.Keys.DEVICE_OS_BUILD])
         assertNotNull(data[Dispatch.Keys.DEVICE_OS_VERSION])
         assertNotNull(data[Dispatch.Keys.DEVICE_LANGUAGE])
+        assertNotNull(data[Dispatch.Keys.DEVICE_BATTERY_PERCENT])
+        assertNotNull(data[Dispatch.Keys.DEVICE_ISCHARGING])
         assertEquals("android", data[Dispatch.Keys.DEVICE_PLATFORM])
         assertEquals("Android", data[Dispatch.Keys.DEVICE_OS_NAME])
         assertNotNull(data[Dispatch.Keys.DEVICE_RUNTIME])

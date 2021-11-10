@@ -62,6 +62,7 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
 
             // Validation - Queue
             if (shouldQueue(dispatch)) {
+                dispatch.addAll(mapOf(Dispatch.Keys.WAS_QUEUED to true))
                 dispatchStore.enqueue(dispatch)
                 scope.launch(Logger.exceptionHandler) {
                     eventRouter.onDispatchQueued(dispatch)

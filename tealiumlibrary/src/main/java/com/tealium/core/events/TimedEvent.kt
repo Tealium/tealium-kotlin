@@ -69,8 +69,8 @@ data class TimedEvent(
                 true -> {
                     val stopTime = timedEvent.stopTime ?: return null
                     val duration = timedEvent.duration ?: return null
-
-                    mutableMapOf(
+                    
+                    mutableMapOf<String, Any>(
                         Dispatch.Keys.TIMED_EVENT_NAME to timedEvent.eventName,
                         Dispatch.Keys.TIMED_EVENT_START to timedEvent.startTime,
                         Dispatch.Keys.TIMED_EVENT_END to stopTime,

@@ -220,7 +220,7 @@ class SessionManagerTests {
     }
 
     @Test
-    fun testMultipleInstancesHaveDifferentIds() {
+    fun testMultipleInstancesHaveDifferentIds() = runBlocking {
         sessionManager = SessionManager(config, eventRouter)
         val session = sessionManager.currentSession
 
@@ -228,6 +228,7 @@ class SessionManagerTests {
         val otherSessionManager = SessionManager(otherConfig, eventRouter)
         val otherSession = otherSessionManager.currentSession
 
+        delay(20)
         assertNotEquals(session.id, otherSession.id)
     }
 

@@ -9,11 +9,11 @@ import android.os.IBinder
 import android.view.*
 import androidx.fragment.app.Fragment
 import com.tealium.media.*
-import com.tealium.mobile.R
-import kotlinx.android.synthetic.main.fragment_media.*
+import com.tealium.mobile.databinding.FragmentMediaBinding
 
 class MediaFragment : Fragment() {
 
+    private lateinit var binding: FragmentMediaBinding
     private lateinit var mediaService: MediaService
     private var isBound: Boolean = false
 
@@ -22,7 +22,7 @@ class MediaFragment : Fragment() {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             if (service is MediaService.LocalBinder) {
                 mediaService = service.service
-                video_player_view.player = service.player
+                binding.videoPlayerView.player = service.player
                 isBound = true
             }
         }
@@ -32,50 +32,51 @@ class MediaFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        binding = FragmentMediaBinding.inflate(inflater, container, false)
         activity?.applicationContext?.let { app ->
             Intent(app, MediaService::class.java).also { intent ->
                 activity?.bindService(intent, connection, Context.BIND_AUTO_CREATE)
             }
         }
 
-        return inflater.inflate(R.layout.fragment_media, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        startAdBreakButton.setOnClickListener {
+        binding.startAdBreakButton.setOnClickListener {
             if (isBound) {
                 mediaService.startAdBreak()
             }
         }
 
-        endAdBreakButton.setOnClickListener {
+        binding.endAdBreakButton.setOnClickListener {
             if (isBound) {
                 mediaService.endAdBreak()
             }
         }
 
-        startAdButton.setOnClickListener {
+        binding.startAdButton.setOnClickListener {
             if (isBound) {
                 mediaService.startAd()
             }
         }
 
-        endAdButton.setOnClickListener {
+        binding.endAdButton.setOnClickListener {
             if (isBound) {
                 mediaService.endAd()
             }
         }
 
-        startChapterButton.setOnClickListener {
+        binding.startChapterButton.setOnClickListener {
             if (isBound) {
                 mediaService.startChapter()
             }
         }
 
-        endChapterButton.setOnClickListener {
+        binding.endChapterButton.setOnClickListener {
             if (isBound) {
                 mediaService.endChapter()
             }

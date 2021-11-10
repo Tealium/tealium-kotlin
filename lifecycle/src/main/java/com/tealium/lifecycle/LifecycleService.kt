@@ -17,7 +17,7 @@ internal class LifecycleService(private val lifecycleSharedPreferences: Lifecycl
     }
 
     fun getCurrentState(timestamp: Long): MutableMap<String, Any> {
-        val data = mutableMapOf(
+        val data = mutableMapOf<String, Any>(
             LifecycleStateKey.LIFECYCLE_DAYOFWEEK_LOCAL to getDayOfWeekLocal(timestamp),
             LifecycleStateKey.LIFECYCLE_DAYSSINCELAUNCH to ((timestamp - lifecycleSharedPreferences.timestampFirstLaunch) / LifecycleDefaults.DAY_IN_MS).toString(),
             LifecycleStateKey.LIFECYCLE_DAYSSINCELASTWAKE to (if (lifecycleSharedPreferences.timestampLastWake == LifecycleDefaults.TIMESTAMP_INVALID) "0" else ((timestamp - lifecycleSharedPreferences.timestampLastWake) / LifecycleDefaults.DAY_IN_MS).toString()),
