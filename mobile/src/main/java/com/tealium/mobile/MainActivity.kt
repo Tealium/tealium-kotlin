@@ -7,7 +7,7 @@ import android.util.Log
 import androidx.fragment.app.Fragment
 import com.tealium.autotracking.Autotracked
 import com.tealium.fragments.*
-import kotlinx.android.synthetic.main.activity_main.*
+import com.tealium.mobile.databinding.ActivityMainBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
@@ -21,7 +21,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate")
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+
+        val binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         val currentFragment =
                 supportFragmentManager.findFragmentById(R.id.fragment_container)
@@ -34,7 +36,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
                     .commit()
         }
 
-        trackButton.setOnClickListener {
+        binding.trackButton.setOnClickListener {
             onTrack()
         }
 

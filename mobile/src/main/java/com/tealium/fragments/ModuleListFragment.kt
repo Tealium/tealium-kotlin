@@ -16,6 +16,7 @@ import com.tealium.autotracking.autoTracking
 import com.tealium.core.Tealium
 import com.tealium.mobile.BuildConfig
 import com.tealium.mobile.R
+import com.tealium.mobile.databinding.FragmentModuleListBinding
 import com.tealium.viewmodels.ModuleListViewModel
 
 @Autotracked("ModuleList")
@@ -25,6 +26,7 @@ class ModuleListFragment : Fragment(), ActivityDataCollector {
         fun onModuleSelected(moduleName: String)
     }
 
+    private lateinit var binding: FragmentModuleListBinding
     private var callbacks: Callbacks? = null
     private lateinit var moduleListRecyclerView: RecyclerView
     private var adapter: ModuleListAdapter? = null
@@ -33,16 +35,20 @@ class ModuleListFragment : Fragment(), ActivityDataCollector {
         ViewModelProviders.of(this).get(ModuleListViewModel::class.java)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.fragment_module_list, container, false)
-        moduleListRecyclerView = view.findViewById(R.id.module_list_recycler_view)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentModuleListBinding.inflate(inflater, container, false)
+        moduleListRecyclerView = binding.moduleListRecyclerView
         moduleListRecyclerView.layoutManager = LinearLayoutManager(context)
 
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.autoTracking?.trackActivity(this)
 
         updateUI()
 
-        return view
+        return binding.root
     }
 
     override fun onAttach(context: Context) {
@@ -66,7 +72,8 @@ class ModuleListFragment : Fragment(), ActivityDataCollector {
         }
     }
 
-    private inner class ModuleListViewHolder(view: View) : RecyclerView.ViewHolder(view), View.OnClickListener {
+    private inner class ModuleListViewHolder(view: View) : RecyclerView.ViewHolder(view),
+        View.OnClickListener {
         val moduleNameTextView = itemView.findViewById<TextView>(R.id.module_name_text_view)
 
         private lateinit var moduleName: String
@@ -85,7 +92,8 @@ class ModuleListFragment : Fragment(), ActivityDataCollector {
         }
     }
 
-    private inner class ModuleListAdapter(private val moduleNames: List<String>) : RecyclerView.Adapter<ModuleListViewHolder>() {
+    private inner class ModuleListAdapter(private val moduleNames: List<String>) :
+        RecyclerView.Adapter<ModuleListViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ModuleListViewHolder {
             val view = layoutInflater.inflate(R.layout.list_item_module, parent, false)
             return ModuleListViewHolder(view)

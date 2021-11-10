@@ -10,6 +10,7 @@ import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.MediaSource
@@ -71,15 +72,11 @@ class MediaService : Service() {
         }
 
         playerNotificationManager =
-                PlayerNotificationManager.createWithNotificationChannel(
-                        this,
-                        CHANNEL_ID,
-                        R.string.app_name,
-                        0,
-                        NOTIFICATION_ID,
-                        createMediaDescriptionManager(),
-                        createNotificationListener()
-                )
+            PlayerNotificationManager.Builder(this, NOTIFICATION_ID, CHANNEL_ID)
+                .setChannelNameResourceId(R.string.app_name)
+                .setMediaDescriptionAdapter(createMediaDescriptionManager())
+                .setNotificationListener(createNotificationListener())
+                .build()
         playerNotificationManager?.setPlayer(player)
 
         val playbackState = PlaybackStateCompat.Builder()
@@ -96,11 +93,11 @@ class MediaService : Service() {
     private fun buildMediaSource(): MediaSource? {
         val dataSourceFactory = DefaultDataSourceFactory(this, "Sample")
         val uri = RawResourceDataSource.buildRawResourceUri(com.tealium.mobile.R.raw.tealium)
-        return ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(uri)
+        return ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(uri))
     }
 
-    private fun createListener(): Player.EventListener {
-        return object : Player.EventListener {
+    private fun createListener(): Player.Listener { //Player.EventListener
+        return object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 when (isPlaying) {
                     true -> play()
