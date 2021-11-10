@@ -175,14 +175,14 @@ private class StringDeserializer : Deserializer<String> {
 }
 
 private class IntSerde : BaseSerde<Int>(GenericSerializer(), IntDeserializer())
-private class IntDeserializer() : Deserializer<Int> {
+private class IntDeserializer : Deserializer<Int> {
     override fun deserialize(value: String): Int {
         return value.toInt()
     }
 }
 
 private class LongSerde : BaseSerde<Long>(GenericSerializer(), LongDeserializer())
-private class LongDeserializer() : Deserializer<Long> {
+private class LongDeserializer : Deserializer<Long> {
     override fun deserialize(value: String): Long {
         return value.toLong()
     }
@@ -195,12 +195,12 @@ private class DoubleDeserializer : Deserializer<Double> {
     }
 }
 private class BooleanSerde : BaseSerde<Boolean>(BooleanSerializer(), BooleanDeserializer())
-private class BooleanSerializer() : Serializer<Boolean> {
+private class BooleanSerializer : Serializer<Boolean> {
     override fun serialize(value: Boolean): String {
         return (if (value) 1 else 0).toString()
     }
 }
-private class BooleanDeserializer() : Deserializer<Boolean> {
+private class BooleanDeserializer : Deserializer<Boolean> {
     override fun deserialize(value: String): Boolean {
         return value.toInt() > 0
     }
@@ -233,7 +233,7 @@ private class StringArrayDeserializer : Deserializer<Array<String>> {
 }
 
 private class IntArraySerde : BaseSerde<Array<Int>>(ArraySerializer(), IntArrayDeserializer())
-private class IntArrayDeserializer() : Deserializer<Array<Int>> {
+private class IntArrayDeserializer : Deserializer<Array<Int>> {
     override fun deserialize(value: String): Array<Int> {
         val jsonArray = JSONArray(value)
         val values = mutableListOf<Int>()
@@ -248,7 +248,7 @@ private class IntArrayDeserializer() : Deserializer<Array<Int>> {
 }
 
 private class LongArraySerde : BaseSerde<Array<Long>>(ArraySerializer(), LongArrayDeserializer())
-private class LongArrayDeserializer() : Deserializer<Array<Long>> {
+private class LongArrayDeserializer : Deserializer<Array<Long>> {
     override fun deserialize(value: String): Array<Long> {
         val jsonArray = JSONArray(value)
         val values = mutableListOf<Long>()
@@ -281,7 +281,7 @@ private class DoubleArrayDeserializer : Deserializer<Array<Double>> {
 }
 
 private class BooleanArraySerde : BaseSerde<Array<Boolean>>(ArraySerializer(), BooleanArrayDeserializer())
-private class BooleanArrayDeserializer() : Deserializer<Array<Boolean>> {
+private class BooleanArrayDeserializer : Deserializer<Array<Boolean>> {
     override fun deserialize(value: String): Array<Boolean> {
         val jsonArray = JSONArray(value)
         val values = mutableListOf<Boolean>()
