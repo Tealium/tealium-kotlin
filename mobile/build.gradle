@@ -2,10 +2,6 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-// Uncomment to use Push Message tracking.
-// Be sure to update the AUTO_TRACKING_PUSH_ENABLED flag to true as well.
-//apply plugin: 'com.google.gms.google-services'
-
 android {
     compileSdkVersion 28
 
@@ -71,7 +67,4 @@ dependencies {
     implementation project(':adidentifier')
     implementation project(':media')
     implementation project(':autotracking')
-
-    implementation platform('com.google.firebase:firebase-bom:26.5.0')
-    implementation 'com.google.firebase:firebase-messaging-ktx'
 }

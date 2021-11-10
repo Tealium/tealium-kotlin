@@ -36,10 +36,17 @@
                     android:host="tealium.com" />
             </intent-filter>
         </activity>
+        <service android:name="com.tealium.media.MediaService"/>
         <activity android:name=".SecondActivity" />
         <activity android:name=".ThirdActivity" />
 
-        <service android:name="com.tealium.media.MediaService"/>
+        <service
+            android:name="com.tealium.autotracking.push.TealiumFirebaseService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

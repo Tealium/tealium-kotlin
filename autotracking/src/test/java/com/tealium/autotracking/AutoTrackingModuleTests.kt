@@ -1,7 +1,6 @@
 package com.tealium.autotracking
 
 import android.app.Activity
-import com.google.firebase.messaging.RemoteMessage
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.MessengerService
@@ -28,9 +27,6 @@ class AutoTrackingModuleTests {
     @RelaxedMockK
     lateinit var mockActivityTracker: ActivityTracker
 
-    @RelaxedMockK
-    lateinit var mockPushTracker: PushNotificationTracker
-
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
@@ -51,7 +47,7 @@ class AutoTrackingModuleTests {
 
     @Test
     fun init_RegistersActivityTrackerForEvents() {
-        val autoTracking = AutoTracking(mockContext, mockActivityTracker, mockPushTracker)
+        val autoTracking = AutoTracking(mockContext, mockActivityTracker)
 
         verify {
             mockEvents.subscribe(mockActivityTracker)
@@ -60,7 +56,7 @@ class AutoTrackingModuleTests {
 
     @Test
     fun trackActivity_DelegatesToActivityTracker() {
-        val autoTracking = AutoTracking(mockContext, mockActivityTracker, mockPushTracker)
+        val autoTracking = AutoTracking(mockContext, mockActivityTracker)
         val mockActivity: Activity = mockk()
         val mockActivityDataCollector: ActivityDataCollector = mockk()
         val mockMap: Map<String, Any> = mockk()
@@ -78,45 +74,6 @@ class AutoTrackingModuleTests {
             mockActivityTracker.trackActivity(mockActivityDataCollector, null)
             mockActivityTracker.trackActivity(mockActivityDataCollector, null)
             mockActivityTracker.trackActivity(mockActivityDataCollector, mockMap)
-        }
-    }
-
-    @Test
-    fun trackPushNotification_TracksWhenEnabled() {
-        every { mockConfig.autoTrackingPushEnabled } returns true
-        val autotracking = AutoTracking(mockContext, mockActivityTracker, mockPushTracker)
-
-        val mockMessage: RemoteMessage = mockk(relaxed = true)
-        autotracking.trackPushNotification(mockMessage)
-
-        verify {
-            mockPushTracker.trackPushNotification(mockMessage)
-        }
-    }
-
-    @Test
-    fun trackPushNotification_DoesNotTrackWhenDisabled() {
-        every { mockConfig.autoTrackingPushEnabled } returns false
-        val autotracking = AutoTracking(mockContext, mockActivityTracker, mockPushTracker)
-
-        val mockMessage: RemoteMessage = mockk(relaxed = true)
-        autotracking.trackPushNotification(mockMessage)
-
-        verify(exactly = 0) {
-            mockPushTracker.trackPushNotification(mockMessage)
-        }
-    }
-
-    @Test
-    fun trackPushNotification_DoesNotTrackWhenOmitted() {
-        every { mockConfig.autoTrackingPushEnabled } returns null
-        val autotracking = AutoTracking(mockContext, mockActivityTracker, mockPushTracker)
-
-        val mockMessage: RemoteMessage = mockk(relaxed = true)
-        autotracking.trackPushNotification(mockMessage)
-
-        verify(exactly = 0) {
-            mockPushTracker.trackPushNotification(mockMessage)
         }
     }
 }
