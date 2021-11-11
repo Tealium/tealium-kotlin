@@ -10,11 +10,17 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.tealium.autotracking.ActivityDataCollector
+import com.tealium.autotracking.Autotracked
+import com.tealium.autotracking.autoTracking
+import com.tealium.core.Tealium
+import com.tealium.mobile.BuildConfig
 import com.tealium.mobile.R
 import com.tealium.mobile.databinding.FragmentModuleListBinding
 import com.tealium.viewmodels.ModuleListViewModel
 
-class ModuleListFragment : Fragment() {
+@Autotracked("ModuleList")
+class ModuleListFragment : Fragment(), ActivityDataCollector {
 
     interface Callbacks {
         fun onModuleSelected(moduleName: String)
@@ -37,6 +43,8 @@ class ModuleListFragment : Fragment() {
         binding = FragmentModuleListBinding.inflate(inflater, container, false)
         moduleListRecyclerView = binding.moduleListRecyclerView
         moduleListRecyclerView.layoutManager = LinearLayoutManager(context)
+
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.autoTracking?.trackActivity(this)
 
         updateUI()
 
@@ -99,5 +107,9 @@ class ModuleListFragment : Fragment() {
             val moduleName = moduleNames[position]
             holder.bind(moduleName)
         }
+    }
+
+    override fun onCollectActivityData(activityName: String): Map<String, Any>? {
+        return mapOf("available_modules" to moduleListViewModel.moduleNames)
     }
 }

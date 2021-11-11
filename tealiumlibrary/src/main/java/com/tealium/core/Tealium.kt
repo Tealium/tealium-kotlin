@@ -66,7 +66,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
     // Dependencies for publicly accessible objects.
     private val databaseHelper: DatabaseHelper = DatabaseHelper(config)
     private val eventRouter = EventDispatcher()
-    private val activityObserver: ActivityObserver = ActivityObserver(config, eventRouter)
+    private val activityObserver: ActivityObserver = ActivityObserver(config, eventRouter, backgroundScope)
     private val sessionManager = SessionManager(config, eventRouter)
     private val deepLinkHandler: DeepLinkHandler
     private val timedEvents: TimedEventsManager
@@ -79,7 +79,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
      */
     val logger: Logging = Logger
 
-    private lateinit var _modules: ModuleManager
+    private val _modules: MutableModuleManager = MutableModuleManager(emptyList())
 
     /**
      * Provides access to the different modules that are in use, either by name or by class.
@@ -219,7 +219,9 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
         modulesList.filterIsInstance<Listener>().let {
             eventRouter.subscribeAll(it)
         }
-        _modules = ModuleManager(modulesList)
+        modulesList.forEach {
+            _modules.add(it)
+        }
 
         dispatchRouter = DispatchRouter(singleThreadedBackground,
                 modules.getModulesForType(Collector::class.java).union(setOf(moduleCollector)),
