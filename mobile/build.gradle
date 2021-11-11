@@ -12,6 +12,8 @@ android {
         versionName "1.0"
         buildConfigField 'String', 'TAG', "\"App\""
         buildConfigField 'String', 'TEALIUM_INSTANCE', "\"main\""
+        buildConfigField 'Boolean', 'AUTO_TRACKING', "true"
+        buildConfigField 'Boolean', 'AUTO_TRACKING_PUSH_ENABLED', "false"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -72,4 +74,5 @@ dependencies {
     implementation project(':crashreporter')
     implementation project(':adidentifier')
     implementation project(':media')
+    implementation project(':autotracking')
 }
