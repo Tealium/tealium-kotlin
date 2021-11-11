@@ -40,11 +40,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
             onTrack()
         }
 
-        secondActivity.setOnClickListener {
+        binding.secondActivity.setOnClickListener {
             val intent = Intent(this@MainActivity, SecondActivity::class.java)
             startActivity(intent)
         }
-        thirdActivity.setOnClickListener {
+        binding.thirdActivity.setOnClickListener {
             val intent = Intent(this@MainActivity, ThirdActivity::class.java)
             startActivity(intent)
         }
