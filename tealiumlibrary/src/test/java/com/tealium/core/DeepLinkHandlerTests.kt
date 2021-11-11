@@ -13,6 +13,7 @@ import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -165,6 +166,42 @@ class DeepLinkHandlerTests {
                 uri.toString(),
                 Expiry.SESSION
             )
+        }
+    }
+
+    @Test
+    fun testHandleDeepLinkIgnoresOpaqueUris() {
+        every { mockContext.config } returns configWithDeepLinkingEnabled
+        val mockActivityObserverListener = DeepLinkHandler(mockContext)
+
+        val opaqueUri = Uri.Builder().scheme("tealium").opaquePart("test").build()
+        assertTrue(opaqueUri.isOpaque)
+        runBlocking {
+            mockActivityObserverListener.handleDeepLink(opaqueUri)
+            delay(100)
+        }
+
+        verify {
+            mockDataLayer wasNot Called
+        }
+    }
+
+    @Test
+    fun testOnActivityResumedIgnoresOpaqueUris() {
+        every { mockContext.config } returns configWithDeepLinkingEnabled
+        val mockActivityObserverListener = DeepLinkHandler(mockContext)
+        setupUriBuilder()
+
+        val opaqueUri = Uri.Builder().scheme("tealium").opaquePart("test").build()
+        assertTrue(opaqueUri.isOpaque)
+        intent.data = opaqueUri
+        runBlocking {
+            mockActivityObserverListener.onActivityResumed(mockActivity)
+            delay(100)
+        }
+
+        verify {
+            mockDataLayer wasNot Called
         }
     }
 
