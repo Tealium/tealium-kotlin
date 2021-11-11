@@ -57,7 +57,7 @@ class VisitorManager(private val context: TealiumContext,
             field = value
             context.events.send(VisitorUpdatedMessenger(value))
         }
-    private val visitorServiceProfileOverride: String? = context.config.visitorServiceOverrideProfile
+    private val visitorServiceProfileOverride: String? = context.config.overrideVisitorServiceProfile
 
     private fun createResourceRetriever(): ResourceRetriever {
         return ResourceRetriever(context.config, generateVisitorServiceUrl(), context.httpClient).apply {
