@@ -157,7 +157,7 @@ class TealiumTests {
             Environment.DEV
         )
         config.existingVisitorId = "testExistingVisitorId"
-        val teal = Tealium.create("tester", config)
+        val teal = Tealium.create("tester2", config)
 
         val vid = teal.visitorId
         val storedVid = teal.dataLayer.getString("tealium_visitor_id")

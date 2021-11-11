@@ -23,7 +23,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28])
+@Config(sdk = [29])
 class FusedLocationProviderClientLoaderTests {
 
     @MockK
@@ -51,6 +51,8 @@ class FusedLocationProviderClientLoaderTests {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
+
+        mockkStatic("com.tealium.location.TealiumConfigLocationKt")
         every { mockContext.config } returns mockConfig
         every { mockApplication.applicationContext } returns mockApplication
         // Default to PERMISSION_GRANTED

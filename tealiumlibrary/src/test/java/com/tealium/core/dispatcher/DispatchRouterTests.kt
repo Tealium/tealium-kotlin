@@ -24,6 +24,7 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
@@ -135,12 +136,14 @@ class DispatchRouterTests {
     }
 
     @Test
-    fun testIsCollected() {
+    fun testIsCollected() = runBlocking {
         dispatchRouter.track(eventDispatch)
 
         coVerify(timeout = 1000) {
             collector.collect()
         }
+
+        delay(10)
         assertTrue(eventDispatch["key"] == "value")
     }
 
@@ -270,6 +273,8 @@ class DispatchRouterTests {
             eventRouter.onDispatchQueued(eventDispatch)
         }
 
+        assertTrue(eventDispatch[Dispatch.Keys.WAS_QUEUED] == true)
+
         verify(exactly = 0) {
             // no further routing should happen
             dispatchRouter.dequeue(eventDispatch)
@@ -290,6 +295,8 @@ class DispatchRouterTests {
             dispatchStore.enqueue(eventDispatch)
             eventRouter.onDispatchQueued(eventDispatch)
         }
+
+        assertTrue(eventDispatch[Dispatch.Keys.WAS_QUEUED] == true)
 
         verify(exactly = 0) {
             // no further routing should happen

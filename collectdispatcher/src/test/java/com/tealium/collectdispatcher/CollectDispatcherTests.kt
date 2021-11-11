@@ -13,9 +13,7 @@ import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import io.mockk.MockKAnnotations
 import io.mockk.*
-import io.mockk.InternalPlatformDsl.toStr
 import io.mockk.impl.annotations.MockK
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Assert.*
@@ -28,7 +26,7 @@ import java.io.File
 
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [21, 28])
+@Config(sdk = [21, 29])
 class CollectDispatcherTests {
 
     @MockK
@@ -63,7 +61,10 @@ class CollectDispatcherTests {
         every { mockApplication.filesDir } returns mockFile
         every { mockContext.config } returns mockConfig
 
+        mockkStatic("com.tealium.core.consent.TealiumConfigConsentManagerKt")
+
         // no overrides byt default
+        mockkStatic("com.tealium.collectdispatcher.TealiumConfigCollectDispatcherKt")
         every { mockConfig.overrideCollectDomain } returns null
         every { mockConfig.overrideCollectUrl } returns null
         every { mockConfig.overrideCollectBatchUrl } returns null
@@ -309,7 +310,6 @@ class CollectDispatcherTests {
         every { mockConfig.consentManagerLoggingProfile } returns "testingProfile"
         every { mockConfig.consentManagerLoggingUrl } returns null
 
-
         val testDispatch = TealiumEvent(ConsentManagerConstants.GRANT_FULL_CONSENT)
         val collectDispatcher = CollectDispatcher(mockConfig, client = mockNetworkClient)
         collectDispatcher.onBatchDispatchSend(listOf(testDispatch, mockDispatch, mockDispatch, mockDispatch))
@@ -320,8 +320,9 @@ class CollectDispatcherTests {
         val batchPayload = BatchDispatch.create(listOf(mockDispatch, mockDispatch, mockDispatch))
         val batch = JSONObject(batchPayload?.payload()).toString()
 
+        collectDispatcher.onDispatchSend(testDispatch)
+
         coVerify {
-            collectDispatcher.onDispatchSend(testDispatch)
             mockNetworkClient.post(
                 testConsentPayload,
                 CollectDispatcher.COLLECT_URL,
@@ -353,9 +354,9 @@ class CollectDispatcherTests {
 
         val batchPayload = BatchDispatch.create(listOf(mockDispatch, mockDispatch, mockDispatch))
         val batch = JSONObject(batchPayload?.payload()).toString()
+        collectDispatcher.onDispatchSend(testDispatch)
 
         coVerify {
-            collectDispatcher.onDispatchSend(testDispatch)
             mockNetworkClient.post(
                 str,
                 "https://customUrl.com/my-endpoint",
@@ -386,9 +387,9 @@ class CollectDispatcherTests {
 
         testDispatch.addAll(mapOf(Dispatch.Keys.TEALIUM_PROFILE to "testingProfile"))
         val str = JSONObject(testDispatch.payload()).toString()
+        collectDispatcher.onDispatchSend(testDispatch)
 
         coVerify {
-            collectDispatcher.onDispatchSend(testDispatch)
             mockNetworkClient.post(
                 str,
                 "https://customUrl.com/my-endpoint",
