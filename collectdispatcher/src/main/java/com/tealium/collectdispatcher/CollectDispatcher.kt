@@ -64,7 +64,7 @@ class CollectDispatcher(private val config: TealiumConfig,
                 }
                 config.consentManagerLoggingUrl?.let { consentUrl ->
                     Logger.dev(BuildConfig.TAG, "Sending dispatch: ${dispatch.payload()}")
-                    client.post(JSONObject(dispatch.payload()).toString(), consentUrl, false)
+                    client.post(JsonUtils.jsonFor(dispatch.payload()).toString(), consentUrl, false)
                     return
                 }
             }
@@ -76,7 +76,7 @@ class CollectDispatcher(private val config: TealiumConfig,
         }
 
         Logger.dev(BuildConfig.TAG, "Sending dispatch: ${dispatch.payload()}")
-        client.post(JSONObject(dispatch.payload()).toString(), eventUrl, false)
+        client.post(JsonUtils.jsonFor(dispatch.payload()).toString(), eventUrl, false)
     }
 
     override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {
@@ -101,7 +101,7 @@ class CollectDispatcher(private val config: TealiumConfig,
             if (profileOverride != null) {
                 batchDispatch.shared[Dispatch.Keys.TEALIUM_PROFILE] = profileOverride
             }
-            client.post(JSONObject(batchDispatch.payload()).toString(), batchEventUrl, true)
+            client.post(JsonUtils.jsonFor(batchDispatch.payload()).toString(), batchEventUrl, true)
         }
     }
 

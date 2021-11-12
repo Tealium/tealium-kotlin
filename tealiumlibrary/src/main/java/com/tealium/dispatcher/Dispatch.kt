@@ -17,6 +17,7 @@ interface Dispatch {
         return payload()[key]
     }
 
+    @Deprecated("This feature will no longer be supported - prefer to use JsonUtils")
     fun toJsonString(): String {
         return JsonUtils.jsonFor(payload()).toString()
     }
