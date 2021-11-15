@@ -35,8 +35,8 @@ object TealiumHelper : ActivityDataCollector {
 
     fun init(application: Application) {
         val config = TealiumConfig(application,
-                "services-karen",
-                "mobile",
+                "tealiummobile",
+                "android",
                 Environment.DEV,
                 modules = mutableSetOf(
                         Modules.Lifecycle,
