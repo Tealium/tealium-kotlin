@@ -1,7 +1,7 @@
 package com.tealium.core
 
-import android.annotation.TargetApi
 import android.os.Build
+import androidx.annotation.RequiresApi
 import java.text.SimpleDateFormat
 import java.time.*
 import java.time.format.DateTimeFormatter
@@ -19,27 +19,27 @@ class DateUtils {
             return formatIso8601.format(date)
         }
 
-        @TargetApi(Build.VERSION_CODES.O)
+        @RequiresApi(api = Build.VERSION_CODES.O)
         fun formatZonedDateTime(date: ZonedDateTime): String {
             return date.format(DateTimeFormatter.ISO_INSTANT)
         }
 
-        @TargetApi(Build.VERSION_CODES.O)
+        @RequiresApi(api = Build.VERSION_CODES.O)
         fun formatLocalDate(date: LocalDate): String {
             return date.atStartOfDay().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)
         }
 
-        @TargetApi(Build.VERSION_CODES.O)
+        @RequiresApi(api = Build.VERSION_CODES.O)
         fun formatLocalDateTime(date: LocalDateTime): String {
             return date.atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)
         }
 
-        @TargetApi(Build.VERSION_CODES.O)
+        @RequiresApi(api = Build.VERSION_CODES.O)
         fun formatLocalTime(date: LocalTime): String {
             return date.atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)
         }
 
-        @TargetApi(Build.VERSION_CODES.O)
+        @RequiresApi(api = Build.VERSION_CODES.O)
         fun formatInstant(date: Instant): String {
             return date.toString()
         }

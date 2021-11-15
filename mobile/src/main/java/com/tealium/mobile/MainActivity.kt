@@ -1,14 +1,17 @@
 package com.tealium.mobile
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
+import com.tealium.autotracking.Autotracked
 import com.tealium.fragments.*
 import com.tealium.mobile.databinding.ActivityMainBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
+@Autotracked
 class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispatchers.Default), ModuleListFragment.Callbacks {
 
     companion object {
@@ -37,7 +40,18 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
             onTrack()
         }
 
-        TealiumHelper.trackView("MAIN ACTIVITY", null)
+        binding.secondActivity.setOnClickListener {
+            val intent = Intent(this@MainActivity, SecondActivity::class.java)
+            startActivity(intent)
+        }
+        binding.thirdActivity.setOnClickListener {
+            val intent = Intent(this@MainActivity, ThirdActivity::class.java)
+            startActivity(intent)
+        }
+
+        if (!BuildConfig.AUTO_TRACKING) {
+            TealiumHelper.trackView("MAIN ACTIVITY", null)
+        }
     }
 
     private fun onTrack() {

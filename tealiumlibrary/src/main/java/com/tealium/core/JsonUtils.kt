@@ -1,6 +1,5 @@
 package com.tealium.core
 
-import android.annotation.TargetApi
 import android.os.Build
 import org.json.JSONArray
 import org.json.JSONObject

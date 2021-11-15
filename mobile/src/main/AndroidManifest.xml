@@ -37,6 +37,8 @@
             </intent-filter>
         </activity>
         <service android:name="com.tealium.media.MediaService"/>
+        <activity android:name=".SecondActivity" />
+        <activity android:name=".ThirdActivity" />
     </application>
 
 </manifest>
