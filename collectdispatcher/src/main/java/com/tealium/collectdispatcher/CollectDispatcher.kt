@@ -63,7 +63,7 @@ class CollectDispatcher(private val config: TealiumConfig,
                     )
                 }
                 config.consentManagerLoggingUrl?.let { consentUrl ->
-                    Logger.dev(BuildConfig.TAG, "Sending dispatch: ${dispatch.payload()}")
+                    Logger.dev(BuildConfig.TAG, "Sending dispatch: ${JsonUtils.jsonFor(dispatch.payload())}")
                     client.post(JsonUtils.jsonFor(dispatch.payload()).toString(), consentUrl, false)
                     return
                 }
@@ -75,8 +75,9 @@ class CollectDispatcher(private val config: TealiumConfig,
             }
         }
 
-        Logger.dev(BuildConfig.TAG, "Sending dispatch: ${dispatch.payload()}")
-        client.post(JsonUtils.jsonFor(dispatch.payload()).toString(), eventUrl, false)
+        val payload = JsonUtils.jsonFor(dispatch.payload())
+        Logger.dev(BuildConfig.TAG, "Sending dispatch: ${payload}")
+        client.post(payload.toString(), eventUrl, false)
     }
 
     override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {

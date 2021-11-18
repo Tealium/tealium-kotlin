@@ -1,5 +1,6 @@
 package com.tealium.core.persistence
 
+import com.tealium.core.JsonUtils
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.dispatcher.Dispatch
@@ -86,7 +87,7 @@ internal class DispatchStorage(dbHelper: DatabaseHelper,
         val payload = dispatch.payload()
         return PersistentItem(
             dispatch.id,
-            Serdes.jsonObjectSerde().serializer.serialize(JSONObject(payload)),
+            Serdes.jsonObjectSerde().serializer.serialize(JsonUtils.jsonFor(payload)),
             null,
             dispatch.timestamp,
             Serialization.JSON_OBJECT
