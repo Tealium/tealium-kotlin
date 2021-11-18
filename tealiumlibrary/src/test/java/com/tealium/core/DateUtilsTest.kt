@@ -14,49 +14,49 @@ class DateUtilsTest {
         val iso = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ROOT)
         iso.timeZone = TimeZone.getTimeZone("UTC")
 
-        val date = Date(System.currentTimeMillis())
+        val date = Date(1196676930000) // Time in millis for: 2007-12-03T10:15:30Z
         val formattedDate = DateUtils.formatDate(date)
 
-        assertEquals(iso.format(date), formattedDate)
+        assertEquals("2007-12-03T10:15:30Z", formattedDate)
     }
 
     @Test
     fun validFormatZoneDateTime() {
-        val now = ZonedDateTime.now()
+        val now = ZonedDateTime.parse("2007-12-03T10:15:30+01:00[Europe/Paris]")
         val formattedNow = DateUtils.formatZonedDateTime(now)
 
-        assertEquals(now.format(DateTimeFormatter.ISO_INSTANT), formattedNow)
+        assertEquals("2007-12-03T09:15:30Z", formattedNow)
     }
 
     @Test
     fun validFormatLocalDate() {
-        val now = LocalDate.now()
+        val now = LocalDate.parse("2007-12-03")
         val formattedNow = DateUtils.formatLocalDate(now)
 
-        assertEquals(now.atStartOfDay(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT), formattedNow)
+        assertEquals("2007-12-03T00:00:00Z", formattedNow)
     }
 
     @Test
     fun validFormatLocalDateTime() {
-        val now = LocalDateTime.now()
+        val now = LocalDateTime.parse("2007-12-03T10:15:30")
         val formattedNow = DateUtils.formatLocalDateTime(now)
 
-        assertEquals(now.atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT), formattedNow)
+        assertEquals("2007-12-03T10:15:30Z", formattedNow)
     }
 
     @Test
     fun validFormatLocalTime() {
-        val now = LocalTime.now()
+        val now = LocalTime.parse("10:15:30")
         val formattedNow = DateUtils.formatLocalTime(now)
 
-        assertEquals(now.toString(), formattedNow)
+        assertEquals("10:15:30", formattedNow)
     }
 
     @Test
     fun validFormatInstant() {
-        val now = Instant.now()
+        val now = Instant.parse("2007-12-03T10:15:30.00Z")
         val formattedNow = DateUtils.formatInstant(now)
 
-        assertEquals(now.toString(), formattedNow)
+        assertEquals("2007-12-03T10:15:30Z", formattedNow)
     }
 }
