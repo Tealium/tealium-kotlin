@@ -26,7 +26,7 @@ class DateUtils {
 
         @RequiresApi(api = Build.VERSION_CODES.O)
         fun formatLocalDate(date: LocalDate): String {
-            return date.atStartOfDay().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)
+            return date.atStartOfDay(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)
         }
 
         @RequiresApi(api = Build.VERSION_CODES.O)
@@ -36,7 +36,7 @@ class DateUtils {
 
         @RequiresApi(api = Build.VERSION_CODES.O)
         fun formatLocalTime(date: LocalTime): String {
-            return date.atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)
+            return date.toString()
         }
 
         @RequiresApi(api = Build.VERSION_CODES.O)
