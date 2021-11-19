@@ -1,4 +1,72 @@
 # Change Log
+- 1.3.0 Nov 2021
+  - Core 1.3.0
+    - Missing variables reinstated from the Java library:
+      - Default: `tealium_random` and `was_queued`
+      - DeviceCollector - `device_battery_percent` and `device_ischarging`
+      - TimeCollector - `timestamp_epoch`
+    - DataLayer performance improvements, and additional support for storing `JSONArray` objects
+    - Dates now get formatted as ISO 8601 as standard
+    - Dependency updates to Kotlin, Coroutines, Android Target Version, AGP 7, Java 11, MockK, Robolectric
+    - BugFixes:
+      - Opaque URI's are now appropriately handled by the DeepLinkHandler
+    - Deprecations to unused code
+  - AutoTracking 1.0.0
+    - New activity tracking module to automatically track screen view events
+  - AdIdentifier 1.1.0
+    - Support for new AppSet identifier 
+    - Dependency Updates in line with Core.
+  - CollectDispatcher 1.1.0, TagManagementDispatcher 1.1.0
+    - Serialization standardized to use `JsonUtils`
+    - Dependency Updates in line with Core.
+  - CrashReporter 1.1.0, HostedDataLayer 1.1.0, InstallReferrer 1.1.0, Lifecycle 1.1.0, Location 1.1.0, Media 1.1.0, RemoteCommandDispatcher 1.1.0
+    - Dependency Updates in line with Core.
+  - VisitorService 1.1.0
+    - Additional configuration option to override the Tealium Profile name to use when updating a Visitor: `config.overrideVisitorServiceProfile`
+    - Serialization/Deserialization performance improvements
+    - Dependency Updates in line with Core.
+    - BugFix:
+      - Date parsing exception when dates are 0
+- 1.2.8 Oct 2021
+  - Core 1.2.8 
+    - `config.logLevel` added to enable overriding the log level derived from the Environment
+    - `consent_last_updated` timestamp is now added to the payload by the Consent Manager for each event
+    - Payload key constants migrated to `Dispatch.Keys.XXX` for ease of access
+    - Bug Fixes
+      - `app_name` now falls back to a non-localized version of the app label
+      - Event router crashes caused by threading
+      - `screen_title` re-added to the TealiumView payload by default, and set to the viewName when one is not provided in the context data
+      - Unnecessary logging removed when trying to load `tealium-settings.json` as an Asset
+      - Where multiple deep links occur during a Session, previous deep link params are now removed from the datalayer prior to adding the new ones
+
+  - CollectDispatcher 1.0.6, HostedDataLayer 1.0.4, RemoteCommandDispatcher 1.0.5, TagManagement 1.0.7
+    - event key references updated to use the new `Dispatch.Keys.XXX` - note, these are only present in Core 1.2.8+ so should ensure the latest version is in use.
+- 1.2.7 Sep 2021
+  - Core 1.2.7
+    - Support for logical resolution in DeviceData
+- 1.2.6 Jul 2021
+  - Core 1.2.6
+    - Add support for existingVisitorId to TealiumConfig
+    - Add support to override profile for Consent Logging using consentManagerLoggingProfile
+    - Consent Logging event routed through all enabled Dispatchers
+    - Update values for app_build and app_version
+  - Tag Management Dispatcher 1.0.6
+    - Support for Consent Logging profile override
+  - Collect Dispatcher 1.0.5
+    - Support for Consent Logging profile override
+  - Visitor Service 1.0.5
+    - Bug fix: deserializing stored long values
+- 1.2.5 May 2021
+  - Core 1.2.5
+    - BugFix: HttpClient post update fixes issues with consent logging failures.
+    - HttpClient execution moved onto IO dispatcher for better asynchronous performance
+- 1.2.4 Apr 2021
+  - Core 1.2.4
+    - New enabled_modules and enabled_modules_versions data layer keys added in keeping with the Swift SDK. Both are arrays of strings, containing a sorted list of Modules in use and their Version number - latest versions of all modules required to retrieve their version. note module names have also been changed from UPPER_SNAKE_CASE to PascalCase to match Swift.
+    - New Config option remoteApiEnabled to allow disabling of remote_api events when using the RemoteCommands and TagManagement modules
+    - New Config option overrideCollectProfile to allow overriding the value of tealium_profile in the event payload, thus routing events to a different Tealium Profile to the one set on the TealiumConfig object.
+    - BugFix - added support for both application/json and x-www-form-urlencoded content types when using the HttpRemoteCommand
+    - BugFix - fixed an issue with specific collections not being encoded correctly.
 - 1.2.3 Mar 2021
   - Core 1.2.3
     - Consent Management: Add option for setting a custom consent policy.
