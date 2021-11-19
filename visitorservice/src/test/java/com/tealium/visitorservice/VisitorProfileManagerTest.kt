@@ -280,6 +280,21 @@ class VisitorProfileManagerTest {
         assertEquals("my.url/test-profile/visitorId", visitorProfileManager.generateVisitorServiceUrl())
     }
 
+    @Test
+    fun generateVisitorService_OverrideProfile() {
+        every { mockConfig.overrideVisitorServiceProfile } returns "testingProfile"
+        val visitorProfileManager = VisitorManager(mockContext)
+        assertEquals("https://visitor-service.tealiumiq.com/test-account/testingProfile/visitorId", visitorProfileManager.generateVisitorServiceUrl())
+    }
+
+    @Test
+    fun generateVisitorServiceUrl_ReplacesPlaceholders_OverrideProfile() {
+        every { mockConfig.overrideVisitorServiceUrl } returns "my.url/{{profile}}/{{visitorId}}"
+        every { mockConfig.overrideVisitorServiceProfile } returns "testingProfile"
+        val visitorProfileManager = VisitorManager(mockContext)
+        assertEquals("my.url/testingProfile/visitorId", visitorProfileManager.generateVisitorServiceUrl())
+    }
+
     private val validExampleProfileString = """
         {
             "badges":{

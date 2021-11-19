@@ -27,13 +27,13 @@ interface VisitorProfileManager {
 }
 
 class VisitorManager(private val context: TealiumContext,
-                            private val refreshInterval: Long =
-                                    context.config.visitorServiceRefreshInterval
-                                            ?: DEFAULT_REFRESH_INTERVAL,
-                            private val visitorServiceUrl: String =
-                                    context.config.overrideVisitorServiceUrl
-                                            ?: DEFAULT_VISITOR_SERVICE_TEMPLATE,
-                            private val loader: Loader = JsonLoader(context.config.application)) : VisitorProfileManager, DispatchSendListener, BatchDispatchSendListener {
+                     private val refreshInterval: Long =
+                             context.config.visitorServiceRefreshInterval
+                                     ?: DEFAULT_REFRESH_INTERVAL,
+                     private val visitorServiceUrl: String =
+                             context.config.overrideVisitorServiceUrl
+                                     ?: DEFAULT_VISITOR_SERVICE_TEMPLATE,
+                     private val loader: Loader = JsonLoader(context.config.application)) : VisitorProfileManager, DispatchSendListener, BatchDispatchSendListener {
 
     private val file = File(context.config.tealiumDirectory, VISITOR_PROFILE_FILENAME)
 
@@ -57,6 +57,7 @@ class VisitorManager(private val context: TealiumContext,
             field = value
             context.events.send(VisitorUpdatedMessenger(value))
         }
+    private val visitorServiceProfileOverride: String? = context.config.overrideVisitorServiceProfile
 
     private fun createResourceRetriever(): ResourceRetriever {
         return ResourceRetriever(context.config, generateVisitorServiceUrl(), context.httpClient).apply {
@@ -68,7 +69,7 @@ class VisitorManager(private val context: TealiumContext,
 
     internal fun generateVisitorServiceUrl(): String {
         return visitorServiceUrl.replace(PLACEHOLDER_ACCOUNT, context.config.accountName)
-                .replace(PLACEHOLDER_PROFILE, context.config.profileName)
+                .replace(PLACEHOLDER_PROFILE, visitorServiceProfileOverride ?: context.config.profileName)
                 .replace(PLACEHOLDER_VISITOR_ID, visitorId)
     }
 
