@@ -17,6 +17,7 @@ interface Dispatch {
         return payload()[key]
     }
 
+    @Deprecated("This feature will no longer be supported - prefer to use JsonUtils")
     fun toJsonString(): String {
         return JsonUtils.jsonFor(payload()).toString()
     }
@@ -59,6 +60,7 @@ interface Dispatch {
         const val DEEP_LINK_URL = "deep_link_url"
         const val DEEP_LINK_QUERY_PREFIX = "deep_link_param"
         const val REQUEST_UUID = "request_uuid"
+        const val WAS_QUEUED = "was_queued"
 
         // AppCollector
         const val APP_UUID = "app_uuid"
@@ -94,6 +96,8 @@ interface Dispatch {
         const val DEVICE_AVAILABLE_EXTERNAL_STORAGE = "device_free_external_storage"
         const val DEVICE_ORIENTATION = "device_orientation"
         const val DEVICE_LANGUAGE = "device_language"
+        const val DEVICE_BATTERY_PERCENT = "device_battery_percent"
+        const val DEVICE_ISCHARGING = "device_ischarging"
 
         // ModuleCollector
         const val ENABLED_MODULES = "enabled_modules"
@@ -110,6 +114,7 @@ interface Dispatch {
         const val TEALIUM_VISITOR_ID = "tealium_visitor_id"
         const val TEALIUM_LIBRARY_NAME = "tealium_library_name"
         const val TEALIUM_LIBRARY_VERSION = "tealium_library_version"
+        const val TEALIUM_RANDOM = "tealium_random"
 
         // TimeCollector
         const val TIMESTAMP = "timestamp"
@@ -117,6 +122,7 @@ interface Dispatch {
         const val TIMESTAMP_OFFSET = "timestamp_offset"
         const val TIMESTAMP_UNIX = "timestamp_unix"
         const val TIMESTAMP_UNIX_MILLISECONDS = "timestamp_unix_milliseconds"
+        const val TIMESTAMP_EPOCH = "timestamp_epoch"
 
         // ConsentManager
         const val CONSENT_POLICY = "policy"

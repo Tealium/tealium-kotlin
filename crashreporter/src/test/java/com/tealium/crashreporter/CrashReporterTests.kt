@@ -41,6 +41,7 @@ class CrashReporterTests {
     fun setUp() {
         MockKAnnotations.init(this)
 
+        mockkStatic("com.tealium.crashreporter.TealiumConfigCrashReporterKt")
         every { mockTealiumContext.config } returns mockConfig
         every { mockConfig.application } returns mockContext
         every { mockConfig.accountName } returns "account_1"

@@ -1,5 +1,6 @@
 package com.tealium.core.persistence
 
+import com.tealium.core.JsonUtils
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.dispatcher.Dispatch
@@ -9,16 +10,16 @@ import org.json.JSONObject
 internal class DispatchStorage(dbHelper: DatabaseHelper,
                                tableName: String)
     : LibrarySettingsUpdatedListener,
-        QueueingDao<String, Dispatch> {
+    QueueingDao<String, Dispatch> {
 
     private val dao = DispatchStorageDao(dbHelper, tableName)
 
     override fun enqueue(item: Dispatch) {
-        dao.enqueue(convertToPersistentJson(item))
+        dao.enqueue(convertToPersistentItem(item))
     }
 
     override fun enqueue(items: List<Dispatch>) {
-        val list = items.map { convertToPersistentJson(it) }
+        val list = items.map { convertToPersistentItem(it) }
         dao.enqueue(list)
     }
 
@@ -45,20 +46,20 @@ internal class DispatchStorage(dbHelper: DatabaseHelper,
     }
 
     override fun getAll(): Map<String, Dispatch> {
-        return dao.getAll().mapValues { (key, value) ->
+        return dao.getAll().mapValues { (_, value) ->
             convertToDispatch(value)
         }
     }
 
     override fun insert(item: Dispatch) {
         dao.insert(
-                convertToPersistentJson(item)
+            convertToPersistentItem(item)
         )
     }
 
     override fun update(item: Dispatch) {
         dao.update(
-                convertToPersistentJson(item)
+            convertToPersistentItem(item)
         )
     }
 
@@ -68,7 +69,7 @@ internal class DispatchStorage(dbHelper: DatabaseHelper,
 
     override fun upsert(item: Dispatch) {
         dao.upsert(
-                convertToPersistentJson(item)
+            convertToPersistentItem(item)
         )
     }
 
@@ -78,17 +79,18 @@ internal class DispatchStorage(dbHelper: DatabaseHelper,
     override fun contains(key: String): Boolean = dao.contains(key)
     override fun purgeExpired() = dao.purgeExpired()
 
-    private fun convertToDispatch(json: PersistentJsonObject): Dispatch {
+    private fun convertToDispatch(json: PersistentItem): Dispatch {
         return JsonDispatch(json)
     }
 
-    private fun convertToPersistentJson(dispatch: Dispatch): PersistentJsonObject {
+    private fun convertToPersistentItem(dispatch: Dispatch): PersistentItem {
         val payload = dispatch.payload()
-        return PersistentJsonObject(
-                dispatch.id,
-                JSONObject(payload),
-                null,
-                dispatch.timestamp
+        return PersistentItem(
+            dispatch.id,
+            Serdes.jsonObjectSerde().serializer.serialize(JsonUtils.jsonFor(payload)),
+            null,
+            dispatch.timestamp,
+            Serialization.JSON_OBJECT
         )
     }
 

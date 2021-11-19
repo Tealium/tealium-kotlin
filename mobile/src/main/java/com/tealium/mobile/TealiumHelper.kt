@@ -1,7 +1,9 @@
 package com.tealium.mobile
 
 import android.app.Application
+import android.util.Log
 import com.tealium.adidentifier.AdIdentifier
+import com.tealium.autotracking.*
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
 import com.tealium.core.consent.*
@@ -29,7 +31,7 @@ import com.tealium.visitorservice.VisitorService
 import com.tealium.visitorservice.VisitorUpdatedListener
 import java.util.concurrent.TimeUnit
 
-object TealiumHelper {
+object TealiumHelper : ActivityDataCollector {
 
     fun init(application: Application) {
         val config = TealiumConfig(application,
@@ -42,6 +44,7 @@ object TealiumHelper {
                         Modules.HostedDataLayer,
                         Modules.CrashReporter,
                         Modules.AdIdentifier,
+                        Modules.AutoTracking,
                         Modules.Media),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
@@ -59,6 +62,11 @@ object TealiumHelper {
 
             mediaBackgroundSessionEnabled = false
             mediaBackgroundSessionEndInterval = 5000L  // end session after 5 seconds
+
+            autoTrackingMode = if (BuildConfig.AUTO_TRACKING) AutoTrackingMode.FULL else AutoTrackingMode.NONE
+            // autoTrackingBlocklistFilename = "autotracking-blocklist.json"
+            // autoTrackingBlocklistUrl = "https://tags.tiqcdn.com/dle/tealiummobile/android/autotracking-blocklist.json"
+            autoTrackingCollectorDelegate = TealiumHelper
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
@@ -127,5 +135,9 @@ object TealiumHelper {
             override val name: String = "my validator"
             override var enabled: Boolean = true
         }
+    }
+
+    override fun onCollectActivityData(activityName: String): Map<String, Any>? {
+        return mapOf("global_data" to "value")
     }
 }

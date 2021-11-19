@@ -236,6 +236,7 @@ class ConsentManagerTest {
         consentManager.userConsentStatus = ConsentStatus.UNKNOWN
 
         val data = consentManager.collect()
+
         assertEquals(1, data.count())
         assertTrue(data.containsKey(Dispatch.Keys.CONSENT_LAST_UPDATED))
     }

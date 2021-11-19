@@ -30,7 +30,7 @@ class VisitorProfileManagerTest {
     @MockK
     private lateinit var mockContext: TealiumContext
 
-    @MockK
+    @RelaxedMockK
     private lateinit var mockConfig: TealiumConfig
 
     @RelaxedMockK
@@ -53,6 +53,7 @@ class VisitorProfileManagerTest {
         directory = File("test")
         directory.mkdir()
 
+        mockkStatic("com.tealium.visitorservice.TealiumConfigVisitorServiceKt")
         every { mockContext.config } returns mockConfig
         every { mockContext.events } returns mockMessengerService
         every { mockContext.visitorId } returns "visitorId"
@@ -277,6 +278,21 @@ class VisitorProfileManagerTest {
         every { mockConfig.overrideVisitorServiceUrl } returns "my.url/{{profile}}/{{visitorId}}"
         val visitorProfileManager = VisitorManager(mockContext)
         assertEquals("my.url/test-profile/visitorId", visitorProfileManager.generateVisitorServiceUrl())
+    }
+
+    @Test
+    fun generateVisitorService_OverrideProfile() {
+        every { mockConfig.overrideVisitorServiceProfile } returns "testingProfile"
+        val visitorProfileManager = VisitorManager(mockContext)
+        assertEquals("https://visitor-service.tealiumiq.com/test-account/testingProfile/visitorId", visitorProfileManager.generateVisitorServiceUrl())
+    }
+
+    @Test
+    fun generateVisitorServiceUrl_ReplacesPlaceholders_OverrideProfile() {
+        every { mockConfig.overrideVisitorServiceUrl } returns "my.url/{{profile}}/{{visitorId}}"
+        every { mockConfig.overrideVisitorServiceProfile } returns "testingProfile"
+        val visitorProfileManager = VisitorManager(mockContext)
+        assertEquals("my.url/testingProfile/visitorId", visitorProfileManager.generateVisitorServiceUrl())
     }
 
     private val validExampleProfileString = """
