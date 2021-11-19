@@ -4,11 +4,8 @@ import android.app.Activity
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.MessengerService
-import io.mockk.MockKAnnotations
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.RelaxedMockK
-import io.mockk.mockk
-import io.mockk.verify
 import org.junit.Assert.assertNotSame
 import org.junit.Before
 import org.junit.Test
@@ -31,6 +28,7 @@ class AutoTrackingModuleTests {
     fun setUp() {
         MockKAnnotations.init(this)
 
+        mockkStatic("com.tealium.autotracking.TealiumConfigAutoTrackingKt")
         every { mockContext.config } returns mockConfig
         every { mockContext.events } returns mockEvents
         every { mockConfig.autoTrackingMode } returns AutoTrackingMode.FULL

@@ -42,6 +42,7 @@ class ActivityBlocklistTests {
     fun setUp() {
         MockKAnnotations.init(this)
 
+        mockkStatic("com.tealium.autotracking.TealiumConfigAutoTrackingKt")
         // Default to neither in use
         every { mockConfig.autoTrackingBlocklistUrl } returns null
         every { mockConfig.autoTrackingBlocklistFilename } returns null
