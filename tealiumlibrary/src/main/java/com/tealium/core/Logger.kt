@@ -77,11 +77,11 @@ class Logger private constructor(val config: TealiumConfig) {
         }
 
         override fun onDispatchReady(dispatch: Dispatch) {
-            dev(BuildConfig.TAG, "Dispatch(${dispatch.id.substring(0, 5)}) - Ready - ${dispatch.payload()}")
+            dev(BuildConfig.TAG, "Dispatch(${dispatch.id.substring(0, 5)}) - Ready - ${JsonUtils.jsonFor(dispatch.payload())}")
         }
 
         override suspend fun onDispatchSend(dispatch: Dispatch) {
-            dev(BuildConfig.TAG, "Dispatch(${dispatch.id.substring(0, 5)}) - Sending - ${dispatch.payload()}")
+            dev(BuildConfig.TAG, "Dispatch(${dispatch.id.substring(0, 5)}) - Sending - ${JsonUtils.jsonFor(dispatch.payload())}")
         }
 
         override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {

@@ -48,7 +48,7 @@ class TagManagementDispatcher(private val context: TealiumContext,
     fun callRemoteCommandTags(dispatch: Dispatch) {
         if (!remoteApiEnabled) return
 
-        val remoteCommandScript = "utag.track(\"remote_api\", ${dispatch.toJsonString()})"
+        val remoteCommandScript = "utag.track(\"remote_api\", ${JsonUtils.jsonFor(dispatch.payload())})"
         onEvaluateJavascript(remoteCommandScript)
     }
 
@@ -72,12 +72,13 @@ class TagManagementDispatcher(private val context: TealiumContext,
         }
 
         val callType = dispatch.payload()[Dispatch.Keys.TEALIUM_EVENT_TYPE]
+        val payload = JsonUtils.jsonFor(dispatch.payload())
         val javascriptCall = callType?.let {
             when (it) {
-                TagManagementConstants.EVENT -> "utag.track(\"link\", ${dispatch.toJsonString()})"
-                else -> "utag.track(\"$it\", ${dispatch.toJsonString()})"
+                TagManagementConstants.EVENT -> "utag.track(\"link\", ${payload})"
+                else -> "utag.track(\"$it\", ${payload})"
             }
-        } ?: "utag.track(\"link\", ${dispatch.toJsonString()})"
+        } ?: "utag.track(\"link\", ${payload})"
 
         onEvaluateJavascript(javascriptCall)
 
