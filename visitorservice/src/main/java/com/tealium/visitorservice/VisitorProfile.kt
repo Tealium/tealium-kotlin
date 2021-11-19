@@ -112,6 +112,9 @@ data class VisitorProfile(
                 currentVisit = json.optJSONObject(KEY_CURRENT_VISIT)?.let {
                     CurrentVisit.fromJson(it)
                 }
+                numbers?.get(KEY_TOTAL_EVENT_COUNT_METRIC)?.let {
+                    totalEventCount = it.toInt()
+                }
             }
 
             return visitorProfile

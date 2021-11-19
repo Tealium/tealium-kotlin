@@ -41,7 +41,7 @@ class CurrentVisitTest {
         assertEquals(4, currentVisit?.numbers?.count())
         assertEquals(0.toDouble(), currentVisit?.numbers?.getValue("12")!!, 0.0)
         assertEquals(1.toDouble(), currentVisit?.numbers?.getValue("7")!!, 0.0)
-        assertEquals(0.toDouble(), currentVisit?.numbers?.getValue("80")!!, 0.0)
+        assertEquals(1585244808000.toDouble(), currentVisit?.numbers?.getValue("80")!!, 0.0)
         assertEquals(5.toDouble(), currentVisit?.numbers?.getValue("5128")!!, 0.0)
     }
 
