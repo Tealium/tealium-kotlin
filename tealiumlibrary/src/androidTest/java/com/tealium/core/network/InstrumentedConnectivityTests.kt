@@ -9,7 +9,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
-class ConnectivityTests {
+class InstrumentedConnectivityTests {
 
     lateinit var connectivity: Connectivity
 
