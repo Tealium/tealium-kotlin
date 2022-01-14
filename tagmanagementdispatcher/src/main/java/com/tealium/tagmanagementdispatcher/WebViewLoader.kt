@@ -27,7 +27,8 @@ import java.util.concurrent.atomic.AtomicReference
 class WebViewLoader(private val context: TealiumContext,
                     private val urlString: String,
                     private val afterDispatchSendCallbacks: AfterDispatchSendCallbacks,
-                    private val connectivityRetriever: Connectivity = ConnectivityRetriever.getInstance(context.config.application))
+                    private val connectivityRetriever: Connectivity = ConnectivityRetriever.getInstance(context.config.application),
+                    private val webViewProvider: () -> WebView = { WebView(context.config.application) })
     : LibrarySettingsUpdatedListener,
         SessionStartedListener {
 
@@ -39,6 +40,10 @@ class WebViewLoader(private val context: TealiumContext,
     private val backgroundScope = CoroutineScope(Dispatchers.IO)
     private var sessionId: Long = INVALID_SESSION_ID
     private val shouldRegisterSession = AtomicBoolean(false)
+    private val webViewCreationRetries = context.config.maxWebViewCreationRetries ?: 3
+
+    @Volatile
+    private var webViewCreationErrorCount = 0
 
     @Volatile
     lateinit var webView: WebView
@@ -196,7 +201,17 @@ class WebViewLoader(private val context: TealiumContext,
 
     private fun initializeWebView() {
         scope.launch {
-            webView = WebView(context.config.application.applicationContext)
+            if (webViewCreationErrorCount >= webViewCreationRetries) return@launch
+
+            try {
+                webView = webViewProvider()
+            } catch (ex: Exception) {
+                webViewCreationErrorCount++
+                Logger.qa(BuildConfig.TAG, "Exception whilst creating the WebView: ${ex.message}")
+                Logger.qa(BuildConfig.TAG, ex.stackTraceToString())
+                context.events.send(WebViewExceptionMessenger(ex))
+                return@launch
+            }
             webView.let { view ->
                 view.settings.run {
                     databaseEnabled = true
@@ -263,6 +278,11 @@ class WebViewLoader(private val context: TealiumContext,
             return
         }
 
+        if (!this::webView.isInitialized) {
+            initializeWebView()
+            return
+        }
+
         val oldStatus = webViewStatus.getAndSet(PageStatus.LOADING)
         if (oldStatus != PageStatus.LOADING) {
             val cacheBuster = if (urlString.contains("?")) '&' else '?'
@@ -281,6 +301,10 @@ class WebViewLoader(private val context: TealiumContext,
 
     fun isTimedOut(): Boolean {
         return SystemClock.elapsedRealtime() - lastUrlLoadTimestamp >= timeoutInterval.coerceAtLeast(0) * 1000;
+    }
+
+    fun hasReachedMaxErrors() : Boolean {
+        return webViewCreationErrorCount >= webViewCreationRetries
     }
 
     override fun onLibrarySettingsUpdated(settings: LibrarySettings) {

@@ -30,3 +30,4 @@
 -keep class com.tealium.tagmanagementdispatcher.TagManagementDispatcher$Companion { *; }
 -keep class com.tealium.tagmanagementdispatcher.TagManagementDispatcherKt { *; }
 -keep class com.tealium.tagmanagementdispatcher.TealiumConfigTagManagementDispatcherKt { *; }
+-keep class com.tealium.tagmanagementdispatcher.WebViewExceptionListener { *; }

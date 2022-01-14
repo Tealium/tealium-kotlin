@@ -6,6 +6,7 @@ import android.webkit.*
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
+import com.tealium.core.messaging.MessengerService
 import com.tealium.core.network.Connectivity
 import com.tealium.core.network.HttpClient
 import com.tealium.core.settings.LibrarySettings
@@ -18,6 +19,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.io.File
+import java.lang.Exception
 
 class WebViewLoaderTest {
 
@@ -48,6 +50,9 @@ class WebViewLoaderTest {
     @RelaxedMockK
     lateinit var mockConnectivity: Connectivity
 
+    @RelaxedMockK
+    lateinit var mockMessengerService: MessengerService
+
     lateinit var webViewLoader: WebViewLoader
     private val mainThreadSurrogate = newSingleThreadContext("UI thread")
 
@@ -64,6 +69,7 @@ class WebViewLoaderTest {
         every { mockContext.applicationContext } returns mockContext
         every { mockTealiumContext.config } returns mockTealiumConfig
         every { mockTealiumContext.httpClient } returns mockHttpClient
+        every { mockTealiumContext.events } returns mockMessengerService
 
         mockkConstructor(WebView::class)
         every {
@@ -86,6 +92,7 @@ class WebViewLoaderTest {
         every { CookieManager.getInstance().setAcceptThirdPartyCookies(any(), any()) } just Runs
 
         mockkStatic(SystemClock::class)
+        mockkStatic("com.tealium.tagmanagementdispatcher.TealiumConfigTagManagementDispatcherKt")
     }
 
     @Test
@@ -198,5 +205,87 @@ class WebViewLoaderTest {
     fun createSessionUrlIsCorrect() {
         assertEquals("https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=test/profile/12345&cb=12345",
                 WebViewLoader.createSessionUrl(mockTealiumConfig, 12345L))
+    }
+
+    @Test
+    fun initializeWebView_OnlyTriesThreeTimes_WhenWebViewFailsToLoad() {
+        val mockProvider = spyk<() -> WebView>({
+            throw Exception()
+        })
+
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockProvider)
+        repeat (5) {
+            webViewLoader.loadUrlToWebView()
+        }
+
+        verify(exactly = 3) {
+            mockProvider()
+        }
+    }
+
+    @Test
+    fun initializeWebView_Retries_WhenWebViewFailsToLoad() {
+        val mockProvider = spyk<() -> WebView>({
+            throw Exception()
+        })
+        val retries = 5
+        every { mockTealiumConfig.maxWebViewCreationRetries } returns retries
+
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockProvider)
+        repeat (retries * 2) {
+            webViewLoader.loadUrlToWebView()
+        }
+
+        verify(exactly = retries) {
+            mockProvider()
+        }
+    }
+
+    @Test
+    fun initializeWebView_CallsListener_WhenFailsToCreate() {
+        val mockProvider = spyk<() -> WebView>({
+            throw Exception()
+        })
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockProvider)
+        repeat (5) {
+            webViewLoader.loadUrlToWebView()
+        }
+
+        verify(exactly = 3) {
+            mockMessengerService.send(any<WebViewExceptionMessenger>())
+        }
+    }
+
+    @Test
+    fun hasReachedMaxErrors_ReturnsTrue_WhenMaxErrorsReached() = runBlocking {
+        val mockProvider = spyk<() -> WebView>({
+            throw Exception()
+        })
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockProvider)
+
+        repeat (3) {
+            assertFalse(webViewLoader.hasReachedMaxErrors())
+            webViewLoader.loadUrlToWebView()
+        }
+        delay(100)
+        assertTrue(webViewLoader.hasReachedMaxErrors())
+    }
+
+
+    @Test
+    fun hasReachedMaxErrors_ReturnsTrue_WhenCustomMaxErrorsReached() = runBlocking {
+        val mockProvider = spyk<() -> WebView>({
+            throw Exception()
+        })
+        val retries = 5
+        every { mockTealiumConfig.maxWebViewCreationRetries } returns retries
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockProvider)
+
+        repeat (retries) {
+            assertFalse(webViewLoader.hasReachedMaxErrors())
+            webViewLoader.loadUrlToWebView()
+        }
+        delay(100)
+        assertTrue(webViewLoader.hasReachedMaxErrors())
     }
 }
