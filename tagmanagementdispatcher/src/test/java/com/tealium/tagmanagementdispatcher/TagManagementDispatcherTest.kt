@@ -142,6 +142,35 @@ class TagManagementDispatcherTest {
     }
 
     @Test
+    fun webViewFailedShouldQueueByDefault() {
+        val dispatch = TealiumEvent("", emptyMap())
+        mockkConstructor(WebViewLoader::class)
+        every { anyConstructed<WebViewLoader>().hasReachedMaxErrors() } returns true
+
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        tagManagementDispatcher.webViewLoader.webViewStatus.set(PageStatus.LOADED_ERROR)
+        assertTrue(tagManagementDispatcher.shouldQueue(dispatch))
+
+        tagManagementDispatcher.webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
+        assertTrue(tagManagementDispatcher.shouldQueue(dispatch))
+    }
+
+    @Test
+    fun webViewFailedShouldNotQueueWhenConfigured() {
+        val dispatch = TealiumEvent("", emptyMap())
+        mockkConstructor(WebViewLoader::class)
+        config.shouldQueueOnLoadFailure = false
+        every { anyConstructed<WebViewLoader>().hasReachedMaxErrors() } returns true
+
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        tagManagementDispatcher.webViewLoader.webViewStatus.set(PageStatus.LOADED_ERROR)
+        assertFalse(tagManagementDispatcher.shouldQueue(dispatch))
+
+        tagManagementDispatcher.webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
+        assertFalse(tagManagementDispatcher.shouldQueue(dispatch))
+    }
+
+    @Test
     fun shouldNeverDropDispatch() {
         val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
         val dispatch = TealiumEvent("", emptyMap())
