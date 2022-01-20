@@ -201,7 +201,7 @@ class WebViewLoader(private val context: TealiumContext,
 
     private fun initializeWebView() {
         scope.launch {
-            if (webViewCreationErrorCount >= webViewCreationRetries) return@launch
+            if (hasReachedMaxErrors()) return@launch
 
             try {
                 webView = webViewProvider()
