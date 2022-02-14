@@ -31,7 +31,6 @@ class PurchaseListener: PurchasesUpdatedListener {
                 }
 
                 BillingClient.BillingResponseCode.USER_CANCELED -> {
-                    // track cancellation?
                     Logger.dev(BuildConfig.TAG, "Unable to track purchase. User cancelled.")
                 }
 

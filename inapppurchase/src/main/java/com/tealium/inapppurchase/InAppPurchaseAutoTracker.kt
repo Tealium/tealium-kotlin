@@ -69,14 +69,12 @@ class InAppPurchaseAutoTracker(
     }
 
     override fun onActivityResumed(activity: Activity?) {
-        // start connection
         if (billingClient == null) {
             startConnection()
         }
     }
 
     override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
-        // end connection
         billingClient?.let {
             if (it.connectionState == BillingClient.ConnectionState.CLOSED) {
                 endConnection()
