@@ -11,7 +11,7 @@ import org.robolectric.annotation.Config
 import java.nio.charset.Charset
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [21, 28])
+@Config(sdk = [21, 29])
 class FormatterTests {
 
     val utf8: Charset = Charset.forName("utf-8")

@@ -13,7 +13,7 @@ import org.robolectric.annotation.Config
 @Config(sdk = [Build.VERSION_CODES.P])
 class SerializationTests {
 
-    private lateinit var item: PersistentItem<*>
+    private lateinit var item: PersistentItem
     private val key = "key"
     private val expiry: Expiry? = null
     private val timestamp: Long = getTimestamp()
@@ -21,83 +21,124 @@ class SerializationTests {
     @Test
     fun testPersistentString() {
         val value = "string value"
-        item = PersistentString(key, value, expiry, timestamp)
+        item = PersistentItem(key, value, expiry, timestamp, Serialization.STRING)
 
         assertEquals(key, item.key)
-        assertEquals(value, item.serialize())
+        assertEquals(value, Serdes.stringSerde().deserializer.deserialize(item.value))
         assertEquals(timestamp, item.timestamp)
     }
 
     @Test
     fun testPersistentInt() {
         val value = 100
-        item = PersistentInt(key, value, expiry, timestamp)
+        item = PersistentItem(
+            key,
+            Serdes.intSerde().serializer.serialize(value),
+            expiry,
+            timestamp,
+            Serialization.INT
+        )
 
         assertEquals(key, item.key)
-        assertEquals("100", item.serialize())
-        assertEquals(value, PersistentInt.deserialize("100"))
+        assertEquals("100", item.value)
+        assertEquals(value, Serdes.intSerde().deserializer.deserialize("100"))
         assertEquals(timestamp, item.timestamp)
     }
 
     @Test
     fun testPersistentLong() {
         val value = 100L
-        item = PersistentLong(key, value, expiry, timestamp)
+        item = PersistentItem(
+            key,
+            Serdes.longSerde().serializer.serialize(value),
+            expiry,
+            timestamp,
+            Serialization.LONG
+        )
 
         assertEquals(key, item.key)
-        assertEquals("100", item.serialize())
-        assertEquals(value, PersistentLong.deserialize("100"))
+        assertEquals("100", item.value)
+        assertEquals(value, Serdes.longSerde().deserializer.deserialize("100"))
         assertEquals(timestamp, item.timestamp)
     }
-
 
     @Test
     fun testPersistentDouble() {
         val value = 100.1
-        item = PersistentDouble(key, value, expiry, timestamp)
+        item = PersistentItem(
+            key,
+            Serdes.doubleSerde().serializer.serialize(value),
+            expiry,
+            timestamp,
+            Serialization.DOUBLE
+        )
 
         assertEquals(key, item.key)
-        assertEquals("100.1", item.serialize())
-        assertEquals(value, PersistentDouble.deserialize("100.1"), 0.0)
+        assertEquals("100.1", item.value)
+        assertEquals(value, Serdes.doubleSerde().deserializer.deserialize("100.1"), 0.0)
         assertEquals(timestamp, item.timestamp)
     }
 
     @Test
     fun testPersistentBoolean() {
-        item = PersistentBoolean(key, true, expiry, timestamp)
+        item = PersistentItem(
+            key,
+            Serdes.booleanSerde().serializer.serialize(true),
+            expiry,
+            timestamp,
+            Serialization.BOOLEAN
+        )
 
         assertEquals(key, item.key)
-        assertEquals("1", item.serialize())
-        assertEquals(true, PersistentBoolean.deserialize("1"))
+        assertEquals("1", item.value)
+        assertEquals(true, Serdes.booleanSerde().deserializer.deserialize("1"))
         assertEquals(timestamp, item.timestamp)
 
-        item = PersistentBoolean(key, false, expiry, timestamp)
+        item = PersistentItem(
+            key,
+            Serdes.booleanSerde().serializer.serialize(false),
+            expiry,
+            timestamp,
+            Serialization.BOOLEAN
+        )
 
         assertEquals(key, item.key)
-        assertEquals("0", item.serialize())
-        assertEquals(false, PersistentBoolean.deserialize("0"))
+        assertEquals("0", item.value)
+        assertEquals(false, Serdes.booleanSerde().deserializer.deserialize("0"))
         assertEquals(timestamp, item.timestamp)
     }
 
     @Test
     fun testPersistentIntArray() {
         val value = arrayOf(10, 20, 30)
-        item = PersistentIntArray(key, value, expiry, timestamp)
+        item = PersistentItem(
+            key,
+            Serdes.intArraySerde().serializer.serialize(value),
+            expiry,
+            timestamp,
+            Serialization.INT_ARRAY
+        )
 
         assertEquals(key, item.key)
-        assertEquals("[10,20,30]", item.serialize())
-        assertArrayEquals(value, PersistentIntArray.deserialize("[10,20,30]"))
+        assertEquals("[10,20,30]", item.value)
+        assertArrayEquals(value, Serdes.intArraySerde().deserializer.deserialize("[10,20,30]"))
         assertEquals(timestamp, item.timestamp)
     }
 
     @Test
     fun testPersistentLongArray() {
         val value = arrayOf(10L, 20L, 30L)
-        item = PersistentLongArray(key, value, expiry, timestamp)
+        item = PersistentItem(
+            key,
+            Serdes.longArraySerde().serializer.serialize(value),
+            expiry,
+            timestamp,
+            Serialization.LONG_ARRAY
+        )
 
         assertEquals(key, item.key)
-        assertEquals("[10,20,30]", item.serialize())
-        assertArrayEquals(value, PersistentLongArray.deserialize("[10,20,30]"))
+        assertEquals("[10,20,30]", item.value)
+        assertArrayEquals(value, Serdes.longArraySerde().deserializer.deserialize("[10,20,30]"))
         assertEquals(timestamp, item.timestamp)
     }
 
@@ -105,22 +146,40 @@ class SerializationTests {
     @Test
     fun testPersistentDoubleArray() {
         val value = arrayOf(10.1, 20.2, 30.3)
-        item = PersistentDoubleArray(key, value, expiry, timestamp)
+        item = PersistentItem(
+            key,
+            Serdes.doubleArraySerde().serializer.serialize(value),
+            expiry,
+            timestamp,
+            Serialization.DOUBLE_ARRAY
+        )
 
         assertEquals(key, item.key)
-        assertEquals("[10.1,20.2,30.3]", item.serialize())
-        assertArrayEquals(value, PersistentDoubleArray.deserialize("[10.1,20.2,30.3]"))
+        assertEquals("[10.1,20.2,30.3]", item.value)
+        assertArrayEquals(
+            value,
+            Serdes.doubleArraySerde().deserializer.deserialize("[10.1,20.2,30.3]")
+        )
         assertEquals(timestamp, item.timestamp)
     }
 
     @Test
     fun testPersistentBooleanArray() {
         val value = arrayOf(true, false, true)
-        item = PersistentBooleanArray(key, value, expiry, timestamp)
+        item = PersistentItem(
+            key,
+            Serdes.booleanArraySerde().serializer.serialize(value),
+            expiry,
+            timestamp,
+            Serialization.BOOLEAN_ARRAY
+        )
 
         assertEquals(key, item.key)
-        assertEquals("[true,false,true]", item.serialize())
-        assertArrayEquals(value, PersistentBooleanArray.deserialize("[true,false,true]"))
+        assertEquals("[true,false,true]", item.value)
+        assertArrayEquals(
+            value,
+            Serdes.booleanArraySerde().deserializer.deserialize("[true,false,true]")
+        )
         assertEquals(timestamp, item.timestamp)
     }
 
@@ -139,11 +198,20 @@ class SerializationTests {
                 "boolean": true
             }
         """.trimIndent().replace(" ", "").replace("\n", "")
-        item = PersistentJsonObject(key, value, expiry, timestamp)
+        item = PersistentItem(
+            key,
+            Serdes.jsonObjectSerde().serializer.serialize(value),
+            expiry,
+            timestamp,
+            Serialization.JSON_OBJECT
+        )
 
         assertEquals(key, item.key)
-        assertEquals(jsonString, item.serialize())
-        assertEquals(value.toString(), PersistentJsonObject.deserialize(jsonString).toString())
+        assertEquals(jsonString, item.value)
+        assertEquals(
+            value.toString(),
+            Serdes.jsonObjectSerde().deserializer.deserialize(jsonString).toString()
+        )
         assertEquals(timestamp, item.timestamp)
     }
 }

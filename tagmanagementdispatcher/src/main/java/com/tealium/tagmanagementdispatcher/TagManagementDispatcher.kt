@@ -35,12 +35,13 @@ class TagManagementDispatcher(private val context: TealiumContext,
                 "${context.config.accountName}/" +
                 "${context.config.profileName}/" +
                 "${context.config.environment.environment}/mobile.html?" +
-                "${DeviceCollectorConstants.DEVICE_PLATFORM}=android" +
-                "&${DeviceCollectorConstants.DEVICE_OS_VERSION}=${Build.VERSION.RELEASE}" +
-                "&${CoreConstant.LIBRARY_VERSION}=${BuildConfig.VERSION_NAME}" +
+                "${Dispatch.Keys.DEVICE_PLATFORM}=android" +
+                "&${Dispatch.Keys.DEVICE_OS_VERSION}=${Build.VERSION.RELEASE}" +
+                "&${Dispatch.Keys.LIBRARY_VERSION}=${BuildConfig.VERSION_NAME}" +
                 "&sdk_session_count=true"
 
     private val remoteApiEnabled: Boolean = context.config.remoteApiEnabled ?: true
+    private val shouldQueueOnLoadFailure: Boolean = context.config.shouldQueueOnLoadFailure ?: true
 
     private val scope = CoroutineScope(Dispatchers.Main)
     internal var webViewLoader = WebViewLoader(context, urlString, afterDispatchSendCallbacks, connectivityRetriever = connectivity)
@@ -48,7 +49,7 @@ class TagManagementDispatcher(private val context: TealiumContext,
     fun callRemoteCommandTags(dispatch: Dispatch) {
         if (!remoteApiEnabled) return
 
-        val remoteCommandScript = "utag.track(\"remote_api\", ${dispatch.toJsonString()})"
+        val remoteCommandScript = "utag.track(\"remote_api\", ${JsonUtils.jsonFor(dispatch.payload())})"
         onEvaluateJavascript(remoteCommandScript)
     }
 
@@ -66,18 +67,19 @@ class TagManagementDispatcher(private val context: TealiumContext,
         if (ConsentManager.isConsentGrantedEvent(dispatch)) {
             context.config.consentManagerLoggingProfile?.let {
                 dispatch.addAll(
-                    mapOf(TEALIUM_PROFILE to it)
+                    mapOf(Dispatch.Keys.TEALIUM_PROFILE to it)
                 )
             }
         }
 
-        val callType = dispatch.payload()[CoreConstant.TEALIUM_EVENT_TYPE]
+        val callType = dispatch.payload()[Dispatch.Keys.TEALIUM_EVENT_TYPE]
+        val payload = JsonUtils.jsonFor(dispatch.payload())
         val javascriptCall = callType?.let {
             when (it) {
-                TagManagementConstants.EVENT -> "utag.track(\"link\", ${dispatch.toJsonString()})"
-                else -> "utag.track(\"$it\", ${dispatch.toJsonString()})"
+                TagManagementConstants.EVENT -> "utag.track(\"link\", ${payload})"
+                else -> "utag.track(\"$it\", ${payload})"
             }
-        } ?: "utag.track(\"link\", ${dispatch.toJsonString()})"
+        } ?: "utag.track(\"link\", ${payload})"
 
         onEvaluateJavascript(javascriptCall)
 
@@ -125,7 +127,10 @@ class TagManagementDispatcher(private val context: TealiumContext,
     }
 
     override fun shouldQueue(dispatch: Dispatch?): Boolean {
-        return webViewLoader.webViewStatus.get() != PageStatus.LOADED_SUCCESS
+        return if (webViewLoader.hasReachedMaxErrors())
+            shouldQueueOnLoadFailure
+        else
+            webViewLoader.webViewStatus.get() != PageStatus.LOADED_SUCCESS
     }
 
     override fun shouldDrop(dispatch: Dispatch): Boolean {
@@ -136,7 +141,7 @@ class TagManagementDispatcher(private val context: TealiumContext,
         if (!policy.cookieUpdateRequired) return
 
         val dispatch = TealiumEvent(policy.cookieUpdateEventName, policy.policyStatusInfo())
-        dispatch.addAll(mapOf(CoreConstant.TEALIUM_EVENT_TYPE to policy.cookieUpdateEventName))
+        dispatch.addAll(mapOf(Dispatch.Keys.TEALIUM_EVENT_TYPE to policy.cookieUpdateEventName))
 
         track(dispatch)
     }

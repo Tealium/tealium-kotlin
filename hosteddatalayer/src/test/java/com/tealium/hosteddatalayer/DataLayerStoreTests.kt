@@ -2,12 +2,8 @@ package com.tealium.hosteddatalayer
 
 import com.tealium.core.TealiumConfig
 import com.tealium.core.network.Connectivity
-import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit
-import io.mockk.MockKAnnotations
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import io.mockk.spyk
-import io.mockk.verify
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.*
@@ -17,6 +13,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.io.File
 import java.lang.Exception
+import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
 @RunWith(RobolectricTestRunner::class)
@@ -52,6 +49,7 @@ class DataLayerStoreTests {
         options = mutableMapOf()
         cache = mutableMapOf()
 
+        mockkStatic("com.tealium.hosteddatalayer.TealiumConfigHostedDataLayerKt")
         // reasonable defaults
         every { mockConfig.options } returns options
         every { mockConfig.hostedDataLayerMaxCacheSize } returns defaultCacheSize

@@ -66,7 +66,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
     // Dependencies for publicly accessible objects.
     private val databaseHelper: DatabaseHelper = DatabaseHelper(config)
     private val eventRouter = EventDispatcher()
-    private val activityObserver: ActivityObserver = ActivityObserver(config, eventRouter)
+    private val activityObserver: ActivityObserver = ActivityObserver(config, eventRouter, backgroundScope)
     private val sessionManager = SessionManager(config, eventRouter)
     private val deepLinkHandler: DeepLinkHandler
     private val timedEvents: TimedEventsManager
@@ -79,7 +79,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
      */
     val logger: Logging = Logger
 
-    private lateinit var _modules: ModuleManager
+    private val _modules: MutableModuleManager = MutableModuleManager(emptyList())
 
     /**
      * Provides access to the different modules that are in use, either by name or by class.
@@ -136,17 +136,14 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
     init {
         migratePersistentData()
 
-        Logger.logLevel = when (config.environment) {
+        Logger.logLevel = config.logLevel ?: when(config.environment) {
             Environment.DEV -> LogLevel.DEV
             Environment.QA -> LogLevel.QA
             Environment.PROD -> LogLevel.PROD
         }
 
-        eventRouter.subscribe(Logger)
-        eventRouter.subscribe(sessionManager)
-
         deepLinkHandler = DeepLinkHandler(context)
-        eventRouter.subscribe(deepLinkHandler)
+        eventRouter.subscribeAll(listOf(Logger, sessionManager, deepLinkHandler))
         timedEvents = TimedEventsManager(context)
 
         // Initialize everything else in the background.
@@ -219,10 +216,12 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
                 .toList()
         val moduleCollector = ModuleCollector(modulesList)
 
-        modulesList.filterIsInstance<Listener>().forEach {
-            eventRouter.subscribe(it)
+        modulesList.filterIsInstance<Listener>().let {
+            eventRouter.subscribeAll(it)
         }
-        _modules = ModuleManager(modulesList)
+        modulesList.forEach {
+            _modules.add(it)
+        }
 
         dispatchRouter = DispatchRouter(singleThreadedBackground,
                 modules.getModulesForType(Collector::class.java).union(setOf(moduleCollector)),
@@ -233,8 +232,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
                 connectivity,
                 consentManager,
                 eventRouter)
-        eventRouter.subscribe(dispatchRouter)
-        eventRouter.subscribe(dispatchStore)
+        eventRouter.subscribeAll(listOf(dispatchRouter, dispatchStore))
         onInstanceReady()
     }
 

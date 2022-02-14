@@ -2,6 +2,7 @@ package com.tealium.core.collection
 
 import com.tealium.core.Collector
 import com.tealium.core.Module
+import com.tealium.dispatcher.Dispatch
 import java.lang.Exception
 
 internal class ModuleCollector(modules: List<Module>) : Collector {
@@ -36,11 +37,12 @@ internal class ModuleCollector(modules: List<Module>) : Collector {
     }
 
     override suspend fun collect(): Map<String, Any> {
-        val sortedEnabledModules = modulesWithVersions.filter { module -> module.enabled }.sortedBy { module -> module.name }
+        val sortedEnabledModules = modulesWithVersions.filter { module -> module.enabled }
+            .sortedBy { module -> module.name }
 
         return mapOf(
-                "enabled_modules" to sortedEnabledModules.map { module -> module.name },
-                "enabled_modules_versions" to sortedEnabledModules.map { module -> moduleVersions[module.name] }
+            Dispatch.Keys.ENABLED_MODULES to sortedEnabledModules.map { module -> module.name },
+            Dispatch.Keys.ENABLED_MODULES_VERSIONS to sortedEnabledModules.map { module -> moduleVersions[module.name] }
         )
     }
 

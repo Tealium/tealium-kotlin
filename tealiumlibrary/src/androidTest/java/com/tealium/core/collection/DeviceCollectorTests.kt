@@ -6,6 +6,7 @@ import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.persistence.DataLayer
+import com.tealium.dispatcher.Dispatch
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -51,28 +52,31 @@ class DeviceCollectorTests {
         val deviceCollector = DeviceCollector.create(tealiumContext)
         val data = deviceCollector.collect()
 
-        assertNotNull(data[DeviceCollectorConstants.DEVICE])
-        assertNotNull(data[DeviceCollectorConstants.DEVICE_MODEL])
-        assertNotNull(data[DeviceCollectorConstants.DEVICE_MANUFACTURER])
+        assertNotNull(data[Dispatch.Keys.DEVICE])
+        assertNotNull(data[Dispatch.Keys.DEVICE_MODEL])
+        assertNotNull(data[Dispatch.Keys.DEVICE_MANUFACTURER])
         assertTrue(
-                (data[DeviceCollectorConstants.DEVICE_ARCHITECTURE] as String).startsWith("64") ||
-                        (data[DeviceCollectorConstants.DEVICE_ARCHITECTURE] as String).startsWith("32")
+                (data[Dispatch.Keys.DEVICE_ARCHITECTURE] as String).startsWith("64") ||
+                        (data[Dispatch.Keys.DEVICE_ARCHITECTURE] as String).startsWith("32")
         )
-        assertTrue((data[DeviceCollectorConstants.DEVICE_AVAILABLE_SYSTEM_STORAGE] as Long) >= 0)
-        assertTrue((data[DeviceCollectorConstants.DEVICE_AVAILABLE_EXTERNAL_STORAGE] as Long) >= 0)
-        assertNotNull(data[DeviceCollectorConstants.DEVICE_CPU_TYPE])
-        assertNotNull(data[DeviceCollectorConstants.DEVICE_ORIGIN])
+        assertTrue((data[Dispatch.Keys.DEVICE_AVAILABLE_SYSTEM_STORAGE] as Long) >= 0)
+        assertTrue((data[Dispatch.Keys.DEVICE_AVAILABLE_EXTERNAL_STORAGE] as Long) >= 0)
+        assertNotNull(data[Dispatch.Keys.DEVICE_CPU_TYPE])
+        assertNotNull(data[Dispatch.Keys.DEVICE_ORIGIN])
         assertTrue(
-                (data[DeviceCollectorConstants.DEVICE_ORIENTATION] as String).startsWith("Landscape") ||
-                        (data[DeviceCollectorConstants.DEVICE_ORIENTATION] as String).startsWith("Portrait")
+                (data[Dispatch.Keys.DEVICE_ORIENTATION] as String).startsWith("Landscape") ||
+                        (data[Dispatch.Keys.DEVICE_ORIENTATION] as String).startsWith("Portrait")
         )
-        assertNotNull(data[DeviceCollectorConstants.DEVICE_OS_BUILD])
-        assertNotNull(data[DeviceCollectorConstants.DEVICE_OS_VERSION])
-        assertNotNull(data[DeviceCollectorConstants.DEVICE_LANGUAGE])
-        assertEquals("android", data[DeviceCollectorConstants.DEVICE_PLATFORM])
-        assertEquals("Android", data[DeviceCollectorConstants.DEVICE_OS_NAME])
-        assertNotNull(data[DeviceCollectorConstants.DEVICE_RUNTIME])
-        assertTrue("[0-9]+x[0-9]+".toRegex().matches(data[DeviceCollectorConstants.DEVICE_RESOLUTION] as String))
+        assertNotNull(data[Dispatch.Keys.DEVICE_OS_BUILD])
+        assertNotNull(data[Dispatch.Keys.DEVICE_OS_VERSION])
+        assertNotNull(data[Dispatch.Keys.DEVICE_LANGUAGE])
+        assertNotNull(data[Dispatch.Keys.DEVICE_BATTERY_PERCENT])
+        assertNotNull(data[Dispatch.Keys.DEVICE_ISCHARGING])
+        assertEquals("android", data[Dispatch.Keys.DEVICE_PLATFORM])
+        assertEquals("Android", data[Dispatch.Keys.DEVICE_OS_NAME])
+        assertNotNull(data[Dispatch.Keys.DEVICE_RUNTIME])
+        assertTrue("[0-9]+x[0-9]+".toRegex().matches(data[Dispatch.Keys.DEVICE_RESOLUTION] as String))
+        assertTrue("[0-9]+x[0-9]+".toRegex().matches(data[Dispatch.Keys.DEVICE_LOGICAL_RESOLUTION] as String))
 
         assertSame(DeviceCollector.create(tealiumContext), DeviceCollector.create(tealiumContext))
     }

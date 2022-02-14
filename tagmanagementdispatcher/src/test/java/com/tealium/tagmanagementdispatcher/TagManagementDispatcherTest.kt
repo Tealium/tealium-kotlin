@@ -10,6 +10,7 @@ import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.network.Connectivity
+import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -28,7 +29,7 @@ import java.io.File
 import java.net.URL
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [21, 28])
+@Config(sdk = [21, 29])
 class TagManagementDispatcherTest {
 
     @MockK
@@ -105,9 +106,9 @@ class TagManagementDispatcherTest {
         val queryParams = url.query.split("&").associate { param ->
             Pair(param.split("=")[0], param.split("=")[1])
         }
-        assertEquals("android", queryParams[DeviceCollectorConstants.DEVICE_PLATFORM])
-        assertEquals(Build.VERSION.RELEASE, queryParams[DeviceCollectorConstants.DEVICE_OS_VERSION])
-        assertEquals(BuildConfig.VERSION_NAME, queryParams[CoreConstant.LIBRARY_VERSION])
+        assertEquals("android", queryParams[Dispatch.Keys.DEVICE_PLATFORM])
+        assertEquals(Build.VERSION.RELEASE, queryParams[Dispatch.Keys.DEVICE_OS_VERSION])
+        assertEquals(BuildConfig.VERSION_NAME, queryParams[Dispatch.Keys.LIBRARY_VERSION])
         assertEquals("true", queryParams["sdk_session_count"])
     }
 
@@ -138,6 +139,35 @@ class TagManagementDispatcherTest {
         assertTrue(tagManagementDispatcher.shouldQueue(dispatch))
         tagManagementDispatcher.webViewLoader.webViewStatus.set(PageStatus.LOADING)
         assertTrue(tagManagementDispatcher.shouldQueue(dispatch))
+    }
+
+    @Test
+    fun webViewFailedShouldQueueByDefault() {
+        val dispatch = TealiumEvent("", emptyMap())
+        mockkConstructor(WebViewLoader::class)
+        every { anyConstructed<WebViewLoader>().hasReachedMaxErrors() } returns true
+
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        tagManagementDispatcher.webViewLoader.webViewStatus.set(PageStatus.LOADED_ERROR)
+        assertTrue(tagManagementDispatcher.shouldQueue(dispatch))
+
+        tagManagementDispatcher.webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
+        assertTrue(tagManagementDispatcher.shouldQueue(dispatch))
+    }
+
+    @Test
+    fun webViewFailedShouldNotQueueWhenConfigured() {
+        val dispatch = TealiumEvent("", emptyMap())
+        mockkConstructor(WebViewLoader::class)
+        config.shouldQueueOnLoadFailure = false
+        every { anyConstructed<WebViewLoader>().hasReachedMaxErrors() } returns true
+
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        tagManagementDispatcher.webViewLoader.webViewStatus.set(PageStatus.LOADED_ERROR)
+        assertFalse(tagManagementDispatcher.shouldQueue(dispatch))
+
+        tagManagementDispatcher.webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
+        assertFalse(tagManagementDispatcher.shouldQueue(dispatch))
     }
 
     @Test

@@ -1,12 +1,9 @@
 package com.tealium.core.consent
 
-import com.tealium.core.consent.ConsentManagerConstants.CONSENT_CATEGORIES
-import com.tealium.core.consent.ConsentManagerConstants.CONSENT_DO_NOT_SELL
-import com.tealium.core.consent.ConsentManagerConstants.CONSENT_POLICY
-import com.tealium.core.consent.ConsentManagerConstants.CONSENT_STATUS
 import com.tealium.core.consent.ConsentManagerConstants.DECLINE_CONSENT
 import com.tealium.core.consent.ConsentManagerConstants.GRANT_FULL_CONSENT
 import com.tealium.core.consent.ConsentManagerConstants.GRANT_PARTIAL_CONSENT
+import com.tealium.dispatcher.Dispatch
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -95,8 +92,8 @@ class UserConsentPreferencesTest {
         assertEquals(DECLINE_CONSENT, gdprPolicy.consentLoggingEventName)
 
         val policyInfo = gdprPolicy.policyStatusInfo()
-        assertEquals(ConsentPolicy.GDPR.value, policyInfo[CONSENT_POLICY])
-        assertFalse(policyInfo.keys.contains(CONSENT_CATEGORIES))
+        assertEquals(ConsentPolicy.GDPR.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
+        assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
     }
 
     @Test
@@ -110,9 +107,9 @@ class UserConsentPreferencesTest {
         assertEquals(GRANT_FULL_CONSENT, gdprPolicy.consentLoggingEventName)
 
         val policyInfo = gdprPolicy.policyStatusInfo()
-        assertEquals(ConsentPolicy.GDPR.value, policyInfo[CONSENT_POLICY])
-        assertEquals(ConsentStatus.CONSENTED, policyInfo[CONSENT_STATUS])
-        assertTrue(policyInfo.keys.contains(CONSENT_CATEGORIES))
+        assertEquals(ConsentPolicy.GDPR.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
+        assertEquals(ConsentStatus.CONSENTED, policyInfo[Dispatch.Keys.CONSENT_STATUS])
+        assertTrue(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
     }
 
     @Test
@@ -126,15 +123,15 @@ class UserConsentPreferencesTest {
         assertEquals(GRANT_PARTIAL_CONSENT, gdprPolicy.consentLoggingEventName)
 
         var policyInfo = gdprPolicy.policyStatusInfo()
-        assertEquals(ConsentPolicy.GDPR.value, policyInfo[CONSENT_POLICY])
-        assertEquals(ConsentStatus.CONSENTED, policyInfo[CONSENT_STATUS])
-        assertFalse(policyInfo.keys.contains(CONSENT_CATEGORIES))
+        assertEquals(ConsentPolicy.GDPR.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
+        assertEquals(ConsentStatus.CONSENTED, policyInfo[Dispatch.Keys.CONSENT_STATUS])
+        assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
 
         every { preferences.consentCategories } returns setOf(ConsentCategory.AFFILIATES, ConsentCategory.MONITORING)
         policyInfo = gdprPolicy.policyStatusInfo()
-        assertEquals(ConsentPolicy.GDPR.value, policyInfo[CONSENT_POLICY])
-        assertEquals(ConsentStatus.CONSENTED, policyInfo[CONSENT_STATUS])
-        assertTrue(policyInfo.keys.contains(CONSENT_CATEGORIES))
+        assertEquals(ConsentPolicy.GDPR.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
+        assertEquals(ConsentStatus.CONSENTED, policyInfo[Dispatch.Keys.CONSENT_STATUS])
+        assertTrue(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
     }
 
     @Test
@@ -147,9 +144,9 @@ class UserConsentPreferencesTest {
         assertEquals(DECLINE_CONSENT, gdprPolicy.consentLoggingEventName)
 
         val policyInfo = gdprPolicy.policyStatusInfo()
-        assertEquals(ConsentPolicy.GDPR.value, policyInfo[CONSENT_POLICY])
-        assertEquals(ConsentStatus.NOT_CONSENTED, policyInfo[CONSENT_STATUS])
-        assertFalse(policyInfo.keys.contains(CONSENT_CATEGORIES))
+        assertEquals(ConsentPolicy.GDPR.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
+        assertEquals(ConsentStatus.NOT_CONSENTED, policyInfo[Dispatch.Keys.CONSENT_STATUS])
+        assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
     }
 
     @Test
@@ -172,10 +169,10 @@ class UserConsentPreferencesTest {
         assertEquals(GRANT_PARTIAL_CONSENT, ccpaPolicy.consentLoggingEventName)
 
         val policyInfo = ccpaPolicy.policyStatusInfo()
-        assertEquals(ConsentPolicy.CCPA.value, policyInfo[CONSENT_POLICY])
-        assertEquals(false, policyInfo[CONSENT_DO_NOT_SELL])
-        assertFalse(policyInfo.keys.contains(CONSENT_STATUS))
-        assertFalse(policyInfo.keys.contains(CONSENT_CATEGORIES))
+        assertEquals(ConsentPolicy.CCPA.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
+        assertEquals(false, policyInfo[Dispatch.Keys.CONSENT_DO_NOT_SELL])
+        assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_STATUS))
+        assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
     }
 
     @Test
@@ -189,10 +186,10 @@ class UserConsentPreferencesTest {
         assertEquals(GRANT_FULL_CONSENT, ccpaPolicy.consentLoggingEventName)
 
         val policyInfo = ccpaPolicy.policyStatusInfo()
-        assertEquals(ConsentPolicy.CCPA.value, policyInfo[CONSENT_POLICY])
-        assertTrue(policyInfo[CONSENT_DO_NOT_SELL] as Boolean)
-        assertFalse(policyInfo.keys.contains(CONSENT_STATUS))
-        assertFalse(policyInfo.keys.contains(CONSENT_CATEGORIES))
+        assertEquals(ConsentPolicy.CCPA.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
+        assertTrue(policyInfo[Dispatch.Keys.CONSENT_DO_NOT_SELL] as Boolean)
+        assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_STATUS))
+        assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
     }
 
     @Test
@@ -206,10 +203,10 @@ class UserConsentPreferencesTest {
         assertEquals(GRANT_FULL_CONSENT, ccpaPolicy.consentLoggingEventName)
 
         val policyInfo = ccpaPolicy.policyStatusInfo()
-        assertEquals(ConsentPolicy.CCPA.value, policyInfo[CONSENT_POLICY])
-        assertTrue(policyInfo[CONSENT_DO_NOT_SELL] as Boolean)
-        assertFalse(policyInfo.keys.contains(CONSENT_STATUS))
-        assertFalse(policyInfo.keys.contains(CONSENT_CATEGORIES))
+        assertEquals(ConsentPolicy.CCPA.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
+        assertTrue(policyInfo[Dispatch.Keys.CONSENT_DO_NOT_SELL] as Boolean)
+        assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_STATUS))
+        assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
     }
 
     @Test
@@ -223,9 +220,9 @@ class UserConsentPreferencesTest {
         assertEquals(GRANT_PARTIAL_CONSENT, ccpaPolicy.consentLoggingEventName)
 
         val policyInfo = ccpaPolicy.policyStatusInfo()
-        assertEquals(ConsentPolicy.CCPA.value, policyInfo[CONSENT_POLICY])
-        assertFalse(policyInfo[CONSENT_DO_NOT_SELL] as Boolean)
-        assertFalse(policyInfo.keys.contains(CONSENT_CATEGORIES))
+        assertEquals(ConsentPolicy.CCPA.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
+        assertFalse(policyInfo[Dispatch.Keys.CONSENT_DO_NOT_SELL] as Boolean)
+        assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
     }
 
     @Test

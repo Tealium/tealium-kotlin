@@ -2,7 +2,6 @@ package com.tealium.collectdispatcher
 
 import com.tealium.core.*
 import com.tealium.core.consent.ConsentManager
-import com.tealium.core.consent.ConsentManagerConstants
 import com.tealium.core.consent.consentManagerLoggingProfile
 import com.tealium.core.consent.consentManagerLoggingUrl
 import com.tealium.core.messaging.*
@@ -60,24 +59,25 @@ class CollectDispatcher(private val config: TealiumConfig,
             ConsentManager.isConsentGrantedEvent(dispatch) -> {
                 config.consentManagerLoggingProfile?.let {
                     dispatch.addAll(
-                        mapOf(TEALIUM_PROFILE to it)
+                        mapOf(Dispatch.Keys.TEALIUM_PROFILE to it)
                     )
                 }
                 config.consentManagerLoggingUrl?.let { consentUrl ->
-                    Logger.dev(BuildConfig.TAG, "Sending dispatch: ${dispatch.payload()}")
-                    client.post(JSONObject(dispatch.payload()).toString(), consentUrl, false)
+                    Logger.dev(BuildConfig.TAG, "Sending dispatch: ${JsonUtils.jsonFor(dispatch.payload())}")
+                    client.post(JsonUtils.jsonFor(dispatch.payload()).toString(), consentUrl, false)
                     return
                 }
             }
             profileOverride != null -> {
                 dispatch.addAll(
-                    mapOf(TEALIUM_PROFILE to profileOverride)
+                    mapOf(Dispatch.Keys.TEALIUM_PROFILE to profileOverride)
                 )
             }
         }
 
-        Logger.dev(BuildConfig.TAG, "Sending dispatch: ${dispatch.payload()}")
-        client.post(JSONObject(dispatch.payload()).toString(), eventUrl, false)
+        val payload = JsonUtils.jsonFor(dispatch.payload())
+        Logger.dev(BuildConfig.TAG, "Sending dispatch: ${payload}")
+        client.post(payload.toString(), eventUrl, false)
     }
 
     override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {
@@ -100,9 +100,9 @@ class CollectDispatcher(private val config: TealiumConfig,
         val batchDispatch = BatchDispatch.create(dispatchList.toList())
         batchDispatch?.let {
             if (profileOverride != null) {
-                batchDispatch.shared[TEALIUM_PROFILE] = profileOverride
+                batchDispatch.shared[Dispatch.Keys.TEALIUM_PROFILE] = profileOverride
             }
-            client.post(JSONObject(batchDispatch.payload()).toString(), batchEventUrl, true)
+            client.post(JsonUtils.jsonFor(batchDispatch.payload()).toString(), batchEventUrl, true)
         }
     }
 

@@ -7,12 +7,22 @@ import com.tealium.dispatcher.Dispatcher
 import org.json.JSONObject
 import java.lang.Exception
 
+class MutableModuleManager(moduleList: List<Module>): ModuleManager(moduleList) {
+    fun add(module: Module) {
+        allModules[module.name] = module
+    }
+
+    fun remove(module: Module) {
+        allModules.remove(module.name)
+    }
+}
+
 /**
  * Provides a central repository for all modules used within a [Tealium] Instance.
  */
-class ModuleManager(moduleList: List<Module>): LibrarySettingsUpdatedListener {
+open class ModuleManager(moduleList: List<Module>): LibrarySettingsUpdatedListener {
 
-    private val allModules: Map<String, Module> = moduleList.associateBy { it.name }
+    protected val allModules: MutableMap<String, Module> = moduleList.associateBy { it.name }.toMutableMap()
 
     /**
      * Fetches all modules of the given type e.g. Collector/Dispatcher classes may have many different

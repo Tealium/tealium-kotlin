@@ -10,7 +10,7 @@ import org.robolectric.annotation.Config
 import java.io.BufferedReader
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [21, 28])
+@Config(sdk = [21, 29])
 class VisitorProfileTest {
 
     @Test

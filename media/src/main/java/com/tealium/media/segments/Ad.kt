@@ -44,7 +44,7 @@ data class Ad(val id: String? = null,
     }
 
     override fun segmentInfo(): Map<String, Any> {
-        val data = mutableMapOf(
+        val data = mutableMapOf<String, Any>(
                 AdKey.NAME to adName,
                 AdKey.UUID to uuid,
                 AdKey.SKIPPED to skipped

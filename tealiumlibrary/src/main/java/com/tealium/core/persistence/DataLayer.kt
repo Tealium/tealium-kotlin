@@ -1,12 +1,7 @@
 package com.tealium.core.persistence
 
-import android.provider.BaseColumns
 import com.tealium.core.Collector
-import com.tealium.core.persistence.SqlDataLayer.Companion.Columns.COLUMN_EXPIRY
-import com.tealium.core.persistence.SqlDataLayer.Companion.Columns.COLUMN_KEY
-import com.tealium.core.persistence.SqlDataLayer.Companion.Columns.COLUMN_TIMESTAMP
-import com.tealium.core.persistence.SqlDataLayer.Companion.Columns.COLUMN_TYPE
-import com.tealium.core.persistence.SqlDataLayer.Companion.Columns.COLUMN_VALUE
+import org.json.JSONArray
 import org.json.JSONObject
 
 interface DataLayer : Collector {
@@ -111,6 +106,15 @@ interface DataLayer : Collector {
     fun putJsonObject(key: String, value: JSONObject, expiry: Expiry? = null)
 
     /**
+     * Stores a JSONArray [value] referenced by the [key], with an optional expiry time.
+     *
+     * @param key string value identifying the [value]
+     * @param value JSONArray value to be stored
+     * @param expiry optional expiry time - the default is left to the implementation
+     */
+    fun putJsonArray(key: String, value: JSONArray, expiry: Expiry? = null)
+
+    /**
      * Retrieves a String value for the given key.
      *
      * @return String value associated with the key, else null where the key doesn't exist or if
@@ -199,6 +203,14 @@ interface DataLayer : Collector {
     fun getJsonObject(key: String): JSONObject?
 
     /**
+     * Retrieves a JSONArray value for the given key.
+     *
+     * @return JSONArray value associated with the key, else null where the key doesn't exist or if
+     *  the value stored for this key is not a JSONArray.
+     */
+    fun getJsonArray(key: String): JSONArray?
+
+    /**
      * Retrieves a value for the given key.
      *
      * @return Value associated with the key, else null where the key doesn't exist.
@@ -246,61 +258,3 @@ interface DataLayer : Collector {
         return all()
     }
 }
-
-interface SqlDataLayer : DataLayer {
-
-    companion object {
-
-        object Columns : BaseColumns {
-            const val COLUMN_KEY = "key"
-            const val COLUMN_VALUE = "value"
-            const val COLUMN_EXPIRY = "expiry"
-            const val COLUMN_TIMESTAMP = "timestamp"
-            const val COLUMN_TYPE = "type"
-        }
-
-        object Sql {
-            fun getCreateTableSql(tableName: String): String {
-                return "CREATE TABLE IF NOT EXISTS $tableName (" +
-                        //"${BaseColumns._ID} INTEGER PRIMARY KEY, " +
-                        "$COLUMN_KEY TEXT PRIMARY KEY," +
-                        "$COLUMN_VALUE TEXT," +
-                        "$COLUMN_EXPIRY LONG, " +
-                        "$COLUMN_TIMESTAMP LONG, " +
-                        "$COLUMN_TYPE SMALLINT)"
-            }
-        }
-
-        object Type {
-            const val STRING = 0
-            const val INTEGER = 1
-            const val DOUBLE = 2
-            const val LONG = 3
-            const val BOOLEAN = 4
-            const val STRING_ARRAY = 5
-            const val INTEGER_ARRAY = 6
-            const val DOUBLE_ARRAY = 7
-            const val LONG_ARRAY = 8
-            const val BOOLEAN_ARRAY = 9
-            const val JSON = 10
-
-            fun asString(code: Int): String {
-                return when (code) {
-                    0 -> "String"
-                    1 -> "Int"
-                    2 -> "Double"
-                    3 -> "Long"
-                    4 -> "Boolean"
-                    5 -> "String Array"
-                    6 -> "Int Array"
-                    7 -> "Double Array"
-                    8 -> "Long Array"
-                    9 -> "Boolean Array"
-                    10 -> "Json Object"
-                    else -> "Unknown"
-                }
-            }
-        }
-    }
-}
-

@@ -8,24 +8,28 @@ import androidx.fragment.app.Fragment
 import com.android.billingclient.api.Purchase
 import com.tealium.mobile.R
 import com.tealium.mobile.TealiumHelper
-import kotlinx.android.synthetic.main.fragment_in_app_purchase.*
+import com.tealium.mobile.databinding.FragmentInAppPurchaseBinding
+import com.tealium.mobile.databinding.FragmentMediaBinding
 import org.json.JSONArray
 import org.json.JSONObject
 
 class InAppPurchaseFragment : Fragment() {
+
+    private lateinit var binding: FragmentInAppPurchaseBinding
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_in_app_purchase,container, false)
+        binding = FragmentInAppPurchaseBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        purchaseButton.setOnClickListener {
+        binding.purchaseButton.setOnClickListener {
             onPurchase()
         }
     }

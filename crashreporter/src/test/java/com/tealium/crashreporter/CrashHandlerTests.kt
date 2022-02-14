@@ -17,7 +17,7 @@ import org.robolectric.annotation.Config
 import java.util.*
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28])
+@Config(sdk = [29])
 class CrashHandlerTests {
 
     @MockK
@@ -46,6 +46,7 @@ class CrashHandlerTests {
     fun setUp() {
         MockKAnnotations.init(this)
 
+        mockkStatic("com.tealium.crashreporter.TealiumConfigCrashReporterKt")
         every { mockContext.getSharedPreferences(any(), any()) } returns mockSharedPreferences
         every { mockSharedPreferences.edit() } returns mockEditor
         every { mockEditor.putString(any(), any()) } returns mockEditor

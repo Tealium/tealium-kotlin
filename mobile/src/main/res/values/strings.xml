@@ -32,4 +32,8 @@
     <string name="media_chapter_end">End Chapter</string>
     <string name="media_end">End Media Session</string>
 
+    <string name="second_activity">Second Activity</string>
+    <string name="second_activity_text_view">Second Activity</string>
+    <string name="third_activity">Third Activity</string>
+    <string name="third_activity_text_view">Third Activity</string>
 </resources>
