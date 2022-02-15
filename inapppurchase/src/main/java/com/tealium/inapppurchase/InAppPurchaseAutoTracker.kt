@@ -42,8 +42,7 @@ class InAppPurchaseAutoTracker(
     }
 
     override fun onBillingServiceDisconnected() {
-        // retry here to connect? - startConnection() called again on new activity
-//        startConnection()
+        startConnection()
     }
 
     override fun trackInAppPurchase(purchaseItem: Purchase, data: Map<String, Any>?) {
