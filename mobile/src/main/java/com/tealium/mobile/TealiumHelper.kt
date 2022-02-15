@@ -1,6 +1,7 @@
 package com.tealium.mobile
 
 import android.app.Application
+import com.android.billingclient.api.Purchase
 import android.util.Log
 import com.tealium.adidentifier.AdIdentifier
 import com.tealium.autotracking.*
@@ -9,7 +10,6 @@ import com.tealium.core.*
 import com.tealium.core.consent.*
 import com.tealium.core.events.EventTrigger
 import com.tealium.core.messaging.UserConsentPreferencesUpdatedListener
-import com.tealium.core.persistence.Expiry
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.crashreporter.CrashReporter
 import com.tealium.dispatcher.Dispatch
@@ -17,11 +17,12 @@ import com.tealium.dispatcher.TealiumEvent
 import com.tealium.dispatcher.TealiumView
 import com.tealium.hosteddatalayer.HostedDataLayer
 import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
+import com.tealium.inapppurchase.InAppPurchaseManager
+import com.tealium.inapppurchase.inAppPurchaseManager
 import com.tealium.lifecycle.Lifecycle
 import com.tealium.media.Media
 import com.tealium.media.mediaBackgroundSessionEnabled
 import com.tealium.media.mediaBackgroundSessionEndInterval
-import com.tealium.location.Location
 import com.tealium.remotecommanddispatcher.RemoteCommands
 import com.tealium.remotecommanddispatcher.remoteCommands
 import com.tealium.remotecommands.RemoteCommand
@@ -44,6 +45,7 @@ object TealiumHelper : ActivityDataCollector {
                         Modules.HostedDataLayer,
                         Modules.CrashReporter,
                         Modules.AdIdentifier,
+                        Modules.InAppPurchaseManager,
                         Modules.AutoTracking,
                         Modules.Media),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
@@ -118,6 +120,10 @@ object TealiumHelper : ActivityDataCollector {
     fun trackEvent(name: String, data: Map<String, Any>?) {
         val eventDispatch = TealiumEvent(name, data)
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.track(eventDispatch)
+    }
+
+    fun trackPurchase(purchase: Purchase, data: Map<String, Any>?) {
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.inAppPurchaseManager?.trackInAppPurchase(purchase, data)
     }
 
     val customValidator: DispatchValidator by lazy {

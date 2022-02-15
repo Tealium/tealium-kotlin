@@ -69,6 +69,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
             "Crash Reporter" -> CrashReporterFragment()
             "Media Tracking" -> MediaFragment()
             "WebView Consent Sync" -> ConsentSyncFragment()
+            "In App Purchase" -> InAppPurchaseFragment()
             else -> null
         }
         fragment?.let {
