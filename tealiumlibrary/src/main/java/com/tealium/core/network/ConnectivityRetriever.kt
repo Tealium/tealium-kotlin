@@ -5,6 +5,9 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import com.tealium.core.Logger
+import com.tealium.tealiumlibrary.BuildConfig
+import java.lang.Exception
 
 interface Connectivity {
     fun isConnected(): Boolean
@@ -19,9 +22,14 @@ class ConnectivityRetriever private constructor(val context: Application): Conne
     private val connectivityManager: ConnectivityManager
         get() = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-    private val activeNetworkCapabilities: NetworkCapabilities?
+    internal val activeNetworkCapabilities: NetworkCapabilities?
         get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+                try {
+                    connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+                } catch (ex: Exception) {
+                    Logger.qa(BuildConfig.TAG, "Error retrieving active network capabilities, ${ex.message}")
+                    null
+                }
             } else null
 
     override fun connectionType(): String {
@@ -56,6 +64,15 @@ class ConnectivityRetriever private constructor(val context: Application): Conne
             } else {
                 LegacyConnectivityRetriever(application)
             }.also { instance = it }
+        }
+
+        @JvmSynthetic
+        internal fun getTestInstance(application: Application): Connectivity {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                ConnectivityRetriever(application)
+            } else {
+                LegacyConnectivityRetriever(application)
+            }
         }
     }
 }

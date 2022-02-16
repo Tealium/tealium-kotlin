@@ -41,6 +41,7 @@ class TagManagementDispatcher(private val context: TealiumContext,
                 "&sdk_session_count=true"
 
     private val remoteApiEnabled: Boolean = context.config.remoteApiEnabled ?: true
+    private val shouldQueueOnLoadFailure: Boolean = context.config.shouldQueueOnLoadFailure ?: true
 
     private val scope = CoroutineScope(Dispatchers.Main)
     internal var webViewLoader = WebViewLoader(context, urlString, afterDispatchSendCallbacks, connectivityRetriever = connectivity)
@@ -126,7 +127,10 @@ class TagManagementDispatcher(private val context: TealiumContext,
     }
 
     override fun shouldQueue(dispatch: Dispatch?): Boolean {
-        return webViewLoader.webViewStatus.get() != PageStatus.LOADED_SUCCESS
+        return if (webViewLoader.hasReachedMaxErrors())
+            shouldQueueOnLoadFailure
+        else
+            webViewLoader.webViewStatus.get() != PageStatus.LOADED_SUCCESS
     }
 
     override fun shouldDrop(dispatch: Dispatch): Boolean {

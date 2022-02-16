@@ -21,6 +21,7 @@
     <string name="timed_events_event_name_hint">Timed Event Name</string>
     <string name="timed_events_no_events">No Timed Event Running</string>
     <string name="create_crash">Create Crash</string>
+    <string name="purchase">Trigger Purchase</string>
 
     <string name="media_start">Start Media Tracking Session</string>
     <string name="media_adbreak_start">Start Ad Break</string>

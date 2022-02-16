@@ -26,8 +26,10 @@
 
 -keep class kotlin.Metadata { *; }
 
--keep class com.tealium.tagmanagementdispatcher.TagManagementDispatcher { *; }
--keep class com.tealium.tagmanagementdispatcher.TagManagementDispatcher$Companion { *; }
--keep class com.tealium.tagmanagementdispatcher.TagManagementDispatcherKt { *; }
--keep class com.tealium.tagmanagementdispatcher.TealiumConfigTagManagementDispatcherKt { *; }
--keep class com.tealium.tagmanagementdispatcher.WebViewExceptionListener { *; }
+# Keep all public interfaces
+-keep public interface com.tealium.** { *; }
+-keep class com.tealium.inapppurchase.InAppPurchaseManager,
+            com.tealium.inapppurchase.InAppPurchaseManager$Companion,
+            com.tealium.inapppurchase.InAppPurchaseManagerKt{
+    *;
+}

@@ -1,9 +1,10 @@
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-apply plugin: 'maven-publish'
-apply from: '../jacoco.gradle'
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'maven-publish'
+}
 
-version = '1.1.1'
+version = '1.0.0'
 
 android {
     compileSdkVersion 30
@@ -12,11 +13,13 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 30
-
-        buildConfigField 'String', 'TAG', "\"Tealium-TagManagementDispatcher-$version\""
-        buildConfigField 'String', 'VERSION_NAME', "\"$version\""
+        versionCode 1
+        versionName "1.0"
+        buildConfigField 'String', 'TAG', "\"Tealium-InAppPurchaseTracker-$version\""
         buildConfigField 'String', 'LIBRARY_VERSION', "\"$version\""
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {
@@ -24,6 +27,7 @@ android {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+
         debug {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -36,32 +40,33 @@ android {
         targetCompatibility JavaVersion.VERSION_11
     }
 
-    testOptions {
-        unitTests.returnDefaultValues = true
-        unitTests.includeAndroidResources = true
-    }
-
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
     }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    api project(':tealiumlibrary')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_core_version"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
-    testImplementation 'junit:junit:4.13'
+    api project(":tealiumlibrary")
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'androidx.core:core-ktx:1.3.0'
+    implementation 'androidx.appcompat:appcompat:1.3.0'
+    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'com.android.billingclient:billing:4.0.0'
+
+    testImplementation 'androidx.test:core:1.2.0'
+    testImplementation 'androidx.arch.core:core-testing:2.1.0'
     testImplementation "io.mockk:mockk:$mockk_version"
-    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_test_version"
-    testImplementation "org.robolectric:robolectric:$robolectric_version"
-    testImplementation "io.vertx:vertx-codegen:3.6.0"
-    androidTestImplementation 'androidx.test:runner:1.4.0'
-    androidTestImplementation 'androidx.test:rules:1.4.0'
-    androidTestImplementation 'androidx.test:core:1.4.0'
+    testImplementation "org.robolectric:robolectric:4.3.1"
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.5'
+    testImplementation 'junit:junit:4.+'
+
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-    androidTestImplementation "io.mockk:mockk-android:$mockk_version"
 }
 
 afterEvaluate {
@@ -70,7 +75,7 @@ afterEvaluate {
             release(MavenPublication) {
                 from components.release
                 groupId = 'com.tealium'
-                artifactId = 'kotlin-tagmanagement-dispatcher'
+                artifactId = 'kotlin-inapp-purchase'
             }
         }
         repositories {
