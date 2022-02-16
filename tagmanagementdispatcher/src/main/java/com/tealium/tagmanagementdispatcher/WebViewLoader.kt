@@ -40,7 +40,7 @@ class WebViewLoader(private val context: TealiumContext,
     private val backgroundScope = CoroutineScope(Dispatchers.IO)
     private var sessionId: Long = INVALID_SESSION_ID
     private val shouldRegisterSession = AtomicBoolean(false)
-    private val webViewCreationRetries = context.config.maxWebViewCreationRetries ?: 3
+    private val webViewCreationRetries = 3
 
     @Volatile
     private var webViewCreationErrorCount = 0
