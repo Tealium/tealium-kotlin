@@ -119,7 +119,7 @@ class WebViewClientTest {
         webViewLoader.loadUrlToWebView()
 
         assertEquals(PageStatus.INIT, webViewLoader.webViewStatus.get())
-        verify(exactly = 0, timeout = 100) {
+        verify(exactly = 0, timeout = 1000) {
             webViewLoader.webView.loadUrl(any())
         }
     }
@@ -136,7 +136,7 @@ class WebViewClientTest {
         webViewLoader.loadUrlToWebView()
 
         assertEquals(PageStatus.LOADING, webViewLoader.webViewStatus.get())
-        verify(exactly = 1, timeout = 100) {
+        verify(exactly = 1, timeout = 1000) {
             webViewLoader.webView.loadUrl(any())
         }
     }
@@ -286,7 +286,7 @@ class WebViewClientTest {
         delay(50)
 
         assertNotSame(originalWebView, webViewLoader.webView)
-        verify(exactly = 1, timeout = 100) {
+        verify(exactly = 1, timeout = 1000) {
             mockWebView.destroy()
         }
     }

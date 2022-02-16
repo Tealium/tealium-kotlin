@@ -112,7 +112,7 @@ class WebViewLoaderTest {
             }
         }.awaitAll()
 
-        verify(exactly = 1, timeout = 100) {
+        verify(exactly = 1, timeout = 1000) {
             mockWebView.loadUrl(any())
         }
     }
@@ -158,7 +158,7 @@ class WebViewLoaderTest {
         webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
         webViewLoader.onSessionStarted(12345L)
 
-        coVerify(exactly = 1, timeout = 500) {
+        coVerify(exactly = 1, timeout = 1000) {
             mockHttpClient.get("https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=test/profile/12345&cb=12345")
         }
     }
@@ -173,7 +173,7 @@ class WebViewLoaderTest {
         webViewLoader.webViewStatus.set(PageStatus.INIT)
         webViewLoader.onSessionStarted(12345L)
 
-        coVerify(exactly = 0, timeout = 100) {
+        coVerify(exactly = 0, timeout = 1000) {
             mockHttpClient.get(any())
         }
     }
@@ -184,7 +184,7 @@ class WebViewLoaderTest {
         webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
         webViewLoader.onSessionStarted(WebViewLoader.INVALID_SESSION_ID)
 
-        coVerify(exactly = 0, timeout = 100) {
+        coVerify(exactly = 0, timeout = 1000) {
             mockHttpClient.get("https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=test/profile/12345&cb=12345")
         }
     }
@@ -196,7 +196,7 @@ class WebViewLoaderTest {
         webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
         webViewLoader.onSessionStarted(WebViewLoader.INVALID_SESSION_ID)
 
-        coVerify(exactly = 0, timeout = 100) {
+        coVerify(exactly = 0, timeout = 1000) {
             mockHttpClient.get("https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=test/profile/12345&cb=12345")
         }
     }
@@ -249,7 +249,7 @@ class WebViewLoaderTest {
             assertFalse(webViewLoader.hasReachedMaxErrors())
             webViewLoader.loadUrlToWebView()
         }
-        delay(100)
+        delay(500)
         assertTrue(webViewLoader.hasReachedMaxErrors())
     }
 }
