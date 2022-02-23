@@ -154,6 +154,7 @@ class WebViewLoaderTest {
 
     @Test
     fun newSession_IsRegisteredWhenWebViewIsLoaded() = runBlocking {
+        every { mockTealiumConfig.sessionCountingEnabled } returns true
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
         webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
         webViewLoader.onSessionStarted(12345L)
@@ -195,6 +196,18 @@ class WebViewLoaderTest {
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
         webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
         webViewLoader.onSessionStarted(WebViewLoader.INVALID_SESSION_ID)
+
+        coVerify(exactly = 0, timeout = 1000) {
+            mockHttpClient.get("https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=test/profile/12345&cb=12345")
+        }
+    }
+
+    @Test
+    fun newSession_IsNotRegisteredWhenSessionCountingDisabled() {
+        every { mockTealiumConfig.sessionCountingEnabled } returns false
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
+        webViewLoader.onSessionStarted(12345L)
 
         coVerify(exactly = 0, timeout = 1000) {
             mockHttpClient.get("https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=test/profile/12345&cb=12345")

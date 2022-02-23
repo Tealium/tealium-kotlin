@@ -115,6 +115,11 @@ class TealiumConfig @JvmOverloads constructor(
      */
     var logLevel: LogLevel? = null
 
+    /**
+     * Set to false to disable Session Counting
+     */
+    var sessionCountingEnabled: Boolean = true
+
     init {
         tealiumDirectory.mkdirs()
     }
