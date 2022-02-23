@@ -325,7 +325,7 @@ class WebViewLoader(private val context: TealiumContext,
     }
 
     private fun registerNewSessionIfNeeded(sessionId: Long) {
-        if (sessionId == INVALID_SESSION_ID ) {
+        if (sessionId == INVALID_SESSION_ID) {
             return
         }
 
