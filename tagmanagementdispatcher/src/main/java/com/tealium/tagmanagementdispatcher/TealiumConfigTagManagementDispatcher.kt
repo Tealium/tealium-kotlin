@@ -5,6 +5,7 @@ import com.tealium.core.TealiumConfig
 const val TAG_MANAGEMENT_OVERRIDE_URL = "override_tag_management_url"
 const val TAG_MANAGEMENT_REMOTE_API_ENABLED = "tag_management_remote_api_enabled"
 const val TAG_MANAGEMENT_WEBVIEW_SHOULD_QUEUE_ON_FAILURE = "tag_management_webview_should_queue_on_failure"
+const val TAG_MANAGEMENT_SESSION_COUNTING_ENABLED = "tag_management_session_counting_enabled"
 
 /**
  * Sets the URL to use for the Tag Management module.
@@ -48,3 +49,18 @@ var TealiumConfig.shouldQueueOnLoadFailure: Boolean?
             options[TAG_MANAGEMENT_WEBVIEW_SHOULD_QUEUE_ON_FAILURE] = it
         }
     }
+
+/**
+ * Enables/Disables session counting request from being sent
+ *
+ * A value of `false` will prevent a new session from being registered
+ *
+ * Default: true
+ */
+var TealiumConfig.sessionCountingEnabled: Boolean?
+get() = options[TAG_MANAGEMENT_SESSION_COUNTING_ENABLED] as? Boolean
+set(value) {
+    value?.let {
+        options[TAG_MANAGEMENT_SESSION_COUNTING_ENABLED] = it
+    }
+}

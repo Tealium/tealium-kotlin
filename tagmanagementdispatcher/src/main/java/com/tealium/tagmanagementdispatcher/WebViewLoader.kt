@@ -41,6 +41,7 @@ class WebViewLoader(private val context: TealiumContext,
     private var sessionId: Long = INVALID_SESSION_ID
     private val shouldRegisterSession = AtomicBoolean(false)
     private val webViewCreationRetries = 3
+    private val sessionCountingEnabled: Boolean = context.config.sessionCountingEnabled ?: true
 
     @Volatile
     private var webViewCreationErrorCount = 0
@@ -319,7 +320,9 @@ class WebViewLoader(private val context: TealiumContext,
         this.sessionId = sessionId
         shouldRegisterSession.set(true)
 
-        registerNewSessionIfNeeded(sessionId)
+        if (sessionCountingEnabled) {
+            registerNewSessionIfNeeded(sessionId)
+        }
     }
 
     private fun registerNewSessionIfNeeded(sessionId: Long) {
