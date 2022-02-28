@@ -1,4 +1,11 @@
 # Change Log
+- Tag Management 1.1.2 Feb 2022
+  - Add `sessionCountingEnabled` to `TealiumConfig` to enable/disable session counting for TealiumIQ
+- 1.3.1 Feb 2022
+  - Core 1.3.1
+    - Stability fix for failed WebView creation
+    - Stability fix for connectivity exception handling
+    - InApp Purchase auto tracking 1.0.0 release.
 - 1.3.0 Nov 2021
   - Core 1.3.0
     - Missing variables reinstated from the Java library:
