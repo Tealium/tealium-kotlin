@@ -3,6 +3,7 @@ package com.tealium.core
 import android.app.Application
 import com.tealium.core.collection.*
 import com.tealium.core.events.EventTrigger
+import com.tealium.core.messaging.Listener
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.test.OpenForTesting
@@ -114,6 +115,11 @@ class TealiumConfig @JvmOverloads constructor(
      * Overrides the default LogLevel.
      */
     var logLevel: LogLevel? = null
+
+    /**
+     * Subscribe listeners to Tealium events
+     */
+    val events: MutableList<Listener> = mutableListOf()
 
     init {
         tealiumDirectory.mkdirs()
