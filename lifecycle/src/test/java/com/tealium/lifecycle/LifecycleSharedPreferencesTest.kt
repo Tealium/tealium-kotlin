@@ -39,7 +39,6 @@ class LifecycleSharedPreferencesTest {
         every { mockConfig.accountName } returns "account"
         every { mockConfig.profileName } returns "profile"
         every { mockConfig.environment } returns Environment.DEV
-        every { mockApplication.getSharedPreferences(any(), any()) } returns mockSharedPreferences
         every { mockSharedPreferences.edit() } returns mockEditor
         every { mockEditor.putString(any(), any()) } returns mockEditor
         every { mockEditor.putInt(any(), any()) } returns mockEditor
@@ -49,7 +48,7 @@ class LifecycleSharedPreferencesTest {
         every { mockEditor.putStringSet(any(), any()) } returns mockEditor
         every { mockEditor.remove(any()) } returns mockEditor
 
-        lifecycleSharedPreferences = LifecycleSharedPreferences(mockConfig)
+        lifecycleSharedPreferences = LifecycleSharedPreferences(mockConfig, mockSharedPreferences)
     }
 
     @Test

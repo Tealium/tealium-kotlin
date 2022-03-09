@@ -30,8 +30,6 @@ internal class LifecycleService(private val lifecycleSharedPreferences: Lifecycl
             LifecycleStateKey.LIFECYCLE_TOTALSLEEPCOUNT to lifecycleSharedPreferences.countSleep.toString(),
             LifecycleStateKey.LIFECYCLE_TOTALWAKECOUNT to lifecycleSharedPreferences.countWake.toString(),
             LifecycleStateKey.LIFECYCLE_TOTALSECONDSAWAKE to lifecycleSharedPreferences.totalSecondsAwake.toString(),
-            LifecycleStateKey.LIFECYCLE_LASTWAKEDATE to lifecycleSharedPreferences.timestampLastWake,
-            LifecycleStateKey.LIFECYCLE_LASTSLEEPDATE to lifecycleSharedPreferences.timestampLastSleep,
             LifecycleStateKey.LIFECYCLE_DAYSSINCEUPDATE to ((timestamp - lifecycleSharedPreferences.timestampUpdate) / LifecycleDefaults.DAY_IN_MS).toString()
         )
 
@@ -91,6 +89,7 @@ internal class LifecycleService(private val lifecycleSharedPreferences: Lifecycl
         }
 
         return data
+            .filterNot { it.value == LifecycleDefaults.TIMESTAMP_INVALID }.toMutableMap()
     }
 
     fun didDetectCrash(event: String): Boolean {

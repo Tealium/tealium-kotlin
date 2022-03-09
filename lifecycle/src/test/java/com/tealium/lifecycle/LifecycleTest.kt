@@ -7,6 +7,7 @@ import com.tealium.core.*
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import org.junit.Assert
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.io.File
@@ -157,5 +158,19 @@ class LifecycleTest {
         Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LASTLAUNCHDATE))
         Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LASTWAKEDATE))
         Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LASTSLEEPDATE))
+    }
+
+    @Test
+    fun getCurrentState_DoesNotContainInvalidData() {
+        config.options["is_lifecycle_autotracking"] = false
+        tealiumContext = TealiumContext(config, "", mockk(), mockk(), mockk(), mockk(), tealium)
+
+        lifecycle = Lifecycle(tealiumContext)
+        lifecycle.trackLaunchEvent()
+
+        val dataMap = lifecycle.lifecycleService.getCurrentState(System.currentTimeMillis()).toMap()
+        for (entry in dataMap) {
+            assertTrue(entry.value != LifecycleDefaults.TIMESTAMP_INVALID)
+        }
     }
 }
