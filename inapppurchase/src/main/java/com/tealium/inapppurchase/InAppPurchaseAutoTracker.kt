@@ -2,9 +2,11 @@ package com.tealium.inapppurchase
 
 import android.app.Activity
 import com.android.billingclient.api.*
+import com.tealium.core.DateUtils
 import com.tealium.core.Logger
 import com.tealium.core.TealiumContext
 import com.tealium.dispatcher.TealiumEvent
+import java.util.*
 
 class InAppPurchaseAutoTracker(
     private val context: TealiumContext,
@@ -50,6 +52,7 @@ class InAppPurchaseAutoTracker(
             "autotracked" to true,
             PURCHASE_ORDER_ID to purchaseItem.orderId,
             PURCHASE_TIMESTAMP to purchaseItem.purchaseTime,
+            PURCHASE_DATE to DateUtils.formatDate(Date(purchaseItem.purchaseTime)),
             PURCHASE_QUANTITY to purchaseItem.quantity,
             PURCHASE_SKUS to purchaseItem.skus,
             PURCHASE_AUTORENEWING to purchaseItem.isAutoRenewing,
@@ -84,7 +87,14 @@ class InAppPurchaseAutoTracker(
     private companion object {
         private const val IN_APP_PURCHASE_EVENT = "in_app_purchase"
         const val PURCHASE_ORDER_ID = "purchase_order_id"
+
+        @Deprecated(
+            "Use PURCHASE_DATE instead.",
+            replaceWith = ReplaceWith("PURCHASE_DATE"),
+            level = DeprecationLevel.WARNING
+        )
         const val PURCHASE_TIMESTAMP = "purchase_timestamp"
+        const val PURCHASE_DATE = "purchase_date"
         const val PURCHASE_QUANTITY = "purchase_quantity"
         const val PURCHASE_SKUS = "purchase_skus"
         const val PURCHASE_AUTORENEWING = "purchase_is_auto_renewing"

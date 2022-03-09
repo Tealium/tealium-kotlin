@@ -63,6 +63,7 @@ class InAppPurchaseManagerTests {
                         && it.eventName == "in_app_purchase"
                         && it.payload()["purchase_order_id"] == "order12345"
                         && it.payload()["purchase_timestamp"] == 0L
+                        && it.payload()["purchase_date"] == "1970-01-01T00:00:00Z"
                         && it.payload()["purchase_quantity"] == 3
                         && it.payload()["purchase_skus"] == arrayListOf("sku1", "sku2")
                         && it.payload()["purchase_is_auto_renewing"] == false
