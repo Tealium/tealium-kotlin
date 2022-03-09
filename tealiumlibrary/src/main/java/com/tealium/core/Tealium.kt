@@ -142,6 +142,9 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
             Environment.PROD -> LogLevel.PROD
         }
 
+        // Subscribe user event listeners
+        eventRouter.subscribeAll(config.events.toList())
+
         deepLinkHandler = DeepLinkHandler(context)
         eventRouter.subscribeAll(listOf(Logger, sessionManager, deepLinkHandler))
         timedEvents = TimedEventsManager(context)
