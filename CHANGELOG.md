@@ -1,4 +1,12 @@
 # Change Log
+
+- 1.3.2 Mar 2022
+  - Core 1.3.2
+    - `events` property added to `TealiumConfig` to enable adding listeners on startup, as some events could be missed during startup.
+  - Lifecycle 1.1.1
+    - Fix: Default values for some attributes causing missed events when combined with TagManagement
+  - InAppPurchase 1.0.1
+    - Additional `purchase_date` key provided in ISO-8601 format
 - Tag Management 1.1.2 Feb 2022
   - Add `sessionCountingEnabled` to `TealiumConfig` to enable/disable session counting for TealiumIQ
 - 1.3.1 Feb 2022
