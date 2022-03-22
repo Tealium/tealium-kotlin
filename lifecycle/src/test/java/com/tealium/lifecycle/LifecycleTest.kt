@@ -6,7 +6,8 @@ import android.content.pm.PackageInfo
 import com.tealium.core.*
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import org.junit.Assert
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.io.File
@@ -70,7 +71,7 @@ class LifecycleTest {
         tealiumContext = TealiumContext(config, "", mockk(), mockk(), mockk(), mockk(), tealium)
         lifecycle = Lifecycle(tealiumContext)
 
-        Assert.assertFalse(lifecycle.isAutoTracking)
+        assertFalse(lifecycle.isAutoTracking)
     }
 
     @Test
@@ -87,8 +88,8 @@ class LifecycleTest {
 
         lifecycle.trackLaunchEvent()
 
-        Assert.assertTrue(lifecycle.lifecycleSharedPreferences.countLaunch == 1)
-        Assert.assertTrue(lifecycle.lifecycleSharedPreferences.countTotalLaunch == 1)
+        assertTrue(lifecycle.lifecycleSharedPreferences.countLaunch == 1)
+        assertTrue(lifecycle.lifecycleSharedPreferences.countTotalLaunch == 1)
     }
 
     @Test
@@ -104,8 +105,8 @@ class LifecycleTest {
 
         lifecycle.trackSleepEvent()
 
-        Assert.assertTrue(lifecycle.lifecycleSharedPreferences.countSleep == 1)
-        Assert.assertTrue(lifecycle.lifecycleSharedPreferences.countTotalSleep == 1)
+        assertTrue(lifecycle.lifecycleSharedPreferences.countSleep == 1)
+        assertTrue(lifecycle.lifecycleSharedPreferences.countTotalSleep == 1)
     }
 
     @Test
@@ -121,8 +122,8 @@ class LifecycleTest {
 
         lifecycle.trackWakeEvent()
 
-        Assert.assertTrue(lifecycle.lifecycleSharedPreferences.countWake == 1)
-        Assert.assertTrue(lifecycle.lifecycleSharedPreferences.countTotalWake == 1)
+        assertTrue(lifecycle.lifecycleSharedPreferences.countWake == 1)
+        assertTrue(lifecycle.lifecycleSharedPreferences.countTotalWake == 1)
     }
 
     @Test
@@ -135,27 +136,61 @@ class LifecycleTest {
 
         val dataMap = lifecycle.lifecycleService.getCurrentState(System.currentTimeMillis())
 
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_DAYOFWEEK_LOCAL))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_DAYSSINCELAUNCH))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_DAYSSINCELASTWAKE))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_HOUROFDAY_LOCAL))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LAUNCHCOUNT))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_SLEEPCOUNT))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_WAKECOUNT))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_TOTALCRASHCOUNT))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_TOTALLAUNCHCOUNT))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_TOTALSLEEPCOUNT))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_TOTALWAKECOUNT))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_TOTALSECONDSAWAKE))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LASTWAKEDATE))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LASTSLEEPDATE))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_DAYSSINCEUPDATE))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_DAYOFWEEK_LOCAL))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_DAYSSINCELAUNCH))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_DAYSSINCELASTWAKE))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_HOUROFDAY_LOCAL))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LAUNCHCOUNT))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_SLEEPCOUNT))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_WAKECOUNT))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_TOTALCRASHCOUNT))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_TOTALLAUNCHCOUNT))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_TOTALSLEEPCOUNT))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_TOTALWAKECOUNT))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_TOTALSECONDSAWAKE))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_DAYSSINCEUPDATE))
 
         // dates for lifecycle events
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_FIRSTLAUNCHDATE))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_FIRSTLAUNCHDATE_MMDDYYYY))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LASTLAUNCHDATE))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LASTWAKEDATE))
-        Assert.assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LASTSLEEPDATE))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_FIRSTLAUNCHDATE))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_FIRSTLAUNCHDATE_MMDDYYYY))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LASTLAUNCHDATE))
+    }
+
+    @Test
+    fun getCurrentState_LastEvents() {
+        config.options["is_lifecycle_autotracking"] = false
+        tealiumContext = TealiumContext(config, "", mockk(), mockk(), mockk(), mockk(), tealium)
+
+        lifecycle = Lifecycle(tealiumContext)
+
+        lifecycle.trackLaunchEvent()
+        var dataMap = lifecycle.lifecycleService.getCurrentState(System.currentTimeMillis())
+
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LASTLAUNCHDATE))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LASTWAKEDATE))
+        // no "last sleep" after only a launch
+        assertFalse(dataMap.contains(LifecycleStateKey.LIFECYCLE_LASTSLEEPDATE))
+
+        lifecycle.trackSleepEvent()
+        dataMap = lifecycle.lifecycleService.getCurrentState(System.currentTimeMillis())
+
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LASTLAUNCHDATE))
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LASTWAKEDATE))
+        // now "last sleep" should be present
+        assertTrue(dataMap.contains(LifecycleStateKey.LIFECYCLE_LASTSLEEPDATE))
+    }
+
+    @Test
+    fun getCurrentState_DoesNotContainInvalidData() {
+        config.options["is_lifecycle_autotracking"] = false
+        tealiumContext = TealiumContext(config, "", mockk(), mockk(), mockk(), mockk(), tealium)
+
+        lifecycle = Lifecycle(tealiumContext)
+        lifecycle.trackLaunchEvent()
+
+        val dataMap = lifecycle.lifecycleService.getCurrentState(System.currentTimeMillis()).toMap()
+        for (entry in dataMap) {
+            assertTrue(entry.value != LifecycleDefaults.TIMESTAMP_INVALID)
+        }
     }
 }

@@ -5,8 +5,11 @@ import com.tealium.core.TealiumConfig
 import java.text.SimpleDateFormat
 import java.util.*
 
-internal class LifecycleSharedPreferences(config: TealiumConfig) {
-    var lifecycleSharedPreferences: SharedPreferences = config.application.getSharedPreferences(sharedPreferencesName(config), 0)
+internal class LifecycleSharedPreferences(
+    config: TealiumConfig,
+    private val lifecycleSharedPreferences: SharedPreferences = config.application.getSharedPreferences(sharedPreferencesName(config), 0)
+) {
+
     var formatIso8601 = SimpleDateFormat(LifecycleDefaults.FORMAT_ISO_8601, Locale.ROOT)
     var reusableDate: Date = Date(LifecycleDefaults.TIMESTAMP_INVALID)
 
@@ -171,7 +174,9 @@ internal class LifecycleSharedPreferences(config: TealiumConfig) {
                 .apply()
     }
 
-    private fun sharedPreferencesName(config: TealiumConfig): String {
-        return "tealium.lifecycle.${Integer.toHexString((config.accountName + config.profileName + config.environment.environment).hashCode())}"
+    companion object {
+        private fun sharedPreferencesName(config: TealiumConfig): String {
+            return "tealium.lifecycle.${Integer.toHexString((config.accountName + config.profileName + config.environment.environment).hashCode())}"
+        }
     }
 }

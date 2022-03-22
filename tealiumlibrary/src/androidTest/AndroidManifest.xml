@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <application>
+    <application android:label="test_app">
         <activity android:name="com.tealium.tealiumlibrary.QAActivity" />
     </application>
 

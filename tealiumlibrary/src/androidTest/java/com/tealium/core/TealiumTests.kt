@@ -1,14 +1,9 @@
 package com.tealium.core
 
-import android.app.Activity
 import android.app.Application
-import android.content.Intent
-import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
-import com.tealium.core.persistence.DataLayer
-import com.tealium.core.persistence.Expiry
-import com.tealium.dispatcher.Dispatch
-import com.tealium.dispatcher.TealiumEvent
+import com.tealium.core.messaging.ExternalListener
+import com.tealium.core.messaging.Messenger
 import io.mockk.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -20,7 +15,6 @@ import org.junit.Test
 class TealiumTests {
 
     lateinit var tealium: Tealium
-    lateinit var mockDataLayer: DataLayer
     val application = ApplicationProvider.getApplicationContext<Application>()
     val configWithNoModules = TealiumConfig(
         application,
@@ -31,13 +25,13 @@ class TealiumTests {
 
     @Before
     fun setUp() {
-        mockDataLayer = mockk(relaxed = true)
         tealium = Tealium.create("name", configWithNoModules)
     }
 
     @After
     fun tearDown() {
         Tealium.names().forEach {
+            Tealium[it]?.dataLayer?.clear()
             Tealium.destroy(it)
         }
     }
@@ -247,5 +241,66 @@ class TealiumTests {
 
         assertTrue(names.contains("instance_1"))
         assertTrue(names.contains("instance_2"))
+    }
+
+    @Test
+    fun testEvents_GetSubscribed_FromConfig() {
+        val listener = mockk<TestListener>()
+        every { listener.onListen(any()) } just Runs
+
+        val result = true
+        TestFactory.payload = result
+
+        val config: TealiumConfig =
+            TealiumConfig(
+                application,
+                "test2",
+                "test2",
+                Environment.DEV,
+                collectors = mutableSetOf(TestFactory)
+            ).apply {
+                events.add(
+                    listener
+                )
+            }
+        Tealium.create("test", config)
+
+        verify {
+            listener.onListen(result)
+        }
+    }
+}
+
+private class TestFactory(context: TealiumContext, payload: Any?) : Collector {
+
+    init {
+        context.events.send(
+            TestMessenger(payload)
+        )
+    }
+
+    override suspend fun collect(): Map<String, Any> {
+        return mapOf()
+    }
+
+    override val name: String = "Test"
+    override var enabled: Boolean = true
+
+    companion object: CollectorFactory {
+        var payload: Any? = null
+        override fun create(context: TealiumContext): Collector {
+            return TestFactory(context, payload)
+        }
+    }
+}
+
+private interface TestListener : ExternalListener {
+    fun onListen(result: Any?)
+}
+
+private class TestMessenger(private val result: Any?) :
+    Messenger<TestListener>(TestListener::class) {
+    override fun deliver(listener: TestListener) {
+        listener.onListen(result = result)
     }
 }
