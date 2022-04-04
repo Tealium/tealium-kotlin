@@ -1,9 +1,7 @@
 package com.tealium.remotecommanddispatcher
 
 import com.tealium.core.*
-import com.tealium.dispatcher.Dispatch
 import com.tealium.remotecommands.RemoteCommand
-import com.tealium.tealiumlibrary.BuildConfig
 import java.util.concurrent.ConcurrentHashMap
 
 interface CommandsManager: Collector {
