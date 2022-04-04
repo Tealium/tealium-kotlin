@@ -8,3 +8,7 @@ object Settings {
     const val COMMANDS = "commands"
     const val COMMAND_NAME = "command_name"
 }
+
+object Key {
+    const val REMOTE_COMMANDS = "remote_commands"
+}

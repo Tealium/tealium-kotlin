@@ -1,9 +1,12 @@
 package com.tealium.remotecommanddispatcher
 
-import com.tealium.core.TealiumConfig
+import com.tealium.core.*
+import com.tealium.dispatcher.Dispatch
 import com.tealium.remotecommands.RemoteCommand
+import com.tealium.tealiumlibrary.BuildConfig
+import java.util.concurrent.ConcurrentHashMap
 
-interface CommandsManager {
+interface CommandsManager: Collector {
     fun add(remoteCommand: RemoteCommand, filename: String? = null, remoteUrl: String? = null)
     fun remove(commandId: String)
     fun removeAll()
@@ -13,13 +16,14 @@ interface CommandsManager {
 }
 
 class RemoteCommandsManager(private val config: TealiumConfig) : CommandsManager {
-    private val allCommands = mutableMapOf<String, RemoteCommand>()
+    private val allCommands: MutableMap<String, RemoteCommand> = ConcurrentHashMap()
     private val commandsConfigRetriever = mutableMapOf<String, RemoteCommandConfigRetriever>()
 
     override fun add(remoteCommand: RemoteCommand, filename: String?, remoteUrl: String?) {
         allCommands[remoteCommand.commandName] = remoteCommand
         if (!filename.isNullOrEmpty() || !remoteUrl.isNullOrEmpty()) {
-            commandsConfigRetriever[remoteCommand.commandName] = RemoteCommandConfigRetriever(config, remoteCommand.commandName, filename, remoteUrl)
+            commandsConfigRetriever[remoteCommand.commandName] =
+                RemoteCommandConfigRetriever(config, remoteCommand.commandName, filename, remoteUrl)
         }
     }
 
@@ -48,4 +52,13 @@ class RemoteCommandsManager(private val config: TealiumConfig) : CommandsManager
         }
         return jsonRemoteCommands
     }
+
+    override suspend fun collect(): Map<String, Any> {
+        return if (allCommands.isNotEmpty()) {
+            mapOf(Key.REMOTE_COMMANDS to allCommands.map { (key, command) -> if (command.version != null) "${command.commandName}-${command.commandName}" else command.commandName })
+        } else emptyMap()
+    }
+
+    override val name: String = ""
+    override var enabled: Boolean = true
 }
