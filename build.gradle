@@ -13,17 +13,22 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.0.2'
+        classpath 'com.android.tools.build:gradle:7.2.0-beta04'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
-        classpath "org.jacoco:org.jacoco.core:0.8.5"
+        classpath "org.jacoco:org.jacoco.core:0.8.7"
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
 
         // Firebase integration
         classpath 'com.google.gms:google-services:4.3.5'
     }
 }
+
+plugins {
+    id "io.gitlab.arturbosch.detekt" version "1.19.0"
+}
+
 
 allprojects {
     repositories {
@@ -36,4 +41,23 @@ allprojects {
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+
+subprojects {
+    if (project.name != "mobile") {
+        apply plugin: "io.gitlab.arturbosch.detekt"
+
+        detekt {
+            toolVersion = "1.19.0"
+            config = files("$rootDir/detekt.yml")
+            baseline = file("$projectDir/detekt-baseline.xml")
+
+            reports {
+                html {
+                    enabled = true
+                    destination = file("build/reports/detekt.html")
+                }
+            }
+        }
+    }
 }

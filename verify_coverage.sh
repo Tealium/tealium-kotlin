@@ -25,6 +25,10 @@ do
     # Uncomment to fail the workflow step.
     #wereFailures = 1
   fi
+
+  echo "./gradlew $mod:detekt"
+  ./gradlew $mod":detekt"
+
   zip -r "$reportsDir/${failed}${mod}.zip" "$mod/build/reports/"
 done
 
