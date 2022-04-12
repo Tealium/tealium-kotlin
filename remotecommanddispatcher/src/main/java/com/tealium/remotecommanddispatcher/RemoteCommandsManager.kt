@@ -53,7 +53,7 @@ class RemoteCommandsManager(private val config: TealiumConfig) : CommandsManager
 
     override suspend fun collect(): Map<String, Any> {
         return if (allCommands.isNotEmpty()) {
-            mapOf(Key.REMOTE_COMMANDS to allCommands.map { (key, command) -> if (command.version != null) "${command.commandName}-${command.version}" else command.commandName })
+            mapOf(Key.REMOTE_COMMANDS to allCommands.map { (key, command) -> if (command.version != null) "${command.commandName}-${command.version}" else "${command.commandName}-0.0" })
         } else emptyMap()
     }
 
