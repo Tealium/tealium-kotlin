@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>NewLineAtEndOfFile:InstallReferrer.kt$com.tealium.installreferrer.InstallReferrer.kt</ID>
+    <ID>NewLineAtEndOfFile:InstallReferrerConstants.kt$.InstallReferrerConstants.kt</ID>
+    <ID>SwallowedException:InstallReferrer.kt$InstallReferrer.&lt;no name provided>$e: RemoteException</ID>
+    <ID>WildcardImport:InstallReferrer.kt$import com.tealium.core.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

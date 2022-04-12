@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexMethod:LifecycleService.kt$LifecycleService$fun getCurrentState(timestamp: Long): MutableMap&lt;String, Any></ID>
+    <ID>LongMethod:LifecycleService.kt$LifecycleService$fun getCurrentState(timestamp: Long): MutableMap&lt;String, Any></ID>
+    <ID>MagicNumber:Lifecycle.kt$Lifecycle$1000L</ID>
+    <ID>MaxLineLength:Lifecycle.kt$Lifecycle$throw UnsupportedOperationException("Lifecycle Autotracking is enable, cannot manually track lifecycle event")</ID>
+    <ID>MaxLineLength:Lifecycle.kt$Lifecycle$val</ID>
+    <ID>MaxLineLength:LifecycleService.kt$LifecycleService$LifecycleStateKey.LIFECYCLE_DAYSSINCELASTWAKE to (if (lifecycleSharedPreferences.timestampLastWake == LifecycleDefaults.TIMESTAMP_INVALID) "0" else ((timestamp - lifecycleSharedPreferences.timestampLastWake) / LifecycleDefaults.DAY_IN_MS).toString())</ID>
+    <ID>MaxLineLength:LifecycleService.kt$LifecycleService$LifecycleStateKey.LIFECYCLE_DAYSSINCELAUNCH to ((timestamp - lifecycleSharedPreferences.timestampFirstLaunch) / LifecycleDefaults.DAY_IN_MS).toString()</ID>
+    <ID>MaxLineLength:LifecycleService.kt$LifecycleService$LifecycleStateKey.LIFECYCLE_DAYSSINCEUPDATE to ((timestamp - lifecycleSharedPreferences.timestampUpdate) / LifecycleDefaults.DAY_IN_MS).toString()</ID>
+    <ID>MaxLineLength:LifecycleSharedPreferences.kt$LifecycleSharedPreferences$get() { return lifecycleSharedPreferences.getLong(LifecycleSPKey.TIMESTAMP_FIRST_LAUNCH, LifecycleDefaults.TIMESTAMP_INVALID) }</ID>
+    <ID>MaxLineLength:LifecycleSharedPreferences.kt$LifecycleSharedPreferences$get() { return lifecycleSharedPreferences.getLong(LifecycleSPKey.TIMESTAMP_LAST_LAUNCH, LifecycleDefaults.TIMESTAMP_INVALID) }</ID>
+    <ID>MaxLineLength:LifecycleSharedPreferences.kt$LifecycleSharedPreferences$get() { return lifecycleSharedPreferences.getLong(LifecycleSPKey.TIMESTAMP_LAST_SLEEP, LifecycleDefaults.TIMESTAMP_INVALID) }</ID>
+    <ID>MaxLineLength:LifecycleSharedPreferences.kt$LifecycleSharedPreferences$get() { return lifecycleSharedPreferences.getLong(LifecycleSPKey.TIMESTAMP_LAST_WAKE, LifecycleDefaults.TIMESTAMP_INVALID) }</ID>
+    <ID>MaxLineLength:LifecycleSharedPreferences.kt$LifecycleSharedPreferences$get() { return lifecycleSharedPreferences.getLong(LifecycleSPKey.TIMESTAMP_LAUNCH, LifecycleDefaults.TIMESTAMP_INVALID) }</ID>
+    <ID>MaxLineLength:LifecycleSharedPreferences.kt$LifecycleSharedPreferences$get() { return lifecycleSharedPreferences.getLong(LifecycleSPKey.TIMESTAMP_UPDATE, LifecycleDefaults.TIMESTAMP_INVALID) }</ID>
+    <ID>MaxLineLength:LifecycleSharedPreferences.kt$LifecycleSharedPreferences$private val lifecycleSharedPreferences: SharedPreferences = config.application.getSharedPreferences(sharedPreferencesName(config), 0)</ID>
+    <ID>MaxLineLength:LifecycleSharedPreferences.kt$LifecycleSharedPreferences.Companion$return "tealium.lifecycle.${Integer.toHexString((config.accountName + config.profileName + config.environment.environment).hashCode())}"</ID>
+    <ID>NewLineAtEndOfFile:Lifecycle.kt$com.tealium.lifecycle.Lifecycle.kt</ID>
+    <ID>NewLineAtEndOfFile:LifecycleConstants.kt$com.tealium.lifecycle.LifecycleConstants.kt</ID>
+    <ID>NewLineAtEndOfFile:LifecycleService.kt$com.tealium.lifecycle.LifecycleService.kt</ID>
+    <ID>NewLineAtEndOfFile:LifecycleServiceTest.kt$com.tealium.lifecycle.LifecycleServiceTest.kt</ID>
+    <ID>NewLineAtEndOfFile:LifecycleSharedPreferences.kt$com.tealium.lifecycle.LifecycleSharedPreferences.kt</ID>
+    <ID>NewLineAtEndOfFile:LifecycleSharedPreferencesTest.kt$com.tealium.lifecycle.LifecycleSharedPreferencesTest.kt</ID>
+    <ID>NewLineAtEndOfFile:LifecycleTest.kt$com.tealium.lifecycle.LifecycleTest.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfigLifecycle.kt$com.tealium.lifecycle.TealiumConfigLifecycle.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfigLifecycleTest.kt$com.tealium.lifecycle.TealiumConfigLifecycleTest.kt</ID>
+    <ID>TooManyFunctions:Lifecycle.kt$Lifecycle : CollectorActivityObserverListener</ID>
+    <ID>TooManyFunctions:LifecycleService.kt$LifecycleService</ID>
+    <ID>TooManyFunctions:LifecycleSharedPreferences.kt$LifecycleSharedPreferences</ID>
+    <ID>VariableNaming:LifecycleService.kt$LifecycleService$private val IS_FIRST_WAKE_MONTH = 1</ID>
+    <ID>VariableNaming:LifecycleService.kt$LifecycleService$private val IS_FIRST_WAKE_TODAY = 1 shl 1</ID>
+    <ID>WildcardImport:Lifecycle.kt$import com.tealium.core.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

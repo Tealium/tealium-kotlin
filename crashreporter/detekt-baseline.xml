@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MaxLineLength:CrashHandlerTests.kt$CrashHandlerTests$every { mockSharedPreferences.getString(CrashHandler.CRASH_EXCEPTION_CAUSE, null) } returns "java.lang.RuntimeException"</ID>
+    <ID>MaxLineLength:CrashReporter.kt$CrashReporter$context.config.application.getSharedPreferences(getSharedPreferencesName(context.config), 0)</ID>
+    <ID>MaxLineLength:CrashReporter.kt$CrashReporter.Companion$return "tealium.crash." + Integer.toHexString((config.accountName + config.profileName + config.environment.environment).hashCode())</ID>
+    <ID>MaxLineLength:CrashReporterTests.kt$CrashReporterTests$assertSame(crashReporter1.exceptionHandler, (crashReporter2.exceptionHandler as CrashHandler).originalExceptionHandler)</ID>
+    <ID>NewLineAtEndOfFile:Crash.kt$com.tealium.crashreporter.internal.Crash.kt</ID>
+    <ID>NewLineAtEndOfFile:CrashHandler.kt$com.tealium.crashreporter.internal.CrashHandler.kt</ID>
+    <ID>NewLineAtEndOfFile:CrashHandlerTests.kt$com.tealium.crashreporter.CrashHandlerTests.kt</ID>
+    <ID>NewLineAtEndOfFile:CrashReporter.kt$com.tealium.crashreporter.CrashReporter.kt</ID>
+    <ID>NewLineAtEndOfFile:CrashReporterTests.kt$com.tealium.crashreporter.CrashReporterTests.kt</ID>
+    <ID>NewLineAtEndOfFile:CrashTests.kt$com.tealium.crashreporter.CrashTests.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfigCrashReporter.kt$com.tealium.crashreporter.TealiumConfigCrashReporter.kt</ID>
+    <ID>WildcardImport:CrashReporter.kt$import com.tealium.core.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

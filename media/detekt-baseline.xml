@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>LargeClass:MediaTests.kt$MediaTests</ID>
+    <ID>MagicNumber:IntervalMilestoneSession.kt$IntervalMilestoneSession$1000</ID>
+    <ID>MagicNumber:Media.kt$Media.Companion$1000</ID>
+    <ID>MagicNumber:MilestoneSession.kt$MilestoneSession$100</ID>
+    <ID>MagicNumber:MilestoneSession.kt$MilestoneSession$100.0</ID>
+    <ID>MagicNumber:MilestoneSession.kt$MilestoneSession$12.0</ID>
+    <ID>MagicNumber:MilestoneSession.kt$MilestoneSession$23.0</ID>
+    <ID>MagicNumber:MilestoneSession.kt$MilestoneSession$27.0</ID>
+    <ID>MagicNumber:MilestoneSession.kt$MilestoneSession$48.0</ID>
+    <ID>MagicNumber:MilestoneSession.kt$MilestoneSession$52.0</ID>
+    <ID>MagicNumber:MilestoneSession.kt$MilestoneSession$73.0</ID>
+    <ID>MagicNumber:MilestoneSession.kt$MilestoneSession$77.0</ID>
+    <ID>MagicNumber:MilestoneSession.kt$MilestoneSession$8.0</ID>
+    <ID>MagicNumber:MilestoneSession.kt$MilestoneSession$88.0</ID>
+    <ID>MagicNumber:MilestoneSession.kt$MilestoneSession$92.0</ID>
+    <ID>MagicNumber:MilestoneSession.kt$MilestoneSession$97.0</ID>
+    <ID>MagicNumber:SummarySession.kt$SummarySession$100</ID>
+    <ID>MatchingDeclarationName:IntervalSessionTests.kt$IntervalSessionTest</ID>
+    <ID>MaxLineLength:IntervalMilestoneSession.kt$IntervalMilestoneSession$private val mediaDispatcher: MediaDispatcher</ID>
+    <ID>MaxLineLength:IntervalSession.kt$IntervalSession$private val mediaDispatcher: MediaDispatcher</ID>
+    <ID>MaxLineLength:Media.kt$Media$private val mediaDispatcher: MediaDispatcher = MediaSessionDispatcher(context)</ID>
+    <ID>MaxLineLength:MilestoneSession.kt$MilestoneSession$private val mediaDispatcher: MediaDispatcher</ID>
+    <ID>NestedBlockDepth:SummarySession.kt$SummarySession$override fun finalizeSummaryInfo()</ID>
+    <ID>NewLineAtEndOfFile:Ad.kt$com.tealium.media.segments.Ad.kt</ID>
+    <ID>NewLineAtEndOfFile:AdBreak.kt$com.tealium.media.segments.AdBreak.kt</ID>
+    <ID>NewLineAtEndOfFile:Chapter.kt$com.tealium.media.segments.Chapter.kt</ID>
+    <ID>NewLineAtEndOfFile:FullPlaybackSession.kt$com.tealium.media.sessions.FullPlaybackSession.kt</ID>
+    <ID>NewLineAtEndOfFile:IntervalMilestoneSession.kt$com.tealium.media.sessions.IntervalMilestoneSession.kt</ID>
+    <ID>NewLineAtEndOfFile:IntervalMilestoneSessionTests.kt$com.tealium.media.IntervalMilestoneSessionTests.kt</ID>
+    <ID>NewLineAtEndOfFile:IntervalSession.kt$com.tealium.media.sessions.IntervalSession.kt</ID>
+    <ID>NewLineAtEndOfFile:IntervalSessionTests.kt$com.tealium.media.IntervalSessionTests.kt</ID>
+    <ID>NewLineAtEndOfFile:Media.kt$com.tealium.media.Media.kt</ID>
+    <ID>NewLineAtEndOfFile:MediaConstants.kt$com.tealium.media.MediaConstants.kt</ID>
+    <ID>NewLineAtEndOfFile:MediaContent.kt$com.tealium.media.MediaContent.kt</ID>
+    <ID>NewLineAtEndOfFile:MediaDispatcher.kt$com.tealium.media.MediaDispatcher.kt</ID>
+    <ID>NewLineAtEndOfFile:MediaSessionDispatcher.kt$com.tealium.media.MediaSessionDispatcher.kt</ID>
+    <ID>NewLineAtEndOfFile:MediaSummary.kt$com.tealium.media.MediaSummary.kt</ID>
+    <ID>NewLineAtEndOfFile:MediaTests.kt$com.tealium.media.MediaTests.kt</ID>
+    <ID>NewLineAtEndOfFile:MilestoneSession.kt$com.tealium.media.sessions.MilestoneSession.kt</ID>
+    <ID>NewLineAtEndOfFile:MilestoneSessionTests.kt$com.tealium.media.MilestoneSessionTests.kt</ID>
+    <ID>NewLineAtEndOfFile:QoE.kt$com.tealium.media.QoE.kt</ID>
+    <ID>NewLineAtEndOfFile:Segment.kt$com.tealium.media.segments.Segment.kt</ID>
+    <ID>NewLineAtEndOfFile:Session.kt$com.tealium.media.sessions.Session.kt</ID>
+    <ID>NewLineAtEndOfFile:SummarySession.kt$com.tealium.media.sessions.SummarySession.kt</ID>
+    <ID>NewLineAtEndOfFile:SummarySessionTests.kt$com.tealium.media.SummarySessionTests.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfigMedia.kt$com.tealium.media.TealiumConfigMedia.kt</ID>
+    <ID>TooManyFunctions:FullPlaybackSession.kt$FullPlaybackSession : Session</ID>
+    <ID>TooManyFunctions:Media.kt$Media : ModuleActivityObserverListener</ID>
+    <ID>TooManyFunctions:MilestoneSession.kt$MilestoneSession : FullPlaybackSession</ID>
+    <ID>TooManyFunctions:Session.kt$Session</ID>
+    <ID>TooManyFunctions:SummarySession.kt$SummarySession : FullPlaybackSession</ID>
+    <ID>UnusedPrivateMember:FullPlaybackSession.kt$FullPlaybackSession$private fun duration(): Double?</ID>
+    <ID>WildcardImport:FullPlaybackSession.kt$import com.tealium.media.*</ID>
+    <ID>WildcardImport:IntervalSession.kt$import com.tealium.media.*</ID>
+    <ID>WildcardImport:Media.kt$import com.tealium.core.*</ID>
+    <ID>WildcardImport:Media.kt$import com.tealium.media.sessions.*</ID>
+    <ID>WildcardImport:MilestoneSession.kt$import com.tealium.media.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

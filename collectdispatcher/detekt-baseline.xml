@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>EmptyClassBlock:CollectDispatcher.kt$CollectDispatcherListener${ }</ID>
+    <ID>MaxLineLength:CollectDispatcherTests.kt$CollectDispatcherTests$&amp;&amp;</ID>
+    <ID>NewLineAtEndOfFile:CollectDispatcherTests.kt$com.tealium.collectdispatcher.CollectDispatcherTests.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfigCollectDispatcher.kt$com.tealium.collectdispatcher.TealiumConfigCollectDispatcher.kt</ID>
+    <ID>WildcardImport:CollectDispatcher.kt$import com.tealium.core.*</ID>
+    <ID>WildcardImport:CollectDispatcher.kt$import com.tealium.core.messaging.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

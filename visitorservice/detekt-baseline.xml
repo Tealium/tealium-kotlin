@@ -1,6 +1,6 @@
-<?xml version="1.0" ?>
+<?xml version='1.0' encoding='UTF-8'?>
 <SmellBaseline>
-  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>MagicNumber:VisitorProfileManager.kt$VisitorManager$5</ID>
     <ID>MagicNumber:VisitorProfileManager.kt$VisitorManager$750L</ID>
@@ -14,11 +14,11 @@
     <ID>MaxLineLength:VisitorProfileManagerTest.kt$VisitorProfileManagerTest$every { VisitorProfile.Companion.fromJson(any()) } returnsMany listOf(VisitorProfile(totalEventCount = 0), VisitorProfile(totalEventCount = 0))</ID>
     <ID>MaxLineLength:VisitorProfileManagerTest.kt$VisitorProfileManagerTest$every { VisitorProfile.Companion.fromJson(any()) } returnsMany listOf(VisitorProfile(totalEventCount = 0), VisitorProfile(totalEventCount = 1))</ID>
     <ID>MaxLineLength:VisitorProfileTest.kt$TestUtils.Companion$?:</ID>
-    <ID>NestedBlockDepth:Utils.kt$internal fun JSONObject.asArraysOfBooleans(): Map&lt;String, List&lt;Boolean&gt;&gt;</ID>
-    <ID>NestedBlockDepth:Utils.kt$internal fun JSONObject.asArraysOfNumbers(): Map&lt;String, List&lt;Double&gt;&gt;</ID>
-    <ID>NestedBlockDepth:Utils.kt$internal fun JSONObject.asArraysOfStrings(): Map&lt;String, List&lt;String&gt;&gt;</ID>
-    <ID>NestedBlockDepth:Utils.kt$internal fun JSONObject.asSetsOfStrings(): Map&lt;String, Set&lt;String&gt;&gt;</ID>
-    <ID>NestedBlockDepth:Utils.kt$internal fun JSONObject.asTallies(): Map&lt;String, Map&lt;String, Double&gt;&gt;</ID>
+    <ID>NestedBlockDepth:Utils.kt$internal fun JSONObject.asArraysOfBooleans(): Map&lt;String, List&lt;Boolean>></ID>
+    <ID>NestedBlockDepth:Utils.kt$internal fun JSONObject.asArraysOfNumbers(): Map&lt;String, List&lt;Double>></ID>
+    <ID>NestedBlockDepth:Utils.kt$internal fun JSONObject.asArraysOfStrings(): Map&lt;String, List&lt;String>></ID>
+    <ID>NestedBlockDepth:Utils.kt$internal fun JSONObject.asSetsOfStrings(): Map&lt;String, Set&lt;String>></ID>
+    <ID>NestedBlockDepth:Utils.kt$internal fun JSONObject.asTallies(): Map&lt;String, Map&lt;String, Double>></ID>
     <ID>NestedBlockDepth:VisitorProfileManager.kt$VisitorManager$override suspend fun requestVisitorProfile()</ID>
     <ID>NewLineAtEndOfFile:CurrentVisit.kt$com.tealium.visitorservice.CurrentVisit.kt</ID>
     <ID>NewLineAtEndOfFile:CurrentVisitTest.kt$com.tealium.visitorservice.CurrentVisitTest.kt</ID>

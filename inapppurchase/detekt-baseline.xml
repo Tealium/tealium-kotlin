@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MaxLineLength:InAppPurchaseManagerTests.kt$InAppPurchaseManagerTests$every { BillingClient.newBuilder(any()).setListener(any()).enablePendingPurchases().build() } returns mockkBillingClient</ID>
+    <ID>NestedBlockDepth:PurchaseListener.kt$PurchaseListener$override fun onPurchasesUpdated(billingResult: BillingResult, purchases: MutableList&lt;Purchase>?)</ID>
+    <ID>NewLineAtEndOfFile:InAppPurchaseAutoTracker.kt$com.tealium.inapppurchase.InAppPurchaseAutoTracker.kt</ID>
+    <ID>NewLineAtEndOfFile:InAppPurchaseAutoTrackingTests.kt$com.tealium.inapppurchase.InAppPurchaseAutoTrackingTests.kt</ID>
+    <ID>NewLineAtEndOfFile:InAppPurchaseManager.kt$com.tealium.inapppurchase.InAppPurchaseManager.kt</ID>
+    <ID>NewLineAtEndOfFile:InAppPurchaseManagerTests.kt$com.tealium.inapppurchase.InAppPurchaseManagerTests.kt</ID>
+    <ID>NewLineAtEndOfFile:InAppPurchaseTracker.kt$com.tealium.inapppurchase.InAppPurchaseTracker.kt</ID>
+    <ID>NewLineAtEndOfFile:PurchaseListener.kt$com.tealium.inapppurchase.PurchaseListener.kt</ID>
+    <ID>WildcardImport:InAppPurchaseAutoTracker.kt$import com.android.billingclient.api.*</ID>
+    <ID>WildcardImport:InAppPurchaseManager.kt$import com.android.billingclient.api.*</ID>
+    <ID>WildcardImport:InAppPurchaseManager.kt$import com.tealium.core.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

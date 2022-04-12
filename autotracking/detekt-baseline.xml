@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MatchingDeclarationName:TealiumConfigAutoTrackingTests.kt$TealiumConfigLocationTests</ID>
+    <ID>MaxLineLength:ActivityAutoTracker.kt$ActivityAutoTracker$private</ID>
+    <ID>MaxLineLength:ActivityBlocklist.kt$ActivityBlocklist$if</ID>
+    <ID>MaxLineLength:ActivityBlocklist.kt$ActivityBlocklist$private val sharedPreferences: SharedPreferences = config.application.getSharedPreferences(getSharedPreferencesName(config), 0)</ID>
+    <ID>MaxLineLength:ActivityBlocklist.kt$ActivityBlocklist.Companion$return "tealium.autotracking.blocklist." + Integer.toHexString((config.accountName + config.profileName + config.environment.environment).hashCode())</ID>
+    <ID>MaxLineLength:ActivityBlocklistTests.kt$ActivityBlocklistTests$every { mockSharedPreferences.getLong("cached_blocklist_next_refresh", any()) } returnsMany listOf(Long.MIN_VALUE, Long.MAX_VALUE)</ID>
+    <ID>NestedBlockDepth:ActivityAutoTracker.kt$ActivityAutoTracker$override fun onActivityResumed(activity: Activity?)</ID>
+    <ID>NewLineAtEndOfFile:ActivityAutoTracker.kt$com.tealium.autotracking.internal.ActivityAutoTracker.kt</ID>
+    <ID>NewLineAtEndOfFile:ActivityAutoTrackingTests.kt$com.tealium.autotracking.ActivityAutoTrackingTests.kt</ID>
+    <ID>NewLineAtEndOfFile:ActivityBlocklist.kt$com.tealium.autotracking.internal.ActivityBlocklist.kt</ID>
+    <ID>NewLineAtEndOfFile:ActivityBlocklistTests.kt$com.tealium.autotracking.ActivityBlocklistTests.kt</ID>
+    <ID>NewLineAtEndOfFile:ActivityDataCollector.kt$com.tealium.autotracking.ActivityDataCollector.kt</ID>
+    <ID>NewLineAtEndOfFile:ActivityTracker.kt$com.tealium.autotracking.ActivityTracker.kt</ID>
+    <ID>NewLineAtEndOfFile:AutoTracking.kt$com.tealium.autotracking.AutoTracking.kt</ID>
+    <ID>NewLineAtEndOfFile:AutoTrackingMode.kt$com.tealium.autotracking.AutoTrackingMode.kt</ID>
+    <ID>NewLineAtEndOfFile:AutoTrackingModuleTests.kt$com.tealium.autotracking.AutoTrackingModuleTests.kt</ID>
+    <ID>NewLineAtEndOfFile:Autotracked.kt$com.tealium.autotracking.Autotracked.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfigAutoTracking.kt$com.tealium.autotracking.TealiumConfigAutoTracking.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfigAutoTrackingTests.kt$com.tealium.autotracking.TealiumConfigAutoTrackingTests.kt</ID>
+    <ID>SwallowedException:ActivityBlocklist.kt$ActivityBlocklist$jex: JSONException</ID>
+    <ID>TooGenericExceptionCaught:ActivityAutoTracker.kt$ActivityAutoTracker$ex: Exception</ID>
+    <ID>UnusedPrivateMember:AutoTracking.kt$AutoTracking.Companion$private const val MODULE_VERSION = com.tealium.autotracking.BuildConfig.LIBRARY_VERSION</ID>
+    <ID>WildcardImport:ActivityAutoTracker.kt$import com.tealium.autotracking.*</ID>
+    <ID>WildcardImport:ActivityBlocklist.kt$import kotlinx.coroutines.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

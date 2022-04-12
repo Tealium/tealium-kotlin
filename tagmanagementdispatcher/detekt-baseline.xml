@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MagicNumber:WebViewLoader.kt$WebViewLoader$1000</ID>
+    <ID>MagicNumber:WebViewLoader.kt$WebViewLoader$3</ID>
+    <ID>MaxLineLength:TagManagementDispatcher.kt$TagManagementDispatcher$connectivity: Connectivity = ConnectivityRetriever.getInstance(context.config.application)</ID>
+    <ID>MaxLineLength:TagManagementDispatcher.kt$TagManagementDispatcher$internal var webViewLoader = WebViewLoader(context, urlString, afterDispatchSendCallbacks, connectivityRetriever = connectivity)</ID>
+    <ID>MaxLineLength:TagManagementDispatcher.kt$TagManagementDispatcher$override</ID>
+    <ID>MaxLineLength:TagManagementDispatcherTest.kt$TagManagementDispatcherTest$assertEquals("/utag/${config.accountName}/${config.profileName}/${config.environment.environment}/mobile.html", url.path)</ID>
+    <ID>MaxLineLength:TagManagementDispatcherTest.kt$TagManagementDispatcherTest$val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)</ID>
+    <ID>MaxLineLength:WebViewClientTest.kt$WebViewClientTest$webViewLoader.webViewClient.shouldOverrideUrlLoading(mockWebView, "${TagManagementRemoteCommand.PREFIX}myRemoteCommandName")</ID>
+    <ID>MaxLineLength:WebViewExceptionMessenger.kt$WebViewExceptionMessenger$class</ID>
+    <ID>MaxLineLength:WebViewLoader.kt$WebViewLoader$private val connectivityRetriever: Connectivity = ConnectivityRetriever.getInstance(context.config.application)</ID>
+    <ID>MaxLineLength:WebViewLoader.kt$WebViewLoader.&lt;no name provided>$"	utag.mobile.remote_api.response[\"${response.commandId}\"][\"${response.id}\"](${response.status});"</ID>
+    <ID>MaxLineLength:WebViewLoader.kt$WebViewLoader.&lt;no name provided>$"	utag.mobile.remote_api.response[\"${response.commandId}\"][\"${response.id}\"](${response.status}, ${JSONObject.quote(response.body)});"</ID>
+    <ID>MaxLineLength:WebViewLoader.kt$WebViewLoader.&lt;no name provided>$" var ts = new RegExp(\"ut[0-9]+\\.[0-9]+\\.[0-9]{12}\").exec(document.childNodes[0].textContent)[0];\n"</ID>
+    <ID>MaxLineLength:WebViewLoader.kt$WebViewLoader.&lt;no name provided>$override</ID>
+    <ID>MaxLineLength:WebViewLoaderTest.kt$WebViewLoaderTest$webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockProvider)</ID>
+    <ID>NewLineAtEndOfFile:TagManagementConstants.kt$com.tealium.tagmanagementdispatcher.TagManagementConstants.kt</ID>
+    <ID>NewLineAtEndOfFile:TagManagementDispatcher.kt$com.tealium.tagmanagementdispatcher.TagManagementDispatcher.kt</ID>
+    <ID>NewLineAtEndOfFile:TagManagementDispatcherTest.kt$com.tealium.tagmanagementdispatcher.TagManagementDispatcherTest.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfigTagManagementDispatcher.kt$com.tealium.tagmanagementdispatcher.TealiumConfigTagManagementDispatcher.kt</ID>
+    <ID>NewLineAtEndOfFile:WebChromeClientLoader.kt$com.tealium.tagmanagementdispatcher.WebChromeClientLoader.kt</ID>
+    <ID>NewLineAtEndOfFile:WebViewClientTest.kt$com.tealium.tagmanagementdispatcher.WebViewClientTest.kt</ID>
+    <ID>NewLineAtEndOfFile:WebViewExceptionListener.kt$com.tealium.tagmanagementdispatcher.WebViewExceptionListener.kt</ID>
+    <ID>NewLineAtEndOfFile:WebViewExceptionMessenger.kt$com.tealium.tagmanagementdispatcher.WebViewExceptionMessenger.kt</ID>
+    <ID>NewLineAtEndOfFile:WebViewLoader.kt$com.tealium.tagmanagementdispatcher.WebViewLoader.kt</ID>
+    <ID>NewLineAtEndOfFile:WebViewLoaderTest.kt$com.tealium.tagmanagementdispatcher.WebViewLoaderTest.kt</ID>
+    <ID>ReturnCount:WebViewLoader.kt$WebViewLoader.&lt;no name provided>$// deprecated in API 23, but still supporting API level override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?)</ID>
+    <ID>TooGenericExceptionCaught:TagManagementDispatcher.kt$TagManagementDispatcher$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:WebViewLoader.kt$WebViewLoader$ex: Exception</ID>
+    <ID>TooGenericExceptionCaught:WebViewLoader.kt$WebViewLoader$t: Throwable</ID>
+    <ID>TooGenericExceptionThrown:WebViewLoaderTest.kt$WebViewLoaderTest$throw Exception()</ID>
+    <ID>TooManyFunctions:WebViewLoader.kt$WebViewLoader$&lt;no name provided> : WebViewClient</ID>
+    <ID>WildcardImport:TagManagementDispatcher.kt$import android.webkit.*</ID>
+    <ID>WildcardImport:TagManagementDispatcher.kt$import com.tealium.core.*</ID>
+    <ID>WildcardImport:TagManagementDispatcher.kt$import com.tealium.core.consent.*</ID>
+    <ID>WildcardImport:TagManagementDispatcher.kt$import com.tealium.core.messaging.*</ID>
+    <ID>WildcardImport:WebViewLoader.kt$import android.webkit.*</ID>
+    <ID>WildcardImport:WebViewLoader.kt$import kotlinx.coroutines.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

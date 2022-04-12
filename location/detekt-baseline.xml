@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>LongParameterList:GeofenceLocation.kt$GeofenceLocation.Companion$(name: String, latitude: Double, longitude: Double, radius: Int, expireTime: Int, loiterTime: Int, triggerEnter: Boolean, triggerExit: Boolean)</ID>
+    <ID>LongParameterList:LocationManager.kt$LocationManager$(name: String, latitude: Double, longitude: Double, radius: Int, expireTime: Int, loiterTime: Int, triggerEnter: Boolean, triggerExit: Boolean)</ID>
+    <ID>MagicNumber:FusedLocationProviderClientLoader.kt$FusedLocationProviderClientLoader.&lt;no name provided>$500.0</ID>
+    <ID>MagicNumber:GeofenceLocation.kt$GeofenceLocation.Companion$180</ID>
+    <ID>MagicNumber:GeofenceLocation.kt$GeofenceLocation.Companion$90</ID>
+    <ID>MaxLineLength:FusedLocationProviderClientLoader.kt$FusedLocationProviderClientLoader.&lt;no name provided>$Logger.dev(BuildConfig.TAG, "Geofence ${geofence.name} added to active monitoring")</ID>
+    <ID>MaxLineLength:FusedLocationProviderClientLoader.kt$FusedLocationProviderClientLoader.&lt;no name provided>$Logger.dev(BuildConfig.TAG, "Geofence ${geofence.name} removed from active monitoring")</ID>
+    <ID>MaxLineLength:FusedLocationProviderClientLoaderTests.kt$FusedLocationProviderClientLoaderTests$assertEquals(LocationRequest.PRIORITY_HIGH_ACCURACY, fusedLocationProviderClientLoader.locationRequest?.priority)</ID>
+    <ID>MaxLineLength:GeofenceLocation.kt$GeofenceLocation.Companion$Logger.dev(BuildConfig.TAG, "Expire time must be a valid integer. 0 or greater, or -1 for never expire!")</ID>
+    <ID>MaxLineLength:GeofenceLocation.kt$GeofenceLocation.Companion$Logger.dev(BuildConfig.TAG, "Loiter time must be a valid integer. 1 or greater, or 0 for trigger on enter")</ID>
+    <ID>MaxLineLength:GeofenceLocation.kt$GeofenceLocation.Companion$return GeofenceLocation(name, latitude, longitude, radius, expireTime, loiterTime, triggerEnter, triggerExit)</ID>
+    <ID>MaxLineLength:GeofenceLocationClient.kt$GeofenceLocationClient$val geofencePendingIntent = PendingIntent.getBroadcast(context.config.application, 0, LocationManager.fetchLocationIntent(context), PendingIntent.FLAG_UPDATE_CURRENT)</ID>
+    <ID>MaxLineLength:GeofenceLocationTests.kt$GeofenceLocationTests$assertEquals(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_DWELL, geofenceLocation.transitionType)</ID>
+    <ID>MaxLineLength:GeofenceLocationTests.kt$GeofenceLocationTests$assertEquals(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT or Geofence.GEOFENCE_TRANSITION_DWELL, geofenceLocation.transitionType)</ID>
+    <ID>MaxLineLength:GeofenceLocationTests.kt$GeofenceLocationTests$assertEquals(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT, geofenceLocation.transitionType)</ID>
+    <ID>MaxLineLength:GeofenceLocationTests.kt$GeofenceLocationTests$assertEquals(Geofence.GEOFENCE_TRANSITION_EXIT or Geofence.GEOFENCE_TRANSITION_DWELL, geofenceLocation.transitionType)</ID>
+    <ID>MaxLineLength:LocationGeofenceLoaderTests.kt$LocationGeofenceLoaderTests$val geofenceObj2 = GeofenceLocation.create("Tealium_San_Diego", 32.9061189, -117.2379163, 100, -1, 0, true, true)</ID>
+    <ID>MaxLineLength:LocationManager.kt$LocationManager$val newGeofenceLocation = GeofenceLocation.create(name, latitude, longitude, radius, expireTime, loiterTime, triggerEnter, triggerExit)</ID>
+    <ID>MaxLineLength:LocationTests.kt$LocationTests$every { mockContext.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) } returns PackageManager.PERMISSION_DENIED</ID>
+    <ID>MaxLineLength:LocationTests.kt$LocationTests$every { mockContext.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) } returns PackageManager.PERMISSION_GRANTED</ID>
+    <ID>MaxLineLength:LocationTests.kt$LocationTests$every { mockContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) } returns PackageManager.PERMISSION_DENIED</ID>
+    <ID>MaxLineLength:LocationTests.kt$LocationTests$every { mockContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) } returns PackageManager.PERMISSION_GRANTED</ID>
+    <ID>MemberNameEqualsClassName:GeofenceLocationClient.kt$GeofenceLocationClient$private val geofenceLocationClient = createGeofenceLocationClient(context.config.application)</ID>
+    <ID>NestedBlockDepth:FusedLocationProviderClientLoader.kt$FusedLocationProviderClientLoader$private fun createLocationCallback(): LocationCallback</ID>
+    <ID>NewLineAtEndOfFile:FusedLocationProviderClientLoader.kt$com.tealium.location.FusedLocationProviderClientLoader.kt</ID>
+    <ID>NewLineAtEndOfFile:GeofenceBroadcastReceiver.kt$com.tealium.location.GeofenceBroadcastReceiver.kt</ID>
+    <ID>NewLineAtEndOfFile:GeofenceBroadcastReceiverTest.kt$com.tealium.location.GeofenceBroadcastReceiverTest.kt</ID>
+    <ID>NewLineAtEndOfFile:GeofenceLocation.kt$com.tealium.location.GeofenceLocation.kt</ID>
+    <ID>NewLineAtEndOfFile:GeofenceLocationClient.kt$com.tealium.location.GeofenceLocationClient.kt</ID>
+    <ID>NewLineAtEndOfFile:GeofenceLocationClientTests.kt$com.tealium.location.GeofenceLocationClientTests.kt</ID>
+    <ID>NewLineAtEndOfFile:GeofenceLocationTests.kt$com.tealium.location.GeofenceLocationTests.kt</ID>
+    <ID>NewLineAtEndOfFile:LocationConstants.kt$com.tealium.location.LocationConstants.kt</ID>
+    <ID>NewLineAtEndOfFile:LocationGeofenceLoaderTests.kt$com.tealium.location.LocationGeofenceLoaderTests.kt</ID>
+    <ID>NewLineAtEndOfFile:LocationManagerTests.kt$com.tealium.location.LocationManagerTests.kt</ID>
+    <ID>NewLineAtEndOfFile:LocationTask.kt$com.tealium.location.LocationTask.kt</ID>
+    <ID>NewLineAtEndOfFile:LocationTests.kt$com.tealium.location.LocationTests.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfigLocation.kt$com.tealium.location.TealiumConfigLocation.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfigLocationTests.kt$com.tealium.location.TealiumConfigLocationTests.kt</ID>
+    <ID>ReturnCount:GeofenceLocation.kt$GeofenceLocation.Companion$fun create(name: String, latitude: Double, longitude: Double, radius: Int, expireTime: Int, loiterTime: Int, triggerEnter: Boolean, triggerExit: Boolean): GeofenceLocation?</ID>
+    <ID>TooManyFunctions:LocationManager.kt$LocationManager : Collector</ID>
+    <ID>VariableNaming:LocationTests.kt$LocationTests$val LOCATION_CLIENT = "location_client"</ID>
+    <ID>WildcardImport:FusedLocationProviderClientLoader.kt$import com.google.android.gms.location.*</ID>
+    <ID>WildcardImport:LocationManager.kt$import com.tealium.core.*</ID>
+  </CurrentIssues>
+</SmellBaseline>
