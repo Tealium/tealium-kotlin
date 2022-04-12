@@ -44,8 +44,15 @@ class MigrationTests {
         MockKAnnotations.init(this)
 
         application = ApplicationProvider.getApplicationContext()
-        config = TealiumConfig(application, "test", "test", Environment.DEV)
-        legacyPreferences = application.getSharedPreferences("$lifecyclePreferencesNamePrefix.${getHashCodeString(config)}", 0)
+        config = TealiumConfig(
+            application, "test", "test", Environment.DEV,
+            collectors = mutableSetOf()
+        )
+        legacyPreferences = application.getSharedPreferences(
+            "$lifecyclePreferencesNamePrefix.${
+                getHashCodeString(config)
+            }", 0
+        )
 
         lifecycleSharedPreferences = LifecycleSharedPreferences(config)
     }
@@ -127,8 +134,9 @@ class MigrationTests {
 
     fun getHashCodeString(config: TealiumConfig, delimiter: String = ""): String {
         return Integer.toHexString(
-                (config.accountName + delimiter +
-                        config.profileName + delimiter +
-                        config.environment.environment).hashCode())
+            (config.accountName + delimiter +
+                    config.profileName + delimiter +
+                    config.environment.environment).hashCode()
+        )
     }
 }

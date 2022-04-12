@@ -16,7 +16,10 @@ class HostedDatalayerInstrumentedTests {
 
     @Test
     fun extension_ModuleFactoryReturnsModule() = runBlocking {
-        val config = TealiumConfig(application, "tealiummobile", "test", Environment.DEV)
+        val config = TealiumConfig(
+            application, "tealiummobile", "test", Environment.DEV,
+            collectors = mutableSetOf()
+        )
         config.modules.add(HostedDataLayer)
         val tealium = Tealium.create("test", config)
         delay(1500)

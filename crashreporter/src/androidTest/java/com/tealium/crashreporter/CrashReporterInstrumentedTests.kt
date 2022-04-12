@@ -14,7 +14,10 @@ class CrashReporterInstrumentedTests {
 
     @Test
     fun extension_ModuleFactoryReturnsModule() = runBlocking {
-        val config = TealiumConfig(application, "tealiummobile", "test", Environment.DEV)
+        val config = TealiumConfig(
+            application, "tealiummobile", "test", Environment.DEV,
+            collectors = mutableSetOf()
+        )
         config.modules.add(CrashReporter)
         val tealium = Tealium.create("test", config)
         delay(1500)

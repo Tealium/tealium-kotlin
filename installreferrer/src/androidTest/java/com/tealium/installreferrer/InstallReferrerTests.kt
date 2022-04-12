@@ -31,19 +31,26 @@ class InstallReferrerTests {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext<Context>()
-        config = spyk(TealiumConfig(context.applicationContext as Application,
+        config = spyk(
+            TealiumConfig(
+                context.applicationContext as Application,
                 account,
                 profile,
-                environment, dataSourceId = dataSource))
+                environment, dataSourceId = dataSource,
+                collectors = mutableSetOf()
+            )
+        )
 
         dataLayer = mockk(relaxed = true)
-        tealiumContext = TealiumContext(config,
-                visitorId,
-                mockk(),
-                dataLayer,
-                mockk(),
-                mockk(),
-                mockk())
+        tealiumContext = TealiumContext(
+            config,
+            visitorId,
+            mockk(),
+            dataLayer,
+            mockk(),
+            mockk(),
+            mockk()
+        )
     }
 
     @Test
@@ -72,9 +79,21 @@ class InstallReferrerTests {
         installReferrer.save(referrerDetails)
 
         verify {
-            dataLayer.putString(InstallReferrerConstants.KEY_INSTALL_REFERRER, "affiliate", Expiry.FOREVER)
-            dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP, 100L, Expiry.FOREVER)
-            dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP, 101L, Expiry.FOREVER)
+            dataLayer.putString(
+                InstallReferrerConstants.KEY_INSTALL_REFERRER,
+                "affiliate",
+                Expiry.FOREVER
+            )
+            dataLayer.putLong(
+                InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP,
+                100L,
+                Expiry.FOREVER
+            )
+            dataLayer.putLong(
+                InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP,
+                101L,
+                Expiry.FOREVER
+            )
         }
 
         assertEquals(installReferrer.referrer, "affiliate")
