@@ -24,7 +24,7 @@ interface RemoteCommandDispatcherListener : DispatcherListener {
  */
 class RemoteCommandDispatcher(private val context: TealiumContext,
                               private val client: NetworkClient = HttpClient(context.config),
-                              private val manager: CommandsManager = RemoteCommandsManager(context.config)) : Dispatcher, RemoteCommandListener {
+                              private val manager: CommandsManager = RemoteCommandsManager(context.config)) : Dispatcher, RemoteCommandListener , Collector by manager {
 
     /**
      * Adds Remote Commands to be evaluated when triggered. If adding a JSON-controlled
