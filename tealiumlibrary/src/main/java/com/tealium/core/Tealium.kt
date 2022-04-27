@@ -188,6 +188,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
         backgroundScope.launch(Logger.exceptionHandler) {
             allData.putAll(collectData())
         }
+        Thread.sleep(30) // how do I get rid of this?
         return allData.toMap()
     }
 
