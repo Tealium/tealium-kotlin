@@ -26,6 +26,8 @@ import com.tealium.test.OpenForTesting
 import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -182,22 +184,23 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
     }
 
     fun gatherTrackData(): Map<String, Any> {
-        var allData = mapOf<String, Any>()
-        backgroundScope.launch {
-            allData = //async {
-                fetchData()
-            //}.await()
+        val allData = mutableMapOf<String, Any>()
+        backgroundScope.launch(Logger.exceptionHandler) {
+            allData.putAll(collectData())
         }
-        return allData
+        return allData.toMap()
     }
 
-    private suspend fun fetchData(): Map<String, Any> {
-        val allData = mutableMapOf<String, Any>()
-        allData.putAll(dataLayer.all())
-        collectors.forEach { collector ->
-            allData.putAll(collector.collect())
+    suspend fun collectData(): Map<String, Any> {
+        val data = mutableMapOf<String, Any>()
+        collectors.filter { it.enabled }.forEach {
+            try {
+                data.putAll(it.collect())
+            } catch (ex: Exception) {
+                Logger.dev(BuildConfig.TAG, "Failed to collect data from ${it.name}")
+            }
         }
-        return allData
+        return data.toMap()
     }
 
     @Suppress("unused")
