@@ -188,11 +188,11 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
         backgroundScope.launch(Logger.exceptionHandler) {
             allData.putAll(collectData())
         }
-        Thread.sleep(30) // how do I get rid of this?
+        Thread.sleep(500) // how do I get rid of this?
         return allData.toMap()
     }
 
-    suspend fun collectData(): Map<String, Any> {
+    private suspend fun collectData(): Map<String, Any> {
         val data = mutableMapOf<String, Any>()
         collectors.filter { it.enabled }.forEach {
             try {
@@ -200,6 +200,9 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
             } catch (ex: Exception) {
                 Logger.dev(BuildConfig.TAG, "Failed to collect data from ${it.name}")
             }
+        }
+        modules.getModulesForType(Collector::class.java).forEach {
+            data.putAll(it.collect())
         }
         return data.toMap()
     }

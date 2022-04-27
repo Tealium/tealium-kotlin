@@ -166,6 +166,28 @@ class TealiumTests {
     }
 
     @Test
+    fun retrieveDataLayerWithoutCollectors() {
+        val config = TealiumConfig(
+            application,
+            "testAccount2",
+            "testProfile2",
+            Environment.DEV
+        )
+        config.existingVisitorId = "testExistingVisitorId"
+        val teal = Tealium.create("tester2", config)
+
+        val data = teal.gatherTrackData()
+        val storedVid = data["tealium_visitor_id"]
+        assertEquals("testExistingVisitorId", storedVid)
+
+        val account = data["tealium_account"]
+        val profile = data["tealium_profile"]
+
+        assertEquals("testAccount2", account)
+        assertEquals("testProfile2", profile)
+    }
+
+    @Test
     fun testCallbackGetsExecuted() = runBlocking {
         var hasBeenCalled = false
 
