@@ -126,6 +126,10 @@ object TealiumHelper : ActivityDataCollector {
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.inAppPurchaseManager?.trackInAppPurchase(purchase, data)
     }
 
+    fun retrieveDatalayer() : Map<String, Any>? {
+        return Tealium[BuildConfig.TEALIUM_INSTANCE]?.gatherTrackData()
+    }
+
     val customValidator: DispatchValidator by lazy {
         object : DispatchValidator {
             override fun shouldQueue(dispatch: Dispatch?): Boolean {
