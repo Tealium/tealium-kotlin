@@ -55,8 +55,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
     }
 
     private fun onTrack() {
-        val data = TealiumHelper.retrieveDatalayer()
-        println("PRINTING datalayer:::: $data")
         TealiumHelper.trackEvent("event1", mapOf("key1" to "value1", "key2" to 2))
     }
 

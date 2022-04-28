@@ -184,27 +184,9 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
     }
 
     fun gatherTrackData(): Map<String, Any> {
-        val allData = mutableMapOf<String, Any>()
-        backgroundScope.launch(Logger.exceptionHandler) {
-            allData.putAll(collectData())
+        return runBlocking {
+            dispatchRouter.collect()
         }
-        Thread.sleep(500) // how do I get rid of this?
-        return allData.toMap()
-    }
-
-    private suspend fun collectData(): Map<String, Any> {
-        val data = mutableMapOf<String, Any>()
-        collectors.filter { it.enabled }.forEach {
-            try {
-                data.putAll(it.collect())
-            } catch (ex: Exception) {
-                Logger.dev(BuildConfig.TAG, "Failed to collect data from ${it.name}")
-            }
-        }
-        modules.getModulesForType(Collector::class.java).forEach {
-            data.putAll(it.collect())
-        }
-        return data.toMap()
     }
 
     @Suppress("unused")
