@@ -13,9 +13,6 @@ import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
 import com.tealium.core.persistence.*
-import com.tealium.core.persistence.DatabaseHelper
-import com.tealium.core.persistence.DispatchStorage
-import com.tealium.core.persistence.PersistentStorage
 import com.tealium.core.settings.LibrarySettingsManager
 import com.tealium.core.validation.BatchingValidator
 import com.tealium.core.validation.BatteryValidator
@@ -26,9 +23,7 @@ import com.tealium.dispatcher.Dispatcher
 import com.tealium.dispatcher.GenericDispatch
 import com.tealium.tealiumlibrary.BuildConfig
 import com.tealium.test.OpenForTesting
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
 import java.util.*
 import java.util.concurrent.Executors
@@ -183,6 +178,12 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
                 logger.dev(BuildConfig.TAG, "Instance not yet initialized; buffering.")
                 dispatchBuffer.add(dispatchCopy)
             }
+        }
+    }
+
+    fun gatherTrackData(): Map<String, Any> {
+        return runBlocking {
+            dispatchRouter.collect()
         }
     }
 

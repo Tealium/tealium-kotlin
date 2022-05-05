@@ -56,7 +56,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
 
     private fun onTrack() {
         TealiumHelper.trackEvent("event1", mapOf("key1" to "value1", "key2" to 2))
-
     }
 
     override fun onModuleSelected(moduleName: String) {
