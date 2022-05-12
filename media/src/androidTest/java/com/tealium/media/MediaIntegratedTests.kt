@@ -24,19 +24,26 @@ class MediaIntegratedTests {
 
     @Before
     fun setUp() {
-        config = spyk(TealiumConfig(application,
+        config = spyk(
+            TealiumConfig(
+                application,
                 "test",
                 "test",
-                Environment.DEV))
+                Environment.DEV,
+                collectors = mutableSetOf()
+            )
+        )
 
         dataLayer = mockk(relaxed = true)
-        tealiumContext = TealiumContext(config,
-                "someTestId",
-                mockk(),
-                dataLayer,
-                mockk(),
-                mockk(),
-                mockk())
+        tealiumContext = TealiumContext(
+            config,
+            "someTestId",
+            mockk(),
+            dataLayer,
+            mockk(),
+            mockk(),
+            mockk()
+        )
     }
 
     @Test

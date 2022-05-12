@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MagicNumber:VisitorProfileManager.kt$VisitorManager$5</ID>
+    <ID>MagicNumber:VisitorProfileManager.kt$VisitorManager$750L</ID>
+    <ID>MaxLineLength:VisitorProfileManager.kt$VisitorManager$private val loader: Loader = JsonLoader(context.config.application)</ID>
+    <ID>MaxLineLength:VisitorProfileManager.kt$VisitorManager.Companion$const val DEFAULT_VISITOR_SERVICE_TEMPLATE = "https://visitor-service.tealiumiq.com/$PLACEHOLDER_ACCOUNT/$PLACEHOLDER_PROFILE/$PLACEHOLDER_VISITOR_ID"</ID>
+    <ID>MaxLineLength:VisitorProfileManager.kt$VisitorUpdatedMessenger$class</ID>
+    <ID>MaxLineLength:VisitorProfileManagerTest.kt$VisitorProfileManagerTest$assertEquals("https://visitor-service.tealiumiq.com/test-account/test-profile/newVisitor", visitorProfileManager.generateVisitorServiceUrl())</ID>
+    <ID>MaxLineLength:VisitorProfileManagerTest.kt$VisitorProfileManagerTest$assertEquals("https://visitor-service.tealiumiq.com/test-account/test-profile/visitorId", visitorProfileManager.generateVisitorServiceUrl())</ID>
+    <ID>MaxLineLength:VisitorProfileManagerTest.kt$VisitorProfileManagerTest$assertEquals("https://visitor-service.tealiumiq.com/test-account/testingProfile/visitorId", visitorProfileManager.generateVisitorServiceUrl())</ID>
+    <ID>MaxLineLength:VisitorProfileManagerTest.kt$VisitorProfileManagerTest$coEvery { mockHttpClient.get(any()) } returnsMany listOf(null, null, "{}", "{}", validExampleProfileString, null)</ID>
+    <ID>MaxLineLength:VisitorProfileManagerTest.kt$VisitorProfileManagerTest$every { VisitorProfile.Companion.fromJson(any()) } returnsMany listOf(VisitorProfile(totalEventCount = 0), VisitorProfile(totalEventCount = 0))</ID>
+    <ID>MaxLineLength:VisitorProfileManagerTest.kt$VisitorProfileManagerTest$every { VisitorProfile.Companion.fromJson(any()) } returnsMany listOf(VisitorProfile(totalEventCount = 0), VisitorProfile(totalEventCount = 1))</ID>
+    <ID>MaxLineLength:VisitorProfileTest.kt$TestUtils.Companion$?:</ID>
+    <ID>NestedBlockDepth:Utils.kt$internal fun JSONObject.asArraysOfBooleans(): Map&lt;String, List&lt;Boolean>></ID>
+    <ID>NestedBlockDepth:Utils.kt$internal fun JSONObject.asArraysOfNumbers(): Map&lt;String, List&lt;Double>></ID>
+    <ID>NestedBlockDepth:Utils.kt$internal fun JSONObject.asArraysOfStrings(): Map&lt;String, List&lt;String>></ID>
+    <ID>NestedBlockDepth:Utils.kt$internal fun JSONObject.asSetsOfStrings(): Map&lt;String, Set&lt;String>></ID>
+    <ID>NestedBlockDepth:Utils.kt$internal fun JSONObject.asTallies(): Map&lt;String, Map&lt;String, Double>></ID>
+    <ID>NestedBlockDepth:VisitorProfileManager.kt$VisitorManager$override suspend fun requestVisitorProfile()</ID>
+    <ID>NewLineAtEndOfFile:CurrentVisit.kt$com.tealium.visitorservice.CurrentVisit.kt</ID>
+    <ID>NewLineAtEndOfFile:CurrentVisitTest.kt$com.tealium.visitorservice.CurrentVisitTest.kt</ID>
+    <ID>NewLineAtEndOfFile:PerformanceTests.kt$com.tealium.visitorservice.PerformanceTests.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfigVisitorService.kt$com.tealium.visitorservice.TealiumConfigVisitorService.kt</ID>
+    <ID>NewLineAtEndOfFile:Utils.kt$com.tealium.visitorservice.Utils.kt</ID>
+    <ID>NewLineAtEndOfFile:VisitorProfile.kt$com.tealium.visitorservice.VisitorProfile.kt</ID>
+    <ID>NewLineAtEndOfFile:VisitorProfileManager.kt$com.tealium.visitorservice.VisitorProfileManager.kt</ID>
+    <ID>NewLineAtEndOfFile:VisitorProfileManagerTest.kt$com.tealium.visitorservice.VisitorProfileManagerTest.kt</ID>
+    <ID>NewLineAtEndOfFile:VisitorProfileTest.kt$com.tealium.visitorservice.VisitorProfileTest.kt</ID>
+    <ID>NewLineAtEndOfFile:VisitorService.kt$com.tealium.visitorservice.VisitorService.kt</ID>
+    <ID>NewLineAtEndOfFile:VisitorServiceTest.kt$com.tealium.visitorservice.VisitorServiceTest.kt</ID>
+    <ID>SwallowedException:VisitorProfileManager.kt$VisitorManager$jex: JSONException</ID>
+    <ID>TooGenericExceptionCaught:Utils.kt$ex: Exception</ID>
+    <ID>UnusedPrivateMember:PerformanceTests.kt$PerformanceTests$val vp = VisitorProfile.fromJson(visitorProfileJson)</ID>
+    <ID>UnusedPrivateMember:VisitorProfileManagerTest.kt$VisitorProfileManagerTest$@MockK private lateinit var mockResourceRetriever: ResourceRetriever</ID>
+    <ID>UtilityClassWithPublicConstructor:VisitorProfileTest.kt$TestUtils</ID>
+    <ID>WildcardImport:VisitorProfileManager.kt$import com.tealium.core.*</ID>
+    <ID>WildcardImport:VisitorProfileManager.kt$import com.tealium.core.messaging.*</ID>
+    <ID>WildcardImport:VisitorService.kt$import com.tealium.core.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>NewLineAtEndOfFile:AdIdentifier.kt$com.tealium.adidentifier.AdIdentifier.kt</ID>
+    <ID>NewLineAtEndOfFile:AdIdentifierTests.kt$com.tealium.adidentifier.AdIdentifierTests.kt</ID>
+    <ID>TooGenericExceptionCaught:AdIdentifier.kt$AdIdentifier$ex: Exception</ID>
+    <ID>WildcardImport:AdIdentifier.kt$import com.tealium.core.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

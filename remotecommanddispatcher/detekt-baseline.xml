@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>EmptyCatchBlock:RemoteCommandRequestTest.kt$RemoteCommandRequestTest${ }</ID>
+    <ID>EmptyClassBlock:RemoteCommandDispatcher.kt$RemoteCommandDispatcherListener${ }</ID>
+    <ID>LongMethod:RemoteCommandParserTests.kt$RemoteCommandParserTest$@Test fun mapDispatchWithListDestinationsAndDotParamsResultantMap()</ID>
+    <ID>LongParameterList:RemoteCommandConfigRetriever.kt$RemoteCommandConfigRetriever$(private val config: TealiumConfig, private val commandId: String, private val filename: String? = null, private val remoteUrl: String? = null, private val client: NetworkClient = HttpClient(config), private val loader: Loader = JsonLoader.getInstance(config.application), private val backgroundScope: CoroutineScope = CoroutineScope(Dispatchers.Default))</ID>
+    <ID>MatchingDeclarationName:RemoteCommandConstants.kt$Settings</ID>
+    <ID>MatchingDeclarationName:RemoteCommandParserTests.kt$RemoteCommandParserTest</ID>
+    <ID>MaxLineLength:HttpRemoteCommand.kt$HttpRemoteCommand$return "$prefix${URLEncoder.encode(username, "UTF-8")}:${URLEncoder.encode(password, "UTF-8")}${url.substring(prefix.length)}"</ID>
+    <ID>MaxLineLength:RemoteCommandDispatcher.kt$RemoteCommandDispatcher$Logger.dev(BuildConfig.TAG, "Detected Remote Command $id with payload ${request.response?.requestPayload}")</ID>
+    <ID>MaxLineLength:RemoteCommandDispatcher.kt$RemoteCommandDispatcher$Logger.dev(BuildConfig.TAG, "Processing Remote Command: ${remoteCommand.commandName} with command name: ${mappedDispatch[Settings.COMMAND_NAME]}")</ID>
+    <ID>MaxLineLength:RemoteCommandDispatcher.kt$RemoteCommandDispatcher$private val manager: CommandsManager = RemoteCommandsManager(context.config)</ID>
+    <ID>MaxLineLength:RemoteCommandParser.kt$RemoteCommandParser.Companion$// create a map with a String key. This will throw an exception if the JSON mapping file does not use a String as a key.</ID>
+    <ID>MaxLineLength:RemoteCommandParser.kt$RemoteCommandParser.Companion$val oMap = objectMap.entries.associate { entry -> entry.key.toString() to entry.value }.toMutableMap()</ID>
+    <ID>MaxLineLength:RemoteCommandRequestTest.kt$RemoteCommandRequestTest$val request = RemoteCommandRequest(createResponseHandler(), "tealium://command?request=%7B%22config%22%3A%7B%22response_id%22%3A%5B%5D%7D%7D")</ID>
+    <ID>MaxLineLength:RemoteCommandRequestTest.kt$RemoteCommandRequestTest$val request = RemoteCommandRequest(createResponseHandler(), "tealium://command?request=%7B%22config%22%3A%7B%22response_id%22%3A%7B%7D%7D%7D")</ID>
+    <ID>MaxLineLength:RemoteCommandRequestTest.kt$RemoteCommandRequestTest$val request = RemoteCommandRequest(createResponseHandler(), "tealium://command?request=%7B%22config%22%3A%7B%22response_id%22%3A1234%7D%7D")</ID>
+    <ID>MaxLineLength:RemoteCommandRequestTest.kt$RemoteCommandRequestTest$val request = RemoteCommandRequest(createResponseHandler(), "tealium://command?request=%7B%22foo%22%3A%22%7D")</ID>
+    <ID>MaxLineLength:RemoteCommandRequestTest.kt$RemoteCommandRequestTest$val request = RemoteCommandRequest(createResponseHandler(), "tealium://command?request=%7B%22foo%22%3A%22bar%22%!!")</ID>
+    <ID>MaxLineLength:RemoteCommandRequestTest.kt$RemoteCommandRequestTest$val request = RemoteCommandRequest(createResponseHandler(), "tealium://command?request=%7B%22foo%22%3A%22bar%22%7D")</ID>
+    <ID>MaxLineLength:RemoteCommandRequestTest.kt$RemoteCommandRequestTest$val request = RemoteCommandRequest(createResponseHandler(), "tealium://task-populated_arg?request=%7B%22payload%22%3A%7B%22foo%22%3A%22bar%22%7D%7D")</ID>
+    <ID>MaxLineLength:RemoteCommandsManager.kt$RemoteCommandsManager$commandsConfigRetriever[remoteCommand.commandName] = RemoteCommandConfigRetriever(config, remoteCommand.commandName, filename, remoteUrl)</ID>
+    <ID>MemberNameEqualsClassName:HttpRemoteCommand.kt$HttpRemoteCommand.Formatters$private val formatters: MutableMap&lt;String, Formatter> = mutableMapOf()</ID>
+    <ID>NestedBlockDepth:RemoteCommandParser.kt$RemoteCommandParser.Companion$ fun mapPayload(payload: Map&lt;String, Any>, lookup: Map&lt;String, String>): MutableMap&lt;String, Any></ID>
+    <ID>NewLineAtEndOfFile:FormatterTests.kt$com.tealium.remotecommanddispatcher.FormatterTests.kt</ID>
+    <ID>NewLineAtEndOfFile:HttpRemoteCommand.kt$com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand.kt</ID>
+    <ID>NewLineAtEndOfFile:RemoteCommandConfig.kt$com.tealium.remotecommanddispatcher.RemoteCommandConfig.kt</ID>
+    <ID>NewLineAtEndOfFile:RemoteCommandConfigRetriever.kt$com.tealium.remotecommanddispatcher.RemoteCommandConfigRetriever.kt</ID>
+    <ID>NewLineAtEndOfFile:RemoteCommandConstants.kt$com.tealium.remotecommanddispatcher.RemoteCommandConstants.kt</ID>
+    <ID>NewLineAtEndOfFile:RemoteCommandDispatcher.kt$com.tealium.remotecommanddispatcher.RemoteCommandDispatcher.kt</ID>
+    <ID>NewLineAtEndOfFile:RemoteCommandParser.kt$com.tealium.remotecommanddispatcher.RemoteCommandParser.kt</ID>
+    <ID>NewLineAtEndOfFile:RemoteCommandParserTests.kt$com.tealium.remotecommanddispatcher.RemoteCommandParserTests.kt</ID>
+    <ID>NewLineAtEndOfFile:RemoteCommandRequestTest.kt$com.tealium.remotecommanddispatcher.RemoteCommandRequestTest.kt</ID>
+    <ID>NewLineAtEndOfFile:RemoteCommandsManager.kt$com.tealium.remotecommanddispatcher.RemoteCommandsManager.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfigRemoteCommandDispatcher.kt$com.tealium.remotecommanddispatcher.TealiumConfigRemoteCommandDispatcher.kt</ID>
+    <ID>ReturnCount:HttpRemoteCommand.kt$HttpRemoteCommand$private fun insertAuthCredentials(url: String, obj: JSONObject): String</ID>
+    <ID>ReturnCount:RemoteCommandConfigRetriever.kt$RemoteCommandConfigRetriever$private fun getSettingsFilename(): String</ID>
+    <ID>SwallowedException:RemoteCommandConfigRetriever.kt$RemoteCommandConfigRetriever$ex: Exception</ID>
+    <ID>SwallowedException:RemoteCommandConfigRetriever.kt$RemoteCommandConfigRetriever$ex: JSONException</ID>
+    <ID>SwallowedException:RemoteCommandRequestTest.kt$RemoteCommandRequestTest$ex: IllegalArgumentException</ID>
+    <ID>SwallowedException:RemoteCommandRequestTest.kt$RemoteCommandRequestTest$ex: JSONException</ID>
+    <ID>TooGenericExceptionCaught:HttpRemoteCommand.kt$HttpRemoteCommand$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RemoteCommandConfigRetriever.kt$RemoteCommandConfigRetriever$ex: Exception</ID>
+    <ID>TooManyFunctions:RemoteCommandDispatcher.kt$RemoteCommandDispatcher : DispatcherRemoteCommandListener</ID>
+    <ID>UtilityClassWithPublicConstructor:RemoteCommandParser.kt$RemoteCommandParser</ID>
+    <ID>WildcardImport:HttpRemoteCommand.kt$import com.tealium.core.network.*</ID>
+    <ID>WildcardImport:HttpRemoteCommand.kt$import kotlinx.coroutines.*</ID>
+    <ID>WildcardImport:RemoteCommandConfigRetriever.kt$import com.tealium.core.*</ID>
+    <ID>WildcardImport:RemoteCommandConfigRetriever.kt$import kotlinx.coroutines.*</ID>
+    <ID>WildcardImport:RemoteCommandDispatcher.kt$import com.tealium.core.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

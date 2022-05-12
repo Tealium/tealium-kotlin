@@ -2,10 +2,7 @@ package com.tealium.adidentifier
 
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
-import com.tealium.core.Environment
-import com.tealium.core.Tealium
-import com.tealium.core.TealiumConfig
-import com.tealium.core.TealiumContext
+import com.tealium.core.*
 import com.tealium.core.persistence.DataLayer
 import io.mockk.mockk
 import io.mockk.spyk
@@ -24,19 +21,26 @@ class AdIdentifierIntegratedTests {
 
     @Before
     fun setUp() {
-        config = spyk(TealiumConfig(application,
+        config = spyk(
+            TealiumConfig(
+                application,
                 "test",
                 "test",
-                Environment.DEV))
+                Environment.DEV,
+                collectors = mutableSetOf()
+            )
+        )
 
         dataLayer = mockk(relaxed = true)
-        tealiumContext = TealiumContext(config,
-                "someTestId",
-                mockk(),
-                dataLayer,
-                mockk(),
-                mockk(),
-                mockk())
+        tealiumContext = TealiumContext(
+            config,
+            "someTestId",
+            mockk(),
+            dataLayer,
+            mockk(),
+            mockk(),
+            mockk()
+        )
     }
 
     @Test

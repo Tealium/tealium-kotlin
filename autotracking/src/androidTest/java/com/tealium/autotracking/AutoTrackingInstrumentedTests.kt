@@ -33,7 +33,10 @@ class AutoTrackingInstrumentedTests {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
-        val config = TealiumConfig(application, "account", "profile", Environment.DEV)
+        val config = TealiumConfig(
+            application, "account", "profile", Environment.DEV,
+            collectors = mutableSetOf()
+        )
         val messengerService = MessengerService(mockEventRouter, CoroutineScope(Dispatchers.IO))
         tealiumContext = TealiumContext(
             config,

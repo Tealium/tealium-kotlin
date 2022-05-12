@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MagicNumber:DataLayerStore.kt$DataLayerStore$50</ID>
+    <ID>MagicNumber:DataLayerStore.kt$DataLayerStore$7</ID>
+    <ID>MagicNumber:HostedDataLayer.kt$HostedDataLayer$3</ID>
+    <ID>MaxLineLength:HostedDataLayer.kt$HostedDataLayer$Logger.dev(BuildConfig.TAG, "DataLayerId ($id) not found on CDN; will not be requested again this session.")</ID>
+    <ID>MaxLineLength:HostedDataLayer.kt$HostedDataLayer$private val httpClient: NetworkClient = HttpClient(config, connectivity = ConnectivityRetriever.getInstance(config.application))</ID>
+    <ID>NestedBlockDepth:HostedDataLayer.kt$HostedDataLayer$ override suspend fun transform(dispatch: Dispatch)</ID>
+    <ID>NewLineAtEndOfFile:DataLayerStore.kt$com.tealium.hosteddatalayer.DataLayerStore.kt</ID>
+    <ID>NewLineAtEndOfFile:DataLayerStoreTests.kt$com.tealium.hosteddatalayer.DataLayerStoreTests.kt</ID>
+    <ID>NewLineAtEndOfFile:HostedDataLayer.kt$com.tealium.hosteddatalayer.HostedDataLayer.kt</ID>
+    <ID>NewLineAtEndOfFile:HostedDataLayerEntry.kt$com.tealium.hosteddatalayer.HostedDataLayerEntry.kt</ID>
+    <ID>NewLineAtEndOfFile:HostedDataLayerEntryTests.kt$com.tealium.hosteddatalayer.HostedDataLayerEntryTests.kt</ID>
+    <ID>NewLineAtEndOfFile:HostedDataLayerTests.kt$com.tealium.hosteddatalayer.HostedDataLayerTests.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfigHostedDataLayer.kt$com.tealium.hosteddatalayer.TealiumConfigHostedDataLayer.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfigHostedDataLayerTest.kt$com.tealium.hosteddatalayer.TealiumConfigHostedDataLayerTest.kt</ID>
+    <ID>SwallowedException:DataLayerStoreTests.kt$DataLayerStoreTests$ex: Exception</ID>
+    <ID>SwallowedException:HostedDataLayer.kt$HostedDataLayer$ex: JSONException</ID>
+    <ID>SwallowedException:HostedDataLayerEntry.kt$HostedDataLayerEntry.Companion$ex: JSONException</ID>
+    <ID>TooManyFunctions:DataLayerStore.kt$DataLayerStore : DataLayerStorage</ID>
+    <ID>WildcardImport:HostedDataLayer.kt$import com.tealium.core.*</ID>
+    <ID>WildcardImport:HostedDataLayer.kt$import com.tealium.core.network.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

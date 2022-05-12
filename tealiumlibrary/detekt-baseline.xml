@@ -1,0 +1,277 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ArrayPrimitive:DataLayer.kt$DataLayer$Array&lt;Boolean></ID>
+    <ID>ArrayPrimitive:DataLayer.kt$DataLayer$Array&lt;Boolean>?</ID>
+    <ID>ArrayPrimitive:DataLayer.kt$DataLayer$Array&lt;Double></ID>
+    <ID>ArrayPrimitive:DataLayer.kt$DataLayer$Array&lt;Double>?</ID>
+    <ID>ArrayPrimitive:DataLayer.kt$DataLayer$Array&lt;Int></ID>
+    <ID>ArrayPrimitive:DataLayer.kt$DataLayer$Array&lt;Int>?</ID>
+    <ID>ArrayPrimitive:DataLayer.kt$DataLayer$Array&lt;Long></ID>
+    <ID>ArrayPrimitive:DataLayer.kt$DataLayer$Array&lt;Long>?</ID>
+    <ID>ArrayPrimitive:PersistentStorage.kt$PersistentStorage$Array&lt;Boolean></ID>
+    <ID>ArrayPrimitive:PersistentStorage.kt$PersistentStorage$Array&lt;Boolean>?</ID>
+    <ID>ArrayPrimitive:PersistentStorage.kt$PersistentStorage$Array&lt;Double></ID>
+    <ID>ArrayPrimitive:PersistentStorage.kt$PersistentStorage$Array&lt;Double>?</ID>
+    <ID>ArrayPrimitive:PersistentStorage.kt$PersistentStorage$Array&lt;Int></ID>
+    <ID>ArrayPrimitive:PersistentStorage.kt$PersistentStorage$Array&lt;Int>?</ID>
+    <ID>ArrayPrimitive:PersistentStorage.kt$PersistentStorage$Array&lt;Long></ID>
+    <ID>ArrayPrimitive:PersistentStorage.kt$PersistentStorage$Array&lt;Long>?</ID>
+    <ID>ArrayPrimitive:Serdes.kt$BooleanArrayDeserializer$Array&lt;Boolean></ID>
+    <ID>ArrayPrimitive:Serdes.kt$DoubleArrayDeserializer$Array&lt;Double></ID>
+    <ID>ArrayPrimitive:Serdes.kt$IntArrayDeserializer$Array&lt;Int></ID>
+    <ID>ArrayPrimitive:Serdes.kt$LongArrayDeserializer$Array&lt;Long></ID>
+    <ID>ArrayPrimitive:Serdes.kt$Serdes$Array&lt;Boolean></ID>
+    <ID>ArrayPrimitive:Serdes.kt$Serdes$Array&lt;Double></ID>
+    <ID>ArrayPrimitive:Serdes.kt$Serdes$Array&lt;Int></ID>
+    <ID>ArrayPrimitive:Serdes.kt$Serdes$Array&lt;Long></ID>
+    <ID>ComplexMethod:JsonUtils.kt$JsonUtils.Companion$fun jsonFor(payload: Map&lt;String, Any>): JSONObject</ID>
+    <ID>ComplexMethod:Serdes.kt$Serdes$@Suppress("UNCHECKED_CAST") fun &lt;T> serdeFor(clazz: Class&lt;T>) : Serde&lt;T>?</ID>
+    <ID>ComplexMethod:UserConsentPreferences.kt$ConsentCategory.Companion$fun consentCategory(category: String): ConsentCategory?</ID>
+    <ID>ConstructorParameterNaming:ModuleCollectorTests.kt$ModuleWithVersion$@JvmField val MODULE_VERSION: String</ID>
+    <ID>ConstructorParameterNaming:TealiumContext.kt$TealiumContext$private val _visitorId: String</ID>
+    <ID>EmptyCatchBlock:AppCollector.kt$AppCollector${ }</ID>
+    <ID>EmptyFunctionBlock:ActivityObserver.kt$ActivityObserver.&lt;no name provided>${ }</ID>
+    <ID>EmptyFunctionBlock:GenericDispatchTests.kt$GenericDispatchTests${ }</ID>
+    <ID>ForbiddenComment:BatchDispatch.kt$BatchDispatch.Companion$//TODO: consider filtering dispatches with other conditions, like missing required data</ID>
+    <ID>ForbiddenComment:BatchDispatch.kt$BatchDispatch.Companion$//TODO: other known keys that could be collapsed, but currently aren't in the library</ID>
+    <ID>ForbiddenComment:DispatchTest.kt$DispatchTest$// TODO: more tests for lists, arrays,. this test isn't complete itself!</ID>
+    <ID>ForbiddenComment:LibrarySettingsManager.kt$LibrarySettingsManager$// TODO: should read response headers to determine the file type</ID>
+    <ID>ForbiddenComment:SessionManager.kt$SessionManager$//TODO: Implement on the TagManagement module to trigger a "utag.v.js" call</ID>
+    <ID>ForbiddenComment:SessionManager.kt$SessionManager.Companion$//TODO: Consider making this customizable.</ID>
+    <ID>LongParameterList:DispatchRouter.kt$DispatchRouter$(coroutineDispatcher: CoroutineDispatcher, private val collectors: Set&lt;Collector>, private val transformers: Set&lt;Transformer>, private val validators: Set&lt;DispatchValidator>, private val dispatchStore: DispatchStorage, private val librarySettingsManager: LibrarySettingsManager, private val connectivity: Connectivity, private val consentManager: ConsentManager, private val eventRouter: EventRouter)</ID>
+    <ID>LongParameterList:TealiumConfig.kt$TealiumConfig$( val application: Application, val accountName: String, val profileName: String, val environment: Environment, var dataSourceId: String? = null, val collectors: MutableSet&lt;CollectorFactory> = Collectors.core, val dispatchers: MutableSet&lt;DispatcherFactory> = mutableSetOf(), val modules: MutableSet&lt;ModuleFactory> = mutableSetOf() )</ID>
+    <ID>MagicNumber:AppCollector.kt$AppCollector$1024</ID>
+    <ID>MagicNumber:BatteryValidator.kt$100</ID>
+    <ID>MagicNumber:BatteryValidator.kt$BatteryValidator$100</ID>
+    <ID>MagicNumber:BatteryValidator.kt$BatteryValidator$15</ID>
+    <ID>MagicNumber:ConnectivityCollector.kt$ConnectivityCollector$3</ID>
+    <ID>MagicNumber:ConsentManager.kt$ConsentManager$365</ID>
+    <ID>MagicNumber:DeviceCollector.kt$DeviceCollector$100</ID>
+    <ID>MagicNumber:Expiry.kt$Expiry.Companion$2L</ID>
+    <ID>MagicNumber:Expiry.kt$Expiry.Companion$3L</ID>
+    <ID>MagicNumber:Expiry.kt$Expiry.Session$2L</ID>
+    <ID>MagicNumber:Expiry.kt$Expiry.UntilRestart$3L</ID>
+    <ID>MagicNumber:LibrarySettingsExtractor.kt$LibrarySettingsExtractor.Companion$3600</ID>
+    <ID>MagicNumber:LibrarySettingsExtractor.kt$LibrarySettingsExtractor.Companion$60</ID>
+    <ID>MagicNumber:LibrarySettingsExtractor.kt$LibrarySettingsExtractor.Companion$86400</ID>
+    <ID>MagicNumber:Logger.kt$Logger.Companion$5</ID>
+    <ID>MagicNumber:ModuleManager.kt$ModuleManager$4</ID>
+    <ID>MagicNumber:ResourceRetriever.kt$ResourceRetriever$5</ID>
+    <ID>MagicNumber:ResourceRetriever.kt$ResourceRetriever$500</ID>
+    <ID>MagicNumber:ResourceRetriever.kt$ResourceRetriever$60</ID>
+    <ID>MagicNumber:ResourceRetriever.kt$ResourceRetriever$60000L</ID>
+    <ID>MagicNumber:Serialization.kt$Serialization.BOOLEAN$4</ID>
+    <ID>MagicNumber:Serialization.kt$Serialization.BOOLEAN_ARRAY$9</ID>
+    <ID>MagicNumber:Serialization.kt$Serialization.DOUBLE_ARRAY$7</ID>
+    <ID>MagicNumber:Serialization.kt$Serialization.INT_ARRAY$6</ID>
+    <ID>MagicNumber:Serialization.kt$Serialization.JSON_ARRAY$11</ID>
+    <ID>MagicNumber:Serialization.kt$Serialization.JSON_OBJECT$10</ID>
+    <ID>MagicNumber:Serialization.kt$Serialization.LONG$3</ID>
+    <ID>MagicNumber:Serialization.kt$Serialization.LONG_ARRAY$8</ID>
+    <ID>MagicNumber:Serialization.kt$Serialization.STRING_ARRAY$5</ID>
+    <ID>MagicNumber:TealiumCollector.kt$TealiumCollector$10000000000000000L</ID>
+    <ID>MagicNumber:TimeCollector.kt$TimeCollector$1000</ID>
+    <ID>MagicNumber:TimeCollector.kt$TimeCollector$60</ID>
+    <ID>MagicNumber:UserConsentPreferences.kt$CcpaConsentManagementPolicy$395</ID>
+    <ID>MagicNumber:UserConsentPreferences.kt$GdprConsentManagementPolicy$365</ID>
+    <ID>MagicNumber:Utils.kt$1000</ID>
+    <ID>MaxLineLength:ActivityObserver.kt$ActivityObserver$class</ID>
+    <ID>MaxLineLength:AppCollector.kt$AppCollector$if (context.applicationInfo.labelRes != 0) context.getString(context.applicationInfo.labelRes) else context.applicationInfo.nonLocalizedLabel.toString()</ID>
+    <ID>MaxLineLength:BatchingValidator.kt$BatchingValidator$private val eventRouter: EventRouter</ID>
+    <ID>MaxLineLength:ConnectivityValidator.kt$ConnectivityValidator$class</ID>
+    <ID>MaxLineLength:ConsentManager.kt$ConsentManager$if (consentSharedPreferences.consentStatus == userConsentStatus &amp;&amp; consentSharedPreferences.consentCategories == userConsentCategories) return</ID>
+    <ID>MaxLineLength:ConsentManagerTest.kt$ConsentManagerTest$every { sharedPreferences.getStringSet(KEY_CATEGORIES, null) } returns ConsentCategory.ALL.map { it.value }.toMutableSet()</ID>
+    <ID>MaxLineLength:ConsentSharedPreferences.kt$ConsentSharedPreferences$private val sharedPreferences: SharedPreferences = config.application.getSharedPreferences(sharedPreferencesName(config), 0)</ID>
+    <ID>MaxLineLength:ConsentSharedPreferences.kt$ConsentSharedPreferences$return "tealium.userconsentpreferences." + Integer.toHexString((config.accountName + config.profileName + config.environment.environment).hashCode())</ID>
+    <ID>MaxLineLength:DatabaseHelper.kt$DatabaseHelper.Companion$return "${config.tealiumDirectory}${File.separatorChar}tealium-${config.accountName}-${config.profileName}.db"</ID>
+    <ID>MaxLineLength:DeepLinkHandler.kt$DeepLinkHandler$* If the app was launched from a deep link, adds the link and query parameters to the data layer for the current session.</ID>
+    <ID>MaxLineLength:DispatchRouter.kt$DispatchRouter$override</ID>
+    <ID>MaxLineLength:EventRouter.kt$EventDispatcher$is UserConsentPreferencesUpdatedListener -> it.onUserConsentPreferencesUpdated(userConsentPreferences, policy)</ID>
+    <ID>MaxLineLength:EventRouter.kt$EventDispatcher$override</ID>
+    <ID>MaxLineLength:Expiry.kt$Expiry.Companion$@JvmStatic</ID>
+    <ID>MaxLineLength:LibrarySettingsExtractor.kt$LibrarySettingsExtractor.Companion$if</ID>
+    <ID>MaxLineLength:LibrarySettingsManager.kt$LibrarySettingsManager$?:</ID>
+    <ID>MaxLineLength:LibrarySettingsManagerTest.kt$LibrarySettingsManagerTest$ &lt;!--tealium tag management - mobile.webview ut4.0.202006041357, Copyright 2020 Tealium.com Inc. All Rights Reserved.--></ID>
+    <ID>MaxLineLength:LibrarySettingsManagerTest.kt$LibrarySettingsManagerTest$ &lt;script type=</ID>
+    <ID>MaxLineLength:LibrarySettingsManagerTest.kt$LibrarySettingsManagerTest$LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)</ID>
+    <ID>MaxLineLength:LibrarySettingsManagerTest.kt$LibrarySettingsManagerTest$LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = mockScope)</ID>
+    <ID>MaxLineLength:LibrarySettingsManagerTest.kt$LibrarySettingsManagerTest$val defaultOverride = LibrarySettings(collectDispatcherEnabled = true, tagManagementDispatcherEnabled = true, batterySaver = true)</ID>
+    <ID>MaxLineLength:LibrarySettingsManagerTest.kt$LibrarySettingsManagerTest$val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)</ID>
+    <ID>MaxLineLength:LibrarySettingsManagerTest.kt$LibrarySettingsManagerTest$val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = mockScope)</ID>
+    <ID>MaxLineLength:Logger.kt$Logger.Companion$dev(BuildConfig.TAG, "Dispatch(${dispatch.id.substring(0, 5)}) - Ready - ${JsonUtils.jsonFor(dispatch.payload())}")</ID>
+    <ID>MaxLineLength:Logger.kt$Logger.Companion$dev(BuildConfig.TAG, "Dispatch(${dispatch.id.substring(0, 5)}) - Sending - ${JsonUtils.jsonFor(dispatch.payload())}")</ID>
+    <ID>MaxLineLength:Messenger.kt$ValidationChangedMessenger$class</ID>
+    <ID>MaxLineLength:ModuleManager.kt$ModuleManager$//TODO - finish the updating of enabled/disabled logic for things other than just the SDK Disable. i.e. Tagmanagement/Collect enable/disable.</ID>
+    <ID>MaxLineLength:SessionManager.kt$SessionManager.Companion$*</ID>
+    <ID>MaxLineLength:SessionManager.kt$SessionManager.Companion$return "tealium.sessionpreferences." + Integer.toHexString((config.accountName + config.profileName + config.environment.environment).hashCode())</ID>
+    <ID>MaxLineLength:SessionManagerTests.kt$SessionManagerTests$every { sharedPreferences.getLong(Session.KEY_SESSION_ID, any()) } returns timestamp - SessionManager.SESSION_LENGTH_MS - 10000</ID>
+    <ID>MaxLineLength:SessionManagerTests.kt$SessionManagerTests$every { sharedPreferences.getLong(Session.KEY_SESSION_LAST_EVENT_TIME, any()) } returns timestamp - SessionManager.SESSION_LENGTH_MS - 5000</ID>
+    <ID>MaxLineLength:Tealium.kt$Tealium$class</ID>
+    <ID>MaxLineLength:Tealium.kt$Tealium$collectors = mutableSetOf(TealiumCollector(context), SessionCollector(session.id), dataLayer).union(initializeCollectors(config.collectors))</ID>
+    <ID>MaxLineLength:Tealium.kt$Tealium$private val context = TealiumContext(config, visitorId, logger, dataLayer, networkClient, events as MessengerService, this)</ID>
+    <ID>MaxLineLength:Tealium.kt$Tealium$private val librarySettingsManager: LibrarySettingsManager = LibrarySettingsManager(config, networkClient, eventRouter = eventRouter, backgroundScope = backgroundScope)</ID>
+    <ID>MaxLineLength:Tealium.kt$Tealium$val legacySharedPreferences = config.application.getSharedPreferences("tealium.datasources.${Integer.toHexString(hashCode)}", 0)</ID>
+    <ID>MaxLineLength:TealiumConfig.kt$TealiumConfig$"${application.filesDir}${File.separatorChar}tealium${File.separatorChar}${accountName}${File.separatorChar}${profileName}${File.separatorChar}${environment.environment}"</ID>
+    <ID>MaxLineLength:TealiumEncoder.kt$TealiumEncoder.Companion$"${URLEncoder.encode(Dispatch.Keys.TEALIUM_PROFILE, encoding)}=${URLEncoder.encode(config.profileName, encoding)}"</ID>
+    <ID>MaxLineLength:TealiumEncoder.kt$TealiumEncoder.Companion$return</ID>
+    <ID>MaxLineLength:UserConsentPreferences.kt$ConsentPolicy.CUSTOM$throw Exception("Custom policy must have a ConsentManagementPolicy assigned. Ensure you have set one using setCustomPolicy(..)")</ID>
+    <ID>MemberNameEqualsClassName:UserConsentPreferences.kt$ConsentCategory.Companion$fun consentCategory(category: String): ConsentCategory?</ID>
+    <ID>NestedBlockDepth:BatchDispatch.kt$BatchDispatch$private fun compressKnownKeys()</ID>
+    <ID>NestedBlockDepth:DeepLinkHandler.kt$DeepLinkHandler$ override fun onActivityResumed(activity: Activity?)</ID>
+    <ID>NestedBlockDepth:DispatchRouter.kt$DispatchRouter$ private fun attemptSendRemoteCommand(dispatch: Dispatch?)</ID>
+    <ID>NestedBlockDepth:JsonLoader.kt$JsonLoader$override fun loadFromUrl(url: URL): Any?</ID>
+    <ID>NestedBlockDepth:LibrarySettingsExtractor.kt$LibrarySettingsExtractor.Companion$private fun extract(html: String): String?</ID>
+    <ID>NestedBlockDepth:PersistentStorageDao.kt$PersistentStorageDao$override fun getAll(): Map&lt;String, PersistentItem></ID>
+    <ID>NestedBlockDepth:TimedEventsManager.kt$TimedEventsManager$override suspend fun transform(dispatch: Dispatch)</ID>
+    <ID>NewLineAtEndOfFile:ActivityObserver.kt$com.tealium.core.ActivityObserver.kt</ID>
+    <ID>NewLineAtEndOfFile:BatchDispatch.kt$com.tealium.dispatcher.BatchDispatch.kt</ID>
+    <ID>NewLineAtEndOfFile:BatchDispatchTests.kt$com.tealium.core.dispatcher.BatchDispatchTests.kt</ID>
+    <ID>NewLineAtEndOfFile:BatchingValidator.kt$com.tealium.core.validation.BatchingValidator.kt</ID>
+    <ID>NewLineAtEndOfFile:BatchingValidatorTests.kt$com.tealium.core.validation.BatchingValidatorTests.kt</ID>
+    <ID>NewLineAtEndOfFile:BatteryValidator.kt$com.tealium.core.validation.BatteryValidator.kt</ID>
+    <ID>NewLineAtEndOfFile:BatteryValidatorTests.kt$com.tealium.core.validation.BatteryValidatorTests.kt</ID>
+    <ID>NewLineAtEndOfFile:Collector.kt$com.tealium.core.Collector.kt</ID>
+    <ID>NewLineAtEndOfFile:ConnectivityCollector.kt$com.tealium.core.collection.ConnectivityCollector.kt</ID>
+    <ID>NewLineAtEndOfFile:ConnectivityRetriever.kt$com.tealium.core.network.ConnectivityRetriever.kt</ID>
+    <ID>NewLineAtEndOfFile:ConnectivityTests.kt$com.tealium.core.network.ConnectivityTests.kt</ID>
+    <ID>NewLineAtEndOfFile:ConnectivityValidator.kt$com.tealium.core.validation.ConnectivityValidator.kt</ID>
+    <ID>NewLineAtEndOfFile:ConnectivityValidatorTests.kt$com.tealium.core.validation.ConnectivityValidatorTests.kt</ID>
+    <ID>NewLineAtEndOfFile:ConsentManager.kt$com.tealium.core.consent.ConsentManager.kt</ID>
+    <ID>NewLineAtEndOfFile:ConsentManagerConstants.kt$com.tealium.core.consent.ConsentManagerConstants.kt</ID>
+    <ID>NewLineAtEndOfFile:ConsentSharedPreferences.kt$com.tealium.core.consent.ConsentSharedPreferences.kt</ID>
+    <ID>NewLineAtEndOfFile:ConsentSharedPreferencesTest.kt$com.tealium.core.consent.ConsentSharedPreferencesTest.kt</ID>
+    <ID>NewLineAtEndOfFile:CoreConstants.kt$.CoreConstants.kt</ID>
+    <ID>NewLineAtEndOfFile:DatabaseHelper.kt$com.tealium.core.persistence.DatabaseHelper.kt</ID>
+    <ID>NewLineAtEndOfFile:DateUtils.kt$com.tealium.core.DateUtils.kt</ID>
+    <ID>NewLineAtEndOfFile:DateUtilsTest.kt$com.tealium.core.DateUtilsTest.kt</ID>
+    <ID>NewLineAtEndOfFile:DeepLinkHandler.kt$com.tealium.core.DeepLinkHandler.kt</ID>
+    <ID>NewLineAtEndOfFile:DeepLinkHandlerTests.kt$com.tealium.core.DeepLinkHandlerTests.kt</ID>
+    <ID>NewLineAtEndOfFile:DeviceCollector.kt$com.tealium.core.collection.DeviceCollector.kt</ID>
+    <ID>NewLineAtEndOfFile:Dispatch.kt$com.tealium.dispatcher.Dispatch.kt</ID>
+    <ID>NewLineAtEndOfFile:DispatchRouter.kt$com.tealium.core.messaging.DispatchRouter.kt</ID>
+    <ID>NewLineAtEndOfFile:DispatchRouterTests.kt$com.tealium.core.dispatcher.DispatchRouterTests.kt</ID>
+    <ID>NewLineAtEndOfFile:DispatchSendCallbacks.kt$com.tealium.core.messaging.DispatchSendCallbacks.kt</ID>
+    <ID>NewLineAtEndOfFile:DispatchStorage.kt$com.tealium.core.persistence.DispatchStorage.kt</ID>
+    <ID>NewLineAtEndOfFile:DispatchStorageDao.kt$com.tealium.core.persistence.DispatchStorageDao.kt</ID>
+    <ID>NewLineAtEndOfFile:DispatchTest.kt$com.tealium.core.dispatcher.DispatchTest.kt</ID>
+    <ID>NewLineAtEndOfFile:DispatchValidator.kt$com.tealium.core.validation.DispatchValidator.kt</ID>
+    <ID>NewLineAtEndOfFile:EventDispatchTest.kt$com.tealium.core.dispatcher.EventDispatchTest.kt</ID>
+    <ID>NewLineAtEndOfFile:EventNameTrigger.kt$com.tealium.core.events.triggers.EventNameTrigger.kt</ID>
+    <ID>NewLineAtEndOfFile:EventRouter.kt$com.tealium.core.messaging.EventRouter.kt</ID>
+    <ID>NewLineAtEndOfFile:EventRouterTests.kt$com.tealium.core.messaging.EventRouterTests.kt</ID>
+    <ID>NewLineAtEndOfFile:EventTrigger.kt$com.tealium.core.events.EventTrigger.kt</ID>
+    <ID>NewLineAtEndOfFile:EventTriggerTests.kt$com.tealium.core.events.triggers.EventTriggerTests.kt</ID>
+    <ID>NewLineAtEndOfFile:ExpiryTests.kt$com.tealium.core.persistence.ExpiryTests.kt</ID>
+    <ID>NewLineAtEndOfFile:Factories.kt$com.tealium.core.Factories.kt</ID>
+    <ID>NewLineAtEndOfFile:GenericDispatch.kt$com.tealium.dispatcher.GenericDispatch.kt</ID>
+    <ID>NewLineAtEndOfFile:GenericDispatchTests.kt$com.tealium.core.dispatcher.GenericDispatchTests.kt</ID>
+    <ID>NewLineAtEndOfFile:HttpClient.kt$com.tealium.core.network.HttpClient.kt</ID>
+    <ID>NewLineAtEndOfFile:HttpClientListenerTest.kt$com.tealium.core.network.HttpClientListenerTest.kt</ID>
+    <ID>NewLineAtEndOfFile:JsonDispatch.kt$com.tealium.dispatcher.JsonDispatch.kt</ID>
+    <ID>NewLineAtEndOfFile:JsonLoader.kt$com.tealium.core.JsonLoader.kt</ID>
+    <ID>NewLineAtEndOfFile:JsonUtils.kt$com.tealium.core.JsonUtils.kt</ID>
+    <ID>NewLineAtEndOfFile:JsonUtilsTest.kt$com.tealium.core.JsonUtilsTest.kt</ID>
+    <ID>NewLineAtEndOfFile:KeyValueDao.kt$com.tealium.core.persistence.KeyValueDao.kt</ID>
+    <ID>NewLineAtEndOfFile:LibrarySettings.kt$com.tealium.core.settings.LibrarySettings.kt</ID>
+    <ID>NewLineAtEndOfFile:LibrarySettingsExtractor.kt$com.tealium.core.settings.LibrarySettingsExtractor.kt</ID>
+    <ID>NewLineAtEndOfFile:LibrarySettingsExtractorTest.kt$com.tealium.core.settings.LibrarySettingsExtractorTest.kt</ID>
+    <ID>NewLineAtEndOfFile:LibrarySettingsManager.kt$com.tealium.core.settings.LibrarySettingsManager.kt</ID>
+    <ID>NewLineAtEndOfFile:LibrarySettingsManagerTest.kt$com.tealium.core.settings.LibrarySettingsManagerTest.kt</ID>
+    <ID>NewLineAtEndOfFile:LibrarySettingsTests.kt$com.tealium.core.settings.LibrarySettingsTests.kt</ID>
+    <ID>NewLineAtEndOfFile:Listener.kt$com.tealium.core.messaging.Listener.kt</ID>
+    <ID>NewLineAtEndOfFile:LoggerTests.kt$com.tealium.core.LoggerTests.kt</ID>
+    <ID>NewLineAtEndOfFile:Messenger.kt$com.tealium.core.messaging.Messenger.kt</ID>
+    <ID>NewLineAtEndOfFile:MessengerService.kt$com.tealium.core.messaging.MessengerService.kt</ID>
+    <ID>NewLineAtEndOfFile:Module.kt$com.tealium.core.Module.kt</ID>
+    <ID>NewLineAtEndOfFile:ModuleCollector.kt$com.tealium.core.collection.ModuleCollector.kt</ID>
+    <ID>NewLineAtEndOfFile:ModuleCollectorTests.kt$com.tealium.core.collection.ModuleCollectorTests.kt</ID>
+    <ID>NewLineAtEndOfFile:ModuleManager.kt$com.tealium.core.ModuleManager.kt</ID>
+    <ID>NewLineAtEndOfFile:ModuleManagerTests.kt$com.tealium.core.ModuleManagerTests.kt</ID>
+    <ID>NewLineAtEndOfFile:PersistentItem.kt$com.tealium.core.persistence.PersistentItem.kt</ID>
+    <ID>NewLineAtEndOfFile:PersistentStorage.kt$com.tealium.core.persistence.PersistentStorage.kt</ID>
+    <ID>NewLineAtEndOfFile:PersistentStorageDao.kt$com.tealium.core.persistence.PersistentStorageDao.kt</ID>
+    <ID>NewLineAtEndOfFile:QueueingDao.kt$com.tealium.core.persistence.QueueingDao.kt</ID>
+    <ID>NewLineAtEndOfFile:ResourceRetriever.kt$com.tealium.core.network.ResourceRetriever.kt</ID>
+    <ID>NewLineAtEndOfFile:ResourceRetrieverTest.kt$com.tealium.core.network.ResourceRetrieverTest.kt</ID>
+    <ID>NewLineAtEndOfFile:Serdes.kt$com.tealium.core.persistence.Serdes.kt</ID>
+    <ID>NewLineAtEndOfFile:Serialization.kt$com.tealium.core.persistence.Serialization.kt</ID>
+    <ID>NewLineAtEndOfFile:SerializationTests.kt$com.tealium.core.persistence.SerializationTests.kt</ID>
+    <ID>NewLineAtEndOfFile:Session.kt$com.tealium.core.Session.kt</ID>
+    <ID>NewLineAtEndOfFile:SessionCollector.kt$com.tealium.core.collection.SessionCollector.kt</ID>
+    <ID>NewLineAtEndOfFile:SessionManager.kt$com.tealium.core.SessionManager.kt</ID>
+    <ID>NewLineAtEndOfFile:SessionManagerTests.kt$com.tealium.core.SessionManagerTests.kt</ID>
+    <ID>NewLineAtEndOfFile:SqlDataLayer.kt$com.tealium.core.persistence.SqlDataLayer.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumCollector.kt$com.tealium.core.collection.TealiumCollector.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfig.kt$com.tealium.core.TealiumConfig.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumConfigConsentManager.kt$com.tealium.core.consent.TealiumConfigConsentManager.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumContext.kt$com.tealium.core.TealiumContext.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumContextTests.kt$com.tealium.core.TealiumContextTests.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumEncoder.kt$com.tealium.core.TealiumEncoder.kt</ID>
+    <ID>NewLineAtEndOfFile:TealiumEncoderTest.kt$com.tealium.core.TealiumEncoderTest.kt</ID>
+    <ID>NewLineAtEndOfFile:TimeCollector.kt$com.tealium.core.collection.TimeCollector.kt</ID>
+    <ID>NewLineAtEndOfFile:TimedEvents.kt$com.tealium.core.events.TimedEvents.kt</ID>
+    <ID>NewLineAtEndOfFile:TimedEventsManager.kt$com.tealium.core.events.TimedEventsManager.kt</ID>
+    <ID>NewLineAtEndOfFile:TimedEventsManagerTests.kt$com.tealium.core.events.TimedEventsManagerTests.kt</ID>
+    <ID>NewLineAtEndOfFile:Transformer.kt$com.tealium.core.Transformer.kt</ID>
+    <ID>NewLineAtEndOfFile:UserConsentPreferences.kt$com.tealium.core.consent.UserConsentPreferences.kt</ID>
+    <ID>NewLineAtEndOfFile:UserConsentPreferencesTest.kt$com.tealium.core.consent.UserConsentPreferencesTest.kt</ID>
+    <ID>NewLineAtEndOfFile:Utils.kt$com.tealium.core.persistence.Utils.kt</ID>
+    <ID>NewLineAtEndOfFile:ViewDispatchTest.kt$com.tealium.core.dispatcher.ViewDispatchTest.kt</ID>
+    <ID>ReturnCount:ResourceRetriever.kt$ResourceRetriever$fun shouldFetchFromTimestamp(timestamp: Long?): Boolean</ID>
+    <ID>ReturnCount:TimedEvent.kt$TimedEvent.Companion$fun toMap(timedEvent: TimedEvent): Map&lt;String, Any>?</ID>
+    <ID>SpreadOperator:TimedEventsManager.kt$TimedEventsManager$(*context.config.timedEventTriggers.toTypedArray())</ID>
+    <ID>SwallowedException:AppCollector.kt$AppCollector$e: Exception</ID>
+    <ID>SwallowedException:DispatchRouter.kt$DispatchRouter$ex: Exception</ID>
+    <ID>SwallowedException:JsonLoader.kt$JsonLoader$ex: JSONException</ID>
+    <ID>SwallowedException:JsonLoader.kt$JsonLoader$ioe: IOException</ID>
+    <ID>SwallowedException:LibrarySettingsManager.kt$LibrarySettingsManager$ex: Exception</ID>
+    <ID>SwallowedException:LibrarySettingsManager.kt$LibrarySettingsManager$ex: JSONException</ID>
+    <ID>SwallowedException:PersistentStorage.kt$PersistentStorage$e: Exception</ID>
+    <ID>SwallowedException:ResourceRetriever.kt$ResourceRetriever.Companion$e: TimeoutCancellationException</ID>
+    <ID>TooGenericExceptionCaught:AppCollector.kt$AppCollector$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ConnectivityRetriever.kt$ConnectivityRetriever$ex: Exception</ID>
+    <ID>TooGenericExceptionCaught:ConsentManager.kt$ConsentManager$ex: Exception</ID>
+    <ID>TooGenericExceptionCaught:DispatchRouter.kt$DispatchRouter$ex: Exception</ID>
+    <ID>TooGenericExceptionCaught:HttpClient.kt$HttpClient$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:LibrarySettingsManager.kt$LibrarySettingsManager$ex: Exception</ID>
+    <ID>TooGenericExceptionCaught:PersistentStorage.kt$PersistentStorage$e: Exception</ID>
+    <ID>TooGenericExceptionThrown:UserConsentPreferences.kt$ConsentPolicy.CUSTOM$throw Exception("Custom policy must have a ConsentManagementPolicy assigned. Ensure you have set one using setCustomPolicy(..)")</ID>
+    <ID>TooManyFunctions:DataLayer.kt$DataLayer : Collector</ID>
+    <ID>TooManyFunctions:DispatchStorage.kt$DispatchStorage : LibrarySettingsUpdatedListenerQueueingDao</ID>
+    <ID>TooManyFunctions:DispatchStorageDao.kt$DispatchStorageDao : QueueingDaoKeyValueDao</ID>
+    <ID>TooManyFunctions:EventRouter.kt$EventDispatcher : EventRouter</ID>
+    <ID>TooManyFunctions:KeyValueDao.kt$KeyValueDao&lt;K, T></ID>
+    <ID>TooManyFunctions:PersistentStorage.kt$PersistentStorage : DataLayerNewSessionListener</ID>
+    <ID>TooManyFunctions:PersistentStorageDao.kt$PersistentStorageDao : KeyValueDao</ID>
+    <ID>TooManyFunctions:Serdes.kt$Serdes$Serdes</ID>
+    <ID>TooManyFunctions:Tealium.kt$Tealium : TimedEvents</ID>
+    <ID>UnusedPrivateMember:ActivityObserver.kt$ActivityObserver$private val backgroundScope: CoroutineScope</ID>
+    <ID>UnusedPrivateMember:EventRouterTests.kt$EventRouterTests$val result = send.await()</ID>
+    <ID>UnusedPrivateMember:EventRouterTests.kt$EventRouterTests$val subUnsubResult = subUnsub.await()</ID>
+    <ID>UnusedPrivateMember:SessionManager.kt$SessionManager$dispatch: Dispatch</ID>
+    <ID>UnusedPrivateMember:Tealium.kt$Tealium$private val activityObserver: ActivityObserver = ActivityObserver(config, eventRouter, backgroundScope)</ID>
+    <ID>UnusedPrivateMember:TealiumContext.kt$TealiumContext$private val _visitorId: String</ID>
+    <ID>UnusedPrivateMember:TimedEventsManagerTests.kt$TimedEventsManagerTests$val startTime2 = timedEventsManager.startTimedEvent("test_trigger_2", null)!!</ID>
+    <ID>UtilityClassWithPublicConstructor:DateUtils.kt$DateUtils</ID>
+    <ID>UtilityClassWithPublicConstructor:JsonUtils.kt$JsonUtils</ID>
+    <ID>VariableNaming:ResourceRetriever.kt$ResourceRetriever$private val MS_IN_MINUTES = 60000L</ID>
+    <ID>WildcardImport:AppCollector.kt$import com.tealium.core.*</ID>
+    <ID>WildcardImport:ConnectivityCollector.kt$import com.tealium.core.*</ID>
+    <ID>WildcardImport:ConsentManager.kt$import com.tealium.core.*</ID>
+    <ID>WildcardImport:DateUtils.kt$import java.time.*</ID>
+    <ID>WildcardImport:DeviceCollector.kt$import com.tealium.core.*</ID>
+    <ID>WildcardImport:JsonLoader.kt$import org.json.*</ID>
+    <ID>WildcardImport:JsonUtils.kt$import java.time.*</ID>
+    <ID>WildcardImport:LibrarySettingsManager.kt$import com.tealium.core.*</ID>
+    <ID>WildcardImport:LibrarySettingsManager.kt$import kotlinx.coroutines.*</ID>
+    <ID>WildcardImport:Logger.kt$import com.tealium.core.messaging.*</ID>
+    <ID>WildcardImport:ResourceRetriever.kt$import kotlinx.coroutines.*</ID>
+    <ID>WildcardImport:Tealium.kt$import com.tealium.core.messaging.*</ID>
+    <ID>WildcardImport:Tealium.kt$import com.tealium.core.persistence.*</ID>
+    <ID>WildcardImport:TealiumCollector.kt$import com.tealium.core.*</ID>
+    <ID>WildcardImport:TealiumConfig.kt$import com.tealium.core.collection.*</ID>
+    <ID>WildcardImport:TimeCollector.kt$import com.tealium.core.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

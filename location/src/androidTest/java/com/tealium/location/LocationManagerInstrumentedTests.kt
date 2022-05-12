@@ -16,7 +16,10 @@ class LocationManagerInstrumentedTests {
 
     @Test
     fun modules_DoesNotReturnNull() = runBlocking {
-        val config = TealiumConfig(application, "tealiummobile", "test", Environment.DEV)
+        val config = TealiumConfig(
+            application, "tealiummobile", "test", Environment.DEV,
+            collectors = mutableSetOf()
+        )
         config.collectors.add(LocationManager)
         val tealium = Tealium.create("test", config)
         delay(1500)

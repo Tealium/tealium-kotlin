@@ -25,15 +25,27 @@ class VisitorServiceInstrumentedTest {
     @RelaxedMockK
     lateinit var mockEventRouter: EventRouter
 
+    lateinit var config: TealiumConfig
     lateinit var tealiumContext: TealiumContext
     val application = ApplicationProvider.getApplicationContext<Application>()
 
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
-        val config = TealiumConfig(application, "account", "profile", Environment.DEV)
+        config = TealiumConfig(
+            application, "account", "profile", Environment.DEV,
+            collectors = mutableSetOf()
+        )
         val messengerService = MessengerService(mockEventRouter, CoroutineScope(Dispatchers.IO))
-        tealiumContext = TealiumContext(config, "visitor-1", Logger, mockk(), HttpClient(config), messengerService, mockTealium)
+        tealiumContext = TealiumContext(
+            config,
+            "visitor-1",
+            Logger,
+            mockk(),
+            HttpClient(config),
+            messengerService,
+            mockTealium
+        )
     }
 
     @Test
@@ -48,7 +60,6 @@ class VisitorServiceInstrumentedTest {
 
     @Test
     fun extension_ReturnsModule() = runBlocking {
-        val config = TealiumConfig(application, "tealiummobile", "test", Environment.DEV)
         config.modules.add(Modules.VisitorService)
         val tealium = Tealium.create("test", config)
 
