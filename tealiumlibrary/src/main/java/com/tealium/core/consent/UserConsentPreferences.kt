@@ -247,7 +247,7 @@ private class GdprConsentManagementPolicy(initialConsentPreferences: UserConsent
     override fun policyStatusInfo(): Map<String, Any> {
         return mutableMapOf<String, Any>(
             Dispatch.Keys.CONSENT_POLICY to name,
-            Dispatch.Keys.CONSENT_STATUS to userConsentPreferences.consentStatus
+            Dispatch.Keys.CONSENT_STATUS to userConsentPreferences.consentStatus.value
         ).apply {
             userConsentPreferences.consentCategories?.let {
                 this[Dispatch.Keys.CONSENT_CATEGORIES] = it.toJsonArray()

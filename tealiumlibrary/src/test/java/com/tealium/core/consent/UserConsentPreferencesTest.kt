@@ -108,7 +108,7 @@ class UserConsentPreferencesTest {
 
         val policyInfo = gdprPolicy.policyStatusInfo()
         assertEquals(ConsentPolicy.GDPR.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
-        assertEquals(ConsentStatus.CONSENTED, policyInfo[Dispatch.Keys.CONSENT_STATUS])
+        assertEquals(ConsentStatus.CONSENTED.value, policyInfo[Dispatch.Keys.CONSENT_STATUS])
         assertTrue(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
     }
 
@@ -124,13 +124,13 @@ class UserConsentPreferencesTest {
 
         var policyInfo = gdprPolicy.policyStatusInfo()
         assertEquals(ConsentPolicy.GDPR.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
-        assertEquals(ConsentStatus.CONSENTED, policyInfo[Dispatch.Keys.CONSENT_STATUS])
+        assertEquals(ConsentStatus.CONSENTED.value, policyInfo[Dispatch.Keys.CONSENT_STATUS])
         assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
 
         every { preferences.consentCategories } returns setOf(ConsentCategory.AFFILIATES, ConsentCategory.MONITORING)
         policyInfo = gdprPolicy.policyStatusInfo()
         assertEquals(ConsentPolicy.GDPR.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
-        assertEquals(ConsentStatus.CONSENTED, policyInfo[Dispatch.Keys.CONSENT_STATUS])
+        assertEquals(ConsentStatus.CONSENTED.value, policyInfo[Dispatch.Keys.CONSENT_STATUS])
         assertTrue(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
     }
 
@@ -145,7 +145,7 @@ class UserConsentPreferencesTest {
 
         val policyInfo = gdprPolicy.policyStatusInfo()
         assertEquals(ConsentPolicy.GDPR.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
-        assertEquals(ConsentStatus.NOT_CONSENTED, policyInfo[Dispatch.Keys.CONSENT_STATUS])
+        assertEquals(ConsentStatus.NOT_CONSENTED.value, policyInfo[Dispatch.Keys.CONSENT_STATUS])
         assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
     }
 
