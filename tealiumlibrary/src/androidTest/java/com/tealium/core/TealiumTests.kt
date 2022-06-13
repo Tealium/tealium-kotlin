@@ -2,6 +2,9 @@ package com.tealium.core
 
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
+import com.tealium.core.consent.ConsentCategory
+import com.tealium.core.consent.ConsentPolicy
+import com.tealium.core.consent.consentManagerPolicy
 import com.tealium.core.messaging.ExternalListener
 import com.tealium.core.messaging.Messenger
 import io.mockk.*
@@ -290,6 +293,45 @@ class TealiumTests {
         verify {
             listener.onListen(result)
         }
+    }
+
+    @Test
+    fun testGatherTrackData() = runBlocking {
+        var hasBeenCalled = false
+        val config = configWithNoModules
+        config.consentManagerPolicy = ConsentPolicy.GDPR
+        val tealium = Tealium.create("name", config) {
+            hasBeenCalled = true
+        }
+        if (!hasBeenCalled) {
+            delay(1000)
+            assertTrue(hasBeenCalled)
+        }
+        tealium.consentManager.userConsentCategories = mutableSetOf(ConsentCategory.AFFILIATES, ConsentCategory.ANALYTICS, ConsentCategory.BIG_DATA)
+
+        val data = tealium.gatherTrackData()
+        assertFalse(data.isEmpty())
+        assertTrue(containsOnlyValidTypes(data.values))
+    }
+
+    private fun containsOnlyValidTypes(data: Collection<*>): Boolean {
+        val allowedBasicTypes = listOf(String::class.java,
+            Long::class.javaObjectType,
+            Boolean::class.javaObjectType,
+            Integer::class.javaObjectType,
+            Double::class.javaObjectType,
+            Float::class.javaObjectType)
+        val nonBasicData = data.filter { entry -> !allowedBasicTypes.any { it -> it.isInstance(entry) } }
+
+        return nonBasicData.filter { value ->
+            if (value is Map<*,*>) {
+                return@filter !containsOnlyValidTypes(value.values)
+            }
+            if (value is ArrayList<*>) {
+                return@filter !containsOnlyValidTypes(value)
+            }
+            return@filter true
+        }.isEmpty()
     }
 }
 
