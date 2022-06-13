@@ -250,7 +250,7 @@ private class GdprConsentManagementPolicy(initialConsentPreferences: UserConsent
             Dispatch.Keys.CONSENT_STATUS to userConsentPreferences.consentStatus.value
         ).apply {
             userConsentPreferences.consentCategories?.let {
-                this[Dispatch.Keys.CONSENT_CATEGORIES] = it.toJsonArray()
+                this[Dispatch.Keys.CONSENT_CATEGORIES] = it.toList()
             }
         }
     }

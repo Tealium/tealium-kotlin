@@ -110,6 +110,7 @@ class UserConsentPreferencesTest {
         assertEquals(ConsentPolicy.GDPR.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
         assertEquals(ConsentStatus.CONSENTED.value, policyInfo[Dispatch.Keys.CONSENT_STATUS])
         assertTrue(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
+        assertEquals(policyInfo[Dispatch.Keys.CONSENT_CATEGORIES]?.javaClass, ArrayList::class.java)
     }
 
     @Test
