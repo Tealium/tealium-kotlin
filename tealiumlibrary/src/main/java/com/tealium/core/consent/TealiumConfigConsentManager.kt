@@ -10,6 +10,7 @@ const val CONSENT_MANAGER_LOGGING_URL = "consent_manager_logging_url"
 const val CONSENT_MANAGER_LOGGING_PROFILE = "consent_manager_logging_profile"
 const val CONSENT_MANAGER_POLICY = "consent_manager_policy"
 const val CONSENT_EXPIRY = "consent_expiry"
+const val OVERRIDE_CONSENT_CATEGORIES_KEY = "override_consent_categories_key"
 
 var TealiumConfig.consentManagerEnabled: Boolean?
     get() = (options[CONSENT_MANAGER_ENABLED] as? Boolean).let {
@@ -68,5 +69,13 @@ var TealiumConfig.consentExpiry: ConsentExpiry?
     set(value) {
         value?.let {
             options[CONSENT_EXPIRY] = it
+        }
+    }
+
+var TealiumConfig.overrideConsentCategoriesKey: String?
+    get() = options[OVERRIDE_CONSENT_CATEGORIES_KEY] as? String
+    set(value) {
+        value?.let {
+            options[OVERRIDE_CONSENT_CATEGORIES_KEY] = it
         }
     }
