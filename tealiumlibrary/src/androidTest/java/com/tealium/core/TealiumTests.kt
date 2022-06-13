@@ -10,6 +10,8 @@ import com.tealium.core.messaging.Messenger
 import io.mockk.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.json.JSONArray
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -327,8 +329,11 @@ class TealiumTests {
             if (value is Map<*,*>) {
                 return@filter !containsOnlyValidTypes(value.values)
             }
-            if (value is ArrayList<*>) {
+            if (value is Collection<*>) {
                 return@filter !containsOnlyValidTypes(value)
+            }
+            if (value is JSONArray || value is JSONObject) {
+                return@filter false
             }
             return@filter true
         }.isEmpty()
