@@ -2,6 +2,7 @@ package com.tealium.location
 
 import android.app.PendingIntent
 import android.content.Context
+import android.os.Build
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
@@ -17,17 +18,31 @@ class GeofenceLocationClient(private val context: TealiumContext) {
     }
 
     fun addGeofence(geofencesToAdd: List<GeofenceLocation>) {
-        val geofencePendingIntent = PendingIntent.getBroadcast(context.config.application, 0, LocationManager.fetchLocationIntent(context), PendingIntent.FLAG_UPDATE_CURRENT)
-        geofenceLocationClient.addGeofences(geofencingRequest(geofencesToAdd), geofencePendingIntent).run {
-            addOnSuccessListener {
-                geofencesToAdd.forEach { newGeofence ->
-                    LocationManager.activeGeofences.add(newGeofence.name)
+        val geofencePendingIntent = PendingIntent.getBroadcast(
+            context.config.application,
+            0,
+            LocationManager.fetchLocationIntent(context),
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) PendingIntent.FLAG_UPDATE_CURRENT else {
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            }
+        )
+        try {
+            geofenceLocationClient.addGeofences(
+                geofencingRequest(geofencesToAdd),
+                geofencePendingIntent
+            ).run {
+                addOnSuccessListener {
+                    geofencesToAdd.forEach { newGeofence ->
+                        LocationManager.activeGeofences.add(newGeofence.name)
+                    }
+                    Logger.dev(BuildConfig.TAG, "Geofences SUCCESSFULLY created.");
                 }
-                Logger.dev(BuildConfig.TAG, "Geofences SUCCESSFULLY created.");
+                addOnFailureListener {
+                    Logger.dev(BuildConfig.TAG, "Geofences FAILED to be created.")
+                }
             }
-            addOnFailureListener {
-                Logger.dev(BuildConfig.TAG, "Geofences FAILED to be created.")
-            }
+        } catch (ex: SecurityException) {
+            Logger.qa(BuildConfig.TAG, "SecurityExcpetion adding Geofence: ${ex.message}")
         }
     }
 
@@ -42,8 +57,8 @@ class GeofenceLocationClient(private val context: TealiumContext) {
             geofenceObjectsList.add(it.geofence)
         }
         return GeofencingRequest.Builder()
-                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_DWELL)
-                .addGeofences(geofenceObjectsList)
-                .build()
+            .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_DWELL)
+            .addGeofences(geofenceObjectsList)
+            .build()
     }
 }
