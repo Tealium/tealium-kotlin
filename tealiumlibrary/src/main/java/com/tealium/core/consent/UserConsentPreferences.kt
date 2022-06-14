@@ -248,7 +248,6 @@ private class GdprConsentManagementPolicy(initialConsentPreferences: UserConsent
             userConsentPreferences.consentCategories?.let { it ->
                 this[Dispatch.Keys.CONSENT_CATEGORIES] = it
                     .map { category -> category.value }
-                    .toList()
             }
         }
     }
