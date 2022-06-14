@@ -344,6 +344,38 @@ class ConsentManagerTest {
     }
 
     @Test
+    fun consentCategoriesKeyEnabled_VerifyPayloadOverrideSuccess() = runBlocking {
+        config.overrideConsentCategoriesKey = "custom_consent_categories_key"
+        val mockSettings: LibrarySettings = mockk()
+
+        every { editor.putString(KEY_STATUS, "consented") } returns editor
+        every { sharedPreferences.getString(any(), any()) } returns "consented"
+
+        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockSettings, ConsentPolicy.GDPR)
+        consentManager.userConsentStatus = ConsentStatus.CONSENTED
+
+        val payload = consentManager.collect()
+
+        assertTrue(payload.containsKey("custom_consent_categories_key"))
+    }
+
+    @Test
+    fun consentCategoriesKeyDisabled_VerifyPayloadSuccess() = runBlocking {
+        val mockSettings: LibrarySettings = mockk()
+
+        every { editor.putString(KEY_STATUS, "consented") } returns editor
+        every { sharedPreferences.getString(any(), any()) } returns "consented"
+
+        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockSettings, ConsentPolicy.GDPR)
+        consentManager.userConsentStatus = ConsentStatus.CONSENTED
+
+        val payload = consentManager.collect()
+
+        assertTrue(!payload.containsKey("custom_consent_categories_key"))
+        assertTrue(payload.containsKey("consent_categories"))
+    }
+
+    @Test
     fun consentManagerLastSetDefinedUponConsentStatusChangeConsented() {
         every { editor.putLong(KEY_LAST_STATUS_UPDATE, 1234) } returns editor
         every { sharedPreferences.getLong(any(), any()) } returns 1234
