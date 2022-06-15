@@ -4,7 +4,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'kotlin-allopen'
 apply from: '../jacoco.gradle'
 
-version = '1.4.1'
+version = '1.4.2'
 
 android {
     compileSdkVersion 30

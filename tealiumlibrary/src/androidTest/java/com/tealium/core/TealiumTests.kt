@@ -302,6 +302,17 @@ class TealiumTests {
         var hasBeenCalled = false
         val config = configWithNoModules
         config.consentManagerPolicy = ConsentPolicy.GDPR
+        config.collectors.add(collectorFactory(
+            mapOf(
+                "String" to "string",
+                "Int" to 10,
+                "Double" to 10.0,
+                "Float" to 10.0f,
+                "Boolean" to true,
+                "JsonArray" to JSONArray().apply { put("string") },
+                "JsonObject" to JSONObject().apply { put("string", "string") },
+            )
+        ))
         val tealium = Tealium.create("name", config) {
             hasBeenCalled = true
         }
@@ -309,7 +320,34 @@ class TealiumTests {
             delay(1000)
             assertTrue(hasBeenCalled)
         }
-        tealium.consentManager.userConsentCategories = mutableSetOf(ConsentCategory.AFFILIATES, ConsentCategory.ANALYTICS, ConsentCategory.BIG_DATA)
+        tealium.consentManager.userConsentCategories = mutableSetOf(
+            ConsentCategory.AFFILIATES,
+            ConsentCategory.ANALYTICS,
+            ConsentCategory.BIG_DATA
+        )
+
+        val data = tealium.gatherTrackData()
+        assertFalse(data.isEmpty())
+        assertTrue(containsOnlyValidTypes(data.values))
+    }
+
+    @Test(expected = AssertionError::class)
+    fun testGatherTrackDataFails() = runBlocking {
+        var hasBeenCalled = false
+        val tealium = Tealium.create(
+            "name",
+            TealiumConfig(application, "test", "test", Environment.DEV).apply {
+                collectors.add(collectorFactory(mapOf(
+                    "consent" to listOf<ConsentCategory>(ConsentCategory.CDP, ConsentCategory.CRM),
+                    "policy" to ConsentPolicy.GDPR
+                )))
+            }) {
+            hasBeenCalled = true
+        }
+        if (!hasBeenCalled) {
+            delay(1000)
+            assertTrue(hasBeenCalled)
+        }
 
         val data = tealium.gatherTrackData()
         assertFalse(data.isEmpty())
@@ -317,26 +355,14 @@ class TealiumTests {
     }
 
     private fun containsOnlyValidTypes(data: Collection<*>): Boolean {
-        val allowedBasicTypes = listOf(String::class.java,
-            Long::class.javaObjectType,
-            Boolean::class.javaObjectType,
-            Integer::class.javaObjectType,
-            Double::class.javaObjectType,
-            Float::class.javaObjectType)
-        val nonBasicData = data.filter { entry -> !allowedBasicTypes.any { it -> it.isInstance(entry) } }
-
-        return nonBasicData.filter { value ->
-            if (value is Map<*,*>) {
-                return@filter !containsOnlyValidTypes(value.values)
+        return data.filterNotNull().fold(true) { initial, entry ->
+            initial && when (entry) {
+                is Long, is Boolean, is Int, is String, is Double, is Float, is JSONArray, is JSONObject -> true
+                is Collection<*> -> containsOnlyValidTypes(entry)
+                is Map<*, *> -> containsOnlyValidTypes(entry.values)
+                else -> false
             }
-            if (value is Collection<*>) {
-                return@filter !containsOnlyValidTypes(value)
-            }
-            if (value is JSONArray || value is JSONObject) {
-                return@filter false
-            }
-            return@filter true
-        }.isEmpty()
+        }
     }
 }
 
@@ -355,7 +381,7 @@ private class TestFactory(context: TealiumContext, payload: Any?) : Collector {
     override val name: String = "Test"
     override var enabled: Boolean = true
 
-    companion object: CollectorFactory {
+    companion object : CollectorFactory {
         var payload: Any? = null
         override fun create(context: TealiumContext): Collector {
             return TestFactory(context, payload)
@@ -371,5 +397,25 @@ private class TestMessenger(private val result: Any?) :
     Messenger<TestListener>(TestListener::class) {
     override fun deliver(listener: TestListener) {
         listener.onListen(result = result)
+    }
+}
+
+private fun collectorFactory(
+    returnData: Map<String, Any>,
+    enabled: Boolean = true,
+    name: String = "test-collector"
+): CollectorFactory {
+    return object : CollectorFactory, Collector {
+        override suspend fun collect(): Map<String, Any> {
+            return returnData
+        }
+
+        override fun create(context: TealiumContext): Collector {
+            return this
+        }
+
+        override val name: String
+            get() = name
+        override var enabled: Boolean = enabled
     }
 }
