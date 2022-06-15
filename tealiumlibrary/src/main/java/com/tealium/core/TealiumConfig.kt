@@ -30,7 +30,7 @@ const val TEALIUM_PROFILE = "tealium_profile"
 object Collectors {
     // for extension methods to register CollectorFactory types.
     @JvmStatic
-    val core = mutableSetOf(
+    val core = setOf(
         AppCollector,
         ConnectivityCollector,
         DeviceCollector,
@@ -53,7 +53,7 @@ class TealiumConfig @JvmOverloads constructor(
     val profileName: String,
     val environment: Environment,
     var dataSourceId: String? = null,
-    val collectors: MutableSet<CollectorFactory> = Collectors.core,
+    val collectors: MutableSet<CollectorFactory> = Collectors.core.toMutableSet(),
     val dispatchers: MutableSet<DispatcherFactory> = mutableSetOf(),
     val modules: MutableSet<ModuleFactory> = mutableSetOf()
 ) {

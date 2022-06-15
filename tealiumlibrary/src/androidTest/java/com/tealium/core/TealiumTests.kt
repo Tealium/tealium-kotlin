@@ -2,6 +2,7 @@ package com.tealium.core
 
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
+import com.tealium.core.collection.*
 import com.tealium.core.consent.ConsentCategory
 import com.tealium.core.consent.ConsentPolicy
 import com.tealium.core.consent.consentManagerPolicy
@@ -300,7 +301,7 @@ class TealiumTests {
     @Test
     fun testGatherTrackData() = runBlocking {
         var hasBeenCalled = false
-        val config = configWithNoModules
+        val config = TealiumConfig(application, "", "", Environment.DEV, "")
         config.consentManagerPolicy = ConsentPolicy.GDPR
         config.collectors.add(collectorFactory(
             mapOf(
