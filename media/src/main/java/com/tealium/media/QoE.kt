@@ -36,3 +36,7 @@ data class QoE(var bitrate: Int,
         }
     }
 }
+
+fun QoE.toMap(): Map<String, Any> {
+    return QoE.toMap(this)
+}

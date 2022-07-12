@@ -22,6 +22,10 @@ import com.tealium.core.Tealium
 import com.tealium.media.segments.Ad
 import com.tealium.media.segments.AdBreak
 import com.tealium.media.segments.Chapter
+import com.tealium.media.v2.MediaMetadata
+import com.tealium.media.v2.MediaModule
+import com.tealium.media.v2.plugins.MilestonePlugin
+import com.tealium.media.v2.plugins.SummaryPlugin
 import com.tealium.mobile.BuildConfig
 
 class MediaService : Service() {
@@ -151,44 +155,66 @@ class MediaService : Service() {
         }
     }
 
+    private fun getMediaModule2() : MediaModule? {
+        return Tealium[BuildConfig.TEALIUM_INSTANCE]?.modules?.getModule(MediaModule::class.java)
+    }
+
     fun startSession() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.startSession(mediaContent)
+//        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.startSession(mediaContent)
+        getMediaModule2()?.createSession(
+            MediaMetadata(
+                mediaContent.customId,
+                mediaContent.name,
+                mediaContent.duration,
+                mediaContent.streamType,
+                mediaContent.mediaType,
+                System.currentTimeMillis(),
+                mediaContent.playerName,
+                mediaContent.channelName
+            ),
+            setOf(
+                SummaryPlugin.Factory,
+                MilestonePlugin.Factory.configure(1000L)
+            )
+        )?.startSession()
     }
 
     fun endSession() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endSession()
+//        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endSession()
+        getMediaModule2()?.session?.endSession()
     }
 
     fun play() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.play()
+//        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.play()
+        getMediaModule2()?.session?.play()
     }
 
     fun pause() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.pause()
+        getMediaModule2()?.session?.pause()
     }
 
     fun startAdBreak() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.startAdBreak(AdBreak("Ad Break 1"))
+        getMediaModule2()?.session?.startAdBreak(AdBreak("Ad Break 1"))
     }
 
     fun endAdBreak() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endAdBreak()
+        getMediaModule2()?.session?.endAdBreak()
     }
 
     fun startAd() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.startAd(Ad("Ad  1"))
+        getMediaModule2()?.session?.startAd(Ad("Ad  1"))
     }
 
     fun endAd() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endAd()
+        getMediaModule2()?.session?.endAd()
     }
 
     fun startChapter() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.startChapter(Chapter("Chapter 1", 3000.toDouble()))
+        getMediaModule2()?.session?.startChapter(Chapter("Chapter 1", 3000.toDouble()))
     }
 
     fun endChapter() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.media?.endChapter()
+        getMediaModule2()?.session?.endChapter()
     }
 
     inner class LocalBinder : Binder() {

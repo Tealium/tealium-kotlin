@@ -23,6 +23,7 @@ import com.tealium.lifecycle.Lifecycle
 import com.tealium.media.Media
 import com.tealium.media.mediaBackgroundSessionEnabled
 import com.tealium.media.mediaBackgroundSessionEndInterval
+import com.tealium.media.v2.MediaModule
 import com.tealium.remotecommanddispatcher.RemoteCommands
 import com.tealium.remotecommanddispatcher.remoteCommands
 import com.tealium.remotecommands.RemoteCommand
@@ -40,14 +41,16 @@ object TealiumHelper : ActivityDataCollector {
                 "android",
                 Environment.DEV,
                 modules = mutableSetOf(
-                        Modules.Lifecycle,
-                        Modules.VisitorService,
-                        Modules.HostedDataLayer,
-                        Modules.CrashReporter,
-                        Modules.AdIdentifier,
-                        Modules.InAppPurchaseManager,
-                        Modules.AutoTracking,
-                        Modules.Media),
+//                        Modules.Lifecycle,
+//                        Modules.VisitorService,
+//                        Modules.HostedDataLayer,
+//                        Modules.CrashReporter,
+//                        Modules.AdIdentifier,
+//                        Modules.InAppPurchaseManager,
+//                        Modules.AutoTracking,
+//                        Modules.Media
+                    MediaModule
+                ),
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
             useRemoteLibrarySettings = true

@@ -57,6 +57,8 @@ class Media(private val context: TealiumContext,
         }
     }
 
+
+
     fun resumeSession() {
         currentSession?.isBackgrounded = false
         currentSession?.resumeSession()

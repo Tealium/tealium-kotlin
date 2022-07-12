@@ -27,4 +27,8 @@ class MediaSessionDispatcher(private val context: TealiumContext) : MediaDispatc
 
         context.track(TealiumEvent(event, data))
     }
+
+    override fun track(event: String, data: Map<String, Any>) {
+        context.track(TealiumEvent(event, data))
+    }
 }

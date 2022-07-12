@@ -84,3 +84,7 @@ data class MediaSummary(var sessionStartTime: Long = System.currentTimeMillis())
         }
     }
 }
+
+fun MediaSummary.toMap() : Map<String, Any> {
+    return MediaSummary.toMap(this)
+}
