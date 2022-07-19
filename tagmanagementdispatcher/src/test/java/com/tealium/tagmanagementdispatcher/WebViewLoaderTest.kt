@@ -1,10 +1,10 @@
 package com.tealium.tagmanagementdispatcher
 
 import android.app.Application
+import android.net.Uri
 import android.os.SystemClock
 import android.webkit.*
-import com.tealium.core.TealiumConfig
-import com.tealium.core.TealiumContext
+import com.tealium.core.*
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.messaging.MessengerService
 import com.tealium.core.network.Connectivity
@@ -14,6 +14,7 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.setMain
 import org.junit.Assert.*
 import org.junit.Before
@@ -264,5 +265,47 @@ class WebViewLoaderTest {
         }
         delay(500)
         assertTrue(webViewLoader.hasReachedMaxErrors())
+    }
+
+    @Test
+    fun decorateWebView_WithProviderParams() = runBlocking {
+        val mockUriBuilder = mockk<Uri.Builder>()
+        mockkStatic(Uri::class)
+        every { Uri.parse(any()).buildUpon() } returns mockUriBuilder
+        every { mockUriBuilder.appendQueryParameter(any(), any()) } returns mockUriBuilder
+        every { mockUriBuilder.build() } returns mockk()
+        every { mockUriBuilder.build().toString() } returns "QueryParamProvider_value1"
+
+        every { mockConnectivity.isConnected() } returns false
+        every { mockTealiumContext.events } returns mockMessengerService
+        every { mockTealiumContext.tealium.modules } returns mockk()
+        every { mockTealiumContext.tealium.modules.getModulesForType(Module::class.java) } returns setOf(QueryParamProviderModule.create(mockTealiumContext))
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        delay(50)
+        webViewLoader.webView = mockWebView
+        every { mockConnectivity.isConnected() } returns true
+
+        webViewLoader.loadUrlToWebView()
+
+        verify {
+            webViewLoader.webView.loadUrl(match {
+                it.contains("QueryParamProvider_value1")
+            })
+        }
+    }
+}
+
+private class QueryParamProviderModule: Module, QueryParameterProvider {
+    override val name: String = "test"
+    override var enabled: Boolean = true
+
+    override fun provideParameters(): Map<String, List<String>> {
+        return mapOf("query_param1" to listOf("QueryParamProvider_value1"))
+    }
+
+    companion object : ModuleFactory {
+        override fun create(context: TealiumContext): Module {
+            return QueryParamProviderModule()
+        }
     }
 }

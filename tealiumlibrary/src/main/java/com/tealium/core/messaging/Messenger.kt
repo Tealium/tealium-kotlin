@@ -19,3 +19,9 @@ class ValidationChangedMessenger(private val override: Class<out DispatchValidat
         listener.onRevalidate(override)
     }
 }
+
+class QueryParametersUpdatedMessenger(private val params: Map<String, List<String>>? = null) : Messenger<QueryParametersUpdatedListener>(QueryParametersUpdatedListener::class) {
+    override fun deliver(listener: QueryParametersUpdatedListener) {
+        listener.onQueryParametersUpdated(params)
+    }
+}
