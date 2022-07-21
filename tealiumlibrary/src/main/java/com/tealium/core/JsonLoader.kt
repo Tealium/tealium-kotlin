@@ -54,7 +54,7 @@ class JsonLoader(val application: Application) : Loader {
             requestMethod = "GET"  // optional default is GET
             if (responseCode == HttpsURLConnection.HTTP_OK) {
                 val inputString = inputStream.bufferedReader().use { it.readText() }
-                if (isValidJson(inputString)) {
+                if (JsonUtils.isValidJson(inputString)) {
                     return when (JSONTokener(inputString).nextValue()) {
                         is JSONObject -> JSONObject(inputString)
                         is JSONArray -> JSONArray(inputString)
@@ -64,16 +64,6 @@ class JsonLoader(val application: Application) : Loader {
             }
         }
         return null
-    }
-
-    private fun isValidJson(input: String): Boolean {
-        try {
-            JSONTokener(input).nextValue()
-        } catch (ex: JSONException) {
-            Logger.dev(BuildConfig.TAG, "Invalid JSON input: $input")
-            return false
-        }
-        return true
     }
 
     companion object {
