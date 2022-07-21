@@ -17,14 +17,14 @@ import java.net.URL
  * co-ordinate data as well as interactivity with geofences.
  */
 class LocationManager(private val context: TealiumContext) :
-        Collector {
+    Collector {
 
     private val geofenceFilename: String? = context.config.geofenceFilename
     internal val geofenceUrl: String
         get() = context.config.overrideGeofenceUrl
-                ?: "https://tags.tiqcdn.com/dle/" +
-                "${context.config.accountName}/" +
-                "${context.config.profileName}/geofences.json"
+            ?: ("https://tags.tiqcdn.com/dle/" +
+                    "${context.config.accountName}/" +
+                    "${context.config.profileName}/geofences.json")
 
     private val locationProviderClientLoader = FusedLocationProviderClientLoader(context)
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -37,16 +37,19 @@ class LocationManager(private val context: TealiumContext) :
     /**
      * Start Location tracking updates
      */
-    fun startLocationTracking(isHighAccuracy: Boolean, updateInterval: Int) {
+    fun startLocationTracking(isHighAccuracy: Boolean, updateInterval: Int) =
         locationProviderClientLoader.startLocationTracking(isHighAccuracy, updateInterval)
-    }
+
+    /**
+     * Start Location tracking updates
+     */
+    fun startLocationTracking(locationOpts: LocationOpts) =
+        locationProviderClientLoader.startLocationTracking(locationOpts)
 
     /**
      * Stops location updates
      */
-    fun stopLocationTracking() {
-        locationProviderClientLoader.stopLocationUpdates()
-    }
+    fun stopLocationTracking() = locationProviderClientLoader.stopLocationUpdates()
 
     /**
      * Creates and adds new GeofenceLocation object to allGeofencesLocations
@@ -61,15 +64,26 @@ class LocationManager(private val context: TealiumContext) :
      * @param triggerExit  whether you want events to be fired upon exiting a geofence.
      *
      */
-    fun addGeofence(name: String,
-                    latitude: Double,
-                    longitude: Double,
-                    radius: Int,
-                    expireTime: Int,
-                    loiterTime: Int,
-                    triggerEnter: Boolean,
-                    triggerExit: Boolean) {
-        val newGeofenceLocation = GeofenceLocation.create(name, latitude, longitude, radius, expireTime, loiterTime, triggerEnter, triggerExit)
+    fun addGeofence(
+        name: String,
+        latitude: Double,
+        longitude: Double,
+        radius: Int,
+        expireTime: Int,
+        loiterTime: Int,
+        triggerEnter: Boolean,
+        triggerExit: Boolean
+    ) {
+        val newGeofenceLocation = GeofenceLocation.create(
+            name,
+            latitude,
+            longitude,
+            radius,
+            expireTime,
+            loiterTime,
+            triggerEnter,
+            triggerExit
+        )
 
         newGeofenceLocation?.let {
             allGeofenceLocations.add(it)
@@ -155,9 +169,11 @@ class LocationManager(private val context: TealiumContext) :
 
     override suspend fun collect(): Map<String, Any> {
         lastLocation()?.let { location ->
-            return mapOf(LocationConstants.LOCATION_ACCURACY to locationProviderClientLoader.isHighAccuracy.toString(),
-                    LocationConstants.DEVICE_LAST_LATITUDE to location.latitude,
-                    LocationConstants.DEVICE_LAST_LONGITUDE to location.longitude)
+            return mapOf(
+                LocationConstants.LOCATION_ACCURACY to locationProviderClientLoader.isHighAccuracy.toString(),
+                LocationConstants.DEVICE_LAST_LATITUDE to location.latitude,
+                LocationConstants.DEVICE_LAST_LONGITUDE to location.longitude
+            )
         }
         return emptyMap()
     }
@@ -165,7 +181,8 @@ class LocationManager(private val context: TealiumContext) :
     companion object : CollectorFactory {
         const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
-        @Volatile private var instance: LocationManager? = null
+        @Volatile
+        private var instance: LocationManager? = null
         private val contexts = mutableListOf<TealiumContext>()
 
         val activeGeofences = mutableSetOf<String>()
@@ -182,9 +199,13 @@ class LocationManager(private val context: TealiumContext) :
         }
 
         fun sendGeofenceEvent(geofenceName: String, transitionType: String) {
-            val dispatch = TealiumEvent(transitionType,
-                    mapOf(GeofenceEventConstants.GEOFENCE_NAME to geofenceName,
-                            GeofenceEventConstants.GEOFENCE_TRANSITION_TYPE to transitionType))
+            val dispatch = TealiumEvent(
+                transitionType,
+                mapOf(
+                    GeofenceEventConstants.GEOFENCE_NAME to geofenceName,
+                    GeofenceEventConstants.GEOFENCE_TRANSITION_TYPE to transitionType
+                )
+            )
             for (context in contexts) {
                 context.track(dispatch)
             }

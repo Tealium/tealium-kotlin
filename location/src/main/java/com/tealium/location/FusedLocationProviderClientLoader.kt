@@ -31,23 +31,14 @@ class FusedLocationProviderClientLoader(
     private val locationCallback: LocationCallback = createLocationCallback()
     private lateinit var geofenceLocationClient: GeofenceLocationClient
 
-    private fun createLocationRequest(
-        isHighAccuracy: Boolean,
-        updateInterval: Int
-    ): LocationRequest {
-        _isHighAccuracy = isHighAccuracy
-        val locationRequest = LocationRequest.create()
-        if (isHighAccuracy) {
-            locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        } else {
-            locationRequest.priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
-        }
-        locationRequest.priority = LocationRequest.PRIORITY_NO_POWER
+    private fun createLocationRequest(locationOpts: LocationOpts): LocationRequest {
+        _isHighAccuracy = locationOpts.accuracy == LocationTrackingAccuracy.HighAccuracy
 
-        locationRequest.interval = updateInterval.toLong()
-        locationRequest.fastestInterval = updateInterval.toLong()
-
-        return locationRequest
+        return LocationRequest.create()
+            .setPriority(locationOpts.accuracy.requestPriority)
+            .setInterval(locationOpts.minTime)
+            .setFastestInterval(locationOpts.minTime)
+            .setSmallestDisplacement(locationOpts.minDistance)
     }
 
     private fun createLocationCallback(): LocationCallback {
@@ -57,7 +48,10 @@ class FusedLocationProviderClientLoader(
                     _lastLocation = locationResult.lastLocation
                     // TODO - Configurable to possibly send event?
                     val timestamp = Date()
-                    Logger.dev(BuildConfig.TAG, "${ DateUtils.formatDate(timestamp) } - Received updated Location: lat=${lastLocation?.latitude},lng=${lastLocation?.longitude}")
+                    Logger.dev(
+                        BuildConfig.TAG,
+                        "${DateUtils.formatDate(timestamp)} - Received updated Location: lat=${lastLocation?.latitude},lng=${lastLocation?.longitude}"
+                    )
 
                     _lastLocation?.let { lastLocationResult ->
 
@@ -120,6 +114,15 @@ class FusedLocationProviderClientLoader(
     }
 
     fun startLocationTracking(isHighAccuracy: Boolean, updateInterval: Int) {
+        startLocationTracking(
+            LocationOpts(
+                accuracy = if (isHighAccuracy) LocationTrackingAccuracy.HighAccuracy else LocationTrackingAccuracy.BalancedAccuracy,
+                minTime = updateInterval.toLong()
+            )
+        )
+    }
+
+    fun startLocationTracking(options: LocationOpts) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
             context.config.application.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
@@ -128,13 +131,18 @@ class FusedLocationProviderClientLoader(
             return
         }
 
-        if (updateInterval < 0) {
+        if (options.minTime < 0) {
             Logger.dev(BuildConfig.TAG, "UpdateInterval value must be greater than or equal to 0")
             return
         }
 
+        if (options.minDistance < 0) {
+            Logger.dev(BuildConfig.TAG, "MinimumDistance value must be greater than or equal to 0")
+            return
+        }
+
         geofenceLocationClient = GeofenceLocationClient(context)
-        locationRequest = createLocationRequest(isHighAccuracy, updateInterval)
+        locationRequest = createLocationRequest(options)
         locationClient.requestLocationUpdates(
             locationRequest,
             locationCallback,
