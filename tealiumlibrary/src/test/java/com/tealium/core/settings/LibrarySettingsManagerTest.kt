@@ -237,6 +237,60 @@ class LibrarySettingsManagerTest {
     }
 
     @Test
+    fun remoteJsonSettingsDoesNotCrashWhenMalformedAndReturnsDefault() = runBlocking {
+        val malformedJson = "{\n" +
+                "  \"collect dispatcher\": true,\n" +
+                "  \"tag management_dispatcher\": true,\n" +
+                "  \"batching\": {\n" +
+                "    \"batch_size\": 10,\n" +
+                "    \"max_queue_size\": 100,\n" +
+                "    \"expiration\" " +
+                "}"
+        config.useRemoteLibrarySettings = true
+        config.overrideLibrarySettingsUrl = "tealium-settings.json"
+        every { mockLoader.loadFromFile(any()) } returns null
+        coEvery { mockNetworkClient.get(any()) } returns malformedJson
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
+
+        verify(exactly = 0, timeout = 1500) {
+            mockEventRouter.onLibrarySettingsUpdated(any())
+        }
+
+        assertEquals(defaultLibrarySettings, librarySettingsManager.librarySettings)
+        assertEquals(false, librarySettingsManager.librarySettings.collectDispatcherEnabled)
+        assertEquals(false, librarySettingsManager.librarySettings.tagManagementDispatcherEnabled)
+        assertEquals(100, librarySettingsManager.librarySettings.batching.maxQueueSize)
+        assertEquals(false, librarySettingsManager.librarySettings.batterySaver)
+    }
+
+    @Test
+    fun cachedJsonSettingsDoesNotCrashWhenMalformedAndReturnsDefault() = runBlocking {
+        val malformedJson = "{\n" +
+                "  \"collect dispatcher\": true,\n" +
+                "  \"tag management_dispatcher\": true,\n" +
+                "  \"batching\": {\n" +
+                "    \"batch_size\": 10,\n" +
+                "    \"max_queue_size\": 100,\n" +
+                "    \"expiration\" " +
+                "}"
+        config.useRemoteLibrarySettings = true
+        config.overrideLibrarySettingsUrl = "tealium-settings.json"
+        every { mockLoader.loadFromFile(any()) } returns malformedJson
+        coEvery { mockNetworkClient.get(any()) } returns malformedJson
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
+
+        verify(exactly = 0, timeout = 1500) {
+            mockEventRouter.onLibrarySettingsUpdated(any())
+        }
+
+        assertEquals(defaultLibrarySettings, librarySettingsManager.librarySettings)
+        assertEquals(false, librarySettingsManager.librarySettings.collectDispatcherEnabled)
+        assertEquals(false, librarySettingsManager.librarySettings.tagManagementDispatcherEnabled)
+        assertEquals(100, librarySettingsManager.librarySettings.batching.maxQueueSize)
+        assertEquals(false, librarySettingsManager.librarySettings.batterySaver)
+    }
+
+    @Test
     fun remoteHtmlSettingsOverrideCacheWhenPresent() = runBlocking {
         val htmlLibrarySettings = """<!DOCTYPE html>
                 <!--tealium tag management - mobile.webview ut4.0.202006041357, Copyright 2020 Tealium.com Inc. All Rights Reserved.-->

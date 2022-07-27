@@ -1,5 +1,19 @@
 # Change Log
 
+- 1.4.2 Jun 2022
+  - Core 1.4.2
+    - Add `overrideConsentCategoriesKey` to `TealiumConfig` to allow for a custom consent categories key
+- 1.4.1 Jun 2022
+  - Core 1.4.1
+    - Fix: Update Consent Status to return string instead of enum value
+- 1.4.0 May 2022
+  - Core 1.4.0
+    - Add `gatherTrackData` to exposed all datalayer and collectors variables
+- 1.3.3 Apr 2022
+  - Core 1.3.3
+    - Update remote command dependency
+  - RemoteCommandDispatcher 1.1.1
+    - Add remote command names and versions to datalayer
 - 1.3.2 Mar 2022
   - Core 1.3.2
     - `events` property added to `TealiumConfig` to enable adding listeners on startup, as some events could be missed during startup.

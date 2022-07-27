@@ -82,10 +82,6 @@ enum class ConsentCategory(val value: String) {
     }
 }
 
-fun Set<ConsentCategory>.toJsonArray(): JSONArray {
-    return JSONArray(this.map { it.value })
-}
-
 enum class ConsentPolicy(val value: String) {
     /**
      * Supports the General Data Protection Regulation.
@@ -249,8 +245,9 @@ private class GdprConsentManagementPolicy(initialConsentPreferences: UserConsent
             Dispatch.Keys.CONSENT_POLICY to name,
             Dispatch.Keys.CONSENT_STATUS to userConsentPreferences.consentStatus.value
         ).apply {
-            userConsentPreferences.consentCategories?.let {
-                this[Dispatch.Keys.CONSENT_CATEGORIES] = it.toJsonArray()
+            userConsentPreferences.consentCategories?.let { it ->
+                this[Dispatch.Keys.CONSENT_CATEGORIES] = it
+                    .map { category -> category.value }
             }
         }
     }
