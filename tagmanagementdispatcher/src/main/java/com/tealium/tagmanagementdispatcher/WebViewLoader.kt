@@ -41,6 +41,7 @@ class WebViewLoader(
     private val shouldRegisterSession = AtomicBoolean(false)
     private val webViewCreationRetries = 3
     private val sessionCountingEnabled: Boolean = context.config.sessionCountingEnabled ?: true
+    private var queryParams: Map<String, List<String>> = fetchQueryParams()
 
     @Volatile
     private var webViewCreationErrorCount = 0
@@ -236,24 +237,36 @@ class WebViewLoader(
     }
 
     init {
-        initializeWebView()
         context.events.subscribe(this)
+        initializeWebView()
+
     }
 
     private fun decorateUrlParams(urlString: String): String {
+        if (queryParams.isEmpty()) {
+            return urlString
+        }
         val uriBuilder = Uri.parse(urlString).buildUpon()
+        queryParams.forEach { entry ->
+            entry.value.forEach { value ->
+                uriBuilder.appendQueryParameter(entry.key, value)
+            }
+        }
+
+        return uriBuilder.build().toString()
+    }
+
+    private fun fetchQueryParams(): Map<String, List<String>> {
+        val currentParams = mutableMapOf<String, List<String>>()
         context.tealium.modules.getModulesForType(Module::class.java)
             .filterIsInstance(QueryParameterProvider::class.java).forEach { provider ->
                 provider.provideParameters().let { params ->
-                    params.forEach { entry ->
-                        entry.value.forEach { value ->
-                            uriBuilder.appendQueryParameter(entry.key, value)
-                        }
+                    if (params.isNotEmpty()) {
+                        currentParams.putAll(params)
                     }
                 }
             }
-
-        return uriBuilder.build().toString()
+        return currentParams.toMap()
     }
 
     private fun initializeWebView() {
@@ -407,7 +420,12 @@ class WebViewLoader(
     }
 
     override fun onQueryParametersUpdated(params: Map<String, List<String>>?) {
-        loadUrlToWebView()
+        params?.let {
+            val currentParams = queryParams.toMutableMap()
+            currentParams.putAll(params)
+            queryParams = currentParams.toMap()
+            loadUrlToWebView()
+        }
     }
 
     companion object {
