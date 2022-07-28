@@ -43,8 +43,8 @@ class LocationManager(private val context: TealiumContext) :
     /**
      * Start Location tracking updates
      */
-    fun startLocationTracking(locationOpts: LocationOpts) =
-        locationProviderClientLoader.startLocationTracking(locationOpts)
+    fun startLocationTracking(locationTrackingOptions: LocationTrackingOptions) =
+        locationProviderClientLoader.startLocationTracking(locationTrackingOptions)
 
     /**
      * Stops location updates

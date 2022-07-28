@@ -14,7 +14,7 @@ import kotlin.collections.ArrayList
 class FusedLocationProviderClientLoader(
     private val context: TealiumContext,
     private val locationClient: FusedLocationProviderClient = context.config.overrideFusedLocationProviderClient
-        ?: LocationServices.getFusedLocationProviderClient(context.config.application)
+        ?: LocationServices.getFusedLocationProviderClient(context.config.application),
 ) {
 
     private var _lastLocation: Location? = null
@@ -25,27 +25,17 @@ class FusedLocationProviderClientLoader(
     val isHighAccuracy: Boolean?
         get() = _isHighAccuracy
 
-    private lateinit var locationRequest: LocationRequest
-
-
-    private val locationCallback: LocationCallback = createLocationCallback()
-    private lateinit var geofenceLocationClient: GeofenceLocationClient
-
-    private fun createLocationRequest(locationOpts: LocationOpts): LocationRequest {
-        _isHighAccuracy = locationOpts.accuracy == LocationTrackingAccuracy.HighAccuracy
-
-        return LocationRequest.create()
-            .setPriority(locationOpts.accuracy.requestPriority)
-            .setInterval(locationOpts.minTime)
-            .setFastestInterval(locationOpts.minTime)
-            .setSmallestDisplacement(locationOpts.minDistance)
-    }
+    internal var locationRequest: LocationRequest? = null
+    internal lateinit var locationCallback: LocationCallback
+    internal lateinit var geofenceLocationClient: GeofenceLocationClient
 
     private fun createLocationCallback(): LocationCallback {
         return object : LocationCallback() {
             override fun onLocationResult(p0: LocationResult?) {
                 p0?.let { locationResult ->
-                    _lastLocation = locationResult.lastLocation
+                    val lastLocation = locationResult.lastLocation
+                    _lastLocation = lastLocation
+
                     // TODO - Configurable to possibly send event?
                     val timestamp = Date()
                     Logger.dev(
@@ -53,7 +43,7 @@ class FusedLocationProviderClientLoader(
                         "${DateUtils.formatDate(timestamp)} - Received updated Location: lat=${lastLocation?.latitude},lng=${lastLocation?.longitude}"
                     )
 
-                    _lastLocation?.let { lastLocationResult ->
+                    lastLocation?.let { lastLocationResult ->
 
                         val geofencesToAdd = ArrayList<GeofenceLocation>()
                         if (LocationManager.allGeofenceLocations.isNotEmpty()) {
@@ -115,14 +105,14 @@ class FusedLocationProviderClientLoader(
 
     fun startLocationTracking(isHighAccuracy: Boolean, updateInterval: Int) {
         startLocationTracking(
-            LocationOpts(
+            LocationTrackingOptions(
                 accuracy = if (isHighAccuracy) LocationTrackingAccuracy.HighAccuracy else LocationTrackingAccuracy.BalancedAccuracy,
                 minTime = updateInterval.toLong()
             )
         )
     }
 
-    fun startLocationTracking(options: LocationOpts) {
+    fun startLocationTracking(options: LocationTrackingOptions) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
             context.config.application.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
@@ -143,6 +133,9 @@ class FusedLocationProviderClientLoader(
 
         geofenceLocationClient = GeofenceLocationClient(context)
         locationRequest = createLocationRequest(options)
+        _isHighAccuracy =
+            options.accuracy == LocationTrackingAccuracy.HighAccuracy
+        locationCallback = createLocationCallback()
         locationClient.requestLocationUpdates(
             locationRequest,
             locationCallback,
@@ -153,5 +146,15 @@ class FusedLocationProviderClientLoader(
     fun stopLocationUpdates() {
         locationClient.removeLocationUpdates(locationCallback)
         Logger.dev(BuildConfig.TAG, "Location tracking stopped")
+    }
+
+    companion object {
+        fun createLocationRequest(locationTrackingOptions: LocationTrackingOptions): LocationRequest {
+            return LocationRequest.create()
+                .setPriority(locationTrackingOptions.accuracy.requestPriority)
+                .setInterval(locationTrackingOptions.minTime)
+                .setFastestInterval(locationTrackingOptions.minTime)
+                .setSmallestDisplacement(locationTrackingOptions.minDistance)
+        }
     }
 }

@@ -218,4 +218,39 @@ class FusedLocationProviderClientLoaderTests {
             mockGeofenceLocationClient.removeGeofence(movedOutsideRadius.name)
         }
     }
+
+    @Test
+    fun createLocationRequest_ConvertsAllLocationRequestOptions() {
+        val opts1 = FusedLocationProviderClientLoader.createLocationRequest(
+            LocationTrackingOptions(LocationTrackingAccuracy.HighAccuracy, 1000L, 100.0f)
+        )
+        assertEquals(opts1.priority, LocationRequest.PRIORITY_HIGH_ACCURACY)
+        assertEquals(opts1.interval, 1000L)
+        assertEquals(opts1.fastestInterval, 1000L)
+        assertEquals(opts1.smallestDisplacement, 100.0f)
+
+        val opts2 = FusedLocationProviderClientLoader.createLocationRequest(
+            LocationTrackingOptions(LocationTrackingAccuracy.BalancedAccuracy, 2000L, 200.0f)
+        )
+        assertEquals(opts2.priority, LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+        assertEquals(opts2.interval, 2000L)
+        assertEquals(opts2.fastestInterval, 2000L)
+        assertEquals(opts2.smallestDisplacement, 200.0f)
+
+        val opts3 = FusedLocationProviderClientLoader.createLocationRequest(
+            LocationTrackingOptions(LocationTrackingAccuracy.LowPower, 3000L, 300.0f)
+        )
+        assertEquals(opts3.priority, LocationRequest.PRIORITY_LOW_POWER)
+        assertEquals(opts3.interval, 3000L)
+        assertEquals(opts3.fastestInterval, 3000L)
+        assertEquals(opts3.smallestDisplacement, 300.0f)
+
+        val opts4 = FusedLocationProviderClientLoader.createLocationRequest(
+            LocationTrackingOptions(LocationTrackingAccuracy.NoPower, 4000L, 400.0f)
+        )
+        assertEquals(opts4.priority, LocationRequest.PRIORITY_NO_POWER)
+        assertEquals(opts4.interval, 4000L)
+        assertEquals(opts4.fastestInterval, 4000L)
+        assertEquals(opts4.smallestDisplacement, 400.0f)
+    }
 }
