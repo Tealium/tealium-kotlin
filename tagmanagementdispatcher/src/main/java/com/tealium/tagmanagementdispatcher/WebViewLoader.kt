@@ -237,9 +237,8 @@ class WebViewLoader(
     }
 
     init {
-        context.events.subscribe(this)
         initializeWebView()
-
+        context.events.subscribe(this)
     }
 
     private fun decorateUrlParams(urlString: String): String {
