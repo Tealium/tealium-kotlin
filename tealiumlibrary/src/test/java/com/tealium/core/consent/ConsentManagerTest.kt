@@ -254,7 +254,8 @@ class ConsentManagerTest {
         assertEquals(ConsentStatus.CONSENTED, consentManager.userConsentStatus)
         val data = consentManager.collect()
         assertFalse(data.isEmpty())
-        val expected = setOf(ConsentCategory.AFFILIATES).toJsonArray();
+        val expected = setOf(ConsentCategory.AFFILIATES)
+            .map { it.value }
         assertEquals(expected, data["consent_categories"])
     }
 
@@ -341,6 +342,38 @@ class ConsentManagerTest {
         verify {
             mockTealiumContext.track(any())
         }
+    }
+
+    @Test
+    fun consentCategoriesKeyEnabled_VerifyPayloadOverrideSuccess() = runBlocking {
+        config.overrideConsentCategoriesKey = "custom_consent_categories_key"
+        val mockSettings: LibrarySettings = mockk()
+
+        every { editor.putString(KEY_STATUS, "consented") } returns editor
+        every { sharedPreferences.getString(any(), any()) } returns "consented"
+
+        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockSettings, ConsentPolicy.GDPR)
+        consentManager.userConsentStatus = ConsentStatus.CONSENTED
+
+        val payload = consentManager.collect()
+
+        assertTrue(payload.containsKey("custom_consent_categories_key"))
+    }
+
+    @Test
+    fun consentCategoriesKeyDisabled_VerifyPayloadSuccess() = runBlocking {
+        val mockSettings: LibrarySettings = mockk()
+
+        every { editor.putString(KEY_STATUS, "consented") } returns editor
+        every { sharedPreferences.getString(any(), any()) } returns "consented"
+
+        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockSettings, ConsentPolicy.GDPR)
+        consentManager.userConsentStatus = ConsentStatus.CONSENTED
+
+        val payload = consentManager.collect()
+
+        assertTrue(!payload.containsKey("custom_consent_categories_key"))
+        assertTrue(payload.containsKey("consent_categories"))
     }
 
     @Test

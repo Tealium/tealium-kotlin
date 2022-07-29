@@ -92,6 +92,12 @@ class LibrarySettingsManager(
 
     private fun loadFromCache(file: File): LibrarySettings? {
         return loader.loadFromFile(file)?.let {
+            if (!JsonUtils.isValidJson(it)) {
+                // cached file is invalid; delete
+                removeFromCache()
+                return null
+            }
+
             val json = JSONObject(it)
             LibrarySettings.fromJson(json)
         }
@@ -99,6 +105,8 @@ class LibrarySettingsManager(
 
     private fun loadFromAsset(fileName: String): LibrarySettings? {
         return loader.loadFromAsset(fileName)?.let {
+            if (!JsonUtils.isValidJson(it)) return null
+
             val json = JSONObject(it)
             LibrarySettings.fromJson(json)
         }
@@ -125,8 +133,10 @@ class LibrarySettingsManager(
                             }
                         }
                         false -> {
-                            val json = JSONObject(string)
-                            LibrarySettings.fromJson(json)
+                            if (JsonUtils.isValidJson(string)) {
+                                val json = JSONObject(string)
+                                LibrarySettings.fromJson(json)
+                            } else null
                         }
                     }
                     settings?.let {
@@ -149,6 +159,14 @@ class LibrarySettingsManager(
             cachedSettingsFile.writeText(string, Charsets.UTF_8)
         } catch (ex: Exception) {
             Logger.qa(BuildConfig.TAG, "Failed to write LibrarySettings to file.")
+        }
+    }
+
+    private fun removeFromCache() {
+        try {
+            cachedSettingsFile.delete()
+        } catch (ex: Exception) {
+            Logger.qa(BuildConfig.TAG, "Failed to delete cached LibrarySettings file.")
         }
     }
 }

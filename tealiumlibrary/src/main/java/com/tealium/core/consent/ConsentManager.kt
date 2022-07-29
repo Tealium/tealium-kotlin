@@ -20,6 +20,7 @@ class ConsentManager(
 
     override val name: String = MODULE_NAME
     override var enabled: Boolean = context.config.consentManagerEnabled ?: false
+    private val consentCategoriesKey: String? = context.config.overrideConsentCategoriesKey
     private val consentSharedPreferences = ConsentSharedPreferences(context.config)
     private val consentManagementPolicy: ConsentManagementPolicy?
     val expiry: ConsentExpiry
@@ -188,7 +189,11 @@ class ConsentManager(
      */
     override suspend fun collect(): Map<String, Any> {
         return (if (userConsentStatus != ConsentStatus.UNKNOWN && consentManagementPolicy != null) {
-            consentManagementPolicy.policyStatusInfo().toMutableMap()
+            consentManagementPolicy.policyStatusInfo().mapKeys { entry ->
+                if (entry.key == Dispatch.Keys.CONSENT_CATEGORIES)
+                    consentCategoriesKey ?: Dispatch.Keys.CONSENT_CATEGORIES
+                else entry.key
+            }.toMutableMap()
         } else mutableMapOf()).apply {
             lastConsentUpdate?.let {
                 put(Dispatch.Keys.CONSENT_LAST_UPDATED, it)

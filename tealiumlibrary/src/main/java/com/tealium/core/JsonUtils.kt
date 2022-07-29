@@ -1,8 +1,8 @@
 package com.tealium.core
 
 import android.os.Build
-import org.json.JSONArray
-import org.json.JSONObject
+import com.tealium.tealiumlibrary.BuildConfig
+import org.json.*
 import java.time.*
 import java.util.*
 
@@ -47,6 +47,16 @@ class JsonUtils {
             }
 
             return temp
+        }
+
+        fun isValidJson(input: String): Boolean {
+            try {
+                JSONTokener(input).nextValue()
+            } catch (ex: JSONException) {
+                Logger.dev(BuildConfig.TAG, "Invalid JSON input: $input")
+                return false
+            }
+            return true
         }
     }
 }

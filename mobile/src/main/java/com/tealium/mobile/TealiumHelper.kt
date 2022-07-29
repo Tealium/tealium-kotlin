@@ -1,7 +1,6 @@
 package com.tealium.mobile
 
 import android.app.Application
-import android.location.Location
 import com.android.billingclient.api.Purchase
 import android.util.Log
 import com.tealium.adidentifier.AdIdentifier
@@ -21,7 +20,6 @@ import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
 import com.tealium.inapppurchase.InAppPurchaseManager
 import com.tealium.inapppurchase.inAppPurchaseManager
 import com.tealium.lifecycle.Lifecycle
-import com.tealium.location.Location
 import com.tealium.media.Media
 import com.tealium.media.mediaBackgroundSessionEnabled
 import com.tealium.media.mediaBackgroundSessionEndInterval
@@ -42,43 +40,36 @@ object TealiumHelper : ActivityDataCollector {
                 "android",
                 Environment.DEV,
                 modules = mutableSetOf(
-//                        Modules.Lifecycle,
-//                        Modules.VisitorService,
-//                        Modules.HostedDataLayer,
-//                        Modules.CrashReporter,
-//                        Modules.AdIdentifier,
-//                        Modules.InAppPurchaseManager,
-//                        Modules.AutoTracking,
-//                        Modules.Media
-                ),
-                dispatchers = mutableSetOf(
-                    Dispatchers.Collect,
-//                    Dispatchers.TagManagement,
-//                    Dispatchers.RemoteCommands
-                )
+                        Modules.Lifecycle,
+                        Modules.VisitorService,
+                        Modules.HostedDataLayer,
+                        Modules.CrashReporter,
+                        Modules.AdIdentifier,
+                        Modules.InAppPurchaseManager,
+                        Modules.AutoTracking,
+                        Modules.Media),
+                dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
-            collectors.add(
-                Collectors.Location
+            useRemoteLibrarySettings = true
+            hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
+            // Uncomment one of the following lines to set the appropriate Consent Policy
+            // and enable the consent manager
+            consentManagerPolicy = ConsentPolicy.GDPR
+            // consentManagerPolicy = ConsentPolicy.CCPA
+            consentExpiry = ConsentExpiry(1, TimeUnit.DAYS)
+
+            timedEventTriggers = mutableListOf(
+                    EventTrigger.forEventName("start_event", "end_event")
             )
-//            useRemoteLibrarySettings = true
-//            hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
-//            // Uncomment one of the following lines to set the appropriate Consent Policy
-//            // and enable the consent manager
-//            consentManagerPolicy = ConsentPolicy.GDPR
-//            // consentManagerPolicy = ConsentPolicy.CCPA
-//            consentExpiry = ConsentExpiry(1, TimeUnit.DAYS)
-//
-//            timedEventTriggers = mutableListOf(
-//                    EventTrigger.forEventName("start_event", "end_event")
-//            )
-//
-//            mediaBackgroundSessionEnabled = false
-//            mediaBackgroundSessionEndInterval = 5000L  // end session after 5 seconds
-//
-//            autoTrackingMode = if (BuildConfig.AUTO_TRACKING) AutoTrackingMode.FULL else AutoTrackingMode.NONE
-//            // autoTrackingBlocklistFilename = "autotracking-blocklist.json"
-//            // autoTrackingBlocklistUrl = "https://tags.tiqcdn.com/dle/tealiummobile/android/autotracking-blocklist.json"
-//            autoTrackingCollectorDelegate = TealiumHelper
+
+            mediaBackgroundSessionEnabled = false
+            mediaBackgroundSessionEndInterval = 5000L  // end session after 5 seconds
+
+            autoTrackingMode = if (BuildConfig.AUTO_TRACKING) AutoTrackingMode.FULL else AutoTrackingMode.NONE
+            // autoTrackingBlocklistFilename = "autotracking-blocklist.json"
+            // autoTrackingBlocklistUrl = "https://tags.tiqcdn.com/dle/tealiummobile/android/autotracking-blocklist.json"
+            autoTrackingCollectorDelegate = TealiumHelper
+            // overrideConsentCategoriesKey = "my_consent_categories_key"
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
