@@ -9,24 +9,20 @@ import com.tealium.core.Logger
 
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
-    override fun onReceive(p0: Context?, p1: Intent?) {
-        p1?.let { intent ->
-            val geofencingEvent = GeofencingEvent.fromIntent(intent)
+    override fun onReceive(context: Context?, intent: Intent?) {
+        intent?.let { it ->
+            val geofencingEvent = GeofencingEvent.fromIntent(it)
 
             if (geofencingEvent.hasError()) {
                 Logger.dev(BuildConfig.TAG, geofencingEvent.toString())
                 return
             }
 
-            val geofenceTransition = getTransitionString(geofencingEvent.geofenceTransition)
-            geofenceTransition?.let { transition ->
-
-                val triggeringGeofencesList = geofencingEvent.triggeringGeofences
-
-                for (geofence in triggeringGeofencesList) {
+            getTransitionString(geofencingEvent.geofenceTransition)?.let { transition ->
+                for (geofence in geofencingEvent.triggeringGeofences) {
                     val geofenceName = geofence.requestId
                     LocationManager.sendGeofenceEvent(geofenceName, transition)
-                    Logger.dev(BuildConfig.TAG, "Triggered $geofenceTransition on $geofenceName")
+                    Logger.dev(BuildConfig.TAG, "Triggered $transition on $geofenceName")
                 }
             }
         }
