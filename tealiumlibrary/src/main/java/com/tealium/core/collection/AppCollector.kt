@@ -59,6 +59,10 @@ class AppCollector(private val context: Context, private val dataLayer: DataLaye
             return memoryUsage
         }
 
+    init {
+        println("Fetching App UUID: $appUuid")
+    }
+
     private fun getPackageContext(): PackageInfo {
         return context.packageManager.getPackageInfo(context.packageName, 0)
     }
