@@ -5,43 +5,44 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
 import com.google.android.gms.location.*
+import com.tealium.core.DateUtils
 import com.tealium.core.Logger
 import com.tealium.core.TealiumContext
+import java.util.*
+import kotlin.collections.ArrayList
 
-class FusedLocationProviderClientLoader(private val context: TealiumContext) {
+class FusedLocationProviderClientLoader(
+    private val context: TealiumContext,
+    private val locationClient: FusedLocationProviderClient = context.config.overrideFusedLocationProviderClient
+        ?: LocationServices.getFusedLocationProviderClient(context.config.application),
+) {
 
-    val locationClient = createFusedLocationProviderClient(context)
-    var lastLocation: Location? = null
-    var locationRequest: LocationRequest? = null
-    var isHighAccuracy: Boolean? = null
-    lateinit var locationCallback: LocationCallback
-    lateinit var geofenceLocationClient: GeofenceLocationClient
+    private var _lastLocation: Location? = null
+    val lastLocation: Location?
+        get() = _lastLocation
 
-    private fun createFusedLocationProviderClient(context: TealiumContext): FusedLocationProviderClient {
-        return context.config.overrideFusedLocationProviderClient
-                ?: LocationServices.getFusedLocationProviderClient(context.config.application)
-    }
+    private var _isHighAccuracy: Boolean? = null
+    val isHighAccuracy: Boolean?
+        get() = _isHighAccuracy
 
-    private fun createLocationRequest(isHighAccuracy: Boolean, updateInterval: Int): LocationRequest? {
-        this.isHighAccuracy = isHighAccuracy
-        val locationRequest = LocationRequest.create()
-        if (isHighAccuracy) {
-            locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        } else {
-            locationRequest.priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
-        }
-
-        locationRequest.interval = updateInterval.toLong()
-        locationRequest.fastestInterval = updateInterval.toLong()
-
-        return locationRequest
-    }
+    internal var locationRequest: LocationRequest? = null
+    internal lateinit var locationCallback: LocationCallback
+    internal lateinit var geofenceLocationClient: GeofenceLocationClient
 
     private fun createLocationCallback(): LocationCallback {
         return object : LocationCallback() {
             override fun onLocationResult(p0: LocationResult?) {
                 p0?.let { locationResult ->
-                    lastLocation = locationResult.lastLocation
+                    val lastLocation = locationResult.lastLocation
+                    _lastLocation = lastLocation
+
+                    // TODO - Configurable to possibly send event?
+                    val timestamp = Date()
+                    Logger.dev(
+                        BuildConfig.TAG,
+                        "${DateUtils.formatDate(timestamp)} - Received updated Location: lat=${lastLocation?.latitude},lng=${lastLocation?.longitude}"
+                    )
+
                     lastLocation?.let { lastLocationResult ->
 
                         val geofencesToAdd = ArrayList<GeofenceLocation>()
@@ -56,12 +57,18 @@ class FusedLocationProviderClientLoader(private val context: TealiumContext) {
                                 if (distance < 500.0) {
                                     if (!LocationManager.activeGeofences.contains(geofence.name)) {
                                         geofencesToAdd.add(geofence)
-                                        Logger.dev(BuildConfig.TAG, "Geofence ${geofence.name} added to active monitoring")
+                                        Logger.dev(
+                                            BuildConfig.TAG,
+                                            "Geofence ${geofence.name} added to active monitoring"
+                                        )
                                     }
                                 } else {
                                     if (LocationManager.activeGeofences.contains(geofence.name)) {
                                         removeGeofenceFromClient(geofence.name)
-                                        Logger.dev(BuildConfig.TAG, "Geofence ${geofence.name} removed from active monitoring")
+                                        Logger.dev(
+                                            BuildConfig.TAG,
+                                            "Geofence ${geofence.name} removed from active monitoring"
+                                        )
                                     }
                                 }
                             }
@@ -75,8 +82,9 @@ class FusedLocationProviderClientLoader(private val context: TealiumContext) {
 
     fun addGeofenceToClient(geofencesList: List<GeofenceLocation>) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                context.config.application.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+            context.config.application.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
             Logger.dev(BuildConfig.TAG, "Please request location permission")
             return
         }
@@ -96,26 +104,57 @@ class FusedLocationProviderClientLoader(private val context: TealiumContext) {
     }
 
     fun startLocationTracking(isHighAccuracy: Boolean, updateInterval: Int) {
+        startLocationTracking(
+            LocationTrackingOptions(
+                accuracy = if (isHighAccuracy) LocationTrackingAccuracy.HighAccuracy else LocationTrackingAccuracy.BalancedAccuracy,
+                minTime = updateInterval.toLong()
+            )
+        )
+    }
+
+    fun startLocationTracking(options: LocationTrackingOptions) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                context.config.application.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+            context.config.application.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
             Logger.dev(BuildConfig.TAG, "Please request location permission!")
             return
         }
 
-        if (updateInterval < 0) {
+        if (options.minTime < 0) {
             Logger.dev(BuildConfig.TAG, "UpdateInterval value must be greater than or equal to 0")
             return
         }
 
+        if (options.minDistance < 0) {
+            Logger.dev(BuildConfig.TAG, "MinimumDistance value must be greater than or equal to 0")
+            return
+        }
+
         geofenceLocationClient = GeofenceLocationClient(context)
-        locationRequest = createLocationRequest(isHighAccuracy, updateInterval)
+        locationRequest = createLocationRequest(options)
+        _isHighAccuracy =
+            options.accuracy == LocationTrackingAccuracy.HighAccuracy
         locationCallback = createLocationCallback()
-        locationClient.requestLocationUpdates(locationRequest, locationCallback, null) // TODO null Looper?
+        locationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            null
+        ) // TODO null Looper?
     }
 
     fun stopLocationUpdates() {
         locationClient.removeLocationUpdates(locationCallback)
         Logger.dev(BuildConfig.TAG, "Location tracking stopped")
+    }
+
+    companion object {
+        fun createLocationRequest(locationTrackingOptions: LocationTrackingOptions): LocationRequest {
+            return LocationRequest.create()
+                .setPriority(locationTrackingOptions.accuracy.requestPriority)
+                .setInterval(locationTrackingOptions.minTime)
+                .setFastestInterval(locationTrackingOptions.minTime)
+                .setSmallestDisplacement(locationTrackingOptions.minDistance)
+        }
     }
 }
