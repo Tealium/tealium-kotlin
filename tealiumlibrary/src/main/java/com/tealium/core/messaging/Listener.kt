@@ -91,13 +91,6 @@ interface EvaluateJavascriptListener : Listener {
     fun onEvaluateJavascript(js: String)
 }
 
-/**
- * Executes when new query parameters have been received.
- */
-interface QueryParametersUpdatedListener : ExternalListener {
-    fun onQueryParametersUpdated(params: Map<String, List<String>>?)
-}
-
 interface ValidationChangedListener : ExternalListener {
 
     /**

@@ -299,7 +299,7 @@ private class QueryParamProviderModule: Module, QueryParameterProvider {
     override val name: String = "test"
     override var enabled: Boolean = true
 
-    override fun provideParameters(): Map<String, List<String>> {
+    override suspend fun provideParameters(): Map<String, List<String>> {
         return mapOf("query_param1" to listOf("QueryParamProvider_value1"))
     }
 

@@ -27,7 +27,6 @@ interface EventRouter :
     SessionStartedListener,
     UserConsentPreferencesUpdatedListener,
     InstanceShutdownListener,
-    QueryParametersUpdatedListener,
     Subscribable {
 
     fun <T : Listener> send(messenger: Messenger<T>)
@@ -209,14 +208,6 @@ class EventDispatcher : EventRouter {
         listeners.forEach {
             when (it) {
                 is InstanceShutdownListener -> it.onInstanceShutdown(name, instance)
-            }
-        }
-    }
-
-    override fun onQueryParametersUpdated(params: Map<String, List<String>>?) {
-        listeners.forEach {
-            when(it) {
-                is QueryParametersUpdatedListener -> it.onQueryParametersUpdated(params)
             }
         }
     }

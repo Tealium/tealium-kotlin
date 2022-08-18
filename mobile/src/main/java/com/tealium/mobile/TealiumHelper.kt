@@ -47,7 +47,8 @@ object TealiumHelper : ActivityDataCollector {
                 Modules.AdIdentifier,
                 Modules.InAppPurchaseManager,
                 Modules.AutoTracking,
-                Modules.Media
+                Modules.Media,
+                QueryParamProviderModule
             ),
             dispatchers = mutableSetOf(
                 Dispatchers.Collect,
@@ -170,5 +171,23 @@ object TealiumHelper : ActivityDataCollector {
 
     override fun onCollectActivityData(activityName: String): Map<String, Any>? {
         return mapOf("global_data" to "value")
+    }
+}
+
+class QueryParamProviderModule : Module, QueryParameterProvider {
+    override val name: String = "SampleQueryParamProvider"
+    override var enabled: Boolean = true
+
+    override suspend fun provideParameters(): Map<String, List<String>> {
+        return mapOf(
+            "query_param1" to listOf("QueryParamProvider_value1"),
+            "query_param2" to listOf("QueryParamProvider_value2"),
+        )
+    }
+
+    companion object : ModuleFactory {
+        override fun create(context: TealiumContext): Module {
+            return QueryParamProviderModule()
+        }
     }
 }

@@ -28,8 +28,7 @@ class WebViewLoader(
     private val connectivityRetriever: Connectivity = ConnectivityRetriever.getInstance(context.config.application),
     private val webViewProvider: () -> WebView = { WebView(context.config.application) }
 ) : LibrarySettingsUpdatedListener,
-    SessionStartedListener,
-    QueryParametersUpdatedListener {
+    SessionStartedListener {
 
     val webViewStatus = AtomicReference<PageStatus>(PageStatus.INIT)
     var lastUrlLoadTimestamp = 0L
@@ -41,7 +40,6 @@ class WebViewLoader(
     private val shouldRegisterSession = AtomicBoolean(false)
     private val webViewCreationRetries = 3
     private val sessionCountingEnabled: Boolean = context.config.sessionCountingEnabled ?: true
-    private var queryParams: Map<String, List<String>> = fetchQueryParams()
 
     @Volatile
     private var webViewCreationErrorCount = 0
@@ -241,12 +239,12 @@ class WebViewLoader(
         context.events.subscribe(this)
     }
 
-    private fun decorateUrlParams(urlString: String): String {
-        if (queryParams.isEmpty()) {
+    private fun decorateUrlParams(urlString: String, params: Map<String, List<String>>): String {
+        if (params.isEmpty()) {
             return urlString
         }
         val uriBuilder = Uri.parse(urlString).buildUpon()
-        queryParams.forEach { entry ->
+        params.forEach { entry ->
             entry.value.forEach { value ->
                 uriBuilder.appendQueryParameter(entry.key, value)
             }
@@ -256,16 +254,18 @@ class WebViewLoader(
     }
 
     private fun fetchQueryParams(): Map<String, List<String>> {
-        val currentParams = mutableMapOf<String, List<String>>()
-        context.tealium.modules.getModulesForType(Module::class.java)
-            .filterIsInstance(QueryParameterProvider::class.java).forEach { provider ->
-                provider.provideParameters().let { params ->
-                    if (params.isNotEmpty()) {
-                        currentParams.putAll(params)
+        return runBlocking {
+            val queryParams = mutableMapOf<String, List<String>>()
+            context.tealium.modules.getModulesForType(Module::class.java)
+                .filterIsInstance(QueryParameterProvider::class.java).forEach { provider ->
+                    provider.provideParameters().let { params ->
+                        if (params.isNotEmpty()) {
+                            queryParams.putAll(params)
+                        }
                     }
                 }
-            }
-        return currentParams.toMap()
+            queryParams.toMap()
+        }
     }
 
     private fun initializeWebView() {
@@ -359,7 +359,7 @@ class WebViewLoader(
 
         val oldStatus = webViewStatus.getAndSet(PageStatus.LOADING)
         if (oldStatus != PageStatus.LOADING) {
-            val decoratedUrl = decorateUrlParams(urlString)
+            val decoratedUrl = decorateUrlParams(urlString, fetchQueryParams())
             val cacheBuster = if (urlString.contains("?")) '&' else '?'
             val timestamp = "timestamp_unix=${(System.currentTimeMillis() / 1000)}"
             val url = "$decoratedUrl$cacheBuster$timestamp"
@@ -415,15 +415,6 @@ class WebViewLoader(
                 Logger.dev(BuildConfig.TAG, "Registering new Tag Management session - $url")
                 context.httpClient.get(url)
             }
-        }
-    }
-
-    override fun onQueryParametersUpdated(params: Map<String, List<String>>?) {
-        params?.let {
-            val currentParams = queryParams.toMutableMap()
-            currentParams.putAll(params)
-            queryParams = currentParams.toMap()
-            loadUrlToWebView()
         }
     }
 
