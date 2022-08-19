@@ -60,7 +60,7 @@ class AppCollector(private val context: Context, private val dataLayer: DataLaye
         }
 
     init {
-        println("Fetching App UUID: $appUuid")
+        Logger.dev(BuildConfig.TAG, "Fetching App UUID: $appUuid")
     }
 
     private fun getPackageContext(): PackageInfo {
