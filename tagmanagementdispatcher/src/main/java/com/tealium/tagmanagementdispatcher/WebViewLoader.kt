@@ -1,36 +1,34 @@
 package com.tealium.tagmanagementdispatcher
 
 import android.annotation.TargetApi
+import android.net.Uri
 import android.net.http.SslError
 import android.os.Build
 import android.os.SystemClock
 import android.view.View
 import android.webkit.*
-import com.tealium.core.Logger
-import com.tealium.core.TealiumConfig
-import com.tealium.core.TealiumContext
-import com.tealium.core.messaging.AfterDispatchSendCallbacks
-import com.tealium.core.messaging.LibrarySettingsUpdatedListener
-import com.tealium.core.messaging.SessionStartedListener
-import com.tealium.core.messaging.ValidationChangedMessenger
+import com.tealium.core.*
+import com.tealium.core.messaging.*
 import com.tealium.core.network.Connectivity
 import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandRequest
 import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
 import org.json.JSONObject
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
-class WebViewLoader(private val context: TealiumContext,
-                    private val urlString: String,
-                    private val afterDispatchSendCallbacks: AfterDispatchSendCallbacks,
-                    private val connectivityRetriever: Connectivity = ConnectivityRetriever.getInstance(context.config.application),
-                    private val webViewProvider: () -> WebView = { WebView(context.config.application) })
-    : LibrarySettingsUpdatedListener,
-        SessionStartedListener {
+class WebViewLoader(
+    private val context: TealiumContext,
+    private val urlString: String,
+    private val afterDispatchSendCallbacks: AfterDispatchSendCallbacks,
+    private val connectivityRetriever: Connectivity = ConnectivityRetriever.getInstance(context.config.application),
+    private val webViewProvider: () -> WebView = { WebView(context.config.application) }
+) : LibrarySettingsUpdatedListener,
+    SessionStartedListener {
 
     val webViewStatus = AtomicReference<PageStatus>(PageStatus.INIT)
     var lastUrlLoadTimestamp = 0L
@@ -66,26 +64,27 @@ class WebViewLoader(private val context: TealiumContext,
             context.events.send(ValidationChangedMessenger())
 
             // Run JS evaluation here
-            view?.loadUrl("javascript:(function(){\n" +
-                    "    var payload = {};\n" +
-                    "    try {\n" +
-                    "        var ts = new RegExp(\"ut[0-9]+\\.[0-9]+\\.[0-9]{12}\").exec(document.childNodes[0].textContent)[0];\n" +
-                    "        ts = ts.substring(ts.length - 12, ts.length);\n" +
-                    "        var y = ts.substring(0, 4);\n" +
-                    "        var mo = ts.substring(4, 6);\n" +
-                    "        var d = ts.substring(6, 8);\n" +
-                    "        var h = ts.substring(8, 10);\n" +
-                    "        var mi = ts.substring(10, 12);\n" +
-                    "        var t = Date.from(y+'/'+mo+'/'+d+' '+h+':'+mi+' UTC');\n" +
-                    "        if(!isNaN(t)){\n" +
-                    "            payload.published = t;\n" +
-                    "        }\n" +
-                    "    } catch(e) {    }\n" +
-                    "    var f=document.cookie.indexOf('trace_id=');\n" +
-                    "    if(f>=0){\n" +
-                    "        payload.trace_id = document.cookie.substring(f+9).split(';')[0];\n" +
-                    "    }\n" +
-                    "})()"
+            view?.loadUrl(
+                "javascript:(function(){\n" +
+                        "    var payload = {};\n" +
+                        "    try {\n" +
+                        "        var ts = new RegExp(\"ut[0-9]+\\.[0-9]+\\.[0-9]{12}\").exec(document.childNodes[0].textContent)[0];\n" +
+                        "        ts = ts.substring(ts.length - 12, ts.length);\n" +
+                        "        var y = ts.substring(0, 4);\n" +
+                        "        var mo = ts.substring(4, 6);\n" +
+                        "        var d = ts.substring(6, 8);\n" +
+                        "        var h = ts.substring(8, 10);\n" +
+                        "        var mi = ts.substring(10, 12);\n" +
+                        "        var t = Date.from(y+'/'+mo+'/'+d+' '+h+':'+mi+' UTC');\n" +
+                        "        if(!isNaN(t)){\n" +
+                        "            payload.published = t;\n" +
+                        "        }\n" +
+                        "    } catch(e) {    }\n" +
+                        "    var f=document.cookie.indexOf('trace_id=');\n" +
+                        "    if(f>=0){\n" +
+                        "        payload.trace_id = document.cookie.substring(f+9).split(';')[0];\n" +
+                        "    }\n" +
+                        "})()"
             )
         }
 
@@ -95,7 +94,11 @@ class WebViewLoader(private val context: TealiumContext,
         }
 
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-        override fun onReceivedHttpError(view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?) {
+        override fun onReceivedHttpError(
+            view: WebView?,
+            request: WebResourceRequest?,
+            errorResponse: WebResourceResponse?
+        ) {
             super.onReceivedHttpError(view, request, errorResponse)
 
             // Main resource failed to load; set status to error.
@@ -107,22 +110,38 @@ class WebViewLoader(private val context: TealiumContext,
 
             errorResponse?.let { error ->
                 request?.let { req ->
-                    Logger.prod(BuildConfig.TAG,
-                            "Received http error with ${req.url}: ${error.statusCode}: ${error.reasonPhrase}")
+                    Logger.prod(
+                        BuildConfig.TAG,
+                        "Received http error with ${req.url}: ${error.statusCode}: ${error.reasonPhrase}"
+                    )
                 }
             }
         }
 
         @TargetApi(Build.VERSION_CODES.M)
-        override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+        override fun onReceivedError(
+            view: WebView?,
+            request: WebResourceRequest?,
+            error: WebResourceError?
+        ) {
             error?.let {
-                onReceivedError(view, it.errorCode, it.description.toString(), request?.url.toString())
+                onReceivedError(
+                    view,
+                    it.errorCode,
+                    it.description.toString(),
+                    request?.url.toString()
+                )
             }
             super.onReceivedError(view, request, error)
         }
 
         // deprecated in API 23, but still supporting API level
-        override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
+        override fun onReceivedError(
+            view: WebView?,
+            errorCode: Int,
+            description: String?,
+            failingUrl: String?
+        ) {
             failingUrl?.let {
                 if (isFavicon(it)) {
                     return
@@ -140,11 +159,13 @@ class WebViewLoader(private val context: TealiumContext,
             }
 
             lastUrlLoadTimestamp = SystemClock.uptimeMillis()
-            Logger.prod(BuildConfig.TAG, "Received err: {\n" +
-                    "\tcode: $errorCode,\n" +
-                    "\tdesc:\"${description?.replace("\"", "\\\"")}\",\n" +
-                    "\turl:\"$failingUrl\"\n" +
-                    "}")
+            Logger.prod(
+                BuildConfig.TAG, "Received err: {\n" +
+                        "\tcode: $errorCode,\n" +
+                        "\tdesc:\"${description?.replace("\"", "\\\"")}\",\n" +
+                        "\turl:\"$failingUrl\"\n" +
+                        "}"
+            )
         }
 
         override fun shouldInterceptRequest(view: WebView?, url: String?): WebResourceResponse? {
@@ -158,7 +179,10 @@ class WebViewLoader(private val context: TealiumContext,
         }
 
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-        override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
+        override fun shouldInterceptRequest(
+            view: WebView?,
+            request: WebResourceRequest?
+        ): WebResourceResponse? {
             return shouldInterceptRequest(view, request?.url.toString())
         }
 
@@ -166,7 +190,12 @@ class WebViewLoader(private val context: TealiumContext,
             url?.let {
                 if (url.startsWith(TagManagementRemoteCommand.PREFIX)) {
                     backgroundScope.launch {
-                        afterDispatchSendCallbacks.sendRemoteCommand(RemoteCommandRequest(createResponseHandler(), url))
+                        afterDispatchSendCallbacks.sendRemoteCommand(
+                            RemoteCommandRequest(
+                                createResponseHandler(),
+                                url
+                            )
+                        )
                     }
                 }
             }
@@ -174,11 +203,18 @@ class WebViewLoader(private val context: TealiumContext,
         }
 
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-        override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+        override fun shouldOverrideUrlLoading(
+            view: WebView?,
+            request: WebResourceRequest?
+        ): Boolean {
             return shouldOverrideUrlLoading(view, request?.url.toString())
         }
 
-        override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
+        override fun onReceivedSslError(
+            view: WebView?,
+            handler: SslErrorHandler?,
+            error: SslError?
+        ) {
             webViewStatus.set(PageStatus.LOADED_ERROR)
 
             view?.let {
@@ -187,7 +223,10 @@ class WebViewLoader(private val context: TealiumContext,
             super.onReceivedSslError(view, handler, error)
         }
 
-        override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+        override fun onRenderProcessGone(
+            view: WebView?,
+            detail: RenderProcessGoneDetail?
+        ): Boolean {
             view?.destroy()
             webViewStatus.set(PageStatus.LOADED_ERROR)
             initializeWebView()
@@ -198,6 +237,35 @@ class WebViewLoader(private val context: TealiumContext,
     init {
         initializeWebView()
         context.events.subscribe(this)
+    }
+
+    private fun decorateUrlParams(urlString: String, params: Map<String, List<String>>): String {
+        if (params.isEmpty()) {
+            return urlString
+        }
+        val uriBuilder = Uri.parse(urlString).buildUpon()
+        params.forEach { entry ->
+            entry.value.forEach { value ->
+                uriBuilder.appendQueryParameter(entry.key, value)
+            }
+        }
+
+        return uriBuilder.build().toString()
+    }
+
+    private fun fetchQueryParams(): Map<String, List<String>> {
+        return runBlocking {
+            val queryParams = mutableMapOf<String, List<String>>()
+            context.tealium.modules.getModulesForType(Module::class.java)
+                .filterIsInstance(QueryParameterProvider::class.java).forEach { provider ->
+                    provider.provideParameters().let { params ->
+                        if (params.isNotEmpty()) {
+                            queryParams.putAll(params)
+                        }
+                    }
+                }
+            queryParams.toMap()
+        }
     }
 
     private fun initializeWebView() {
@@ -240,7 +308,11 @@ class WebViewLoader(private val context: TealiumContext,
                 response?.id?.let {
                     response.body?.let {
                         js = "try {" +
-                                "	utag.mobile.remote_api.response[\"${response.commandId}\"][\"${response.id}\"](${response.status}, ${JSONObject.quote(response.body)});" +
+                                "	utag.mobile.remote_api.response[\"${response.commandId}\"][\"${response.id}\"](${response.status}, ${
+                                    JSONObject.quote(
+                                        response.body
+                                    )
+                                });" +
                                 "} catch(err) {" +
                                 "	console.error(err);" +
                                 "};"
@@ -273,7 +345,8 @@ class WebViewLoader(private val context: TealiumContext,
     }
 
     fun loadUrlToWebView() {
-        val cannotSendWifiUnavailable = isWifiOnlySending && !connectivityRetriever.isConnectedWifi()
+        val cannotSendWifiUnavailable =
+            isWifiOnlySending && !connectivityRetriever.isConnectedWifi()
 
         if (cannotSendWifiUnavailable || !connectivityRetriever.isConnected()) {
             return
@@ -286,9 +359,10 @@ class WebViewLoader(private val context: TealiumContext,
 
         val oldStatus = webViewStatus.getAndSet(PageStatus.LOADING)
         if (oldStatus != PageStatus.LOADING) {
+            val decoratedUrl = decorateUrlParams(urlString, fetchQueryParams())
             val cacheBuster = if (urlString.contains("?")) '&' else '?'
             val timestamp = "timestamp_unix=${(System.currentTimeMillis() / 1000)}"
-            val url = "$urlString$cacheBuster$timestamp"
+            val url = "$decoratedUrl$cacheBuster$timestamp"
 
             try {
                 scope.launch {
@@ -301,10 +375,12 @@ class WebViewLoader(private val context: TealiumContext,
     }
 
     fun isTimedOut(): Boolean {
-        return SystemClock.elapsedRealtime() - lastUrlLoadTimestamp >= timeoutInterval.coerceAtLeast(0) * 1000;
+        return SystemClock.elapsedRealtime() - lastUrlLoadTimestamp >= timeoutInterval.coerceAtLeast(
+            0
+        ) * 1000;
     }
 
-    fun hasReachedMaxErrors() : Boolean {
+    fun hasReachedMaxErrors(): Boolean {
         return webViewCreationErrorCount >= webViewCreationRetries
     }
 
@@ -331,8 +407,9 @@ class WebViewLoader(private val context: TealiumContext,
         }
 
         if (connectivityRetriever.isConnected() &&
-                webViewStatus.get() == PageStatus.LOADED_SUCCESS &&
-                shouldRegisterSession.compareAndSet(true, false)) {
+            webViewStatus.get() == PageStatus.LOADED_SUCCESS &&
+            shouldRegisterSession.compareAndSet(true, false)
+        ) {
             backgroundScope.launch {
                 val url = createSessionUrl(context.config, sessionId)
                 Logger.dev(BuildConfig.TAG, "Registering new Tag Management session - $url")
@@ -342,7 +419,8 @@ class WebViewLoader(private val context: TealiumContext,
     }
 
     companion object {
-        const val SESSION_URL_TEMPLATE = "https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=%s/%s/%s&cb=%s"
+        const val SESSION_URL_TEMPLATE =
+            "https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=%s/%s/%s&cb=%s"
         const val INVALID_SESSION_ID = -1L
 
         private fun isFavicon(url: String): Boolean {
@@ -354,11 +432,13 @@ class WebViewLoader(private val context: TealiumContext,
         }
 
         fun createSessionUrl(config: TealiumConfig, sessionId: Long): String {
-            return String.format(Locale.ROOT, SESSION_URL_TEMPLATE,
-                    config.accountName,
-                    config.profileName,
-                    sessionId,
-                    sessionId)
+            return String.format(
+                Locale.ROOT, SESSION_URL_TEMPLATE,
+                config.accountName,
+                config.profileName,
+                sessionId,
+                sessionId
+            )
         }
     }
 }

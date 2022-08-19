@@ -13,21 +13,21 @@ import java.lang.ref.WeakReference
 import java.util.concurrent.CopyOnWriteArraySet
 
 interface EventRouter :
-        DispatchReadyListener,
-        DispatchSendListener,
-        BatchDispatchSendListener,
-        DispatchQueuedListener,
-        DispatchDroppedListener,
-        RemoteCommandListener,
-        LibrarySettingsUpdatedListener,
-        ActivityObserverListener,
-        EvaluateJavascriptListener,
-        ValidationChangedListener,
-        NewSessionListener,
-        SessionStartedListener,
-        UserConsentPreferencesUpdatedListener,
-        InstanceShutdownListener,
-        Subscribable {
+    DispatchReadyListener,
+    DispatchSendListener,
+    BatchDispatchSendListener,
+    DispatchQueuedListener,
+    DispatchDroppedListener,
+    RemoteCommandListener,
+    LibrarySettingsUpdatedListener,
+    ActivityObserverListener,
+    EvaluateJavascriptListener,
+    ValidationChangedListener,
+    NewSessionListener,
+    SessionStartedListener,
+    UserConsentPreferencesUpdatedListener,
+    InstanceShutdownListener,
+    Subscribable {
 
     fun <T : Listener> send(messenger: Messenger<T>)
 
@@ -150,7 +150,10 @@ class EventDispatcher : EventRouter {
     override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
         listeners.forEach {
             when (it) {
-                is ActivityObserverListener -> it.onActivityStopped(activity, isChangingConfiguration)
+                is ActivityObserverListener -> it.onActivityStopped(
+                    activity,
+                    isChangingConfiguration
+                )
             }
         }
     }
@@ -187,10 +190,16 @@ class EventDispatcher : EventRouter {
         }
     }
 
-    override fun onUserConsentPreferencesUpdated(userConsentPreferences: UserConsentPreferences, policy: ConsentManagementPolicy) {
+    override fun onUserConsentPreferencesUpdated(
+        userConsentPreferences: UserConsentPreferences,
+        policy: ConsentManagementPolicy
+    ) {
         listeners.forEach {
             when (it) {
-                is UserConsentPreferencesUpdatedListener -> it.onUserConsentPreferencesUpdated(userConsentPreferences, policy)
+                is UserConsentPreferencesUpdatedListener -> it.onUserConsentPreferencesUpdated(
+                    userConsentPreferences,
+                    policy
+                )
             }
         }
     }
