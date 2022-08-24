@@ -93,21 +93,6 @@ class EventRouterTests {
     }
 
     @Test
-    fun testQueryParamsListenerMessengers() {
-        val listener = mockk<QueryParametersUpdatedListener>()
-        every { listener.onQueryParametersUpdated(any()) } just Runs
-
-        val queryParametersUpdatedMessenger = QueryParametersUpdatedMessenger()
-
-        eventRouter.subscribe(listener)
-        eventRouter.send(queryParametersUpdatedMessenger)
-
-        verify {
-            listener.onQueryParametersUpdated(any())
-        }
-    }
-
-    @Test
     fun testAddingListenerDuringIteration_DoesNotThrow() = runBlocking {
         val listeners: List<ActivityObserverListener> = (0..10).map {
             mockk<ActivityObserverListener>(relaxed = true).also { eventRouter.subscribe(it) }
