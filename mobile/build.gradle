@@ -77,4 +77,5 @@ dependencies {
     implementation project(':media')
     implementation project(':inapppurchase')
     implementation project(':autotracking')
+    implementation project(':transformations')
 }

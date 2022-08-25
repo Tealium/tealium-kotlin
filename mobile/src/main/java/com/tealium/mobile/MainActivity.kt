@@ -41,12 +41,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
         }
 
         binding.secondActivity.setOnClickListener {
-            val intent = Intent(this@MainActivity, SecondActivity::class.java)
-            startActivity(intent)
+            TealiumHelper.testJs("1+1;")
         }
         binding.thirdActivity.setOnClickListener {
-            val intent = Intent(this@MainActivity, ThirdActivity::class.java)
-            startActivity(intent)
+            binding.editJavascript.text?.toString()?.let {
+                TealiumHelper.testJs(it, "utag.js")
+            }
         }
 
         if (!BuildConfig.AUTO_TRACKING) {

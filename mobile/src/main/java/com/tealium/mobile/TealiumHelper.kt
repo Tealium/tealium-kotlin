@@ -27,9 +27,12 @@ import com.tealium.remotecommanddispatcher.RemoteCommands
 import com.tealium.remotecommanddispatcher.remoteCommands
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.tagmanagementdispatcher.TagManagement
+import com.tealium.transformations.TransformationModule
+import com.tealium.transformations.transformations
 import com.tealium.visitorservice.VisitorProfile
 import com.tealium.visitorservice.VisitorService
 import com.tealium.visitorservice.VisitorUpdatedListener
+import com.tealium.visitorservice.overrideVisitorServiceProfile
 import java.util.concurrent.TimeUnit
 
 object TealiumHelper : ActivityDataCollector {
@@ -40,56 +43,26 @@ object TealiumHelper : ActivityDataCollector {
                 "android",
                 Environment.DEV,
                 modules = mutableSetOf(
-                        Modules.Lifecycle,
-                        Modules.VisitorService,
-                        Modules.HostedDataLayer,
-                        Modules.CrashReporter,
-                        Modules.AdIdentifier,
-                        Modules.InAppPurchaseManager,
-                        Modules.AutoTracking,
-                        Modules.Media),
-                dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
-        ).apply {
-            useRemoteLibrarySettings = true
-            hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
-            // Uncomment one of the following lines to set the appropriate Consent Policy
-            // and enable the consent manager
-            consentManagerPolicy = ConsentPolicy.GDPR
-            // consentManagerPolicy = ConsentPolicy.CCPA
-            consentExpiry = ConsentExpiry(1, TimeUnit.DAYS)
-
-            timedEventTriggers = mutableListOf(
-                    EventTrigger.forEventName("start_event", "end_event")
-            )
-
-            mediaBackgroundSessionEnabled = false
-            mediaBackgroundSessionEndInterval = 5000L  // end session after 5 seconds
-
-            autoTrackingMode = if (BuildConfig.AUTO_TRACKING) AutoTrackingMode.FULL else AutoTrackingMode.NONE
-            // autoTrackingBlocklistFilename = "autotracking-blocklist.json"
-            // autoTrackingBlocklistUrl = "https://tags.tiqcdn.com/dle/tealiummobile/android/autotracking-blocklist.json"
-            autoTrackingCollectorDelegate = TealiumHelper
-            // overrideConsentCategoriesKey = "my_consent_categories_key"
-        }
+                        TransformationModule
+//                        Modules.Lifecycle,
+//                        Modules.VisitorService,
+//                        Modules.HostedDataLayer,
+//                        Modules.CrashReporter,
+//                        Modules.AdIdentifier,
+//                        Modules.InAppPurchaseManager,
+//                        Modules.AutoTracking,
+//                        Modules.Media
+                ),
+                dispatchers = mutableSetOf(
+                    Dispatchers.Collect,
+//                    Dispatchers.TagManagement,
+                    Dispatchers.RemoteCommands
+                )
+        )
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
-            events.subscribe(object : UserConsentPreferencesUpdatedListener {
-                override fun onUserConsentPreferencesUpdated(userConsentPreferences: UserConsentPreferences,
-                                                             policy: ConsentManagementPolicy) {
-                    if (userConsentPreferences.consentStatus == ConsentStatus.UNKNOWN) {
-                        Logger.dev(BuildConfig.TAG, "Re-prompt for consent")
-                    }
-                }
-            })
-
-            events.subscribe(object : VisitorUpdatedListener {
-                override fun onVisitorUpdated(visitorProfile: VisitorProfile) {
-                    Logger.dev("--", "did update vp with $visitorProfile")
-                }
-            })
-
             remoteCommands?.add(localJsonCommand, filename = "remoteCommand.json")
-            remoteCommands?.add(webViewRemoteCommand)
+//            remoteCommands?.add(webViewRemoteCommand)
         }
     }
 
@@ -150,5 +123,13 @@ object TealiumHelper : ActivityDataCollector {
 
     override fun onCollectActivityData(activityName: String): Map<String, Any>? {
         return mapOf("global_data" to "value")
+    }
+
+    fun testJs(js: String, file: String? = null) {
+        if (file != null) {
+            Tealium[BuildConfig.TEALIUM_INSTANCE]?.transformations?.executeJavascript(js, file)
+        } else {
+            Tealium[BuildConfig.TEALIUM_INSTANCE]?.transformations?.executeJavascript(js)
+        }
     }
 }

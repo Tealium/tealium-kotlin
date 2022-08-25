@@ -14,6 +14,9 @@ import com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandContext
 import com.tealium.remotecommands.RemoteCommandRequest
+import com.tealium.transformations.Transformation
+import com.tealium.transformations.TransformationModule
+import kotlinx.coroutines.launch
 
 interface RemoteCommandDispatcherListener : DispatcherListener {
 }
@@ -22,9 +25,11 @@ interface RemoteCommandDispatcherListener : DispatcherListener {
  * The RemoteCommandDispatcher processes and evaluates client-provided commands via
  * Tag Management or JSON-controlled
  */
-class RemoteCommandDispatcher(private val context: TealiumContext,
-                              private val client: NetworkClient = HttpClient(context.config),
-                              private val manager: CommandsManager = RemoteCommandsManager(context.config)) : Dispatcher, RemoteCommandListener , Collector by manager {
+class RemoteCommandDispatcher(
+    private val context: TealiumContext,
+    private val client: NetworkClient = HttpClient(context.config),
+    private val manager: CommandsManager = RemoteCommandsManager(context.config)
+) : Dispatcher, RemoteCommandListener, Collector by manager {
 
     /**
      * Adds Remote Commands to be evaluated when triggered. If adding a JSON-controlled
@@ -67,18 +72,28 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
             if (id == HttpRemoteCommand.NAME) loadHttpCommand()
 
             manager.getRemoteCommand(id)?.let { command ->
-                Logger.dev(BuildConfig.TAG, "Detected Remote Command $id with payload ${request.response?.requestPayload}")
+                Logger.dev(
+                    BuildConfig.TAG,
+                    "Detected Remote Command $id with payload ${request.response?.requestPayload}"
+                )
                 command.invoke(request)
             } ?: run {
-                Logger.dev(BuildConfig.TAG, "" +
-                        "No Remote Command found with id: $id")
+                Logger.dev(
+                    BuildConfig.TAG, "" +
+                            "No Remote Command found with id: $id"
+                )
             }
         }
     }
 
-    private fun parseJsonRemoteCommand(remoteCommand: RemoteCommand, dispatch: Dispatch) {
+    private suspend fun parseJsonRemoteCommand(remoteCommand: RemoteCommand, dispatch: Dispatch) {
         manager.getRemoteCommandConfigRetriever(remoteCommand.commandName)?.remoteCommandConfig.let { config ->
             config?.mappings?.let { mappings ->
+                // TODO - scope BLR and ALR?
+                // get scoped extensions + extend
+                val transformation = getTransformations(remoteCommand.commandName)
+                transformation?.transform(dispatch)
+
                 // map the dispatch with the lookup
                 val mappedDispatch = RemoteCommandParser.mapPayload(dispatch.payload(), mappings)
                 val eventName = dispatch[Dispatch.Keys.TEALIUM_EVENT] as? String
@@ -91,8 +106,16 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
                     return
                 }
 
-                Logger.dev(BuildConfig.TAG, "Processing Remote Command: ${remoteCommand.commandName} with command name: ${mappedDispatch[Settings.COMMAND_NAME]}")
-                remoteCommand.invoke(RemoteCommandRequest(remoteCommand.commandName, JsonUtils.jsonFor(mappedDispatch)))
+                Logger.dev(
+                    BuildConfig.TAG,
+                    "Processing Remote Command: ${remoteCommand.commandName} with command name: ${mappedDispatch[Settings.COMMAND_NAME]}"
+                )
+                remoteCommand.invoke(
+                    RemoteCommandRequest(
+                        remoteCommand.commandName,
+                        JsonUtils.jsonFor(mappedDispatch)
+                    )
+                )
             }
         }
     }
@@ -103,10 +126,24 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
                 context.track(TealiumEvent(eventName, data as Map<String, Any>))
             }
 
-            override fun track(eventType: String?, eventName: String, data: MutableMap<String, *>?) {
+            override fun track(
+                eventType: String?,
+                eventName: String,
+                data: MutableMap<String, *>?
+            ) {
                 when (eventType) {
-                    DispatchType.EVENT -> context.track(TealiumEvent(eventName, data as Map<String, Any>))
-                    DispatchType.VIEW -> context.track(TealiumEvent(eventName, data as Map<String, Any>))
+                    DispatchType.EVENT -> context.track(
+                        TealiumEvent(
+                            eventName,
+                            data as Map<String, Any>
+                        )
+                    )
+                    DispatchType.VIEW -> context.track(
+                        TealiumEvent(
+                            eventName,
+                            data as Map<String, Any>
+                        )
+                    )
                 }
             }
         }
@@ -114,7 +151,9 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
 
     override fun onProcessRemoteCommand(dispatch: Dispatch) {
         manager.getJsonRemoteCommands().forEach { jsonCommand ->
-            parseJsonRemoteCommand(jsonCommand, dispatch)
+            context.executors.background.launch {
+                parseJsonRemoteCommand(jsonCommand, dispatch)
+            }
         }
     }
 
@@ -128,6 +167,11 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
         }
     }
 
+    private fun getTransformations(commandName: String) : Transformation? {
+        return context.tealium.modules.getModule(TransformationModule::class.java)
+            ?.getTransforms(commandName)
+    }
+
     override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {
         // do nothing - individual dispatch sent through onProcessRemoteCommand without batching
     }
@@ -138,7 +182,10 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     companion object : DispatcherFactory {
         const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
-        override fun create(context: TealiumContext, callbacks: AfterDispatchSendCallbacks): Dispatcher {
+        override fun create(
+            context: TealiumContext,
+            callbacks: AfterDispatchSendCallbacks
+        ): Dispatcher {
             return RemoteCommandDispatcher(context)
         }
     }

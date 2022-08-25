@@ -24,6 +24,7 @@ import com.tealium.dispatcher.GenericDispatch
 import com.tealium.tealiumlibrary.BuildConfig
 import com.tealium.test.OpenForTesting
 import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.IO
 import java.lang.ref.WeakReference
 import java.util.*
 import java.util.concurrent.Executors
@@ -39,6 +40,10 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
 
     private val singleThreadedBackground = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     private val backgroundScope = CoroutineScope(singleThreadedBackground)
+    private val executors:TealiumExecutors = DefaultTealiumExecutors(
+        background = backgroundScope,
+        io = CoroutineScope(kotlinx.coroutines.Dispatchers.IO)
+    )
     private val initialized = AtomicBoolean(false)
 
     // Can be initialised late to improved startup performance
@@ -119,7 +124,7 @@ class Tealium private constructor(val key: String, val config: TealiumConfig, pr
     val visitorId: String
         get() = _visitorId
 
-    private val context = TealiumContext(config, visitorId, logger, dataLayer, networkClient, events as MessengerService, this)
+    private val context = TealiumContext(config, visitorId, logger, dataLayer, networkClient, events as MessengerService, this, executors = executors)
 
     /**
      * Provides access for users to manage their consent preferences.

@@ -57,6 +57,11 @@ class VisitorManager(private val context: TealiumContext,
             field = value
             context.events.send(VisitorUpdatedMessenger(value))
         }
+    internal fun generateVisitorServiceUrl(): String {
+        return visitorServiceUrl.replace(PLACEHOLDER_ACCOUNT, context.config.accountName)
+                .replace(PLACEHOLDER_PROFILE, visitorServiceProfileOverride ?: context.config.profileName)
+                .replace(PLACEHOLDER_VISITOR_ID, visitorId)
+    }
     private val visitorServiceProfileOverride: String? = context.config.overrideVisitorServiceProfile
 
     private fun createResourceRetriever(): ResourceRetriever {
@@ -67,11 +72,6 @@ class VisitorManager(private val context: TealiumContext,
         }
     }
 
-    internal fun generateVisitorServiceUrl(): String {
-        return visitorServiceUrl.replace(PLACEHOLDER_ACCOUNT, context.config.accountName)
-                .replace(PLACEHOLDER_PROFILE, visitorServiceProfileOverride ?: context.config.profileName)
-                .replace(PLACEHOLDER_VISITOR_ID, visitorId)
-    }
 
     fun loadCachedProfile(): VisitorProfile? {
         return loader.loadFromFile(file)?.let {

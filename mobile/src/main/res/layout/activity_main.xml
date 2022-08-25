@@ -23,12 +23,26 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        app:layout_constraintBottom_toBottomOf="@id/nav_layout"
-        app:layout_constraintEnd_toEndOf="@id/nav_layout"
+        app:layout_constraintBottom_toTopOf="@id/edit_javascript"
+        app:layout_constraintEnd_toEndOf="@id/edit_javascript"
         app:layout_constraintTop_toBottomOf="@+id/trackButton"
         app:layout_constraintVertical_bias="0.0">
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <EditText
+        android:id="@+id/edit_javascript"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="javascript"
+        android:text="util.hash('MD5', 'abcdefg');"
+        android:minLines="5"
+        app:layout_constraintBottom_toTopOf="@id/nav_layout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/fragment_container"
+        />
 
     <LinearLayout
         android:id="@+id/nav_layout"
@@ -38,7 +52,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fragment_container"
+        app:layout_constraintTop_toBottomOf="@id/edit_javascript"
         app:layout_constraintVertical_bias="1.0">
 
         <Button
