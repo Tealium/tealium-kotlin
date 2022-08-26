@@ -11,18 +11,15 @@ import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import com.tealium.transformations.internal.impl.J2v8TransformationsAdapter
 import com.tealium.transformations.internal.impl.QuickJsTransformationsAdapter
-import io.mockk.CapturingSlot
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
-import io.mockk.slot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.util.concurrent.Executors
@@ -71,7 +68,7 @@ class TransformationsPerformanceTests {
         val countList = mutableListOf<Int>()
         every { context.executors } returns executors
         every { context.dataLayer } returns dataLayer
-        every { dataLayer.get("key") } returns _count
+        every { dataLayer.get("key") } answers { _count }
         every { dataLayer.putInt(any(), capture(countList), Expiry.SESSION) } answers {
             _count = countList.last()
         }
