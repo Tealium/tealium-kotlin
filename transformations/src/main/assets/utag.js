@@ -111,5 +111,19 @@ var utag = {
             scope[i](a, b)
         }
         return JSON.stringify(b);
-    }
+    },
+    transformJson: function (a, b, c) {
+            if (typeof b === "string") {
+                b = JSON.parse(b);
+            }
+            // else -> assume object
+
+            var extend = utag.extend || {};
+            var scope = extend[c || ""] || [];
+
+            for (i = 0; i < scope.length; i++) {
+                scope[i](a, b)
+            }
+            return b;
+        }
 };

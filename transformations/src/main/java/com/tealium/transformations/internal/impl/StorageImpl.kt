@@ -1,5 +1,6 @@
 package com.tealium.transformations.internal.impl
 
+import com.tealium.core.Logger
 import com.tealium.core.persistence.DataLayer
 import com.tealium.core.persistence.Expiry
 import com.tealium.transformations.internal.Storage
@@ -11,6 +12,7 @@ class StorageImpl(
     private val dataLayer: DataLayer
 ) : Storage {
     override fun save(key: String, data: Any, expiry: String?) {
+        Logger.dev("StorageImpl", "Saving... $data")
         // TODO - parse Expiry from string
         when (data) {
             // Limited data types supported by QuickJS
@@ -37,6 +39,7 @@ class StorageImpl(
 
     override fun read(key: String): Any? {
         val data = dataLayer.get(key)
+        Logger.dev("StorageImpl", "Read... $data")
         return when (data) {
             // Limited data types supported by QuickJS
             is String, is Int, is Double, is Boolean  -> {

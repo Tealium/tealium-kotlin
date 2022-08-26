@@ -169,7 +169,7 @@ class RemoteCommandDispatcher(
 
     private fun getTransformations(commandName: String) : Transformation? {
         return context.tealium.modules.getModule(TransformationModule::class.java)
-            ?.getTransforms(commandName)
+            ?.getTransformation(commandName)
     }
 
     override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {

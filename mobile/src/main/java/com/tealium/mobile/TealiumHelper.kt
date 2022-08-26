@@ -2,38 +2,22 @@ package com.tealium.mobile
 
 import android.app.Application
 import com.android.billingclient.api.Purchase
-import android.util.Log
-import com.tealium.adidentifier.AdIdentifier
 import com.tealium.autotracking.*
 import com.tealium.collectdispatcher.Collect
 import com.tealium.core.*
 import com.tealium.core.consent.*
-import com.tealium.core.events.EventTrigger
-import com.tealium.core.messaging.UserConsentPreferencesUpdatedListener
 import com.tealium.core.validation.DispatchValidator
-import com.tealium.crashreporter.CrashReporter
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import com.tealium.dispatcher.TealiumView
-import com.tealium.hosteddatalayer.HostedDataLayer
-import com.tealium.hosteddatalayer.hostedDataLayerEventMappings
-import com.tealium.inapppurchase.InAppPurchaseManager
 import com.tealium.inapppurchase.inAppPurchaseManager
-import com.tealium.lifecycle.Lifecycle
-import com.tealium.media.Media
-import com.tealium.media.mediaBackgroundSessionEnabled
-import com.tealium.media.mediaBackgroundSessionEndInterval
 import com.tealium.remotecommanddispatcher.RemoteCommands
 import com.tealium.remotecommanddispatcher.remoteCommands
 import com.tealium.remotecommands.RemoteCommand
-import com.tealium.tagmanagementdispatcher.TagManagement
+import com.tealium.transformations.JavascriptRuntime
 import com.tealium.transformations.TransformationModule
 import com.tealium.transformations.transformations
-import com.tealium.visitorservice.VisitorProfile
-import com.tealium.visitorservice.VisitorService
-import com.tealium.visitorservice.VisitorUpdatedListener
-import com.tealium.visitorservice.overrideVisitorServiceProfile
-import java.util.concurrent.TimeUnit
+import com.tealium.transformations.transformationsRuntime
 
 object TealiumHelper : ActivityDataCollector {
 
@@ -58,7 +42,9 @@ object TealiumHelper : ActivityDataCollector {
 //                    Dispatchers.TagManagement,
                     Dispatchers.RemoteCommands
                 )
-        )
+        ).apply {
+            transformationsRuntime = JavascriptRuntime.J2v8
+        }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
             remoteCommands?.add(localJsonCommand, filename = "remoteCommand.json")
@@ -127,7 +113,7 @@ object TealiumHelper : ActivityDataCollector {
 
     fun testJs(js: String, file: String? = null) {
         if (file != null) {
-            Tealium[BuildConfig.TEALIUM_INSTANCE]?.transformations?.executeJavascript(js, file)
+            Tealium[BuildConfig.TEALIUM_INSTANCE]?.transformations?.executeJavascript(js)
         } else {
             Tealium[BuildConfig.TEALIUM_INSTANCE]?.transformations?.executeJavascript(js)
         }
