@@ -10,12 +10,14 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
 import android.os.StatFs
+import android.util.DisplayMetrics
 import android.view.Surface
 import android.view.WindowManager
 import com.tealium.core.*
 import com.tealium.dispatcher.Dispatch
 import com.tealium.tealiumlibrary.BuildConfig
 import java.util.*
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 interface DeviceData {
@@ -63,9 +65,11 @@ class DeviceCollector private constructor(private val context: Context) : Collec
         windowManager.defaultDisplay.getSize(it)
         "${it.x}x${it.y}"
     }
-    override val deviceLogicalResolution = point.let {
-        windowManager.defaultDisplay.getRealSize(it)
-        "${it.x}x${it.y}"
+    override val deviceLogicalResolution = DisplayMetrics().let { metrics ->
+        windowManager.defaultDisplay.getRealMetrics(metrics)
+        val x = ceil(metrics.widthPixels / metrics.density).toInt()
+        val y = ceil(metrics.heightPixels / metrics.density).toInt()
+        "${x}x${y}"
     }
     override val deviceRuntime = System.getProperty("java.vm.version") ?: "unknown"
     override val deviceOrigin =

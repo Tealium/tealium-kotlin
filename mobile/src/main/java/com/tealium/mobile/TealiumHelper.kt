@@ -27,6 +27,7 @@ import com.tealium.remotecommanddispatcher.RemoteCommands
 import com.tealium.remotecommanddispatcher.remoteCommands
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.tagmanagementdispatcher.TagManagement
+import com.tealium.tagmanagementdispatcher.sessionCountingEnabled
 import com.tealium.visitorservice.VisitorProfile
 import com.tealium.visitorservice.VisitorService
 import com.tealium.visitorservice.VisitorUpdatedListener
@@ -51,6 +52,7 @@ object TealiumHelper : ActivityDataCollector {
                 dispatchers = mutableSetOf(Dispatchers.Collect, Dispatchers.TagManagement, Dispatchers.RemoteCommands)
         ).apply {
             useRemoteLibrarySettings = true
+//            sessionCountingEnabled = false
             hostedDataLayerEventMappings = mapOf("pdp" to "product_id")
             // Uncomment one of the following lines to set the appropriate Consent Policy
             // and enable the consent manager
