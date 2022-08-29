@@ -31,3 +31,6 @@
 -keep class com.tealium.location.LocationManagerKt { *; }
 -keep class com.tealium.location.TealiumConfigLocationKt { *; }
 -keep class com.tealium.location.GeofenceBroadcastReceiver
+-keep class com.tealium.location.LocationTrackingAccuracy { *; }
+-keep class com.tealium.location.LocationTrackingAccuracyKt { *; }
+-keep class com.tealium.location.LocationTrackingOptions { *; }
