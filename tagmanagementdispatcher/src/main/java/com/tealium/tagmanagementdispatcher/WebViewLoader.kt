@@ -40,6 +40,7 @@ class WebViewLoader(
     private val shouldRegisterSession = AtomicBoolean(false)
     private val webViewCreationRetries = 3
     private val sessionCountingEnabled: Boolean = context.config.sessionCountingEnabled ?: true
+    private var queryParams: Map<String, List<String>> = emptyMap()
 
     @Volatile
     private var webViewCreationErrorCount = 0
@@ -253,19 +254,20 @@ class WebViewLoader(
         return uriBuilder.build().toString()
     }
 
-    private fun fetchQueryParams(): Map<String, List<String>> {
-        return runBlocking {
-            val queryParams = mutableMapOf<String, List<String>>()
-            context.tealium.modules.getModulesForType(Module::class.java)
-                .filterIsInstance(QueryParameterProvider::class.java).forEach { provider ->
+    private suspend fun fetchQueryParams(): Map<String, List<String>> {
+        val queryParams = mutableMapOf<String, List<String>>()
+
+        context.tealium.modules.getModulesForType(Module::class.java)
+            .filterIsInstance(QueryParameterProvider::class.java).map { provider ->
+                backgroundScope.async {
                     provider.provideParameters().let { params ->
                         if (params.isNotEmpty()) {
                             queryParams.putAll(params)
                         }
                     }
                 }
-            queryParams.toMap()
-        }
+            }.awaitAll()
+        return queryParams.toMap()
     }
 
     private fun initializeWebView() {
@@ -273,6 +275,7 @@ class WebViewLoader(
             if (hasReachedMaxErrors()) return@launch
 
             try {
+                queryParams = fetchQueryParams()
                 webView = webViewProvider()
             } catch (ex: Exception) {
                 webViewCreationErrorCount++
@@ -359,7 +362,7 @@ class WebViewLoader(
 
         val oldStatus = webViewStatus.getAndSet(PageStatus.LOADING)
         if (oldStatus != PageStatus.LOADING) {
-            val decoratedUrl = decorateUrlParams(urlString, fetchQueryParams())
+            val decoratedUrl = decorateUrlParams(urlString, queryParams)
             val cacheBuster = if (urlString.contains("?")) '&' else '?'
             val timestamp = "timestamp_unix=${(System.currentTimeMillis() / 1000)}"
             val url = "$decoratedUrl$cacheBuster$timestamp"
