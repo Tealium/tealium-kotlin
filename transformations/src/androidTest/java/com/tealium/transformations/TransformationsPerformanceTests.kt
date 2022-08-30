@@ -11,6 +11,7 @@ import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import com.tealium.transformations.internal.impl.J2v8TransformationsAdapter
 import com.tealium.transformations.internal.impl.QuickJsTransformationsAdapter
+import com.tealium.transformations.internal.impl.RhinoTransformationsAdapter
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -97,6 +98,16 @@ class TransformationsPerformanceTests {
     }
 
     @Test
+    fun Rhino_Init() {
+        testPerformance(listOf(
+            TestTask("Rhino_Init") {
+                val adapter = RhinoTransformationsAdapter(context, loader)
+                adapter.init().await()
+            }
+        ))
+    }
+
+    @Test
     fun J2v8_Transform() = runBlocking {
         val adapter = J2v8TransformationsAdapter(context, loader)
         adapter.init().await()
@@ -116,6 +127,19 @@ class TransformationsPerformanceTests {
 
         testPerformance(listOf(
             TestTask("QuickJs_Transform") {
+                adapter.transform(dispatch = testDispatch)
+                assertEquals("transformations", testDispatch["event_source"])
+            }
+        ))
+    }
+
+    @Test
+    fun Rhino_Transform() = runBlocking {
+        val adapter = RhinoTransformationsAdapter(context, loader)
+        adapter.init().await()
+
+        testPerformance(listOf(
+            TestTask("Rhino_Transform") {
                 adapter.transform(dispatch = testDispatch)
                 assertEquals("transformations", testDispatch["event_source"])
             }

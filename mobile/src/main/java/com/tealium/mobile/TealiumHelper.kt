@@ -14,8 +14,10 @@ import com.tealium.inapppurchase.inAppPurchaseManager
 import com.tealium.remotecommanddispatcher.RemoteCommands
 import com.tealium.remotecommanddispatcher.remoteCommands
 import com.tealium.remotecommands.RemoteCommand
+import com.tealium.tagmanagementdispatcher.TagManagement
 import com.tealium.transformations.JavascriptRuntime
 import com.tealium.transformations.TransformationModule
+import com.tealium.transformations.Transformations
 import com.tealium.transformations.transformations
 import com.tealium.transformations.transformationsRuntime
 
@@ -27,7 +29,7 @@ object TealiumHelper : ActivityDataCollector {
                 "android",
                 Environment.DEV,
                 modules = mutableSetOf(
-                        TransformationModule
+                        Modules.Transformations
 //                        Modules.Lifecycle,
 //                        Modules.VisitorService,
 //                        Modules.HostedDataLayer,
@@ -43,7 +45,7 @@ object TealiumHelper : ActivityDataCollector {
                     Dispatchers.RemoteCommands
                 )
         ).apply {
-            transformationsRuntime = JavascriptRuntime.J2v8
+            transformationsRuntime = JavascriptRuntime.Rhino
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
@@ -111,11 +113,7 @@ object TealiumHelper : ActivityDataCollector {
         return mapOf("global_data" to "value")
     }
 
-    fun testJs(js: String, file: String? = null) {
-        if (file != null) {
-            Tealium[BuildConfig.TEALIUM_INSTANCE]?.transformations?.executeJavascript(js)
-        } else {
-            Tealium[BuildConfig.TEALIUM_INSTANCE]?.transformations?.executeJavascript(js)
-        }
+    fun testJs(js: String) {
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.transformations?.executeJavascript(js)
     }
 }

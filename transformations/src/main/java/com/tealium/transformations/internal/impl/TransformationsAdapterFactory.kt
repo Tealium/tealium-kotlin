@@ -14,6 +14,9 @@ object TransformationsAdapterFactory {
             JavascriptRuntime.QuickJS -> {
                 QuickJsTransformationsAdapter(context)
             }
+            JavascriptRuntime.Rhino -> {
+                RhinoTransformationsAdapter(context)
+            }
         }
     }
 }

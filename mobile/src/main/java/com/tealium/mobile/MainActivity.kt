@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispa
         }
         binding.thirdActivity.setOnClickListener {
             binding.editJavascript.text?.toString()?.let {
-                TealiumHelper.testJs(it, "utag.js")
+                TealiumHelper.testJs(it)
             }
         }
 
