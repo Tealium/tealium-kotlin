@@ -6,14 +6,12 @@ import com.tealium.core.messaging.RemoteCommandListener
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
 import com.tealium.core.DispatchType
-import com.tealium.dispatcher.Dispatch
-import com.tealium.dispatcher.Dispatcher
-import com.tealium.dispatcher.DispatcherListener
-import com.tealium.dispatcher.TealiumEvent
+import com.tealium.dispatcher.*
 import com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandContext
 import com.tealium.remotecommands.RemoteCommandRequest
+import java.lang.StringBuilder
 
 interface RemoteCommandDispatcherListener : DispatcherListener {
 }
@@ -82,17 +80,40 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
                 // map the dispatch with the lookup
                 val mappedDispatch = RemoteCommandParser.mapPayload(dispatch.payload(), mappings)
                 val eventName = dispatch[Dispatch.Keys.TEALIUM_EVENT] as? String
+                val eventType = dispatch[Dispatch.Keys.TEALIUM_EVENT_TYPE] as? String
+                val commandsList = StringBuilder()
+
                 config.apiConfig?.let {
                     mappedDispatch.putAll(it)
                 }
+
+                config.apiCommands?.get(Settings.ALL_EVENTS)?.let {
+                    if (eventType == DispatchType.EVENT) commandsList.append("$it, ")
+                }
+                config.apiCommands?.get(Settings.ALL_VIEWS)?.let {
+                    if (eventType == DispatchType.VIEW) commandsList.append("$it, ")
+                }
+
                 config.apiCommands?.get(eventName)?.let {
-                    mappedDispatch[Settings.COMMAND_NAME] = it
-                } ?: run {
+                    commandsList.append(it)
+                }
+
+                if (commandsList.isEmpty()) {
                     return
                 }
 
-                Logger.dev(BuildConfig.TAG, "Processing Remote Command: ${remoteCommand.commandName} with command name: ${mappedDispatch[Settings.COMMAND_NAME]}")
-                remoteCommand.invoke(RemoteCommandRequest(remoteCommand.commandName, JsonUtils.jsonFor(mappedDispatch)))
+                mappedDispatch[Settings.COMMAND_NAME] = commandsList.toString()
+
+                Logger.dev(
+                    BuildConfig.TAG,
+                    "Processing Remote Command: ${remoteCommand.commandName} with command name: ${mappedDispatch[Settings.COMMAND_NAME]}"
+                )
+                remoteCommand.invoke(
+                    RemoteCommandRequest(
+                        remoteCommand.commandName,
+                        JsonUtils.jsonFor(mappedDispatch)
+                    )
+                )
             }
         }
     }
