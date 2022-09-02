@@ -26,7 +26,9 @@ class WebViewLoader(
     private val urlString: String,
     private val afterDispatchSendCallbacks: AfterDispatchSendCallbacks,
     private val connectivityRetriever: Connectivity = ConnectivityRetriever.getInstance(context.config.application),
-    private val webViewProvider: () -> WebView = { WebView(context.config.application) }
+    private val webViewProvider: () -> WebView = {
+        WebView(context.config.application)
+    }
 ) : LibrarySettingsUpdatedListener,
     SessionStartedListener {
 
@@ -34,7 +36,7 @@ class WebViewLoader(
     var lastUrlLoadTimestamp = 0L
     private var isWifiOnlySending = false
     private var timeoutInterval = -1
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val mainScope = CoroutineScope(Dispatchers.Main)
     private val backgroundScope = CoroutineScope(Dispatchers.IO)
     private var sessionId: Long = INVALID_SESSION_ID
     private val shouldRegisterSession = AtomicBoolean(false)
@@ -229,7 +231,7 @@ class WebViewLoader(
             detail: RenderProcessGoneDetail?
         ): Boolean {
             view?.destroy()
-            webViewStatus.set(PageStatus.LOADED_ERROR)
+            webViewStatus.set(PageStatus.INIT)
             initializeWebView()
             return true
         }
@@ -270,19 +272,22 @@ class WebViewLoader(
         return queryParams.toMap()
     }
 
-    private fun initializeWebView() {
-        scope.launch {
-            if (hasReachedMaxErrors()) return@launch
+    internal fun initializeWebView() : Deferred<Unit> {
+        return mainScope.async {
+            // ensure only initializing once
+            if (!webViewStatus.compareAndSet(PageStatus.INIT, PageStatus.INITIALIZING)) return@async
+            if (hasReachedMaxErrors()) return@async
 
             try {
-                queryParams = fetchQueryParams()
                 webView = webViewProvider()
+                queryParams = fetchQueryParams()
             } catch (ex: Exception) {
                 webViewCreationErrorCount++
+                webViewStatus.set(PageStatus.INIT)
                 Logger.qa(BuildConfig.TAG, "Exception whilst creating the WebView: ${ex.message}")
                 Logger.qa(BuildConfig.TAG, ex.stackTraceToString())
                 context.events.send(WebViewExceptionMessenger(ex))
-                return@launch
+                return@async
             }
             webView.let { view ->
                 view.settings.run {
@@ -298,6 +303,7 @@ class WebViewLoader(
                 view.webChromeClient = WebChromeClientLoader()
                 view.webViewClient = webViewClient
             }
+            webViewStatus.set(PageStatus.INITIALIZED)
 
             loadUrlToWebView()
             enableCookieManager()
@@ -355,20 +361,16 @@ class WebViewLoader(
             return
         }
 
-        if (!this::webView.isInitialized) {
-            initializeWebView()
-            return
-        }
-
-        val oldStatus = webViewStatus.getAndSet(PageStatus.LOADING)
-        if (oldStatus != PageStatus.LOADING) {
+        if (webViewStatus.compareAndSet(PageStatus.INITIALIZED, PageStatus.LOADING)
+            || webViewStatus.compareAndSet(PageStatus.LOADED_ERROR, PageStatus.LOADING)
+        ) {
             val decoratedUrl = decorateUrlParams(urlString, queryParams)
             val cacheBuster = if (urlString.contains("?")) '&' else '?'
             val timestamp = "timestamp_unix=${(System.currentTimeMillis() / 1000)}"
             val url = "$decoratedUrl$cacheBuster$timestamp"
 
             try {
-                scope.launch {
+                mainScope.launch {
                     webView.loadUrl(url)
                 }
             } catch (t: Throwable) {
