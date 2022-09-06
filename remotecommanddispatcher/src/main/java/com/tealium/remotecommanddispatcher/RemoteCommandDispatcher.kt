@@ -81,28 +81,28 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
                 val mappedDispatch = RemoteCommandParser.mapPayload(dispatch.payload(), mappings)
                 val eventName = dispatch[Dispatch.Keys.TEALIUM_EVENT] as? String
                 val eventType = dispatch[Dispatch.Keys.TEALIUM_EVENT_TYPE] as? String
-                val commandsList = StringBuilder()
+                val commandsList = mutableListOf<String>()
 
                 config.apiConfig?.let {
                     mappedDispatch.putAll(it)
                 }
 
                 config.apiCommands?.get(Settings.ALL_EVENTS)?.let {
-                    if (eventType == DispatchType.EVENT) commandsList.append("$it, ")
+                    if (eventType == DispatchType.EVENT) commandsList.add(it)
                 }
                 config.apiCommands?.get(Settings.ALL_VIEWS)?.let {
-                    if (eventType == DispatchType.VIEW) commandsList.append("$it, ")
+                    if (eventType == DispatchType.VIEW) commandsList.add(it)
                 }
 
                 config.apiCommands?.get(eventName)?.let {
-                    commandsList.append(it)
+                    commandsList.add(it)
                 }
 
                 if (commandsList.isEmpty()) {
                     return
                 }
 
-                mappedDispatch[Settings.COMMAND_NAME] = commandsList.toString()
+                mappedDispatch[Settings.COMMAND_NAME] = commandsList.joinToString(",")
 
                 Logger.dev(
                     BuildConfig.TAG,
