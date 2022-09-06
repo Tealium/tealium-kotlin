@@ -36,6 +36,7 @@ class VisitorManager(private val context: TealiumContext,
                      private val loader: Loader = JsonLoader(context.config.application)) : VisitorProfileManager, DispatchSendListener, BatchDispatchSendListener {
 
     private val file = File(context.config.tealiumDirectory, VISITOR_PROFILE_FILENAME)
+    private val visitorServiceProfileOverride: String? = context.config.overrideVisitorServiceProfile
 
     val isUpdating = AtomicBoolean(false)
     private var lastUpdate: Long = -1L
@@ -57,7 +58,6 @@ class VisitorManager(private val context: TealiumContext,
             field = value
             context.events.send(VisitorUpdatedMessenger(value))
         }
-    private val visitorServiceProfileOverride: String? = context.config.overrideVisitorServiceProfile
 
     private fun createResourceRetriever(): ResourceRetriever {
         return ResourceRetriever(context.config, generateVisitorServiceUrl(), context.httpClient).apply {
