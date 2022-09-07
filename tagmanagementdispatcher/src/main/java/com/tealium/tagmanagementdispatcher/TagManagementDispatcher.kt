@@ -104,14 +104,14 @@ class TagManagementDispatcher(
                 callRemoteCommandTags(dispatch)
                 return
             }
-            PageStatus.LOADED_ERROR -> {
+            PageStatus.LOADED_ERROR, PageStatus.INITIALIZED -> {
                 if (webViewLoader.isTimedOut()) {
                     webViewLoader.loadUrlToWebView()
                 }
             }
             PageStatus.INIT -> {
                 Logger.qa(BuildConfig.TAG, "WebView not loaded yet.")
-                webViewLoader.loadUrlToWebView()
+                webViewLoader.initializeWebView()
             }
             PageStatus.LOADING -> {
                 Logger.qa(BuildConfig.TAG, "WebView loading.")

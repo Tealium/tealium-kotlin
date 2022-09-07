@@ -54,6 +54,9 @@ class WebViewLoaderTest {
     @RelaxedMockK
     lateinit var mockMessengerService: MessengerService
 
+    @MockK
+    lateinit var mockWebViewProvider: () -> WebView
+
     lateinit var webViewLoader: WebViewLoader
     private val mainThreadSurrogate = newSingleThreadContext("UI thread")
 
@@ -71,6 +74,7 @@ class WebViewLoaderTest {
         every { mockTealiumContext.config } returns mockTealiumConfig
         every { mockTealiumContext.httpClient } returns mockHttpClient
         every { mockTealiumContext.events } returns mockMessengerService
+        every { mockWebViewProvider() } returns mockWebView
 
         mockkConstructor(WebView::class)
         every {
@@ -222,14 +226,34 @@ class WebViewLoaderTest {
     }
 
     @Test
-    fun initializeWebView_OnlyTriesThreeTimes_WhenWebViewFailsToLoad() {
+    fun initializeWebView_OnlyInitializes_WhenStatusIsInit() = runBlocking {
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockWebViewProvider)
+        delay(50)
+
+        webViewLoader.initializeWebView().await()
+        webViewLoader.webViewStatus.set(PageStatus.INITIALIZED)
+        webViewLoader.initializeWebView().await()
+        webViewLoader.webViewStatus.set(PageStatus.LOADING)
+        webViewLoader.initializeWebView().await()
+        webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
+        webViewLoader.initializeWebView().await()
+        webViewLoader.webViewStatus.set(PageStatus.LOADED_ERROR)
+        webViewLoader.initializeWebView().await()
+
+        verify(exactly = 1) {
+            mockWebViewProvider()
+        }
+    }
+
+    @Test
+    fun initializeWebView_OnlyTriesThreeTimes_WhenWebViewFailsToLoad() = runBlocking {
         val mockProvider = spyk<() -> WebView>({
             throw Exception()
         })
 
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockProvider)
         repeat (5) {
-            webViewLoader.loadUrlToWebView()
+            webViewLoader.initializeWebView().await()
         }
 
         verify(exactly = 3) {
@@ -238,13 +262,13 @@ class WebViewLoaderTest {
     }
 
     @Test
-    fun initializeWebView_CallsListener_WhenFailsToCreate() {
+    fun initializeWebView_CallsListener_WhenFailsToCreate() = runBlocking {
         val mockProvider = spyk<() -> WebView>({
             throw Exception()
         })
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockProvider)
         repeat (5) {
-            webViewLoader.loadUrlToWebView()
+            webViewLoader.initializeWebView().await()
         }
 
         verify(exactly = 3) {
@@ -259,11 +283,12 @@ class WebViewLoaderTest {
         })
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockProvider)
 
-        repeat (3) {
-            assertFalse(webViewLoader.hasReachedMaxErrors())
-            webViewLoader.loadUrlToWebView()
+        runBlocking {
+            repeat (2) { // called once already on init
+                assertFalse(webViewLoader.hasReachedMaxErrors())
+                webViewLoader.initializeWebView().await()
+            }
         }
-        delay(500)
         assertTrue(webViewLoader.hasReachedMaxErrors())
     }
 
