@@ -26,9 +26,7 @@ class WebViewLoader(
     private val urlString: String,
     private val afterDispatchSendCallbacks: AfterDispatchSendCallbacks,
     private val connectivityRetriever: Connectivity = ConnectivityRetriever.getInstance(context.config.application),
-    private val webViewProvider: () -> WebView = {
-        WebView(context.config.application)
-    }
+    private val webViewProvider: () -> WebView = { WebView(context.config.application) }
 ) : LibrarySettingsUpdatedListener,
     SessionStartedListener {
 
@@ -401,9 +399,7 @@ class WebViewLoader(
         this.sessionId = sessionId
         shouldRegisterSession.set(true)
 
-        if (sessionCountingEnabled) {
-            registerNewSessionIfNeeded(sessionId)
-        }
+        registerNewSessionIfNeeded(sessionId)
     }
 
     private fun registerNewSessionIfNeeded(sessionId: Long) {
@@ -413,7 +409,8 @@ class WebViewLoader(
 
         if (connectivityRetriever.isConnected() &&
             webViewStatus.get() == PageStatus.LOADED_SUCCESS &&
-            shouldRegisterSession.compareAndSet(true, false)
+            shouldRegisterSession.compareAndSet(true, false) &&
+            sessionCountingEnabled
         ) {
             backgroundScope.launch {
                 val url = createSessionUrl(context.config, sessionId)

@@ -180,17 +180,17 @@ class TealiumTests {
             Environment.DEV
         )
         config.existingVisitorId = "testExistingVisitorId"
-        val teal = Tealium.create("tester2", config)
+        Tealium.create("tester2", config) {
+            val data = gatherTrackData()
+            val storedVid = data["tealium_visitor_id"]
+            assertEquals("testExistingVisitorId", storedVid)
 
-        val data = teal.gatherTrackData()
-        val storedVid = data["tealium_visitor_id"]
-        assertEquals("testExistingVisitorId", storedVid)
+            val account = data["tealium_account"]
+            val profile = data["tealium_profile"]
 
-        val account = data["tealium_account"]
-        val profile = data["tealium_profile"]
-
-        assertEquals("testAccount2", account)
-        assertEquals("testProfile2", profile)
+            assertEquals("testAccount2", account)
+            assertEquals("testProfile2", profile)
+        }
     }
 
     @Test

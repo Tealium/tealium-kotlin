@@ -50,6 +50,7 @@ class AppCollectorTests {
 
     @Test
     fun testAppCollector() = runBlocking {
+        every { dataLayer.getString(Dispatch.Keys.APP_UUID) } returns "someUuid"
         val appCollector = AppCollector(context, tealiumContext.dataLayer)
         val data = appCollector.collect()
 
@@ -82,6 +83,7 @@ class AppCollectorTests {
 
     @Test
     fun testFactoryCreation() {
+        every { dataLayer.getString(Dispatch.Keys.APP_UUID) } returns "someUuid"
         val factory = AppCollector
         assertNotNull(factory.create(tealiumContext))
     }
