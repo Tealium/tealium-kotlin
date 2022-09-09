@@ -1,4 +1,4 @@
-package com.tealium.transformations.internal.impl
+package com.tealium.transformations.quickjs
 
 import app.cash.quickjs.QuickJs
 import app.cash.quickjs.QuickJsException
@@ -11,15 +11,15 @@ import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.InstanceShutdownListener
 import com.tealium.dispatcher.Dispatch
 import com.tealium.transformations.Transformation
-import com.tealium.transformations.TransformationModule
 import com.tealium.transformations.internal.JsConsole
 import com.tealium.transformations.internal.Storage
 import com.tealium.transformations.internal.TransformationsAdapter
-import com.tealium.transformations.internal.Utag
 import com.tealium.transformations.internal.Util
+import com.tealium.transformations.internal.impl.StorageImpl
+import com.tealium.transformations.internal.impl.UtilImpl
+import com.tealium.transformations.quickjs.internal.QuickJsConsoleImpl
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.lang.ref.WeakReference
@@ -37,7 +37,7 @@ class QuickJsTransformationsAdapter(
         return background.async {
             try {
                 engine = QuickJs.create()
-                engine.set("console", JsConsole::class.java, JsConsoleImpl())
+                engine.set("console", JsConsole::class.java, QuickJsConsoleImpl())
                 engine.set("util", Util::class.java, UtilImpl)
                 engine.set("storage", Storage::class.java, StorageImpl(context.dataLayer))
 

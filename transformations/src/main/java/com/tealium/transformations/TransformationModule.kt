@@ -9,7 +9,7 @@ import com.tealium.core.TealiumContext
 import com.tealium.core.Transformer
 import com.tealium.dispatcher.Dispatch
 import com.tealium.transformations.internal.TransformationsAdapter
-import com.tealium.transformations.internal.impl.TransformationsAdapterFactory
+import com.tealium.transformations.internal.TransformationsAdapterFactory
 
 interface TransformationModule : Module, TransformationsAdapter {
 
@@ -18,9 +18,11 @@ interface TransformationModule : Module, TransformationsAdapter {
 
         override fun create(context: TealiumContext): TransformationModule {
             val runtime = context.config.transformationsRuntime
+            val adapterFactory = context.config.transformationsAdapter
+            if (adapterFactory == null) throw IllegalArgumentException("TealiumConfig.transformationAdapter must be provided.")
+            val transformationsAdapter = adapterFactory.create(context)
             return TransformationModuleImpl(
-//                context,
-                TransformationsAdapterFactory.create(runtime, context)
+                transformationsAdapter
             )
         }
     }
@@ -50,9 +52,20 @@ val Tealium.transformations: TransformationModule?
 val Modules.Transformations: ModuleFactory
     get() = TransformationModule
 
+@Deprecated("Use ")
 var TealiumConfig.transformationsRuntime: JavascriptRuntime
     get() = options["js_runtime"] as? JavascriptRuntime
         ?: JavascriptRuntime.QuickJS
     set(value) {
         options["js_runtime"] = value
+    }
+
+var TealiumConfig.transformationsAdapter: TransformationsAdapterFactory?
+    get() = options["js_adapter"] as? TransformationsAdapterFactory
+    set(value) {
+        value?.let {
+            options["js_adapter"] = it
+        } ?: run {
+            options.remove("js_adapter")
+        }
     }

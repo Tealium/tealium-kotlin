@@ -9,4 +9,6 @@ interface TransformationsAdapter {
     fun executeJavascript(js: String): Any?
     suspend fun transform(dispatch: Dispatch)
     fun getTransformation(scope: String): Transformation
+
+    object Factories { }
 }

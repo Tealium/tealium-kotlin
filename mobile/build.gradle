@@ -78,4 +78,7 @@ dependencies {
     implementation project(':inapppurchase')
     implementation project(':autotracking')
     implementation project(':transformations')
+    implementation project(':transformations-quickjs')
+    implementation project(':transformations-j2v8')
+    implementation project(':transformations-rhino')
 }

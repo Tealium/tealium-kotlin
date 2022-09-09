@@ -4,3 +4,7 @@ include ':mobile', ':tealiumlibrary', ':collectdispatcher', ':tagmanagementdispa
 include ':hosteddatalayer', ':crashreporter'
 include ':media', ':inapppurchase'
 include ':transformations'
+include ':transformations-quickjs'
+include ':transformations-quickjs'
+include ':transformations-j2v8'
+include ':transformations-rhino'

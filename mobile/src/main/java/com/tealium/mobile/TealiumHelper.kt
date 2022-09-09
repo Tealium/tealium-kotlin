@@ -18,7 +18,10 @@ import com.tealium.tagmanagementdispatcher.TagManagement
 import com.tealium.transformations.JavascriptRuntime
 import com.tealium.transformations.TransformationModule
 import com.tealium.transformations.Transformations
+import com.tealium.transformations.internal.QuickJs
+import com.tealium.transformations.internal.TransformationsAdapter
 import com.tealium.transformations.transformations
+import com.tealium.transformations.transformationsAdapter
 import com.tealium.transformations.transformationsRuntime
 
 object TealiumHelper : ActivityDataCollector {
@@ -45,7 +48,8 @@ object TealiumHelper : ActivityDataCollector {
                     Dispatchers.RemoteCommands
                 )
         ).apply {
-            transformationsRuntime = JavascriptRuntime.Rhino
+//            transformationsRuntime = JavascriptRuntime.Rhino
+            transformationsAdapter = TransformationsAdapter.Factories.QuickJs
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {

@@ -1,7 +1,5 @@
-package com.tealium.transformations.internal.impl
+package com.tealium.transformations.j2v8
 
-import android.icu.lang.UCharacter.GraphemeClusterBreak.V
-import android.system.Os.read
 import com.eclipsesource.v8.JavaCallback
 import com.eclipsesource.v8.V8
 import com.eclipsesource.v8.V8Array
@@ -17,6 +15,9 @@ import com.tealium.transformations.Transformation
 import com.tealium.transformations.internal.JsConsole
 import com.tealium.transformations.internal.Storage
 import com.tealium.transformations.internal.TransformationsAdapter
+import com.tealium.transformations.internal.impl.StorageImpl
+import com.tealium.transformations.internal.impl.UtilImpl
+import com.tealium.transformations.j2v8.internal.J2v8JsConsoleImpl
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -35,7 +36,7 @@ class J2v8TransformationsAdapter(
     private lateinit var utag: V8Object
     private val background = context.executors.background
     private val storage: Storage = StorageImpl(context.dataLayer)
-    private val console: JsConsole = JsConsoleImpl()
+    private val console: JsConsole = J2v8JsConsoleImpl()
 
     private val hashCallback: JavaCallback = JavaCallback { obj, arr ->
         arr.getString(0)?.let { alg ->
@@ -74,8 +75,7 @@ class J2v8TransformationsAdapter(
         return background.async {
             v8 = V8.createV8Runtime()
 
-
-            val js = loader.loadFromAsset(QuickJsTransformationsAdapter.UTAG_JS)
+            val js = loader.loadFromAsset(UTAG_JS)
 
             js?.let {
                 v8.executeVoidScript(it)

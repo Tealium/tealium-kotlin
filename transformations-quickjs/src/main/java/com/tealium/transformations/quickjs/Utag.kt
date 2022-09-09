@@ -1,4 +1,4 @@
-package com.tealium.transformations.internal
+package com.tealium.transformations.quickjs
 
 interface Utag {
     fun DB(msg: String?)

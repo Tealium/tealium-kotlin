@@ -9,8 +9,8 @@ import com.tealium.core.persistence.DataLayer
 import com.tealium.core.persistence.Expiry
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
-import com.tealium.transformations.internal.impl.J2v8TransformationsAdapter
-import com.tealium.transformations.internal.impl.QuickJsTransformationsAdapter
+import com.tealium.transformations.j2v8.J2v8TransformationsAdapter
+import com.tealium.transformations.quickjs.QuickJsTransformationsAdapter
 import com.tealium.transformations.internal.impl.RhinoTransformationsAdapter
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -81,7 +81,8 @@ class TransformationsPerformanceTests {
     fun J2v8_Init() {
         testPerformance(listOf(
             TestTask("J2v8_Init") {
-                val adapter = J2v8TransformationsAdapter(context, loader)
+                val adapter =
+                    com.tealium.transformations.j2v8.J2v8TransformationsAdapter(context, loader)
                 adapter.init().await()
             }
         ))
@@ -91,7 +92,10 @@ class TransformationsPerformanceTests {
     fun QuickJs_Init() {
         testPerformance(listOf(
             TestTask("QuickJs_Init") {
-                val adapter = QuickJsTransformationsAdapter(context, loader)
+                val adapter = com.tealium.transformations.quickjs.QuickJsTransformationsAdapter(
+                    context,
+                    loader
+                )
                 adapter.init().await()
             }
         ))
@@ -109,7 +113,7 @@ class TransformationsPerformanceTests {
 
     @Test
     fun J2v8_Transform() = runBlocking {
-        val adapter = J2v8TransformationsAdapter(context, loader)
+        val adapter = com.tealium.transformations.j2v8.J2v8TransformationsAdapter(context, loader)
         adapter.init().await()
 
         testPerformance(listOf(
@@ -122,7 +126,8 @@ class TransformationsPerformanceTests {
 
     @Test
     fun QuickJs_Transform() = runBlocking {
-        val adapter = QuickJsTransformationsAdapter(context, loader)
+        val adapter =
+            com.tealium.transformations.quickjs.QuickJsTransformationsAdapter(context, loader)
         adapter.init().await()
 
         testPerformance(listOf(
