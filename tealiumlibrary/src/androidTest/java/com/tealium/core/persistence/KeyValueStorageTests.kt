@@ -5,6 +5,8 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
+import io.mockk.MockKSettings.relaxed
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
@@ -27,7 +29,7 @@ class KeyValueStorageTests {
         val config = TealiumConfig(context as Application, "test", "test", Environment.DEV)
         dbHelper = DatabaseHelper(config, null) // in-memory
 
-        storage = PersistentStorage(dbHelper, "datalayer")
+        storage = PersistentStorage(dbHelper, "datalayer", eventRouter = mockk(relaxed = true))
     }
 
     @Test
@@ -586,7 +588,7 @@ class KeyValueStorageTests {
         assertEquals("string", storage.get("session_string"))
         assertEquals(10, storage.get("session_int"))
 
-        storage = PersistentStorage(dbHelper, "datalayer")
+        storage = PersistentStorage(dbHelper, "datalayer", eventRouter = mockk(relaxed = true))
         // Until Restart
         assertNull(storage.get("until_restart_string"))
         assertNull(storage.get("until_restart_int"))
@@ -606,7 +608,7 @@ class KeyValueStorageTests {
         assertEquals("string", storage.get("string"))
         assertEquals(Expiry.UNTIL_RESTART, storage.getExpiry("string"))
 
-        storage = PersistentStorage(dbHelper, "datalayer")
+        storage = PersistentStorage(dbHelper, "datalayer", eventRouter = mockk(relaxed = true))
         assertNull(storage.get("string"))
     }
 
@@ -621,7 +623,7 @@ class KeyValueStorageTests {
         assertEquals("string", storage.get("string"))
         assertEquals(Expiry.SESSION, storage.getExpiry("string"))
 
-        storage = PersistentStorage(dbHelper, "datalayer")
+        storage = PersistentStorage(dbHelper, "datalayer", eventRouter = mockk(relaxed = true))
         assertEquals("string", storage.get("string"))
     }
 

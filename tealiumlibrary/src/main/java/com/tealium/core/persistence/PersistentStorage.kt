@@ -1,8 +1,14 @@
 package com.tealium.core.persistence
 
 import com.tealium.core.Logger
+import com.tealium.core.messaging.EventRouter
 import com.tealium.core.messaging.NewSessionListener
+import com.tealium.core.messaging.VisitorIdUpdatedListener
+import com.tealium.dispatcher.Dispatch
 import com.tealium.tealiumlibrary.BuildConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.Exception
@@ -26,9 +32,13 @@ internal class PersistentStorage(
         tableName,
         false
     ).also { it.purgeExpired() },
-    private val volatileData: MutableMap<String, Any> = ConcurrentHashMap()
+    private val volatileData: MutableMap<String, Any> = ConcurrentHashMap(),
+    private val eventRouter: EventRouter,
+    private val backgroundScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 ) : DataLayer,
-    NewSessionListener {
+    NewSessionListener,
+    VisitorIdUpdatedListener
+{
 
     override val name: String = "DataLayer"
     override var enabled: Boolean = true
@@ -108,6 +118,8 @@ internal class PersistentStorage(
             dao.upsert(PersistentItem(key, serializer.serialize(value), expiry, type = type))
             volatileData.remove(key);
         }
+
+        notifyUpdated(key, value as Any)
     }
 
     override fun getString(key: String): String? {
@@ -226,12 +238,18 @@ internal class PersistentStorage(
         // if it was stored in memory, no need to empty it from storage
         if (item == null) {
             dao.delete(key)
+        } else {
+            notifyRemoved(key)
         }
     }
 
     override fun clear() {
+        val keys = keys().toSet()
+
         volatileData.clear()
         dao.clear()
+
+        notifyRemoved(keys)
     }
 
     override fun contains(key: String): Boolean {
@@ -250,11 +268,39 @@ internal class PersistentStorage(
         return if (volatileData.containsKey(key)) Expiry.UNTIL_RESTART else dao.get(key)?.expiry
     }
 
+    private fun notifyUpdated(key: String, value: Any) {
+        backgroundScope.launch {
+            eventRouter.onDataUpdated(key, value)
+        }
+    }
+
+    private fun notifyRemoved(key: String) {
+        notifyRemoved(setOf(key))
+    }
+
+    private fun notifyRemoved(keys: Set<String>) {
+        backgroundScope.launch {
+            eventRouter.onDataRemoved(keys)
+        }
+    }
+
+    override fun subscribe(listener: DataLayer.DataLayerUpdatedListener) {
+        eventRouter.subscribe(listener)
+    }
+
+    override fun unsubscribe(listener: DataLayer.DataLayerUpdatedListener) {
+        eventRouter.unsubscribe(listener)
+    }
+
     override fun onNewSession(sessionId: Long) {
         dao.getAll().filter {
             it.value.expiry == Expiry.SESSION
         }.forEach {
             dao.delete(it.key)
         }
+    }
+
+    override fun onVisitorIdUpdated(visitorId: String) {
+        putString(Dispatch.Keys.TEALIUM_VISITOR_ID, visitorId)
     }
 }

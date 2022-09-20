@@ -36,4 +36,8 @@
     <string name="second_activity_text_view">Second Activity</string>
     <string name="third_activity">Third Activity</string>
     <string name="third_activity_text_view">Third Activity</string>
+    <string name="hint_identity">Identity</string>
+    <string name="btn_identify">Identify</string>
+    <string name="visitor_id_label">Visitor Id:</string>
+    <string name="visitor_id_placeholder"><![CDATA[<visitor id>]]></string>
 </resources>
