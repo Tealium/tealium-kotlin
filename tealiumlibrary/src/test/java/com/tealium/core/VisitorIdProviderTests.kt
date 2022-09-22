@@ -38,6 +38,9 @@ class VisitorIdProviderTests {
         MockKAnnotations.init(this)
 
         every { dataLayer.getString(visitorIdKey) } returns null
+        // assume first launch
+        every { dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID) } returns null
+        every { dataLayer.putString(Dispatch.Keys.TEALIUM_VISITOR_ID, any(), any()) } just Runs
         every { onVisitorIdUpdated(any()) } just Runs
 
         mockkObject(Logger)

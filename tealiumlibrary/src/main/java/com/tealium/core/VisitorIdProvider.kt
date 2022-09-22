@@ -1,8 +1,7 @@
 package com.tealium.core
 
 import com.tealium.core.persistence.DataLayer
-import com.tealium.core.persistence.DefaultHashingProvider
-import com.tealium.core.persistence.HashingProvider
+import com.tealium.core.persistence.Expiry
 import com.tealium.core.persistence.VisitorStorage
 import com.tealium.core.persistence.sha256
 import com.tealium.dispatcher.Dispatch
@@ -39,12 +38,16 @@ internal class VisitorIdProvider(
                     // currentIdentity is already hashed
                     visitorStorage.saveVisitorId(currentIdentity, currentVisitorId, false)
                 }
+                putInDataLayer(value)
                 onVisitorIdUpdated(value)
             }
         }
 
     init {
         retrieveIdentityFromDataLayer()
+        if (dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID) == null) {
+            putInDataLayer(currentVisitorId)
+        }
     }
 
     fun resetVisitorId(): String {
@@ -121,6 +124,11 @@ internal class VisitorIdProvider(
                 // notify of new visitor id
                 currentVisitorId = it
             }
+    }
+
+    private fun putInDataLayer(visitorId: String) {
+        // compatibility
+        dataLayer.putString(Dispatch.Keys.TEALIUM_VISITOR_ID, visitorId, Expiry.FOREVER)
     }
 
     companion object {

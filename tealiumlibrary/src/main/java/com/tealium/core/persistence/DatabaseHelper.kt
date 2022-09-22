@@ -16,6 +16,8 @@ internal class DatabaseHelper(config: TealiumConfig, databaseName: String? = dat
     override fun onCreate(db: SQLiteDatabase?) {
         db?.execSQL(SqlDataLayer.Sql.getCreateTableSql("datalayer"))
         db?.execSQL(SqlDataLayer.Sql.getCreateTableSql("dispatches"))
+        // apply all necessary upgrades
+        onUpgrade(db, 1, DATABASE_VERSION)
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {

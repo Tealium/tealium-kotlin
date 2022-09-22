@@ -354,16 +354,20 @@ class Tealium private constructor(
      * [consentManager] Consent Status is unaffected by this method; consider whether you may need
      * reset the consent status also.
      */
-    fun resetVisitorId() = backgroundScope.launch {
-        visitorIdProvider.resetVisitorId()
+    fun resetVisitorId() {
+        backgroundScope.launch {
+            visitorIdProvider.resetVisitorId()
+        }
     }
 
     /**
      * Removes all known Visitor Ids for this device.
      *
      */
-    fun clearStoredVisitorIds() = backgroundScope.launch {
-        visitorIdProvider.clearStoredVisitorIds()
+    fun clearStoredVisitorIds() {
+        backgroundScope.launch {
+            visitorIdProvider.clearStoredVisitorIds()
+        }
     }
 
     /**

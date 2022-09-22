@@ -39,3 +39,7 @@ object DefaultHashingProvider : HashingProvider {
 fun String.sha256() : String {
     return DefaultHashingProvider.hash("SHA-256", this)
 }
+
+internal fun PersistentItem.deserialize() : Any? {
+    return Serdes.serdeFor(this.type.clazz)?.deserializer?.deserialize(this.value)
+}
