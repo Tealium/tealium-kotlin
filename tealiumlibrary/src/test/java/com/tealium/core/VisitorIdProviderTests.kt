@@ -111,7 +111,7 @@ class VisitorIdProviderTests {
         assertEquals(defaultVisitorId, visitorIdProvider.currentVisitorId)
         assertEquals(defaultVisitorId, visitorStorage.currentVisitorId)
         assertEquals("newIdentity".sha256(), visitorStorage.currentIdentity)
-        assertEquals(defaultVisitorId, visitorStorage.getVisitorId("newIdentity"))
+        assertEquals(defaultVisitorId, visitorStorage.getVisitorId("newIdentity".sha256()))
         verify(exactly = 0) {
             onVisitorIdUpdated wasNot Called
         }
@@ -130,8 +130,8 @@ class VisitorIdProviderTests {
         assertNotEquals(defaultVisitorId, visitorIdProvider.currentVisitorId)
         assertNotEquals(defaultVisitorId, visitorStorage.currentVisitorId)
         assertEquals("newIdentity".sha256(), visitorStorage.currentIdentity)
-        assertNotNull(visitorStorage.getVisitorId("newIdentity"))
-        assertNotEquals(defaultVisitorId, visitorStorage.getVisitorId("newIdentity"))
+        assertNotNull(visitorStorage.getVisitorId("newIdentity".sha256()))
+        assertNotEquals(defaultVisitorId, visitorStorage.getVisitorId("newIdentity".sha256()))
         verify(exactly = 1) {
             onVisitorIdUpdated(any())
         }
@@ -221,7 +221,7 @@ class VisitorIdProviderTests {
         visitorIdProvider.onDataUpdated(visitorIdKey, "newIdentity")
 
         assertEquals("newIdentity".sha256(), visitorStorage.currentIdentity)
-        assertEquals(defaultVisitorId, visitorStorage.getVisitorId("newIdentity"))
+        assertEquals(defaultVisitorId, visitorStorage.getVisitorId("newIdentity".sha256()))
         assertEquals(defaultVisitorId, visitorIdProvider.currentVisitorId)
     }
 
@@ -239,7 +239,7 @@ class VisitorIdProviderTests {
         assertEquals("newIdentity".sha256(), visitorStorage.currentIdentity)
         assertEquals("linked_visitor_id", visitorIdProvider.currentVisitorId)
         assertEquals("linked_visitor_id", visitorStorage.currentVisitorId)
-        assertEquals("linked_visitor_id", visitorStorage.getVisitorId("newIdentity"))
+        assertEquals("linked_visitor_id", visitorStorage.getVisitorId("newIdentity".sha256()))
     }
 
     @Test
@@ -293,8 +293,8 @@ class VisitorIdProviderTests {
         assertNotEquals(defaultVisitorId, visitorIdProvider.currentVisitorId)
         assertNotEquals(defaultVisitorId, visitorStorage.currentVisitorId)
         assertEquals(defaultIdentity.sha256(), visitorStorage.currentIdentity)
-        assertNotNull(visitorStorage.getVisitorId(defaultIdentity))
-        assertNotEquals(defaultVisitorId, visitorStorage.getVisitorId(defaultIdentity))
+        assertNotNull(visitorStorage.getVisitorId(defaultIdentity.sha256()))
+        assertNotEquals(defaultVisitorId, visitorStorage.getVisitorId(defaultIdentity.sha256()))
     }
 
     private fun createDefaultVisitorIdProvider(
@@ -337,18 +337,21 @@ class VisitorIdProviderTests {
     ) : VisitorStorage {
 
         override var currentVisitorId: String? = initialVisitorId
+            set(value) {
+                field = value
+            }
         override var currentIdentity: String? = initialIdentity?.sha256()
             set(value) {
-                field = value?.sha256()
+                field = value
             }
         private val _visitorMap = initialVisitorMap.mapKeys { (k, _) -> k.sha256() }.toMutableMap()
 
         override fun getVisitorId(identity: String): String? {
-            return _visitorMap[identity.sha256()]
+            return _visitorMap[identity]
         }
 
-        override fun saveVisitorId(identity: String, visitorId: String, shouldHash: Boolean) {
-            _visitorMap[if (shouldHash) identity.sha256() else identity] = visitorId
+        override fun saveVisitorId(identity: String, visitorId: String) {
+            _visitorMap[identity] = visitorId
         }
 
         override fun clear() {

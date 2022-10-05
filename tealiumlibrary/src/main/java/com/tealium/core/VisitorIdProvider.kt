@@ -35,8 +35,7 @@ internal class VisitorIdProvider(
                 field = value
                 visitorStorage.currentVisitorId = value
                 visitorStorage.currentIdentity?.let { currentIdentity ->
-                    // currentIdentity is already hashed
-                    visitorStorage.saveVisitorId(currentIdentity, currentVisitorId, false)
+                    visitorStorage.saveVisitorId(currentIdentity, currentVisitorId)
                 }
                 putInDataLayer(value)
                 onVisitorIdUpdated(value)
@@ -81,22 +80,28 @@ internal class VisitorIdProvider(
 
         // Set current identity
         val oldIdentity = visitorStorage.currentIdentity
-        if (newIdentity.sha256() == oldIdentity) {
-            return
+        val hashedNewIdentity = newIdentity.sha256()
+
+        if (hashedNewIdentity != oldIdentity) {
+            Logger.dev(BuildConfig.TAG, "Identity change has been detected.")
+            visitorStorage.currentIdentity = hashedNewIdentity
         }
-        Logger.dev(BuildConfig.TAG, "Identity change has been detected.")
-        visitorStorage.currentIdentity = newIdentity
 
         // check for known matching visitor id
-        val knownVisitorId = visitorStorage.getVisitorId(newIdentity)
-        if (knownVisitorId != null && knownVisitorId != currentVisitorId) {
-            Logger.dev(BuildConfig.TAG, "Identity has been seen before; setting known visitor id")
-            // visitor is know - update current visitor id
-            currentVisitorId = knownVisitorId
+        val knownVisitorId = visitorStorage.getVisitorId(hashedNewIdentity)
+        if (knownVisitorId != null) {
+            if (knownVisitorId != currentVisitorId) {
+                Logger.dev(
+                    BuildConfig.TAG,
+                    "Identity has been seen before; setting known visitor id"
+                )
+                // visitor is known - update current visitor id
+                currentVisitorId = knownVisitorId
+            }
         } else if (oldIdentity == null) {
             Logger.dev(BuildConfig.TAG, "Identity unknown; linking to current visitor id")
             // no identity yet - link with current anonymous id
-            visitorStorage.saveVisitorId(newIdentity, currentVisitorId)
+            visitorStorage.saveVisitorId(hashedNewIdentity, currentVisitorId)
         } else {
             Logger.dev(BuildConfig.TAG, "Identity unknown; resetting visitor id")
             // we have updated identity - need to update linked visitor id

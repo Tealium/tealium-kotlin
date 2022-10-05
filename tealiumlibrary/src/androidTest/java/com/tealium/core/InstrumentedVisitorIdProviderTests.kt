@@ -19,7 +19,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
-class VisitorIdProviderTests {
+class InstrumentedVisitorIdProviderTests {
     @MockK
     private lateinit var onVisitorIdUpdated: (String) -> Unit
 

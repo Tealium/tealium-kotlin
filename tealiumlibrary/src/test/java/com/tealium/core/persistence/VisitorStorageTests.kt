@@ -69,8 +69,7 @@ class VisitorStorageTests {
     @Test
     fun getVisitorId_ReturnsSavedVisitorId() {
         val identity = "identity123"
-        val identityHash = "B5D54E642C830BE1872E28686A83C5051274A71F9C7A8065CF2BAC6ECA549878"
-        every { storage.get(identityHash) } returns PersistentItem(
+        every { storage.get(identity) } returns PersistentItem(
             key = Dispatch.Keys.TEALIUM_VISITOR_ID,
             value = "saved_visitor_id",
             type = Serialization.STRING
@@ -85,21 +84,5 @@ class VisitorStorageTests {
         every { storage.get(any()) } returns null
 
         assertNull(visitorStorage.getVisitorId(identity + "fail"))
-    }
-
-    @Test
-    fun saveVisitorId_HashesIdentity_BeforeSaving() {
-        val identity = "identity123"
-        val identityHash = "B5D54E642C830BE1872E28686A83C5051274A71F9C7A8065CF2BAC6ECA549878"
-        every { storage.upsert(any()) } just Runs
-
-        visitorStorage.saveVisitorId(identity, "visitor123")
-
-        verify {
-            storage.upsert(match {
-                it.key == identityHash
-                        && it.value == "visitor123"
-            })
-        }
     }
 }
