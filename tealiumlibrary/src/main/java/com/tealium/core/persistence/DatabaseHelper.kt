@@ -10,20 +10,38 @@ import java.io.File
  * the [config] parameter.
  * @param config - TealiumConfig item with
  */
-internal class DatabaseHelper(config: TealiumConfig, databaseName: String? = databaseName(config))
-    : SQLiteOpenHelper(config.application.applicationContext, databaseName,null, DATABASE_VERSION) {
+internal class DatabaseHelper(config: TealiumConfig, databaseName: String? = databaseName(config)) :
+    SQLiteOpenHelper(config.application.applicationContext, databaseName, null, DATABASE_VERSION) {
 
     override fun onCreate(db: SQLiteDatabase?) {
         db?.execSQL(SqlDataLayer.Sql.getCreateTableSql("datalayer"))
         db?.execSQL(SqlDataLayer.Sql.getCreateTableSql("dispatches"))
+        // apply all necessary upgrades
+        onUpgrade(db, 1, DATABASE_VERSION)
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        // not implemented
+        db?.let { database ->
+            getDatabaseUpgrades(oldVersion).forEach {
+                it.upgrade(database)
+            }
+        }
     }
 
     companion object {
-        const val DATABASE_VERSION = 1
+        const val DATABASE_VERSION = 2
+
+        private val databaseUpgrades = listOf<DatabaseUpgrade>(
+            DatabaseUpgrade(version = 2) {
+                it.execSQL(SqlDataLayer.Sql.getCreateTableSql("visitors"))
+            }
+        )
+
+        fun getDatabaseUpgrades(oldVersion: Int, upgrades: List<DatabaseUpgrade> = databaseUpgrades) : List<DatabaseUpgrade> {
+            return upgrades
+                .filter { oldVersion < it.version }
+                .sortedBy { it.version } // in case of upgrades added in incorrect order
+        }
 
         /**
          * Returns a String unique to the Tealium Account/Profile

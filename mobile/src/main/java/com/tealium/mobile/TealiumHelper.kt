@@ -78,7 +78,9 @@ object TealiumHelper : ActivityDataCollector {
             // autoTrackingBlocklistFilename = "autotracking-blocklist.json"
             // autoTrackingBlocklistUrl = "https://tags.tiqcdn.com/dle/tealiummobile/android/autotracking-blocklist.json"
             autoTrackingCollectorDelegate = TealiumHelper
-//            overrideConsentCategoriesKey = "my_consent_categories_key"
+            // overrideConsentCategoriesKey = "my_consent_categories_key"
+
+            visitorIdentityKey = BuildConfig.IDENTITY_KEY
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {

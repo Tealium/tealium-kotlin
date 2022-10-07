@@ -1,10 +1,16 @@
 package com.tealium.core.persistence
 
 import com.tealium.core.Collector
+import com.tealium.core.messaging.Listener
 import org.json.JSONArray
 import org.json.JSONObject
 
 interface DataLayer : Collector {
+
+    interface DataLayerUpdatedListener: Listener {
+        fun onDataUpdated(key: String, value: Any)
+        fun onDataRemoved(keys: Set<String>)
+    }
 
     /**
      * Stores a string [value] referenced by the [key], with an optional expiry time.
@@ -253,6 +259,16 @@ interface DataLayer : Collector {
      * @return the expiry of a given key, else null if key doesn't exist.
      */
     fun getExpiry(key: String): Expiry?
+
+    /**
+     * Subscribes a listener for updates to Key/Value pairs
+     */
+    fun subscribe(listener: DataLayerUpdatedListener)
+
+    /**
+     * Unsubscribes a listener for updates to Key/Value pairs
+     */
+    fun unsubscribe(listener: DataLayerUpdatedListener)
 
     override suspend fun collect(): Map<String, Any> {
         return all()

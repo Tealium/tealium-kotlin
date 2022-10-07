@@ -112,6 +112,11 @@ class TealiumConfig @JvmOverloads constructor(
     var existingVisitorId: String? = null
 
     /**
+     * Sets the key name used to determine any known visitor identifiers within the [DataLayer]
+     */
+    var visitorIdentityKey: String? = null
+
+    /**
      * Overrides the default LogLevel.
      */
     var logLevel: LogLevel? = null

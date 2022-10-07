@@ -12,6 +12,7 @@ android {
         versionName "1.0"
         buildConfigField 'String', 'TAG', "\"App\""
         buildConfigField 'String', 'TEALIUM_INSTANCE', "\"main\""
+        buildConfigField 'String', 'IDENTITY_KEY', "\"identity\""
         buildConfigField 'Boolean', 'AUTO_TRACKING', "true"
         buildConfigField 'Boolean', 'AUTO_TRACKING_PUSH_ENABLED', "false"
 

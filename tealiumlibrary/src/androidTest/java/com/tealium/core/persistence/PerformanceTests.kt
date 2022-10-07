@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
+import io.mockk.mockk
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Before
@@ -37,7 +38,7 @@ class PerformanceTests {
         val config = TealiumConfig(context as Application, "test", "test", Environment.DEV)
 //        dbHelper = DatabaseHelper(config, null) // in-memory
         dbHelper = DatabaseHelper(config, "test.db") // on-disk
-        storage = PersistentStorage(dbHelper, "datalayer")
+        storage = PersistentStorage(dbHelper, "datalayer", eventRouter = mockk())
 
         storage.putString("string", "String", Expiry.FOREVER)
         storage.putInt("int", 1, Expiry.UNTIL_RESTART)

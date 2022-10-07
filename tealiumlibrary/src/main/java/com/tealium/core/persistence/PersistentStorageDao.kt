@@ -1,11 +1,13 @@
 package com.tealium.core.persistence
 
 import android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE
+import com.tealium.core.messaging.NewSessionListener
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_EXPIRY
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_KEY
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_TIMESTAMP
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_TYPE
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_VALUE
+import java.util.*
 
 /**
  * DAO for Key-Value pairs.
@@ -22,17 +24,27 @@ import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_VALUE
  * @param includeExpired - whether to consider expired data in "read" requests.
  */
 internal open class PersistentStorageDao(
-    private val dbHelper: DatabaseHelper,
+    dbHelper: DatabaseHelper,
     private val tableName: String,
-    private val shouldIncludeExpired: Boolean = false
-) : KeyValueDao<String, PersistentItem> {
+    private val shouldIncludeExpired: Boolean = false,
+    private val onDataUpdated: ((String, PersistentItem) -> Unit)? = null,
+    private val onDataRemoved: ((Set<String>) -> Unit)? = null
+) : KeyValueDao<String, PersistentItem>, NewSessionListener {
 
     private val db = dbHelper.writableDatabase
 
     override fun getAll(): Map<String, PersistentItem> {
+        return getAll(
+            selection = if (shouldIncludeExpired) null else IS_NOT_EXPIRED_CLAUSE,
+            selectionArgs = if (shouldIncludeExpired) null else arrayOf(getTimestamp().toString())
+        )
+    }
+
+    private fun getAll(
+        selection: String?,
+        selectionArgs: Array<String>?
+    ): Map<String, PersistentItem> {
         val map = mutableMapOf<String, PersistentItem>()
-        val selection = if (shouldIncludeExpired) null else IS_NOT_EXPIRED_CLAUSE
-        val selectionArgs = if (shouldIncludeExpired) null else arrayOf(getTimestamp().toString())
         val cursor = db.query(
             tableName,
             null,
@@ -70,6 +82,13 @@ internal open class PersistentStorageDao(
 
         cursor.close()
         return map
+    }
+
+    private fun getExpired(timestamp: Long = getTimestamp()): Map<String, PersistentItem> {
+        return getAll(
+            selection = IS_EXPIRED_CLAUSE,
+            selectionArgs = arrayOf(timestamp.toString())
+        )
     }
 
     override fun get(key: String): PersistentItem? {
@@ -110,15 +129,22 @@ internal open class PersistentStorageDao(
     }
 
     override fun insert(item: PersistentItem) {
-        db.insertWithOnConflict(tableName, null, item.toContentValues(), CONFLICT_REPLACE)
+        val inserted =
+            db.insertWithOnConflict(tableName, null, item.toContentValues(), CONFLICT_REPLACE)
+        if (inserted > 0) {
+            onDataUpdated?.invoke(item.key, item)
+        }
     }
 
     override fun update(item: PersistentItem) {
-        db.update(
+        val updated = db.update(
             tableName, item.toContentValues(),
             "$COLUMN_KEY = ?",
             arrayOf(item.key)
         )
+        if (updated > 0) {
+            onDataUpdated?.invoke(item.key, item)
+        }
     }
 
     override fun upsert(item: PersistentItem) {
@@ -135,19 +161,32 @@ internal open class PersistentStorageDao(
     }
 
     override fun delete(key: String) {
-        db.delete(
+        val deleted = db.delete(
             tableName,
             "$COLUMN_KEY = ?",
             arrayOf(key)
         )
+        if (deleted > 0) {
+            onDataRemoved?.invoke(setOf(key))
+        }
+    }
+
+    private fun delete(keys: Set<String>) {
+        db.delete(
+            tableName,
+            "$COLUMN_KEY IN (${keys.joinToString(", ") { "?" }})",
+            keys.toTypedArray()
+        )
     }
 
     override fun clear() {
+        val keys = keys()
         db.delete(
             tableName,
             null,
             null
         )
+        onDataRemoved?.invoke(keys.toSet())
     }
 
     override fun keys(): List<String> {
@@ -218,11 +257,33 @@ internal open class PersistentStorageDao(
     }
 
     override fun purgeExpired() {
-        db.delete(
-            tableName,
-            IS_EXPIRED_CLAUSE,
-            arrayOf(getTimestamp().toString())
+        val timestamp = getTimestamp()
+        val expired = getExpired(timestamp)
+        if (expired.isNotEmpty()) {
+            db.delete(
+                tableName,
+                IS_EXPIRED_CLAUSE,
+                arrayOf(timestamp.toString())
+            )
+            onDataRemoved?.invoke(expired.map { it.key }.toSet())
+        }
+    }
+
+    override fun onNewSession(sessionId: Long) {
+        val selection = "$COLUMN_EXPIRY = ?"
+        val selectionArgs = arrayOf(Expiry.SESSION.expiryTime().toString())
+        val sessionItems = getAll(
+            selection = selection,
+            selectionArgs = selectionArgs
         )
+        if (sessionItems.isNotEmpty()) {
+            db.delete(
+                tableName,
+                selection,
+                selectionArgs
+            )
+            onDataRemoved?.invoke(sessionItems.map { it.key }.toSet())
+        }
     }
 
     companion object {
