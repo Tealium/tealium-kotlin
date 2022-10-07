@@ -112,11 +112,10 @@ class TealiumTests {
     fun testVisitorIdIsGenerated() {
         assertNotNull(tealium.visitorId)
         assertEquals(32, tealium.visitorId.length)
-        assertEquals(tealium.visitorId, tealium.dataLayer.getString("tealium_visitor_id"))
     }
 
     @Test
-    fun testVisitorIdIsReset() {
+    fun testVisitorIdIsReset() = runBlocking {
         val vid = tealium.visitorId
         assertNotNull(vid)
         assertEquals(32, tealium.visitorId.length)
@@ -124,6 +123,7 @@ class TealiumTests {
         val storedVid = tealium.dataLayer.getString("tealium_visitor_id")
 
         val resetVid = tealium.resetVisitorId()
+        delay(100) // reset is async
         val storedResetVid = tealium.dataLayer.getString("tealium_visitor_id")
         assertNotEquals(vid, resetVid)
         assertNotEquals(storedVid, storedResetVid)
@@ -140,6 +140,7 @@ class TealiumTests {
             Environment.DEV
         )
         config.existingVisitorId = "testExistingVisitorId"
+        deleteInstanceStorage(config)
         val test = Tealium.create("tester", config)
 
         val vid = test.visitorId
@@ -149,7 +150,7 @@ class TealiumTests {
     }
 
     @Test
-    fun resetExistingVisitorId() {
+    fun resetExistingVisitorId() = runBlocking {
         val config = TealiumConfig(
             application,
             "testAccount2",
@@ -157,6 +158,7 @@ class TealiumTests {
             Environment.DEV
         )
         config.existingVisitorId = "testExistingVisitorId"
+        deleteInstanceStorage(config)
         val teal = Tealium.create("tester2", config)
 
         val vid = teal.visitorId
@@ -164,6 +166,7 @@ class TealiumTests {
         assertEquals("testExistingVisitorId", vid)
 
         val resetVid = teal.resetVisitorId()
+        delay(100) // reset is async
         val storedResetVid = teal.dataLayer.getString("tealium_visitor_id")
 
         assertNotEquals(vid, resetVid)
@@ -179,6 +182,7 @@ class TealiumTests {
             "testProfile2",
             Environment.DEV
         )
+        config.tealiumDirectory.deleteRecursively()
         config.existingVisitorId = "testExistingVisitorId"
         Tealium.create("tester2", config) {
             val data = gatherTrackData()
@@ -364,6 +368,12 @@ class TealiumTests {
                 else -> false
             }
         }
+    }
+
+    private fun deleteInstanceStorage(config: TealiumConfig) {
+        try {
+            config.tealiumDirectory.deleteRecursively()
+        } catch (ignored: Exception) { }
     }
 }
 

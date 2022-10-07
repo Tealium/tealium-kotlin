@@ -5,6 +5,14 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
+import com.tealium.core.messaging.EventRouter
+import io.mockk.MockKAnnotations
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
@@ -21,13 +29,21 @@ class KeyValueStorageTests {
     private lateinit var dbHelper: DatabaseHelper
     private lateinit var storage: DataLayer
 
+    @MockK
+    private lateinit var mockEventRouter: EventRouter
+
     @Before
     fun setUp() {
+        MockKAnnotations.init(this)
+
         val context = ApplicationProvider.getApplicationContext<Context>()
         val config = TealiumConfig(context as Application, "test", "test", Environment.DEV)
         dbHelper = DatabaseHelper(config, null) // in-memory
 
-        storage = PersistentStorage(dbHelper, "datalayer")
+        every { mockEventRouter.onDataUpdated(any(), any()) } just Runs
+        every { mockEventRouter.onDataRemoved(any()) } just Runs
+
+        storage = PersistentStorage(dbHelper, "datalayer", eventRouter = mockEventRouter)
     }
 
     @Test
@@ -510,6 +526,10 @@ class KeyValueStorageTests {
         assertTrue(allItems.containsKey("forever_item"))
         assertTrue(allItems.containsKey("timed_item"))
         assertTrue(allItems.containsKey("restart_item"))
+
+        verify {
+            mockEventRouter.onDataRemoved(setOf("session_item_1","session_item_2"))
+        }
     }
 
     @Test
@@ -586,7 +606,7 @@ class KeyValueStorageTests {
         assertEquals("string", storage.get("session_string"))
         assertEquals(10, storage.get("session_int"))
 
-        storage = PersistentStorage(dbHelper, "datalayer")
+        storage = PersistentStorage(dbHelper, "datalayer", eventRouter = mockk(relaxed = true))
         // Until Restart
         assertNull(storage.get("until_restart_string"))
         assertNull(storage.get("until_restart_int"))
@@ -606,7 +626,7 @@ class KeyValueStorageTests {
         assertEquals("string", storage.get("string"))
         assertEquals(Expiry.UNTIL_RESTART, storage.getExpiry("string"))
 
-        storage = PersistentStorage(dbHelper, "datalayer")
+        storage = PersistentStorage(dbHelper, "datalayer", eventRouter = mockk(relaxed = true))
         assertNull(storage.get("string"))
     }
 
@@ -621,7 +641,7 @@ class KeyValueStorageTests {
         assertEquals("string", storage.get("string"))
         assertEquals(Expiry.SESSION, storage.getExpiry("string"))
 
-        storage = PersistentStorage(dbHelper, "datalayer")
+        storage = PersistentStorage(dbHelper, "datalayer", eventRouter = mockk(relaxed = true))
         assertEquals("string", storage.get("string"))
     }
 
@@ -665,6 +685,12 @@ class KeyValueStorageTests {
         assertNull(storage.getString("restart"))
         assertNull(storage.getString("session"))
         assertNull(storage.getString("forever"))
+
+        verify {
+            mockEventRouter.onDataRemoved(setOf("restart"))
+            mockEventRouter.onDataRemoved(setOf("session"))
+            mockEventRouter.onDataRemoved(setOf("forever"))
+        }
     }
 
     @Test
@@ -678,6 +704,330 @@ class KeyValueStorageTests {
         assertNull(storage.getString("restart"))
         assertNull(storage.getString("session"))
         assertNull(storage.getString("forever"))
+
+        verify {
+            mockEventRouter.onDataRemoved(setOf("restart"))
+            mockEventRouter.onDataRemoved(setOf("session","forever"))
+        }
+    }
+
+    @Test
+    fun untilRestart_Notifications_NotifyWhenStringDataUpdated() {
+        storage.putString("string", "string", Expiry.UNTIL_RESTART)
+        storage.putString("string", "new_string", Expiry.UNTIL_RESTART)
+        verify {
+            mockEventRouter.onDataUpdated("string", "string")
+            mockEventRouter.onDataUpdated("string", "new_string")
+        }
+    }
+
+    @Test
+    fun untilRestart_Notifications_NotifyWhenIntDataUpdated() {
+        storage.putInt("int", 10, Expiry.UNTIL_RESTART)
+        storage.putInt("int", 11, Expiry.UNTIL_RESTART)
+        verify {
+            mockEventRouter.onDataUpdated("int", 10)
+            mockEventRouter.onDataUpdated("int", 11)
+        }
+    }
+
+    @Test
+    fun untilRestart_Notifications_NotifyWhenDoubleDataUpdated() {
+        storage.putDouble("double", 10.1, Expiry.UNTIL_RESTART)
+        storage.putDouble("double", 11.1, Expiry.UNTIL_RESTART)
+        verify {
+            mockEventRouter.onDataUpdated("double", 10.1)
+            mockEventRouter.onDataUpdated("double", 11.1)
+        }
+    }
+
+    @Test
+    fun untilRestart_Notifications_NotifyWhenLongDataUpdated() {
+        storage.putLong("long", 100L, Expiry.UNTIL_RESTART)
+        storage.putLong("long", 110L, Expiry.UNTIL_RESTART)
+        verify {
+            mockEventRouter.onDataUpdated("long", 100L)
+            mockEventRouter.onDataUpdated("long", 110L)
+        }
+    }
+
+    @Test
+    fun untilRestart_Notifications_NotifyWhenBooleanDataUpdated() {
+        storage.putBoolean("boolean", true, Expiry.UNTIL_RESTART)
+        storage.putBoolean("boolean", false, Expiry.UNTIL_RESTART)
+        verify {
+            mockEventRouter.onDataUpdated("boolean", true)
+            mockEventRouter.onDataUpdated("boolean", false)
+        }
+    }
+
+    @Test
+    fun untilRestart_Notifications_NotifyWhenStringArrayDataUpdated() {
+        storage.putStringArray(
+            "string_array",
+            arrayOf("string", "string_1"),
+            Expiry.UNTIL_RESTART
+        )
+        storage.putStringArray(
+            "string_array",
+            arrayOf("string2", "string_3"),
+            Expiry.UNTIL_RESTART
+        )
+        verify {
+            mockEventRouter.onDataUpdated("string_array", arrayOf("string", "string_1"))
+            mockEventRouter.onDataUpdated("string_array", arrayOf("string2", "string_3"))
+        }
+    }
+
+    @Test
+    fun untilRestart_Notifications_NotifyWhenIntArrayDataUpdated() {
+        storage.putIntArray("int_array", arrayOf(10, 11, 12), Expiry.UNTIL_RESTART)
+        storage.putIntArray("int_array", arrayOf(13, 14, 15), Expiry.UNTIL_RESTART)
+        verify {
+            mockEventRouter.onDataUpdated("int_array", arrayOf(10, 11, 12))
+            mockEventRouter.onDataUpdated("int_array", arrayOf(13, 14, 15))
+        }
+    }
+
+    @Test
+    fun untilRestart_Notifications_NotifyWhenDoubleArrayDataUpdated() {
+        storage.putDoubleArray(
+            "double_array",
+            arrayOf(10.1, 11.1, 12.1),
+            Expiry.UNTIL_RESTART
+        )
+        storage.putDoubleArray(
+            "double_array",
+            arrayOf(13.1, 14.1, 15.1),
+            Expiry.UNTIL_RESTART
+        )
+        verify {
+            mockEventRouter.onDataUpdated("double_array", arrayOf(10.1, 11.1, 12.1))
+            mockEventRouter.onDataUpdated("double_array", arrayOf(13.1, 14.1, 15.1))
+        }
+    }
+
+    @Test
+    fun untilRestart_Notifications_NotifyWhenLongArrayDataUpdated() {
+        storage.putLongArray(
+            "long_array",
+            arrayOf(100L, 200L, 300L),
+            Expiry.UNTIL_RESTART
+        )
+        storage.putLongArray(
+            "long_array",
+            arrayOf(400L, 500L, 600L),
+            Expiry.UNTIL_RESTART
+        )
+        verify {
+            mockEventRouter.onDataUpdated("long_array", arrayOf(100L, 200L, 300L))
+            mockEventRouter.onDataUpdated("long_array", arrayOf(400L, 500L, 600L))
+        }
+    }
+
+    @Test
+    fun untilRestart_Notifications_NotifyWhenBooleanArrayDataUpdated() {
+        storage.putBooleanArray(
+            "boolean_array",
+            arrayOf(true, false, true),
+            Expiry.UNTIL_RESTART
+        )
+        storage.putBooleanArray(
+            "boolean_array",
+            arrayOf(false, true, false),
+            Expiry.UNTIL_RESTART
+        )
+        verify {
+            mockEventRouter.onDataUpdated("boolean_array", arrayOf(true, false, true))
+            mockEventRouter.onDataUpdated("boolean_array", arrayOf(false, true, false))
+        }
+    }
+
+    @Test
+    fun untilRestart_Notifications_NotifyWhenJsonArrayDataUpdated() {
+        val json_arr1 = JSONArray("[\"key\",\"value\"]")
+        storage.putJsonArray("json_arr", json_arr1, Expiry.UNTIL_RESTART)
+
+        val json_arr2 = JSONArray("[\"key1\",\"value1\"]")
+        storage.putJsonArray("json_arr", json_arr2, Expiry.UNTIL_RESTART)
+
+        verify {
+            mockEventRouter.onDataUpdated("json_arr", json_arr1)
+            mockEventRouter.onDataUpdated("json_arr", json_arr2)
+        }
+    }
+
+    @Test
+    fun untilRestart_Notifications_NotifyWhenJsonObjectDataUpdated() {
+        val json_obj1 = JSONObject("{\"key\":\"value\"}")
+        storage.putJsonObject("json_obj", json_obj1, Expiry.UNTIL_RESTART)
+
+        val json_obj2 = JSONObject("{\"key\":\"value\"}")
+        storage.putJsonObject("json_obj", json_obj2, Expiry.UNTIL_RESTART)
+
+        verify {
+            mockEventRouter.onDataUpdated("json_obj", json_obj1)
+            mockEventRouter.onDataUpdated("json_obj", json_obj2)
+        }
+    }
+    @Test
+    fun persistentStorage_Notifications_NotifyWhenStringDataUpdated() {
+        storage.putString("string", "string", Expiry.FOREVER)
+        storage.putString("string", "new_string", Expiry.SESSION)
+        verify {
+            mockEventRouter.onDataUpdated("string", "string")
+            mockEventRouter.onDataUpdated("string", "new_string")
+        }
+    }
+
+    @Test
+    fun persistentStorage_Notifications_NotifyWhenIntDataUpdated() {
+        storage.putInt("int", 10, Expiry.FOREVER)
+        storage.putInt("int", 11, Expiry.SESSION)
+        verify {
+            mockEventRouter.onDataUpdated("int", 10)
+            mockEventRouter.onDataUpdated("int", 11)
+        }
+    }
+
+    @Test
+    fun persistentStorage_Notifications_NotifyWhenDoubleDataUpdated() {
+        storage.putDouble("double", 10.1, Expiry.FOREVER)
+        storage.putDouble("double", 11.1, Expiry.SESSION)
+        verify {
+            mockEventRouter.onDataUpdated("double", 10.1)
+            mockEventRouter.onDataUpdated("double", 11.1)
+        }
+    }
+
+    @Test
+    fun persistentStorage_Notifications_NotifyWhenLongDataUpdated() {
+        storage.putLong("long", 100L, Expiry.FOREVER)
+        storage.putLong("long", 110L, Expiry.SESSION)
+        verify {
+            mockEventRouter.onDataUpdated("long", 100L)
+            mockEventRouter.onDataUpdated("long", 110L)
+        }
+    }
+
+    @Test
+    fun persistentStorage_Notifications_NotifyWhenBooleanDataUpdated() {
+        storage.putBoolean("boolean", true, Expiry.FOREVER)
+        storage.putBoolean("boolean", false, Expiry.SESSION)
+        verify {
+            mockEventRouter.onDataUpdated("boolean", true)
+            mockEventRouter.onDataUpdated("boolean", false)
+        }
+    }
+
+    @Test
+    fun persistentStorage_Notifications_NotifyWhenStringArrayDataUpdated() {
+        storage.putStringArray(
+            "string_array",
+            arrayOf("string", "string_1"),
+            Expiry.FOREVER
+        )
+        storage.putStringArray(
+            "string_array",
+            arrayOf("string2", "string_3"),
+            Expiry.SESSION
+        )
+        verify {
+            mockEventRouter.onDataUpdated("string_array", arrayOf("string", "string_1"))
+            mockEventRouter.onDataUpdated("string_array", arrayOf("string2", "string_3"))
+        }
+    }
+
+    @Test
+    fun persistentStorage_Notifications_NotifyWhenIntArrayDataUpdated() {
+        storage.putIntArray("int_array", arrayOf(10, 11, 12), Expiry.FOREVER)
+        storage.putIntArray("int_array", arrayOf(13, 14, 15), Expiry.SESSION)
+        verify {
+            mockEventRouter.onDataUpdated("int_array", arrayOf(10, 11, 12))
+            mockEventRouter.onDataUpdated("int_array", arrayOf(13, 14, 15))
+        }
+    }
+
+    @Test
+    fun persistentStorage_Notifications_NotifyWhenDoubleArrayDataUpdated() {
+        storage.putDoubleArray(
+            "double_array",
+            arrayOf(10.1, 11.1, 12.1),
+            Expiry.FOREVER
+        )
+        storage.putDoubleArray(
+            "double_array",
+            arrayOf(13.1, 14.1, 15.1),
+            Expiry.SESSION
+        )
+        verify {
+            mockEventRouter.onDataUpdated("double_array", arrayOf(10.1, 11.1, 12.1))
+            mockEventRouter.onDataUpdated("double_array", arrayOf(13.1, 14.1, 15.1))
+        }
+    }
+
+    @Test
+    fun persistentStorage_Notifications_NotifyWhenLongArrayDataUpdated() {
+        storage.putLongArray(
+            "long_array",
+            arrayOf(100L, 200L, 300L),
+            Expiry.FOREVER
+        )
+        storage.putLongArray(
+            "long_array",
+            arrayOf(400L, 500L, 600L),
+            Expiry.SESSION
+        )
+        verify {
+            mockEventRouter.onDataUpdated("long_array", arrayOf(100L, 200L, 300L))
+            mockEventRouter.onDataUpdated("long_array", arrayOf(400L, 500L, 600L))
+        }
+    }
+
+    @Test
+    fun persistentStorage_Notifications_NotifyWhenBooleanArrayDataUpdated() {
+        storage.putBooleanArray(
+            "boolean_array",
+            arrayOf(true, false, true),
+            Expiry.FOREVER
+        )
+        storage.putBooleanArray(
+            "boolean_array",
+            arrayOf(false, true, false),
+            Expiry.SESSION
+        )
+        verify {
+            mockEventRouter.onDataUpdated("boolean_array", arrayOf(true, false, true))
+            mockEventRouter.onDataUpdated("boolean_array", arrayOf(false, true, false))
+        }
+    }
+
+    @Test
+    fun persistentStorage_Notifications_NotifyWhenJsonArrayDataUpdated() {
+        val json_arr1 = JSONArray("[\"key\",\"value\"]")
+        storage.putJsonArray("json_arr", json_arr1, Expiry.FOREVER)
+
+        val json_arr2 = JSONArray("[\"key1\",\"value1\"]")
+        storage.putJsonArray("json_arr", json_arr2, Expiry.SESSION)
+
+        verify {
+            mockEventRouter.onDataUpdated("json_arr", match { it.toString() == json_arr1.toString() } )
+            mockEventRouter.onDataUpdated("json_arr", match { it.toString() == json_arr2.toString() })
+        }
+    }
+
+    @Test
+    fun persistentStorage_Notifications_NotifyWhenJsonObjectDataUpdated() {
+        val json_obj1 = JSONObject("{\"key\":\"value\"}")
+        storage.putJsonObject("json_obj", json_obj1, Expiry.FOREVER)
+
+        val json_obj2 = JSONObject("{\"key\":\"value\"}")
+        storage.putJsonObject("json_obj", json_obj2, Expiry.SESSION)
+
+        verify {
+            mockEventRouter.onDataUpdated("json_obj", match { it.toString() == json_obj1.toString() })
+            mockEventRouter.onDataUpdated("json_obj", match { it.toString() == json_obj2.toString() })
+        }
     }
 
     @After

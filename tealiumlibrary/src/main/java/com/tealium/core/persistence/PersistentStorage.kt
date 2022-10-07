@@ -1,12 +1,16 @@
 package com.tealium.core.persistence
 
 import com.tealium.core.Logger
+import com.tealium.core.messaging.EventRouter
 import com.tealium.core.messaging.NewSessionListener
 import com.tealium.tealiumlibrary.BuildConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
-import java.lang.Exception
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.Exception
 
 /**
  *  Key Value storage backed by a SQLite database.
@@ -21,12 +25,39 @@ import java.util.concurrent.ConcurrentHashMap
 internal class PersistentStorage(
     dbHelper: DatabaseHelper,
     private val tableName: String,
+    private val volatileData: MutableMap<String, Any> = ConcurrentHashMap(),
+    private val eventRouter: EventRouter,
+    private val backgroundScope: CoroutineScope = CoroutineScope(Dispatchers.Default),
     private val dao: KeyValueDao<String, PersistentItem> = PersistentStorageDao(
         dbHelper,
         tableName,
-        false
-    ).also { it.purgeExpired() },
-    private val volatileData: MutableMap<String, Any> = ConcurrentHashMap()
+        false,
+        onDataUpdated = { k, v ->
+            backgroundScope.launch {
+                try {
+                    val value = v.deserialize()
+                    eventRouter.onDataUpdated(k, value ?: v.value)
+                } catch (e: Exception) {
+                    Logger.dev(
+                        BuildConfig.TAG,
+                        "Exception handling onDataUpdated($k, $v): ${e.message}"
+                    )
+                }
+            }
+        },
+        onDataRemoved = { keys ->
+            backgroundScope.launch {
+                try {
+                    eventRouter.onDataRemoved(keys)
+                } catch (e: Exception) {
+                    Logger.dev(
+                        BuildConfig.TAG,
+                        "Exception handling onDataRemoved($keys): ${e.message}"
+                    )
+                }
+            }
+        },
+    ).also { it.purgeExpired() }
 ) : DataLayer,
     NewSessionListener {
 
@@ -104,6 +135,7 @@ internal class PersistentStorage(
         if (expiry == Expiry.UNTIL_RESTART) {
             volatileData[key] = value as Any
             dao.delete(key)
+            notifyUpdated(key, value as Any)
         } else {
             dao.upsert(PersistentItem(key, serializer.serialize(value), expiry, type = type))
             volatileData.remove(key);
@@ -197,16 +229,18 @@ internal class PersistentStorage(
     }
 
     override fun get(key: String): Any? {
-        return volatileData[key] ?: dao.get(key)?.let {
-            Serdes.serdeFor(it.type.clazz)?.deserializer?.deserialize(it.value)
-        }
+        return volatileData[key] ?: dao.get(key)?.deserialize()
     }
 
     override fun all(): Map<String, Any> {
         return dao.getAll().mapValues {
-            val serde = Serdes.serdeFor(it.value.type.clazz)
-            serde?.deserializer?.deserialize(it.value.value) ?: it.value.value
-        }.plus(volatileData)
+            it.value.deserialize() ?: it.value.value
+        }.plus(volatileData).also {
+            backgroundScope.launch {
+                // expire any stored data
+                dao.purgeExpired()
+            }
+        }
     }
 
     private fun <T> getItem(key: String, deserializer: Deserializer<T>): T? {
@@ -226,12 +260,18 @@ internal class PersistentStorage(
         // if it was stored in memory, no need to empty it from storage
         if (item == null) {
             dao.delete(key)
+        } else {
+            notifyRemoved(key)
         }
     }
 
     override fun clear() {
+        val keys = volatileData.keys.toSet()
+
         volatileData.clear()
         dao.clear()
+
+        notifyRemoved(keys)
     }
 
     override fun contains(key: String): Boolean {
@@ -250,11 +290,48 @@ internal class PersistentStorage(
         return if (volatileData.containsKey(key)) Expiry.UNTIL_RESTART else dao.get(key)?.expiry
     }
 
+    private fun notifyUpdated(key: String, value: Any) {
+        backgroundScope.launch {
+            try {
+                eventRouter.onDataUpdated(key, value)
+            } catch (e: Exception) {
+                Logger.dev(
+                    BuildConfig.TAG,
+                    "Exception handling onDataUpdated($key, $value): ${e.message}"
+                )
+            }
+        }
+    }
+
+    private fun notifyRemoved(key: String) {
+        notifyRemoved(setOf(key))
+    }
+
+    private fun notifyRemoved(keys: Set<String>) {
+        backgroundScope.launch {
+            try {
+                eventRouter.onDataRemoved(keys)
+            } catch (e: Exception) {
+                Logger.dev(BuildConfig.TAG, "Exception handling onDataRemoved($keys): ${e.message}")
+            }
+        }
+    }
+
+    override fun subscribe(listener: DataLayer.DataLayerUpdatedListener) {
+        eventRouter.subscribe(listener)
+    }
+
+    override fun unsubscribe(listener: DataLayer.DataLayerUpdatedListener) {
+        eventRouter.unsubscribe(listener)
+    }
+
     override fun onNewSession(sessionId: Long) {
-        dao.getAll().filter {
-            it.value.expiry == Expiry.SESSION
-        }.forEach {
-            dao.delete(it.key)
+        (dao as? PersistentStorageDao)?.onNewSession(sessionId) ?: run {
+            dao.getAll().filter {
+                it.value.expiry == Expiry.SESSION
+            }.forEach {
+                dao.delete(it.key)
+            }
         }
     }
 }
