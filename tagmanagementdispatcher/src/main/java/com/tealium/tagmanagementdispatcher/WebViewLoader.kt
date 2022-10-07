@@ -1,24 +1,21 @@
 package com.tealium.tagmanagementdispatcher
 
 import android.annotation.TargetApi
+import android.net.Uri
 import android.net.http.SslError
 import android.os.Build
 import android.os.SystemClock
 import android.view.View
 import android.webkit.*
-import com.tealium.core.Logger
-import com.tealium.core.TealiumConfig
-import com.tealium.core.TealiumContext
-import com.tealium.core.messaging.AfterDispatchSendCallbacks
-import com.tealium.core.messaging.LibrarySettingsUpdatedListener
-import com.tealium.core.messaging.SessionStartedListener
-import com.tealium.core.messaging.ValidationChangedMessenger
+import com.tealium.core.*
+import com.tealium.core.messaging.*
 import com.tealium.core.network.Connectivity
 import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandRequest
 import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
 import org.json.JSONObject
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -37,12 +34,13 @@ class WebViewLoader(
     var lastUrlLoadTimestamp = 0L
     private var isWifiOnlySending = false
     private var timeoutInterval = -1
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val mainScope = CoroutineScope(Dispatchers.Main)
     private val backgroundScope = CoroutineScope(Dispatchers.IO)
     private var sessionId: Long = INVALID_SESSION_ID
     private val shouldRegisterSession = AtomicBoolean(false)
     private val webViewCreationRetries = 3
     private val sessionCountingEnabled: Boolean = context.config.sessionCountingEnabled ?: true
+    private var queryParams: Map<String, List<String>> = emptyMap()
 
     @Volatile
     private var webViewCreationErrorCount = 0
@@ -231,7 +229,7 @@ class WebViewLoader(
             detail: RenderProcessGoneDetail?
         ): Boolean {
             view?.destroy()
-            webViewStatus.set(PageStatus.LOADED_ERROR)
+            webViewStatus.set(PageStatus.INIT)
             initializeWebView()
             return true
         }
@@ -242,18 +240,52 @@ class WebViewLoader(
         context.events.subscribe(this)
     }
 
-    private fun initializeWebView() {
-        scope.launch {
-            if (hasReachedMaxErrors()) return@launch
+    private fun decorateUrlParams(urlString: String, params: Map<String, List<String>>): String {
+        if (params.isEmpty()) {
+            return urlString
+        }
+        val uriBuilder = Uri.parse(urlString).buildUpon()
+        params.forEach { entry ->
+            entry.value.forEach { value ->
+                uriBuilder.appendQueryParameter(entry.key, value)
+            }
+        }
+
+        return uriBuilder.build().toString()
+    }
+
+    private suspend fun fetchQueryParams(): Map<String, List<String>> {
+        val queryParams = mutableMapOf<String, List<String>>()
+
+        context.tealium.modules.getModulesForType(Module::class.java)
+            .filterIsInstance(QueryParameterProvider::class.java).map { provider ->
+                backgroundScope.async {
+                    provider.provideParameters().let { params ->
+                        if (params.isNotEmpty()) {
+                            queryParams.putAll(params)
+                        }
+                    }
+                }
+            }.awaitAll()
+        return queryParams.toMap()
+    }
+
+    internal fun initializeWebView() : Deferred<Unit> {
+        return mainScope.async {
+            // ensure only initializing once
+            if (!webViewStatus.compareAndSet(PageStatus.INIT, PageStatus.INITIALIZING)) return@async
+            if (hasReachedMaxErrors()) return@async
 
             try {
                 webView = webViewProvider()
+                queryParams = fetchQueryParams()
             } catch (ex: Exception) {
                 webViewCreationErrorCount++
+                webViewStatus.set(PageStatus.INIT)
                 Logger.qa(BuildConfig.TAG, "Exception whilst creating the WebView: ${ex.message}")
                 Logger.qa(BuildConfig.TAG, ex.stackTraceToString())
                 context.events.send(WebViewExceptionMessenger(ex))
-                return@launch
+                return@async
             }
             webView.let { view ->
                 view.settings.run {
@@ -269,6 +301,7 @@ class WebViewLoader(
                 view.webChromeClient = WebChromeClientLoader()
                 view.webViewClient = webViewClient
             }
+            webViewStatus.set(PageStatus.INITIALIZED)
 
             loadUrlToWebView()
             enableCookieManager()
@@ -326,19 +359,16 @@ class WebViewLoader(
             return
         }
 
-        if (!this::webView.isInitialized) {
-            initializeWebView()
-            return
-        }
-
-        val oldStatus = webViewStatus.getAndSet(PageStatus.LOADING)
-        if (oldStatus != PageStatus.LOADING) {
+        if (webViewStatus.compareAndSet(PageStatus.INITIALIZED, PageStatus.LOADING)
+            || webViewStatus.compareAndSet(PageStatus.LOADED_ERROR, PageStatus.LOADING)
+        ) {
+            val decoratedUrl = decorateUrlParams(urlString, queryParams)
             val cacheBuster = if (urlString.contains("?")) '&' else '?'
             val timestamp = "timestamp_unix=${(System.currentTimeMillis() / 1000)}"
-            val url = "$urlString$cacheBuster$timestamp"
+            val url = "$decoratedUrl$cacheBuster$timestamp"
 
             try {
-                scope.launch {
+                mainScope.launch {
                     webView.loadUrl(url)
                 }
             } catch (t: Throwable) {
