@@ -320,8 +320,30 @@ class WebViewLoaderTest {
     }
 
     @Test
-    fun decorateWebView_TimeoutProviderParams() {
+    fun decorateWebView_TimeoutReachedForDelayedProviderParams() = runBlocking {
+        val mockUriBuilder = mockk<Uri.Builder>()
+        mockkStatic(Uri::class)
+        every { Uri.parse(any()).buildUpon() } returns mockUriBuilder
+        every { mockUriBuilder.appendQueryParameter(any(), any()) } returns mockUriBuilder
+        every { mockUriBuilder.build() } returns mockk()
+        every { mockUriBuilder.build().toString() } returns ""
 
+        every { mockConnectivity.isConnected() } returns false
+        every { mockTealiumContext.events } returns mockMessengerService
+        every { mockTealiumContext.tealium.modules } returns mockk()
+        every { mockTealiumContext.tealium.modules.getModulesForType(Module::class.java) } returns setOf(DelayedQueryParamProviderModule.create(mockTealiumContext))
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        delay(50)
+        webViewLoader.webView = mockWebView
+        every { mockConnectivity.isConnected() } returns true
+
+        webViewLoader.loadUrlToWebView()
+
+        verify {
+            webViewLoader.webView.loadUrl(match {
+                !it.contains("QueryParamProvider_value1")
+            })
+        }
     }
 }
 
@@ -330,6 +352,22 @@ private class QueryParamProviderModule: Module, QueryParameterProvider {
     override var enabled: Boolean = true
 
     override suspend fun provideParameters(): Map<String, List<String>> {
+        return mapOf("query_param1" to listOf("QueryParamProvider_value1"))
+    }
+
+    companion object : ModuleFactory {
+        override fun create(context: TealiumContext): Module {
+            return QueryParamProviderModule()
+        }
+    }
+}
+
+private class DelayedQueryParamProviderModule: Module, QueryParameterProvider {
+    override val name: String = "test"
+    override var enabled: Boolean = true
+
+    override suspend fun provideParameters(): Map<String, List<String>> {
+        delay(9000)
         return mapOf("query_param1" to listOf("QueryParamProvider_value1"))
     }
 
