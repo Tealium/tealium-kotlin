@@ -257,20 +257,26 @@ class WebViewLoader(
     private suspend fun fetchQueryParams(): Map<String, List<String>> {
         val queryParams = mutableMapOf<String, List<String>>()
 
-        context.tealium.modules.getModulesForType(Module::class.java)
-            .filterIsInstance(QueryParameterProvider::class.java).map { provider ->
-                backgroundScope.async {
-                    provider.provideParameters().let { params ->
-                        if (params.isNotEmpty()) {
-                            queryParams.putAll(params)
+        try {
+            withTimeout(PARAM_PROVIDERS_TIMEOUT) {
+                context.tealium.modules.getModulesForType(Module::class.java)
+                    .filterIsInstance(QueryParameterProvider::class.java).map { provider ->
+                        backgroundScope.async {
+                            provider.provideParameters().let { params ->
+                                if (params.isNotEmpty()) {
+                                    queryParams.putAll(params)
+                                }
+                            }
                         }
-                    }
-                }
-            }.awaitAll()
+                    }.awaitAll()
+            }
+        } catch (e: TimeoutCancellationException) {
+            Logger.qa(BuildConfig.TAG, "Timeout reached when fetching query parameters")
+        }
         return queryParams.toMap()
     }
 
-    internal fun initializeWebView() : Deferred<Unit> {
+    internal fun initializeWebView(): Deferred<Unit> {
         return mainScope.async {
             // ensure only initializing once
             if (!webViewStatus.compareAndSet(PageStatus.INIT, PageStatus.INITIALIZING)) return@async
@@ -424,6 +430,7 @@ class WebViewLoader(
         const val SESSION_URL_TEMPLATE =
             "https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=%s/%s/%s&cb=%s"
         const val INVALID_SESSION_ID = -1L
+        const val PARAM_PROVIDERS_TIMEOUT = 5000L
 
         private fun isFavicon(url: String): Boolean {
             return url.toLowerCase(Locale.ROOT).contains("favicon.ico")

@@ -240,6 +240,18 @@ class VisitorProfileManagerTest {
     }
 
     @Test
+    fun resetVisitorProfileOnNewVisitorId() {
+        val visitorProfileManager = spyk(VisitorManager(mockContext))
+
+        visitorProfileManager.onVisitorIdUpdated("newTestId")
+
+        coVerify {
+            visitorProfileManager.saveVisitorProfile(any())
+            visitorProfileManager.requestVisitorProfile()
+        }
+    }
+
+    @Test
     fun listener_IsCalled() {
         val visitorUpdatedListener: VisitorUpdatedListener = mockk()
         every { visitorUpdatedListener.onVisitorUpdated(any()) } just Runs

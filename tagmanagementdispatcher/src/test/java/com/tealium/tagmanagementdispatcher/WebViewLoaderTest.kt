@@ -318,6 +318,11 @@ class WebViewLoaderTest {
             })
         }
     }
+
+    @Test
+    fun decorateWebView_TimeoutProviderParams() {
+
+    }
 }
 
 private class QueryParamProviderModule: Module, QueryParameterProvider {
