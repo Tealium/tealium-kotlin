@@ -1,5 +1,30 @@
 # Change Log
 
+- 1.5.0 Oct 2022
+  - Visitor Switching
+    - Additional TealiumConfig option `visitorIdentityKey` to configure where to find a known identity in the DataLayer
+    - Known identities are hashed and linked to the `tealium_visitor_id` to allow better switching between returning identities
+  - Additional listeners
+    - `VisitorIdUpdatedListener` - notifies when the visitor id has been updated, either as a result of switching identities or of resetting the visitor id
+    - `DataLayerUpdatedListener`
+      - `onDataUpdated(String, Any)` - notifies that a value has been updated in the DataLayer 
+      - `onDataRemoved(Set<String>)` - notifies that the given keys have been removed from the DataLayer, either by user interaction or data expiration
+  - RemoteCommandDispatcher 1.2.0
+    - Support for default mapping `all_events` and `all_views` in the JSON mappings file to enable triggering specified commands in response to every view/event
+  - TagManagement 1.2.0
+    - `QueryParameterProvider` - allows additional parameters to be added to the URL used for the TagManagement module
+    - Improved WebView instantiation and page load management
+  - Kotlin Dependency updates 
+    - Stdlib: 1.6.21
+    - Coroutines: 1.6.2
+- 1.4.3 Sep 2022
+  - Core 1.4.3
+     - DeviceCollector Bug fix - Correct calculation for tealium_logical_resolution
+  - TagManagement 1.1.3
+    - Bug fix - Relocate sessionCountingEnabled to fix miscount on fresh launch
+  - VisitorService 1.1.1
+     - Bug fix - Move VisitorService profile override to earlier initialization
+  - Location: Add missing Proguard rules for new classes
 - 1.4.2 Jun 2022
   - Core 1.4.2
     - Add `overrideConsentCategoriesKey` to `TealiumConfig` to allow for a custom consent categories key
