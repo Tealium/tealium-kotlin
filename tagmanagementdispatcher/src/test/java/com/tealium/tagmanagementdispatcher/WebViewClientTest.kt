@@ -280,11 +280,11 @@ class WebViewClientTest {
     @Test
     fun webViewClient_CrashRecreatesWebView() = runBlocking {
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
-        delay(50)
+        delay(300)
         val originalWebView = webViewLoader.webView
 
         webViewLoader.webViewClient.onRenderProcessGone(mockWebView, null)
-        delay(50)
+        delay(300)
 
         assertNotSame(originalWebView, webViewLoader.webView)
         verify(exactly = 1, timeout = 1000) {
