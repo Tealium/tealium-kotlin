@@ -333,7 +333,7 @@ class WebViewLoaderTest {
         every { mockTealiumContext.tealium.modules } returns mockk()
         every { mockTealiumContext.tealium.modules.getModulesForType(Module::class.java) } returns setOf(DelayedQueryParamProviderModule.create(mockTealiumContext))
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
-        delay(50)
+        delay(WebViewLoader.PARAM_PROVIDERS_TIMEOUT + 1000L)
         webViewLoader.webView = mockWebView
         every { mockConnectivity.isConnected() } returns true
 
@@ -373,7 +373,7 @@ private class DelayedQueryParamProviderModule: Module, QueryParameterProvider {
 
     companion object : ModuleFactory {
         override fun create(context: TealiumContext): Module {
-            return QueryParamProviderModule()
+            return DelayedQueryParamProviderModule()
         }
     }
 }
