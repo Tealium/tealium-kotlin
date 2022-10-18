@@ -4,7 +4,8 @@ import com.tealium.core.*
 import com.tealium.core.messaging.*
 import com.tealium.core.network.ResourceRetriever
 import com.tealium.dispatcher.Dispatch
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -33,10 +34,11 @@ class VisitorManager(private val context: TealiumContext,
                      private val visitorServiceUrl: String =
                              context.config.overrideVisitorServiceUrl
                                      ?: DEFAULT_VISITOR_SERVICE_TEMPLATE,
-                     private val loader: Loader = JsonLoader(context.config.application)) : VisitorProfileManager, DispatchSendListener, BatchDispatchSendListener {
+                     private val loader: Loader = JsonLoader(context.config.application)) : VisitorProfileManager, DispatchSendListener, BatchDispatchSendListener, VisitorIdUpdatedListener {
 
     private val file = File(context.config.tealiumDirectory, VISITOR_PROFILE_FILENAME)
     private val visitorServiceProfileOverride: String? = context.config.overrideVisitorServiceProfile
+    private val backgroundScope = CoroutineScope(Dispatchers.Default)
 
     val isUpdating = AtomicBoolean(false)
     private var lastUpdate: Long = -1L
@@ -97,6 +99,14 @@ class VisitorManager(private val context: TealiumContext,
         updateProfile()
     }
 
+    override fun onVisitorIdUpdated(visitorId: String) {
+        backgroundScope.launch {
+            _visitorProfile = VisitorProfile() // empty visitor
+            saveVisitorProfile(VisitorProfile()) // empty visitor saved to file
+            requestVisitorProfile()
+        }
+    }
+
     suspend fun updateProfile() {
         if (refreshIntervalReached()) {
             requestVisitorProfile()
@@ -148,7 +158,7 @@ class VisitorManager(private val context: TealiumContext,
         const val VISITOR_PROFILE_FILENAME = "visitor_profile.json"
         const val DEFAULT_REFRESH_INTERVAL = 300L
 
-        // url replacememts
+        // url replacements
         const val PLACEHOLDER_ACCOUNT = "{{account}}"
         const val PLACEHOLDER_PROFILE = "{{profile}}"
         const val PLACEHOLDER_VISITOR_ID = "{{visitorId}}"
