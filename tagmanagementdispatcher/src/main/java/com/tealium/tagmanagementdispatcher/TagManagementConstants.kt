@@ -13,5 +13,7 @@ enum class PageStatus {
     LOADED_SUCCESS,
     LOADED_ERROR,
     LOADING,
-    INIT
+    INIT,
+    INITIALIZING,
+    INITIALIZED
 }

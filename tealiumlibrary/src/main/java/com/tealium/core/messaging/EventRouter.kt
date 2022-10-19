@@ -5,6 +5,7 @@ import com.tealium.core.Module
 import com.tealium.core.Tealium
 import com.tealium.core.consent.ConsentManagementPolicy
 import com.tealium.core.consent.UserConsentPreferences
+import com.tealium.core.persistence.DataLayer
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
@@ -27,6 +28,8 @@ interface EventRouter :
         SessionStartedListener,
         UserConsentPreferencesUpdatedListener,
         InstanceShutdownListener,
+        VisitorIdUpdatedListener,
+        DataLayer.DataLayerUpdatedListener,
         Subscribable {
 
     fun <T : Listener> send(messenger: Messenger<T>)
@@ -150,7 +153,10 @@ class EventDispatcher : EventRouter {
     override fun onActivityStopped(activity: Activity?, isChangingConfiguration: Boolean) {
         listeners.forEach {
             when (it) {
-                is ActivityObserverListener -> it.onActivityStopped(activity, isChangingConfiguration)
+                is ActivityObserverListener -> it.onActivityStopped(
+                    activity,
+                    isChangingConfiguration
+                )
             }
         }
     }
@@ -187,10 +193,16 @@ class EventDispatcher : EventRouter {
         }
     }
 
-    override fun onUserConsentPreferencesUpdated(userConsentPreferences: UserConsentPreferences, policy: ConsentManagementPolicy) {
+    override fun onUserConsentPreferencesUpdated(
+        userConsentPreferences: UserConsentPreferences,
+        policy: ConsentManagementPolicy
+    ) {
         listeners.forEach {
             when (it) {
-                is UserConsentPreferencesUpdatedListener -> it.onUserConsentPreferencesUpdated(userConsentPreferences, policy)
+                is UserConsentPreferencesUpdatedListener -> it.onUserConsentPreferencesUpdated(
+                    userConsentPreferences,
+                    policy
+                )
             }
         }
     }
@@ -199,6 +211,30 @@ class EventDispatcher : EventRouter {
         listeners.forEach {
             when (it) {
                 is InstanceShutdownListener -> it.onInstanceShutdown(name, instance)
+            }
+        }
+    }
+
+    override fun onVisitorIdUpdated(visitorId: String) {
+        listeners.forEach {
+            when (it) {
+                is VisitorIdUpdatedListener -> it.onVisitorIdUpdated(visitorId)
+            }
+        }
+    }
+
+    override fun onDataUpdated(key: String, value: Any) {
+        listeners.forEach {
+            when (it) {
+                is DataLayer.DataLayerUpdatedListener -> it.onDataUpdated(key, value)
+            }
+        }
+    }
+
+    override fun onDataRemoved(keys: Set<String>) {
+        listeners.forEach {
+            when (it) {
+                is DataLayer.DataLayerUpdatedListener -> it.onDataRemoved(keys)
             }
         }
     }

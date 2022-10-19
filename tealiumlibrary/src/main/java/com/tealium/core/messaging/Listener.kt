@@ -139,3 +139,11 @@ interface InstanceShutdownListener: Listener {
      */
     fun onInstanceShutdown(name: String, instance: WeakReference<Tealium>)
 }
+
+interface VisitorIdUpdatedListener: Listener {
+
+    /**
+     * Notifies that the existing VisitorId has been changed
+     */
+    fun onVisitorIdUpdated(visitorId: String)
+}

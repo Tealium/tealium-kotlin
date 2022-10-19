@@ -204,16 +204,88 @@ class TagManagementDispatcherTest {
     }
 
     @Test
-    fun dispatchReady_LoadsUrl_IfNotLoaded() {
+    fun dispatchReady_InitialisesWebView_WhenNotInitialized() {
         val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
         tagManagementDispatcher.webViewLoader = mockWebViewLoader
         every { mockWebViewLoader.webViewStatus.get() } returns PageStatus.INIT
+        every { mockWebViewLoader.initializeWebView() } returns mockk()
+
+        val dispatch = TealiumEvent("test", mapOf("key" to "value"))
+        tagManagementDispatcher.onDispatchReady(dispatch)
+
+        coVerify { mockWebViewLoader.initializeWebView() }
+    }
+
+    @Test
+    fun dispatchReady_LoadsUrl_WhenInitialized_AndTimedOut() {
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        tagManagementDispatcher.webViewLoader = mockWebViewLoader
+        every { mockWebViewLoader.webViewStatus.get() } returns PageStatus.INITIALIZED
         every { mockWebViewLoader.loadUrlToWebView() } just Runs
+        every { mockWebViewLoader.isTimedOut() } returns true
 
         val dispatch = TealiumEvent("test", mapOf("key" to "value"))
         tagManagementDispatcher.onDispatchReady(dispatch)
 
         coVerify { mockWebViewLoader.loadUrlToWebView() }
+    }
+
+    @Test
+    fun dispatchReady_DoesNothing_WhenInitialized_AndNotTimedOut() {
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        tagManagementDispatcher.webViewLoader = mockWebViewLoader
+        every { mockWebViewLoader.webViewStatus.get() } returns PageStatus.INITIALIZED
+        every { mockWebViewLoader.loadUrlToWebView() } just Runs
+        every { mockWebViewLoader.isTimedOut() } returns false
+
+        val dispatch = TealiumEvent("test", mapOf("key" to "value"))
+        tagManagementDispatcher.onDispatchReady(dispatch)
+
+        coVerify(exactly = 0) { mockWebViewLoader.loadUrlToWebView() }
+    }
+
+    @Test
+    fun dispatchReady_LoadsUrl_WhenLoadedError_AndTimedOut() {
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        tagManagementDispatcher.webViewLoader = mockWebViewLoader
+        every { mockWebViewLoader.webViewStatus.get() } returns PageStatus.LOADED_ERROR
+        every { mockWebViewLoader.loadUrlToWebView() } just Runs
+        every { mockWebViewLoader.isTimedOut() } returns true
+
+        val dispatch = TealiumEvent("test", mapOf("key" to "value"))
+        tagManagementDispatcher.onDispatchReady(dispatch)
+
+        coVerify { mockWebViewLoader.loadUrlToWebView() }
+    }
+
+    @Test
+    fun dispatchReady_DoesNothing_WhenLoadedError_AndNotTimedOut() {
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        tagManagementDispatcher.webViewLoader = mockWebViewLoader
+        every { mockWebViewLoader.webViewStatus.get() } returns PageStatus.LOADED_ERROR
+        every { mockWebViewLoader.loadUrlToWebView() } just Runs
+        every { mockWebViewLoader.isTimedOut() } returns false
+
+        val dispatch = TealiumEvent("test", mapOf("key" to "value"))
+        tagManagementDispatcher.onDispatchReady(dispatch)
+
+        coVerify(exactly = 0) { mockWebViewLoader.loadUrlToWebView() }
+    }
+
+    @Test
+    fun dispatchReady_DoesNothing_WhenInitializing() {
+        val tagManagementDispatcher = TagManagementDispatcher(mockTealiumContext, mockDispatchSendCallbacks, mockConnectivity)
+        tagManagementDispatcher.webViewLoader = mockWebViewLoader
+        every { mockWebViewLoader.webViewStatus.get() } returns PageStatus.INITIALIZING
+        every { mockWebViewLoader.loadUrlToWebView() } just Runs
+
+        val dispatch = TealiumEvent("test", mapOf("key" to "value"))
+        tagManagementDispatcher.onDispatchReady(dispatch)
+
+        coVerify(exactly = 0) {
+            mockWebViewLoader.loadUrlToWebView()
+            mockWebViewLoader.initializeWebView()
+        }
     }
 
     @Test

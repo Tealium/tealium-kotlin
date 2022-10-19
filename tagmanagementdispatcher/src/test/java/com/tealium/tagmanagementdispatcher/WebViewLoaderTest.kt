@@ -1,10 +1,10 @@
 package com.tealium.tagmanagementdispatcher
 
 import android.app.Application
+import android.net.Uri
 import android.os.SystemClock
 import android.webkit.*
-import com.tealium.core.TealiumConfig
-import com.tealium.core.TealiumContext
+import com.tealium.core.*
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.messaging.MessengerService
 import com.tealium.core.network.Connectivity
@@ -14,6 +14,7 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.setMain
 import org.junit.Assert.*
 import org.junit.Before
@@ -53,6 +54,9 @@ class WebViewLoaderTest {
     @RelaxedMockK
     lateinit var mockMessengerService: MessengerService
 
+    @MockK
+    lateinit var mockWebViewProvider: () -> WebView
+
     lateinit var webViewLoader: WebViewLoader
     private val mainThreadSurrogate = newSingleThreadContext("UI thread")
 
@@ -70,6 +74,7 @@ class WebViewLoaderTest {
         every { mockTealiumContext.config } returns mockTealiumConfig
         every { mockTealiumContext.httpClient } returns mockHttpClient
         every { mockTealiumContext.events } returns mockMessengerService
+        every { mockWebViewProvider() } returns mockWebView
 
         mockkConstructor(WebView::class)
         every {
@@ -221,14 +226,34 @@ class WebViewLoaderTest {
     }
 
     @Test
-    fun initializeWebView_OnlyTriesThreeTimes_WhenWebViewFailsToLoad() {
+    fun initializeWebView_OnlyInitializes_WhenStatusIsInit() = runBlocking {
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockWebViewProvider)
+        delay(50)
+
+        webViewLoader.initializeWebView().await()
+        webViewLoader.webViewStatus.set(PageStatus.INITIALIZED)
+        webViewLoader.initializeWebView().await()
+        webViewLoader.webViewStatus.set(PageStatus.LOADING)
+        webViewLoader.initializeWebView().await()
+        webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
+        webViewLoader.initializeWebView().await()
+        webViewLoader.webViewStatus.set(PageStatus.LOADED_ERROR)
+        webViewLoader.initializeWebView().await()
+
+        verify(exactly = 1) {
+            mockWebViewProvider()
+        }
+    }
+
+    @Test
+    fun initializeWebView_OnlyTriesThreeTimes_WhenWebViewFailsToLoad() = runBlocking {
         val mockProvider = spyk<() -> WebView>({
             throw Exception()
         })
 
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockProvider)
         repeat (5) {
-            webViewLoader.loadUrlToWebView()
+            webViewLoader.initializeWebView().await()
         }
 
         verify(exactly = 3) {
@@ -237,13 +262,13 @@ class WebViewLoaderTest {
     }
 
     @Test
-    fun initializeWebView_CallsListener_WhenFailsToCreate() {
+    fun initializeWebView_CallsListener_WhenFailsToCreate() = runBlocking {
         val mockProvider = spyk<() -> WebView>({
             throw Exception()
         })
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockProvider)
         repeat (5) {
-            webViewLoader.loadUrlToWebView()
+            webViewLoader.initializeWebView().await()
         }
 
         verify(exactly = 3) {
@@ -258,11 +283,97 @@ class WebViewLoaderTest {
         })
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockProvider)
 
-        repeat (3) {
-            assertFalse(webViewLoader.hasReachedMaxErrors())
-            webViewLoader.loadUrlToWebView()
+        runBlocking {
+            repeat (2) { // called once already on init
+                assertFalse(webViewLoader.hasReachedMaxErrors())
+                webViewLoader.initializeWebView().await()
+            }
         }
-        delay(500)
         assertTrue(webViewLoader.hasReachedMaxErrors())
+    }
+
+    @Test
+    fun decorateWebView_WithProviderParams() = runBlocking {
+        val mockUriBuilder = mockk<Uri.Builder>()
+        mockkStatic(Uri::class)
+        every { Uri.parse(any()).buildUpon() } returns mockUriBuilder
+        every { mockUriBuilder.appendQueryParameter(any(), any()) } returns mockUriBuilder
+        every { mockUriBuilder.build() } returns mockk()
+        every { mockUriBuilder.build().toString() } returns "QueryParamProvider_value1"
+
+        every { mockConnectivity.isConnected() } returns false
+        every { mockTealiumContext.events } returns mockMessengerService
+        every { mockTealiumContext.tealium.modules } returns mockk()
+        every { mockTealiumContext.tealium.modules.getModulesForType(Module::class.java) } returns setOf(QueryParamProviderModule.create(mockTealiumContext))
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        delay(50)
+        webViewLoader.webView = mockWebView
+        every { mockConnectivity.isConnected() } returns true
+
+        webViewLoader.loadUrlToWebView()
+
+        verify {
+            webViewLoader.webView.loadUrl(match {
+                it.contains("QueryParamProvider_value1")
+            })
+        }
+    }
+
+    @Test
+    fun decorateWebView_TimeoutReachedForDelayedProviderParams() = runBlocking {
+        val mockUriBuilder = mockk<Uri.Builder>()
+        mockkStatic(Uri::class)
+        every { Uri.parse(any()).buildUpon() } returns mockUriBuilder
+        every { mockUriBuilder.appendQueryParameter(any(), any()) } returns mockUriBuilder
+        every { mockUriBuilder.build() } returns mockk()
+        every { mockUriBuilder.build().toString() } returns ""
+
+        every { mockConnectivity.isConnected() } returns false
+        every { mockTealiumContext.events } returns mockMessengerService
+        every { mockTealiumContext.tealium.modules } returns mockk()
+        every { mockTealiumContext.tealium.modules.getModulesForType(Module::class.java) } returns setOf(DelayedQueryParamProviderModule.create(mockTealiumContext))
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        delay(WebViewLoader.PARAM_PROVIDERS_TIMEOUT + 1000L)
+        webViewLoader.webView = mockWebView
+        every { mockConnectivity.isConnected() } returns true
+
+        webViewLoader.loadUrlToWebView()
+
+        verify {
+            webViewLoader.webView.loadUrl(match {
+                !it.contains("QueryParamProvider_value1")
+            })
+        }
+    }
+}
+
+private class QueryParamProviderModule: Module, QueryParameterProvider {
+    override val name: String = "test"
+    override var enabled: Boolean = true
+
+    override suspend fun provideParameters(): Map<String, List<String>> {
+        return mapOf("query_param1" to listOf("QueryParamProvider_value1"))
+    }
+
+    companion object : ModuleFactory {
+        override fun create(context: TealiumContext): Module {
+            return QueryParamProviderModule()
+        }
+    }
+}
+
+private class DelayedQueryParamProviderModule: Module, QueryParameterProvider {
+    override val name: String = "test"
+    override var enabled: Boolean = true
+
+    override suspend fun provideParameters(): Map<String, List<String>> {
+        delay(9000)
+        return mapOf("query_param1" to listOf("QueryParamProvider_value1"))
+    }
+
+    companion object : ModuleFactory {
+        override fun create(context: TealiumContext): Module {
+            return DelayedQueryParamProviderModule()
+        }
     }
 }

@@ -57,7 +57,7 @@ class WebViewClientTest {
 
     lateinit var webViewLoader: WebViewLoader
     private val mainThreadSurrogate = newSingleThreadContext("UI thread")
-
+    private val mockWebViewProvider: () -> WebView = { mockWebView }
 
     @Before
     fun setUp() {
@@ -112,25 +112,25 @@ class WebViewClientTest {
     fun webView_Init_DoesNotLoadUrlWithoutConnectivity() = runBlocking {
         every { mockConnectivity.isConnected() } returns false
 
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
-        delay(50)
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockWebViewProvider)
+        delay(150)
 
         // called on init too, but check anyway
         webViewLoader.loadUrlToWebView()
 
-        assertEquals(PageStatus.INIT, webViewLoader.webViewStatus.get())
+        assertEquals(PageStatus.INITIALIZED, webViewLoader.webViewStatus.get())
         verify(exactly = 0, timeout = 1000) {
             webViewLoader.webView.loadUrl(any())
         }
     }
 
     @Test
-    fun webView_Init_DoesNotLoadUrlWithoutConnectivity_ButDoesWhenConnectivityReturns() {
+    fun webView_Init_DoesNotLoadUrlWithoutConnectivity_ButDoesWhenConnectivityReturns() = runBlocking {
         every { mockConnectivity.isConnected() } returns false
 
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
-
-        assertEquals(PageStatus.INIT, webViewLoader.webViewStatus.get())
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockWebViewProvider)
+        delay(100)
+        assertEquals(PageStatus.INITIALIZED, webViewLoader.webViewStatus.get())
 
         every { mockConnectivity.isConnected() } returns true
         webViewLoader.loadUrlToWebView()
@@ -142,9 +142,9 @@ class WebViewClientTest {
     }
 
     @Test
-    fun webViewClient_LoadFailure_WhenHttpErrorOnTagManagementUrl() {
+    fun webViewClient_LoadFailure_WhenHttpErrorOnTagManagementUrl() = runBlocking {
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
-
+        delay(50)
         val mockResourceRequest: WebResourceRequest = mockk()
         val mockUri: Uri = mockk()
         every { mockUri.toString() } returns "some-other-url"
@@ -188,7 +188,8 @@ class WebViewClientTest {
 
     @Test
     fun webViewClient_LoadFailure_WhenResourceFails_ExcludesFavicon() = runBlocking {
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockWebViewProvider)
+        delay(50)
         webViewLoader.webViewClient.onReceivedError(mockWebView, 404, "", "test/favicon.ico")
         delay(50)
         // remains "loading" as no onPageFinished called
@@ -279,11 +280,11 @@ class WebViewClientTest {
     @Test
     fun webViewClient_CrashRecreatesWebView() = runBlocking {
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
-        delay(50)
+        delay(1000)
         val originalWebView = webViewLoader.webView
 
         webViewLoader.webViewClient.onRenderProcessGone(mockWebView, null)
-        delay(50)
+        delay(1000)
 
         assertNotSame(originalWebView, webViewLoader.webView)
         verify(exactly = 1, timeout = 1000) {
