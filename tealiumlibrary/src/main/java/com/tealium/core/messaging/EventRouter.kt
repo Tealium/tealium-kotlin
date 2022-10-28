@@ -10,6 +10,7 @@ import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.remotecommands.RemoteCommandRequest
+import kotlinx.coroutines.runBlocking
 import java.lang.ref.WeakReference
 import java.util.concurrent.CopyOnWriteArraySet
 
@@ -71,11 +72,17 @@ class EventDispatcher : EventRouter {
     }
 
     override suspend fun onDispatchSend(dispatch: Dispatch) {
-        listeners.forEach {
-            when (it) {
-                is DispatchSendListener -> {
-                    if (it !is Module || it.enabled) {
-                        it.onDispatchSend(dispatch)
+        @Suppress("BlockingMethodInNonBlockingContext")
+        runBlocking {
+            // onDispatchSend suspend fun can cause events to arrive out
+            // of order at Dispatchers - use runBlocking to make this synchronous
+            // should address in next major release
+            listeners.forEach {
+                when (it) {
+                    is DispatchSendListener -> {
+                        if (it !is Module || it.enabled) {
+                            it.onDispatchSend(dispatch)
+                        }
                     }
                 }
             }
@@ -83,11 +90,17 @@ class EventDispatcher : EventRouter {
     }
 
     override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {
-        listeners.forEach {
-            when (it) {
-                is BatchDispatchSendListener -> {
-                    if (it !is Module || it.enabled) {
-                        it.onBatchDispatchSend(dispatches)
+        @Suppress("BlockingMethodInNonBlockingContext")
+        runBlocking {
+            // onBatchDispatchSend suspend fun can cause events to arrive out
+            // of order at Dispatchers - use runBlocking to make this synchronous
+            // should address in next major release
+            listeners.forEach {
+                when (it) {
+                    is BatchDispatchSendListener -> {
+                        if (it !is Module || it.enabled) {
+                            it.onBatchDispatchSend(dispatches)
+                        }
                     }
                 }
             }
