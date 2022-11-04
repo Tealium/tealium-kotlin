@@ -5,7 +5,6 @@ import com.tealium.core.*
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
 import com.tealium.core.network.ResourceRetriever
-import com.tealium.test.OpenForTesting
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers
 import org.json.JSONException
@@ -13,64 +12,91 @@ import org.json.JSONObject
 import java.io.File
 import java.lang.Exception
 
-@OpenForTesting
-class RemoteCommandConfigRetriever(private val config: TealiumConfig,
-                                   private val commandId: String,
-                                   private val filename: String? = null,
-                                   private val remoteUrl: String? = null,
-                                   private val client: NetworkClient = HttpClient(config),
-                                   private val loader: Loader = JsonLoader.getInstance(config.application),
-                                   private val backgroundScope: CoroutineScope = CoroutineScope(Dispatchers.Default)) {
+interface RemoteCommandConfigRetriever {
+    val remoteCommandConfig: RemoteCommandConfig
+}
 
+class AssetRemoteCommandConfigRetriever(
+    private val config: TealiumConfig,
+    private val filename: String,
+    private val loader: Loader = JsonLoader.getInstance(config.application)
+) : RemoteCommandConfigRetriever {
 
-    private val tealiumDleUrl = "${Settings.DLE_PREFIX}/${config.accountName}/${config.profileName}/"
+    private var _remoteCommandConfig: RemoteCommandConfig = loadConfig()
+    override val remoteCommandConfig: RemoteCommandConfig
+        get() = _remoteCommandConfig
 
-    private var resourceRetriever: ResourceRetriever? = null
-    private var job: Deferred<String?>? = null
-
-    private var isAssetConfigLoaded = false
-    private var cachedSettingsFile: File = File(config.tealiumDirectory.canonicalPath, "${getSettingsFilename()}.json")
-
-    var remoteCommandConfig: RemoteCommandConfig = loadSettings()
-
-    init {
-        remoteUrl?.let {
-            resourceRetriever = ResourceRetriever(config, it, client).also {
-                config.remoteCommandConfigRefresh?.let { refresh ->
-                    it.refreshInterval = refresh.toInt()
-                }
-            }
-        }
-    }
-
-    private fun loadSettings(): RemoteCommandConfig {
-        return filename?.let {
-            loadFromAsset(it)?.also {
-                isAssetConfigLoaded = true
-                Logger.dev(BuildConfig.TAG, "Loaded local remote command settings.")
-            }
-        } ?: remoteUrl?.let {
-            val cachedSettings = loadFromCache(cachedSettingsFile)?.also {
-                Logger.dev(BuildConfig.TAG, "Loaded remote command settings from cache")
-            }
-            backgroundScope.launch {
-                fetchRemoteSettings()
-            }
-            cachedSettings
+    private fun loadConfig(): RemoteCommandConfig {
+        return loadFromAsset(filename)?.also {
+            Logger.dev(BuildConfig.TAG, "Loaded local remote command settings.")
         } ?: RemoteCommandConfig()
-    }
-
-    private fun loadFromCache(file: File): RemoteCommandConfig? {
-        return loader.loadFromFile(file)?.let {
-            val json = JSONObject(it)
-            RemoteCommandConfig.fromJson(json)
-        }
     }
 
     private fun loadFromAsset(filename: String): RemoteCommandConfig? {
         return loader.loadFromAsset(filename)?.let {
-            val json = JSONObject(it)
-            RemoteCommandConfig.fromJson(json)
+            try {
+                val json = JSONObject(it)
+                RemoteCommandConfig.fromJson(json)
+            } catch (ex: JSONException) {
+                Logger.qa(
+                    BuildConfig.TAG,
+                    "Error loading RemoteCommandsConfig JSON from asset: ${ex.message}"
+                )
+                null
+            }
+        }
+    }
+}
+
+class UrlRemoteCommandConfigRetriever(
+    private val config: TealiumConfig,
+    private val commandId: String,
+    private val remoteUrl: String,
+    private val client: NetworkClient = HttpClient(config),
+    private val resourceRetriever: ResourceRetriever =
+        ResourceRetriever(config, remoteUrl, client).also {
+            config.remoteCommandConfigRefresh?.let { refresh ->
+                it.refreshInterval = refresh.toInt()
+            }
+        },
+    private val loader: Loader = JsonLoader.getInstance(config.application),
+    private val backgroundScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+) : RemoteCommandConfigRetriever {
+
+    private val tealiumDleUrl =
+        "${Settings.DLE_PREFIX}/${config.accountName}/${config.profileName}/"
+
+    private val cachedSettingsFile: File =
+        File(config.tealiumDirectory.canonicalPath, "${getSettingsFilename()}.json")
+
+    private var job: Deferred<String?>? = null
+
+    private var _remoteCommandConfig: RemoteCommandConfig = loadConfig()
+    override val remoteCommandConfig: RemoteCommandConfig
+        get() = _remoteCommandConfig
+
+    private fun loadConfig(): RemoteCommandConfig {
+        val cachedSettings = loadFromCache(cachedSettingsFile)?.also {
+            Logger.dev(BuildConfig.TAG, "Loaded remote command settings from cache")
+        }
+        backgroundScope.launch {
+            fetchRemoteSettings()
+        }
+        return cachedSettings ?: RemoteCommandConfig()
+    }
+
+    private fun loadFromCache(file: File): RemoteCommandConfig? {
+        return loader.loadFromFile(file)?.let {
+            try {
+                val json = JSONObject(it)
+                RemoteCommandConfig.fromJson(json)
+            } catch (ex: JSONException) {
+                Logger.qa(
+                    BuildConfig.TAG,
+                    "Error loading RemoteCommandsConfig JSON from cache: ${ex.message}"
+                )
+                null
+            }
         }
     }
 
@@ -78,7 +104,7 @@ class RemoteCommandConfigRetriever(private val config: TealiumConfig,
         if (job?.isActive == false || job == null) {
             job = async {
                 if (isActive) {
-                    resourceRetriever?.fetch()
+                    resourceRetriever.fetch()
                 } else {
                     null
                 }
@@ -88,9 +114,12 @@ class RemoteCommandConfigRetriever(private val config: TealiumConfig,
                 try {
                     val settings = RemoteCommandConfig.fromJson(JSONObject(string))
                     saveSettingsToCache(RemoteCommandConfig.toJson(settings).toString())
-                    remoteCommandConfig = settings
+                    _remoteCommandConfig = settings
                 } catch (ex: JSONException) {
-                    Logger.dev(BuildConfig.TAG, "Failed to load remote command config from remote URL")
+                    Logger.dev(
+                        BuildConfig.TAG,
+                        "Failed to load remote command config from remote URL"
+                    )
                 }
             }
         }
@@ -106,13 +135,11 @@ class RemoteCommandConfigRetriever(private val config: TealiumConfig,
     }
 
     private fun getSettingsFilename(): String {
-        remoteUrl?.let { url ->
-            // check if Tealium DLE URL
-            if (url.contains(tealiumDleUrl)) {
-                return url.substringAfter(tealiumDleUrl).substringBefore(".json")
-            } else if (URLUtil.isValidUrl(url)) {
-                return commandId
-            }
+        // check if Tealium DLE URL
+        if (remoteUrl.contains(tealiumDleUrl)) {
+            return remoteUrl.substringAfter(tealiumDleUrl).substringBefore(".json")
+        } else if (URLUtil.isValidUrl(remoteUrl)) {
+            return commandId
         }
 
         return commandId

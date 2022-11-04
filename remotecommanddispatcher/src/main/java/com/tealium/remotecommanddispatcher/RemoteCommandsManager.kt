@@ -4,7 +4,7 @@ import com.tealium.core.*
 import com.tealium.remotecommands.RemoteCommand
 import java.util.concurrent.ConcurrentHashMap
 
-interface CommandsManager: Collector {
+interface CommandsManager : Collector {
     fun add(remoteCommand: RemoteCommand, filename: String? = null, remoteUrl: String? = null)
     fun remove(commandId: String)
     fun removeAll()
@@ -19,9 +19,12 @@ class RemoteCommandsManager(private val config: TealiumConfig) : CommandsManager
 
     override fun add(remoteCommand: RemoteCommand, filename: String?, remoteUrl: String?) {
         allCommands[remoteCommand.commandName] = remoteCommand
-        if (!filename.isNullOrEmpty() || !remoteUrl.isNullOrEmpty()) {
+        if (!filename.isNullOrEmpty()) {
             commandsConfigRetriever[remoteCommand.commandName] =
-                RemoteCommandConfigRetriever(config, remoteCommand.commandName, filename, remoteUrl)
+                AssetRemoteCommandConfigRetriever(config, filename)
+        } else if (!remoteUrl.isNullOrEmpty()) {
+            commandsConfigRetriever[remoteCommand.commandName] =
+                UrlRemoteCommandConfigRetriever(config, remoteCommand.commandName, remoteUrl)
         }
     }
 
