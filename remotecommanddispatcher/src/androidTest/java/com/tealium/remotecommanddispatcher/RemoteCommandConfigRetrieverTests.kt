@@ -24,9 +24,6 @@ class RemoteCommandConfigRetrieverTests {
     @MockK
     lateinit var mockLoader: Loader
 
-    @MockK
-    lateinit var mockResourceRetriever: ResourceRetriever
-
     lateinit var context: Application
     lateinit var config: TealiumConfig
 
@@ -153,17 +150,16 @@ class RemoteCommandConfigRetrieverTests {
 
     @Test
     fun remoteCommandConfig_LoadsValidConfig_FromUrl() = runBlocking {
+        val testUrl = "testRemoteUrl"
         every { mockLoader.loadFromFile(any()) } returns null
-        coEvery { mockResourceRetriever.fetch() } coAnswers {
-            delay(200)
-            validCommandsJson
-        }
-        coEvery { mockNetworkClient.get(any()) } returns null
+        coEvery { mockNetworkClient.get(testUrl) } returns validCommandsJson
+
+        val mockResourceRetriever = ResourceRetriever(config, testUrl, mockNetworkClient)
 
         val configRetriever = UrlRemoteCommandConfigRetriever(
             config,
             "testCommandId",
-            remoteUrl = "testRemoteUrl",
+            remoteUrl = testUrl,
             client = mockNetworkClient,
             loader = mockLoader,
             resourceRetriever = mockResourceRetriever,
@@ -176,7 +172,7 @@ class RemoteCommandConfigRetrieverTests {
             mockLoader.loadFromFile(any())
         }
         coVerify(timeout = 500) {
-            mockResourceRetriever.fetch()
+            mockNetworkClient.get(testUrl)
         }
 
         delay(500)
@@ -185,48 +181,15 @@ class RemoteCommandConfigRetrieverTests {
 
     @Test
     fun remoteCommandConfig_DoesNotThrow_WhenInvalidJson_LoadFromUrl() = runBlocking {
+        val testUrl = "testRemoteUrl"
         every { mockLoader.loadFromFile(any()) } returns null
-        coEvery { mockResourceRetriever.fetch() } coAnswers {
-            delay(200)
-            ""
-        }
-        coEvery { mockNetworkClient.get(any()) } returns null
+        coEvery { mockNetworkClient.get(testUrl) } returns ""
+        val mockResourceRetriever = ResourceRetriever(config, testUrl, mockNetworkClient)
 
         val configRetriever = UrlRemoteCommandConfigRetriever(
             config,
             "testCommandId",
-            remoteUrl = "testRemoteUrl",
-            client = mockNetworkClient,
-            loader = mockLoader,
-            resourceRetriever = mockResourceRetriever,
-            backgroundScope = CoroutineScope(Dispatchers.IO)
-        )
-
-        assertDefaultRemoteCommandsConfig(configRetriever.remoteCommandConfig)
-        verify {
-            mockLoader.loadFromFile(any())
-        }
-        coVerify {
-            mockResourceRetriever.fetch()
-        }
-
-        delay(500)
-        assertDefaultRemoteCommandsConfig(configRetriever.remoteCommandConfig)
-    }
-
-    @Test
-    fun remoteCommandConfig_DoesNotThrow_WhenNullJson_LoadFromUrl() = runBlocking {
-        every { mockLoader.loadFromFile(any()) } returns null
-        coEvery { mockResourceRetriever.fetch() } coAnswers {
-            delay(200)
-            null
-        }
-        coEvery { mockNetworkClient.get(any()) } returns null
-
-        val configRetriever = UrlRemoteCommandConfigRetriever(
-            config,
-            "testCommandId",
-            remoteUrl = "testRemoteUrl",
+            remoteUrl = testUrl,
             client = mockNetworkClient,
             loader = mockLoader,
             resourceRetriever = mockResourceRetriever,
@@ -238,7 +201,36 @@ class RemoteCommandConfigRetrieverTests {
             mockLoader.loadFromFile(any())
         }
         coVerify(timeout = 500) {
-            mockResourceRetriever.fetch()
+            mockNetworkClient.get(testUrl)
+        }
+
+        delay(500)
+        assertDefaultRemoteCommandsConfig(configRetriever.remoteCommandConfig)
+    }
+
+    @Test
+    fun remoteCommandConfig_DoesNotThrow_WhenNullJson_LoadFromUrl() = runBlocking {
+        val testUrl = "testRemoteUrl"
+        every { mockLoader.loadFromFile(any()) } returns null
+        coEvery { mockNetworkClient.get(testUrl) } returns null
+        val mockResourceRetriever = ResourceRetriever(config, testUrl, mockNetworkClient)
+
+        val configRetriever = UrlRemoteCommandConfigRetriever(
+            config,
+            "testCommandId",
+            remoteUrl = testUrl,
+            client = mockNetworkClient,
+            loader = mockLoader,
+            resourceRetriever = mockResourceRetriever,
+            backgroundScope = CoroutineScope(Dispatchers.IO)
+        )
+
+        assertDefaultRemoteCommandsConfig(configRetriever.remoteCommandConfig)
+        verify {
+            mockLoader.loadFromFile(any())
+        }
+        coVerify(timeout = 500) {
+            mockNetworkClient.get(testUrl)
         }
 
         delay(500)
