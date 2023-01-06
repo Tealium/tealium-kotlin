@@ -7,7 +7,7 @@ echo "Running instrumented unit tests: "
 for mod in $updated_modules
 do
   echo "./gradlew $mod:connectedDebugAndroidTest"
-  if ./gradlew --stacktrace $mod":connectedDebugAndroidTest"; then
+  if ./gradlew $mod":connectedDebugAndroidTest"; then
     echo "$mod Instrumented Unit Test Succeeded" >&2
   else
     echo "$mod Instrumented Unit Test failed" >&2
