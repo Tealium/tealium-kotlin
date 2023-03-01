@@ -4,8 +4,8 @@ import com.tealium.core.JsonUtils
 import org.json.JSONObject
 
 data class Delimiters(
-    var keysEqualityDelimiter: String = Settings.DEFAULT_EQUALITY_DELIMITER,
-    var keysSeparationDelimiter: String = Settings.DEFAULT_SEPARATION_DELIMITER
+    val keysEqualityDelimiter: String = Settings.DEFAULT_EQUALITY_DELIMITER,
+    val keysSeparationDelimiter: String = Settings.DEFAULT_SEPARATION_DELIMITER
 )
 
 data class RemoteCommandConfig(
@@ -20,14 +20,21 @@ data class RemoteCommandConfig(
             val remoteCommandConfig = RemoteCommandConfig()
 
             jsonObject.optJSONObject(Settings.CONFIG)?.let {
+                var separatorDelimiter: String? = null
+                var equalityDelimiter: String? = null
                 if (it.has(Settings.KEYS_EQUALITY_DELIMITER)) {
-                    remoteCommandConfig.delimiters.keysEqualityDelimiter = it.getString(Settings.KEYS_EQUALITY_DELIMITER)
+                    equalityDelimiter = it.getString(Settings.KEYS_EQUALITY_DELIMITER)
                     it.remove(Settings.KEYS_EQUALITY_DELIMITER)
                 }
                 if (it.has(Settings.KEYS_SEPARATION_DELIMITER)) {
-                    remoteCommandConfig.delimiters.keysSeparationDelimiter = it.getString(Settings.KEYS_SEPARATION_DELIMITER)
+                    separatorDelimiter = it.getString(Settings.KEYS_SEPARATION_DELIMITER)
                     it.remove(Settings.KEYS_SEPARATION_DELIMITER)
                 }
+
+                remoteCommandConfig.delimiters = Delimiters(
+                    equalityDelimiter ?: Settings.DEFAULT_EQUALITY_DELIMITER,
+                    separatorDelimiter ?: Settings.DEFAULT_SEPARATION_DELIMITER
+                )
 
                 remoteCommandConfig.apiConfig = JsonUtils.mapFor(it)
             }
@@ -66,11 +73,13 @@ data class RemoteCommandConfig(
                 val map = it.toMutableMap()
 
                 if (remoteCommandConfig.delimiters.keysEqualityDelimiter != Settings.DEFAULT_EQUALITY_DELIMITER) {
-                    map[Settings.KEYS_EQUALITY_DELIMITER] = remoteCommandConfig.delimiters.keysEqualityDelimiter
+                    map[Settings.KEYS_EQUALITY_DELIMITER] =
+                        remoteCommandConfig.delimiters.keysEqualityDelimiter
                 }
 
                 if (remoteCommandConfig.delimiters.keysSeparationDelimiter != Settings.DEFAULT_SEPARATION_DELIMITER) {
-                    map[Settings.KEYS_SEPARATION_DELIMITER] = remoteCommandConfig.delimiters.keysSeparationDelimiter
+                    map[Settings.KEYS_SEPARATION_DELIMITER] =
+                        remoteCommandConfig.delimiters.keysSeparationDelimiter
                 }
 
                 json.put(Settings.CONFIG, JsonUtils.jsonFor(map.toMap()))

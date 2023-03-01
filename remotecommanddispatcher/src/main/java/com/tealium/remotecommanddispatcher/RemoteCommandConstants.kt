@@ -21,6 +21,4 @@ object Settings {
 
 object Key {
     const val REMOTE_COMMANDS = "remote_commands"
-
-    const val TEALIUM_EVENT = "tealium_event"
 }

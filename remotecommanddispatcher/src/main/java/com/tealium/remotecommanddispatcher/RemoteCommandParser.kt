@@ -18,8 +18,8 @@ class RemoteCommandParser {
             val mappedPayload = mutableMapOf<String, Any>()
             lookup.forEach { (lookupKey, lookupDestination) ->
                 payload[lookupKey]?.let { payloadValue ->
-                    checkAndSplitDestinationList(lookupDestination, ",").forEach { destinations ->
-                        val objectRow = splitKeys(destinations, payloadValue)
+                    splitKeyByDelimiter(lookupDestination, ",").forEach { destinations ->
+                        val objectRow = splitAndPairKeys(destinations, payloadValue)
                         objectRow.second?.let { objectKey ->
                             if (mappedPayload.containsKey(objectKey)) {
                                 // object key is already in the map, append to the same key
@@ -54,14 +54,14 @@ class RemoteCommandParser {
          * Splits config mappings keys when a "." is present and creates nested object.
          * If key in JSON was "event.parameter", method returns  {event = {parameter = value}}
          */
-        private fun splitKeys(
+        private fun splitAndPairKeys(
             key: String,
             payloadValue: Any
         ): Pair<MutableMap<String, Any>, String?> {
             val result = mutableMapOf<String, Any>()
             var objectKey: String? = null
             if (key.contains(".")) {
-                val keyValue = checkAndSplitDestinationList(key, ".")
+                val keyValue = splitKeyByDelimiter(key, ".")
                 result[keyValue.first()] = mutableMapOf(keyValue.last() to payloadValue)
                 objectKey = keyValue.first()
             } else {
@@ -72,15 +72,13 @@ class RemoteCommandParser {
         }
 
         /**
-         * Checks for multi-destination lookup values and returns a list of destinations to be mapped
-         * If lookup value in JSON was "event.destination1, event.destination2",
-         * method returns listOf("event.destination1", "event.destination2")
+         * Splits key string by delimiter and returns a list of keys
          */
-        private fun checkAndSplitDestinationList(
-            lookupValue: String,
+        private fun splitKeyByDelimiter(
+            key: String,
             delimiter: String
         ): List<String> {
-            return lookupValue.split(delimiter).map { it.trim() }
+            return key.split(delimiter).map { it.trim() }
         }
 
         fun processStaticMappings(
@@ -89,14 +87,12 @@ class RemoteCommandParser {
             delimiters: Delimiters
         ): Map<String, Any> {
             val processedPayload = payload.toMutableMap()
-            statics?.let { staticMap ->
-                staticMap.forEach { (key, value) ->
-                    val splitKeys = splitCompoundKeys(key, delimiters)
-                    if (matchKeys(splitKeys, payload)) {
-                        val valueMap =
-                            (value as Map<*, *>).entries.associate { entry -> entry.key.toString() to entry.value as Any }
-                        processedPayload.putAll(valueMap)
-                    }
+            statics?.forEach { (key, value) ->
+                val splitKeys = splitCompoundKeys(key, delimiters)
+                if (matchKeys(splitKeys, payload)) {
+                    val valueMap =
+                        (value as Map<*, *>).entries.associate { entry -> entry.key.toString() to entry.value as Any }
+                    processedPayload.putAll(valueMap)
                 }
             }
             return processedPayload.toMap()
@@ -110,12 +106,10 @@ class RemoteCommandParser {
             val eventType = payload[Dispatch.Keys.TEALIUM_EVENT_TYPE] as? String
             val commandsList = mutableListOf<String>()
 
-            commands?.let { commandsMap ->
-                commandsMap.forEach { (key, value) ->
-                    val splitCommands = splitCompoundKeys(key, delimiters)
-                    if (matchKeys(splitCommands, payload)) {
-                        commandsList.addAll(checkAndSplitDestinationList(value, ","))
-                    }
+            commands?.forEach { (key, value) ->
+                val splitCommands = splitCompoundKeys(key, delimiters)
+                if (matchKeys(splitCommands, payload)) {
+                    commandsList.addAll(splitKeyByDelimiter(value, ","))
                 }
             }
 
@@ -131,11 +125,11 @@ class RemoteCommandParser {
 
         private fun splitCompoundKeys(key: String, delimiters: Delimiters): Map<String, String> {
             val result = mutableMapOf<String, String>()
-            val keys = checkAndSplitDestinationList(key, delimiters.keysSeparationDelimiter)
+            val keys = splitKeyByDelimiter(key, delimiters.keysSeparationDelimiter)
             keys.forEach { k ->
-                val keyValue = checkAndSplitDestinationList(k, delimiters.keysEqualityDelimiter)
+                val keyValue = splitKeyByDelimiter(k, delimiters.keysEqualityDelimiter)
                 if (keyValue.size == 1) {
-                    result[Key.TEALIUM_EVENT] = keyValue.first()
+                    result[Dispatch.Keys.TEALIUM_EVENT] = keyValue.first()
                 } else {
                     result[keyValue.first()] = keyValue.last()
                 }
@@ -147,15 +141,12 @@ class RemoteCommandParser {
             keyValues: Map<String, String>,
             payload: Map<String, Any>
         ): Boolean {
-            val result = keyValues.filter { (key, value) ->
-                if (!payload.containsKey(key)) {
-                    return@filter true
-                } else {
-                    return@filter payload[key] != value
+            keyValues.forEach { (key, value) ->
+                if (!payload.containsKey(key) || payload[key].toString() != value) {
+                    return false
                 }
             }
-
-            return result.isEmpty()
+            return true
         }
     }
 }
