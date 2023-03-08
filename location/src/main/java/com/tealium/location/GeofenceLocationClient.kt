@@ -22,8 +22,10 @@ class GeofenceLocationClient(private val context: TealiumContext) {
             context.config.application,
             0,
             LocationManager.fetchLocationIntent(context),
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) PendingIntent.FLAG_UPDATE_CURRENT else {
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S)
+                PendingIntent.FLAG_UPDATE_CURRENT
+            else {
+                PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
             }
         )
         try {
