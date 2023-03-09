@@ -26,17 +26,26 @@ class ConnectivityCollector(context: Context, private val connectivityRetriever:
     private val telephonyManager =
         context.applicationContext.getSystemService(Service.TELEPHONY_SERVICE) as TelephonyManager
 
-    override val carrier: String = telephonyManager.networkOperatorName ?: ""
-    override val carrierIso: String = telephonyManager.networkCountryIso ?: ""
-    override val carrierMcc: String =
-        if (telephonyManager.networkOperator.length > 3) telephonyManager.networkOperator.substring(
-            0,
-            3
-        ) else ""
-    override val carrierMnc: String =
-        if (telephonyManager.networkOperator.length > 3) telephonyManager.networkOperator.substring(
-            3
-        ) else ""
+    override val carrier: String
+        get() {
+            return telephonyManager.networkOperatorName ?: ""
+        }
+    override val carrierIso: String
+        get() {
+            return telephonyManager.networkCountryIso ?: ""
+        }
+    override val carrierMcc: String
+        get() {
+            return if (telephonyManager.networkOperator.isNotBlank() && telephonyManager.networkOperator.length > 3)
+                telephonyManager.networkOperator.substring(0, 3)
+            else ""
+        }
+    override val carrierMnc: String
+        get() {
+            return if (telephonyManager.networkOperator.isNotBlank() && telephonyManager.networkOperator.length > 3)
+                telephonyManager.networkOperator.substring(3)
+            else ""
+        }
 
     override suspend fun collect(): Map<String, Any> {
         return mapOf(
@@ -51,6 +60,7 @@ class ConnectivityCollector(context: Context, private val connectivityRetriever:
 
     companion object : CollectorFactory {
         const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
+
         @Volatile
         private var instance: ConnectivityCollector? = null
         override fun create(context: TealiumContext): Collector = instance ?: synchronized(this) {
