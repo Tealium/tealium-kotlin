@@ -36,15 +36,19 @@ class ConnectivityCollector(context: Context, private val connectivityRetriever:
         }
     override val carrierMcc: String
         get() {
-            return if (telephonyManager.networkOperator.isNotBlank() && telephonyManager.networkOperator.length > 3)
-                telephonyManager.networkOperator.substring(0, 3)
-            else ""
+            telephonyManager.networkOperator.let { operator ->
+                return if (operator.isNotBlank() && operator.length > 3)
+                    telephonyManager.networkOperator.substring(0, 3)
+                else ""
+            }
         }
     override val carrierMnc: String
         get() {
-            return if (telephonyManager.networkOperator.isNotBlank() && telephonyManager.networkOperator.length > 3)
-                telephonyManager.networkOperator.substring(3)
-            else ""
+            telephonyManager.networkOperator.let { operator ->
+                return if (operator.isNotBlank() && operator.length > 3)
+                    operator.substring(3)
+                else ""
+            }
         }
 
     override suspend fun collect(): Map<String, Any> {
