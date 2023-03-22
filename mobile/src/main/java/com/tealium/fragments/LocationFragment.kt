@@ -2,6 +2,7 @@ package com.tealium.fragments
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -39,6 +40,20 @@ class LocationFragment : Fragment() {
 
     private fun requestLocationPermission() {
         activity?.let {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (ContextCompat.checkSelfPermission(
+                        it.applicationContext,
+                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    ActivityCompat.requestPermissions(
+                        it,
+                        Array<String>(1) { Manifest.permission.ACCESS_BACKGROUND_LOCATION },
+                        FINE_LOCATION_REQUEST_CODE
+                    )
+                }
+            }
+
             if (ContextCompat.checkSelfPermission(
                     it.applicationContext,
                     Manifest.permission.ACCESS_FINE_LOCATION

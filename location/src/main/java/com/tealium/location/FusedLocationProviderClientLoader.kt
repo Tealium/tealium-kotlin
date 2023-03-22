@@ -36,11 +36,9 @@ class FusedLocationProviderClientLoader(
                     val lastLocation = locationResult.lastLocation
                     _lastLocation = lastLocation
 
-                    // TODO - Configurable to possibly send event?
-                    val timestamp = Date()
                     Logger.dev(
                         BuildConfig.TAG,
-                        "${DateUtils.formatDate(timestamp)} - Received updated Location: lat=${lastLocation?.latitude},lng=${lastLocation?.longitude}"
+                        "Received updated Location: lat=${lastLocation?.latitude},lng=${lastLocation?.longitude}"
                     )
 
                     lastLocation?.let { lastLocationResult ->
