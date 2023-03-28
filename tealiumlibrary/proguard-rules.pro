@@ -83,7 +83,9 @@
 }
 
 # Public core classes - required by other modules.
--keep public class com.tealium.core.JsonLoader,
+-keep public class com.tealium.core.DateUtils,
+                    com.tealium.core.DateUtils$Companion,
+                    com.tealium.core.JsonLoader,
                     com.tealium.core.JsonLoader$Companion,
                     com.tealium.core.JsonUtils,
                     com.tealium.core.JsonUtils$Companion,
