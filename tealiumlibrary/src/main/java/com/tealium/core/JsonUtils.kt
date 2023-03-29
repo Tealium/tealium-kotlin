@@ -10,6 +10,18 @@ class JsonUtils {
 
     companion object {
 
+        /**
+         * Converts a [Map] to its [JSONObject] equivalent.
+         *
+         * Various types are supported during the conversion.
+         * Keys containing [Map]s are converted to [JSONObject]s
+         * [Collection]s and [Array]s are converted to [JSONArray]s
+         * Dates and newer date representations are formatted consistently using [DateUtils]
+         * formatters where the Android version supports them.
+         *
+         * @param payload - [Map] to convert to a [JSONObject]
+         * @return [JSONObject] representation of the [payload]
+         */
         fun jsonFor(payload: Map<String, Any>): JSONObject {
             val jsonObject = JSONObject()
             payload.forEach { (key, value) ->
@@ -37,6 +49,12 @@ class JsonUtils {
             return jsonObject
         }
 
+        /**
+         * Converts a JSONObject into a MutableMap representation
+         *
+         * @param json [JSONObject] to convert to a [Map]
+         * @return a [MutableMap] containing the Key-Value pairs extracted from [json]
+         */
         fun mapFor(json: JSONObject): MutableMap<String, Any> {
             val temp = mutableMapOf<String, Any>()
             val keys = json.keys()
@@ -49,6 +67,12 @@ class JsonUtils {
             return temp
         }
 
+        /**
+         * Checks whether a String contains a valid JSON Object
+         *
+         * @param input String representation of a JSON Object
+         * @return true if [input] is valid json; else false
+         */
         fun isValidJson(input: String): Boolean {
             try {
                 JSONTokener(input).nextValue()
@@ -57,6 +81,20 @@ class JsonUtils {
                 return false
             }
             return true
+        }
+
+        /**
+         * Attempts to parse the String as a JSON.
+         *
+         * @param jsonString String representation of a JSON Object
+         * @return Valid JSONObject if [jsonString] is valid json; else null
+         */
+        fun tryParse(jsonString: String) : JSONObject? {
+            return try {
+                JSONObject(jsonString)
+            } catch(ignore: JSONException) {
+                null
+            }
         }
     }
 }
