@@ -1,12 +1,15 @@
 package com.tealium.core.persistence
 
+import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE
+import com.tealium.core.Logger
 import com.tealium.core.messaging.NewSessionListener
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_EXPIRY
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_KEY
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_TIMESTAMP
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_TYPE
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_VALUE
+import com.tealium.tealiumlibrary.BuildConfig
 import java.util.*
 
 /**
@@ -24,14 +27,14 @@ import java.util.*
  * @param includeExpired - whether to consider expired data in "read" requests.
  */
 internal open class PersistentStorageDao(
-    dbHelper: DatabaseHelper,
+    private val dbHelper: DatabaseHelper,
     private val tableName: String,
     private val shouldIncludeExpired: Boolean = false,
     private val onDataUpdated: ((String, PersistentItem) -> Unit)? = null,
     private val onDataRemoved: ((Set<String>) -> Unit)? = null
 ) : KeyValueDao<String, PersistentItem>, NewSessionListener {
 
-    private val db = dbHelper.writableDatabase
+    private val db: SQLiteDatabase? = dbHelper.db
 
     override fun getAll(): Map<String, PersistentItem> {
         return getAll(
@@ -45,6 +48,11 @@ internal open class PersistentStorageDao(
         selectionArgs: Array<String>?
     ): Map<String, PersistentItem> {
         val map = mutableMapOf<String, PersistentItem>()
+
+        if (db == null) {
+            return map
+        }
+
         val cursor = db.query(
             tableName,
             null,
@@ -97,6 +105,10 @@ internal open class PersistentStorageDao(
         val selectionArgs =
             if (shouldIncludeExpired) arrayOf(key) else arrayOf(key, getTimestamp().toString())
 
+        if (db == null) {
+            return null
+        }
+
         val cursor = db.query(
             tableName,
             arrayOf(COLUMN_VALUE, COLUMN_TYPE, COLUMN_EXPIRY, COLUMN_TIMESTAMP),
@@ -129,21 +141,47 @@ internal open class PersistentStorageDao(
     }
 
     override fun insert(item: PersistentItem) {
-        val inserted =
-            db.insertWithOnConflict(tableName, null, item.toContentValues(), CONFLICT_REPLACE)
-        if (inserted > 0) {
-            onDataUpdated?.invoke(item.key, item)
+        dbHelper.onDbReady {
+            db?.beginTransaction()
+            try {
+                val inserted =
+                    db?.insertWithOnConflict(tableName, null, item.toContentValues(), CONFLICT_REPLACE)
+
+                inserted?.let {
+                    if (it > 0) {
+                        onDataUpdated?.invoke(item.key, item)
+                    }
+                }
+
+                db?.setTransactionSuccessful()
+            } catch (e: Exception) {
+                Logger.dev(BuildConfig.TAG, "Error while trying to insert item")
+            } finally {
+                db?.endTransaction()
+            }
         }
     }
 
     override fun update(item: PersistentItem) {
-        val updated = db.update(
-            tableName, item.toContentValues(),
-            "$COLUMN_KEY = ?",
-            arrayOf(item.key)
-        )
-        if (updated > 0) {
-            onDataUpdated?.invoke(item.key, item)
+        dbHelper.onDbReady {
+            db?.beginTransaction()
+            try {
+                val updated = db?.update(
+                    tableName, item.toContentValues(),
+                    "$COLUMN_KEY = ?",
+                    arrayOf(item.key)
+                )
+                updated?.let {
+                    if (it > 0) {
+                        onDataUpdated?.invoke(item.key, item)
+                    }
+                }
+                db?.setTransactionSuccessful()
+            } catch (e: Exception) {
+                Logger.dev(BuildConfig.TAG, "Error while trying to update item")
+            } finally {
+                db?.endTransaction()
+            }
         }
     }
 
@@ -161,32 +199,68 @@ internal open class PersistentStorageDao(
     }
 
     override fun delete(key: String) {
-        val deleted = db.delete(
-            tableName,
-            "$COLUMN_KEY = ?",
-            arrayOf(key)
-        )
-        if (deleted > 0) {
-            onDataRemoved?.invoke(setOf(key))
+
+        dbHelper.onDbReady {
+            db?.beginTransaction()
+            try {
+                val deleted = db?.delete(
+                    tableName,
+                    "$COLUMN_KEY = ?",
+                    arrayOf(key)
+                )
+                deleted?.let {
+                    if (it > 0) {
+                        onDataRemoved?.invoke(setOf(key))
+                    }
+                }
+
+                db?.setTransactionSuccessful()
+            } catch (e: Exception) {
+                Logger.dev(BuildConfig.TAG, "Error while trying to delete key: $key")
+            } finally {
+                db?.endTransaction()
+            }
         }
     }
 
     private fun delete(keys: Set<String>) {
-        db.delete(
-            tableName,
-            "$COLUMN_KEY IN (${keys.joinToString(", ") { "?" }})",
-            keys.toTypedArray()
-        )
+        dbHelper.onDbReady {
+            db?.beginTransaction()
+            try {
+                db?.delete(
+                    tableName,
+                    "$COLUMN_KEY IN (${keys.joinToString(", ") { "?" }})",
+                    keys.toTypedArray()
+                )
+
+                db?.setTransactionSuccessful()
+            } catch (e: Exception) {
+                Logger.dev(BuildConfig.TAG, "Error while trying to delete keys")
+            } finally {
+                db?.endTransaction()
+            }
+        }
     }
 
     override fun clear() {
-        val keys = keys()
-        db.delete(
-            tableName,
-            null,
-            null
-        )
-        onDataRemoved?.invoke(keys.toSet())
+        dbHelper.onDbReady {
+            db?.beginTransaction()
+            try {
+                val keys = keys()
+                db?.delete(
+                    tableName,
+                    null,
+                    null
+                )
+                onDataRemoved?.invoke(keys.toSet())
+
+                db?.setTransactionSuccessful()
+            } catch (e: Exception) {
+                Logger.dev(BuildConfig.TAG, "Error while trying to clear database")
+            } finally {
+                db?.endTransaction()
+            }
+        }
     }
 
     override fun keys(): List<String> {
@@ -194,6 +268,11 @@ internal open class PersistentStorageDao(
         val selectionArgs = if (shouldIncludeExpired) null else arrayOf(getTimestamp().toString())
 
         val keys = mutableListOf<String>()
+
+        if (db == null) {
+            return keys
+        }
+
         val cursor = db.query(
             tableName,
             arrayOf(COLUMN_KEY),
@@ -219,6 +298,10 @@ internal open class PersistentStorageDao(
         val selection = if (shouldIncludeExpired) "" else "WHERE $IS_NOT_EXPIRED_CLAUSE"
         val selectionArgs = if (shouldIncludeExpired) null else arrayOf(getTimestamp().toString())
 
+        if (db == null) {
+            return 0
+        }
+
         val cursor = db.rawQuery(
             "SELECT COUNT(*) from $tableName $selection",
             selectionArgs
@@ -237,6 +320,10 @@ internal open class PersistentStorageDao(
             if (shouldIncludeExpired) "$COLUMN_KEY = ?" else "$COLUMN_KEY = ? AND $IS_NOT_EXPIRED_CLAUSE"
         val selectionArgs =
             if (shouldIncludeExpired) arrayOf(key) else arrayOf(key, getTimestamp().toString())
+
+        if (db == null) {
+            return false
+        }
 
         val cursor = db.query(
             tableName,
@@ -257,32 +344,55 @@ internal open class PersistentStorageDao(
     }
 
     override fun purgeExpired() {
-        val timestamp = getTimestamp()
-        val expired = getExpired(timestamp)
-        if (expired.isNotEmpty()) {
-            db.delete(
-                tableName,
-                IS_EXPIRED_CLAUSE,
-                arrayOf(timestamp.toString())
-            )
-            onDataRemoved?.invoke(expired.map { it.key }.toSet())
+        dbHelper.onDbReady {
+            db?.beginTransaction()
+            try {
+                val timestamp = getTimestamp()
+                val expired = getExpired(timestamp)
+
+                if (expired.isNotEmpty()) {
+                    db?.delete(
+                        tableName,
+                        IS_EXPIRED_CLAUSE,
+                        arrayOf(timestamp.toString())
+                    )
+                    onDataRemoved?.invoke(expired.map { it.key }.toSet())
+                }
+
+                db?.setTransactionSuccessful()
+            } catch (e: Exception) {
+                Logger.dev(BuildConfig.TAG, "Error while trying to purge expired data")
+            } finally {
+                db?.endTransaction()
+            }
         }
     }
 
     override fun onNewSession(sessionId: Long) {
-        val selection = "$COLUMN_EXPIRY = ?"
-        val selectionArgs = arrayOf(Expiry.SESSION.expiryTime().toString())
-        val sessionItems = getAll(
-            selection = selection,
-            selectionArgs = selectionArgs
-        )
-        if (sessionItems.isNotEmpty()) {
-            db.delete(
-                tableName,
-                selection,
-                selectionArgs
-            )
-            onDataRemoved?.invoke(sessionItems.map { it.key }.toSet())
+        dbHelper.onDbReady {
+            db?.beginTransaction()
+            try {
+                val selection = "$COLUMN_EXPIRY = ?"
+                val selectionArgs = arrayOf(Expiry.SESSION.expiryTime().toString())
+                val sessionItems = getAll(
+                    selection = selection,
+                    selectionArgs = selectionArgs
+                )
+                if (sessionItems.isNotEmpty()) {
+                    db?.delete(
+                        tableName,
+                        selection,
+                        selectionArgs
+                    )
+                    onDataRemoved?.invoke(sessionItems.map { it.key }.toSet())
+                }
+
+                db?.setTransactionSuccessful()
+            } catch (e: Exception) {
+                Logger.dev(BuildConfig.TAG, "Error while trying to update session data")
+            } finally {
+                db?.endTransaction()
+            }
         }
     }
 

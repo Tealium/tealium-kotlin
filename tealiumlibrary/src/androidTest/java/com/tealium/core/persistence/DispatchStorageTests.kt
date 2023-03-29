@@ -379,6 +379,6 @@ class DispatchStorageTests {
     @After
     fun tearDown() {
         // clear all.
-        dbHelper.writableDatabase.delete("dispatches", null, null)
+        dbHelper.db?.delete("dispatches", null, null)
     }
 }

@@ -5,7 +5,6 @@ import com.tealium.core.messaging.LibrarySettingsUpdatedListener
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.JsonDispatch
-import org.json.JSONObject
 
 internal class DispatchStorage(dbHelper: DatabaseHelper,
                                tableName: String)

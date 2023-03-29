@@ -56,7 +56,7 @@ class PerformanceTests {
     @After
     fun tearDown() {
         // clear all.
-        dbHelper.writableDatabase.delete("datalayer", null, null)
+        dbHelper.db?.delete("datalayer", null, null)
     }
 
     private fun averageExecutionTime(count: Int, test: TestTask): TaskMetrics {
