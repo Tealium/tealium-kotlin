@@ -12,7 +12,8 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-class VisitorUpdatedMessenger(private val visitorProfile: VisitorProfile) : Messenger<VisitorUpdatedListener>(VisitorUpdatedListener::class) {
+class VisitorUpdatedMessenger(private val visitorProfile: VisitorProfile) :
+    Messenger<VisitorUpdatedListener>(VisitorUpdatedListener::class) {
     override fun deliver(listener: VisitorUpdatedListener) {
         listener.onVisitorUpdated(visitorProfile)
     }
@@ -22,25 +23,44 @@ interface VisitorUpdatedListener : ExternalListener {
     fun onVisitorUpdated(visitorProfile: VisitorProfile)
 }
 
-interface VisitorProfileManager {
-    val visitorProfile: VisitorProfile
-    suspend fun requestVisitorProfile()
+class RequestVisitorProfileMessenger :
+    Messenger<RequestVisitorProfileListener>(RequestVisitorProfileListener::class) {
+    override fun deliver(listener: RequestVisitorProfileListener) {
+        listener.onRequestVisitorProfile()
+    }
 }
 
-class VisitorManager(private val context: TealiumContext,
-                     private val refreshInterval: Long =
-                             context.config.visitorServiceRefreshInterval
-                                     ?: DEFAULT_REFRESH_INTERVAL,
-                     private val visitorServiceUrl: String =
-                             context.config.overrideVisitorServiceUrl
-                                     ?: DEFAULT_VISITOR_SERVICE_TEMPLATE,
-                     private val loader: Loader = JsonLoader(context.config.application)) : VisitorProfileManager, DispatchSendListener, BatchDispatchSendListener, VisitorIdUpdatedListener {
+interface RequestVisitorProfileListener : ExternalListener {
+    fun onRequestVisitorProfile()
+}
+
+interface VisitorProfileManager {
+    val visitorProfile: VisitorProfile
+    fun requestVisitorProfile()
+}
+
+class VisitorManager(
+    private val context: TealiumContext,
+    private val refreshInterval: Long =
+        context.config.visitorServiceRefreshInterval
+            ?: DEFAULT_REFRESH_INTERVAL,
+    private val visitorServiceUrl: String =
+        context.config.overrideVisitorServiceUrl
+            ?: DEFAULT_VISITOR_SERVICE_TEMPLATE,
+    private val loader: Loader = JsonLoader(context.config.application),
+    private val delay: suspend (Long) -> Unit = { millis -> kotlinx.coroutines.delay(millis) }
+) : VisitorProfileManager, DispatchSendListener, BatchDispatchSendListener,
+    VisitorIdUpdatedListener, RequestVisitorProfileListener {
 
     private val file = File(context.config.tealiumDirectory, VISITOR_PROFILE_FILENAME)
-    private val visitorServiceProfileOverride: String? = context.config.overrideVisitorServiceProfile
-    private val backgroundScope = CoroutineScope(Dispatchers.Default)
+    private val visitorServiceProfileOverride: String? =
+        context.config.overrideVisitorServiceProfile
+    private val ioScope = CoroutineScope(Dispatchers.IO)
 
     val isUpdating = AtomicBoolean(false)
+    private var profileUpdateJob: Job? = null
+
+    @Volatile
     private var lastUpdate: Long = -1L
     private var visitorId = context.visitorId
         set(value) {
@@ -48,6 +68,7 @@ class VisitorManager(private val context: TealiumContext,
                 field = value
                 // URL needs updating
                 resourceRetriever = createResourceRetriever()
+                cancelVisitorProfileUpdate("Visitor Id has changed.")
             }
         }
     private var resourceRetriever: ResourceRetriever = createResourceRetriever()
@@ -55,6 +76,7 @@ class VisitorManager(private val context: TealiumContext,
     override val visitorProfile: VisitorProfile
         get() = _visitorProfile
 
+    @Volatile
     private var _visitorProfile: VisitorProfile = loadCachedProfile() ?: VisitorProfile()
         private set(value) {
             field = value
@@ -62,7 +84,11 @@ class VisitorManager(private val context: TealiumContext,
         }
 
     private fun createResourceRetriever(): ResourceRetriever {
-        return ResourceRetriever(context.config, generateVisitorServiceUrl(), context.httpClient).apply {
+        return ResourceRetriever(
+            context.config,
+            generateVisitorServiceUrl(),
+            context.httpClient
+        ).apply {
             useIfModifed = false
             maxRetries = 1
             refreshInterval = 0
@@ -71,8 +97,11 @@ class VisitorManager(private val context: TealiumContext,
 
     internal fun generateVisitorServiceUrl(): String {
         return visitorServiceUrl.replace(PLACEHOLDER_ACCOUNT, context.config.accountName)
-                .replace(PLACEHOLDER_PROFILE, visitorServiceProfileOverride ?: context.config.profileName)
-                .replace(PLACEHOLDER_VISITOR_ID, visitorId)
+            .replace(
+                PLACEHOLDER_PROFILE,
+                visitorServiceProfileOverride ?: context.config.profileName
+            )
+            .replace(PLACEHOLDER_VISITOR_ID, visitorId)
     }
 
     fun loadCachedProfile(): VisitorProfile? {
@@ -100,36 +129,58 @@ class VisitorManager(private val context: TealiumContext,
     }
 
     override fun onVisitorIdUpdated(visitorId: String) {
-        backgroundScope.launch {
-            _visitorProfile = VisitorProfile() // empty visitor
-            saveVisitorProfile(VisitorProfile()) // empty visitor saved to file
-            requestVisitorProfile()
-        }
+        this.visitorId = visitorId
+        _visitorProfile = VisitorProfile() // empty visitor
+        saveVisitorProfile(VisitorProfile()) // empty visitor saved to file
+        requestVisitorProfile()
     }
 
-    suspend fun updateProfile() {
+    override fun onRequestVisitorProfile() {
+        requestVisitorProfile()
+    }
+
+    fun updateProfile() {
         if (refreshIntervalReached()) {
             requestVisitorProfile()
         } else {
-            Logger.dev(BuildConfig.TAG, "Visitor Profile refresh interval not reached, will not update.")
+            Logger.dev(
+                BuildConfig.TAG,
+                "Visitor Profile refresh interval not reached, will not update."
+            )
         }
     }
 
-    override suspend fun requestVisitorProfile() {
-        // no need if it's already being updated, but we won't adhere to the refreshInterval here.
-        if (isUpdating.compareAndSet(false, true)) {
-            // Check for any updates to visitorId.
-            visitorId = context.visitorId
+    private fun cancelVisitorProfileUpdate(reasonMessage: String = "") {
+        profileUpdateJob?.cancel(reasonMessage)
+        isUpdating.set(false)
+    }
 
+    /**
+     * Fetches a new VisitorProfile if it is not already being fetched.
+     * Ignores the refresh interval as defined on [TealiumConfig.visitorServiceRefreshInterval]
+     */
+    override fun requestVisitorProfile() {
+        if (!isUpdating.compareAndSet(false, true)) {
+            Logger.dev(BuildConfig.TAG, "Visitor profile is already being updated.")
+            return
+        }
+
+        val retriever = resourceRetriever
+        val visitorId = context.visitorId
+        val currentProfile = visitorProfile
+
+        profileUpdateJob = ioScope.launch {
             for (i in 1..5) {
-                Logger.dev(BuildConfig.TAG, "Fetching visitor profile for ${context.visitorId}.")
+                Logger.dev(
+                    BuildConfig.TAG,
+                    "Fetching visitor profile for $visitorId."
+                )
 
-                val json = resourceRetriever.fetch()
-                if (json != null && json != "{}") {
-                    Logger.dev(BuildConfig.TAG, "Fetched visitor profile: $json.")
+                val newProfile = parseVisitorProfile(retriever.fetch())
+                if (newProfile != null) {
+                    if (currentProfile.totalEventCount < newProfile.totalEventCount) {
+                        if (!isActive) break
 
-                    val newProfile = VisitorProfile.fromJson(JSONObject(json))
-                    if (visitorProfile.totalEventCount != newProfile.totalEventCount) {
                         lastUpdate = System.currentTimeMillis()
                         saveVisitorProfile(newProfile)
                         _visitorProfile = newProfile
@@ -137,16 +188,13 @@ class VisitorManager(private val context: TealiumContext,
                     } else {
                         Logger.dev(BuildConfig.TAG, "Visitor Profile found but it was stale.")
                     }
-                } else {
-                    Logger.dev(BuildConfig.TAG, "Invalid visitor profile found.")
                 }
+
                 // back off a bit
                 delay(750L * i)
             }
-            isUpdating.set(false)
-
-        } else {
-            Logger.dev(BuildConfig.TAG, "Visitor profile is already being updated.")
+            if (isActive)
+                isUpdating.set(false)
         }
     }
 
@@ -163,6 +211,22 @@ class VisitorManager(private val context: TealiumContext,
         const val PLACEHOLDER_PROFILE = "{{profile}}"
         const val PLACEHOLDER_VISITOR_ID = "{{visitorId}}"
 
-        const val DEFAULT_VISITOR_SERVICE_TEMPLATE = "https://visitor-service.tealiumiq.com/$PLACEHOLDER_ACCOUNT/$PLACEHOLDER_PROFILE/$PLACEHOLDER_VISITOR_ID"
+        const val DEFAULT_VISITOR_SERVICE_TEMPLATE =
+            "https://visitor-service.tealiumiq.com/$PLACEHOLDER_ACCOUNT/$PLACEHOLDER_PROFILE/$PLACEHOLDER_VISITOR_ID"
+
+        fun parseVisitorProfile(json: String?): VisitorProfile? {
+            if (json == null || json == "{}") {
+                Logger.dev(BuildConfig.TAG, "Invalid visitor profile found.")
+                return null
+            }
+
+            return try {
+                Logger.dev(BuildConfig.TAG, "Fetched visitor profile: $json.")
+                VisitorProfile.fromJson(JSONObject(json))
+            } catch (ex: JSONException) {
+                Logger.dev(BuildConfig.TAG, "Failed to parse VisitorProfile: ${ex.message}")
+                null
+            }
+        }
     }
 }
