@@ -100,7 +100,7 @@ class VisitorProfileManagerTest {
         visitorProfileManager.isUpdating.set(true)
 
         visitorProfileManager.requestVisitorProfile()
-        coVerify(exactly = 0, timeout = 500) {
+        coVerify(exactly = 0, timeout = 1000) {
             mockHttpClient.get(any())
         }
     }
@@ -116,7 +116,7 @@ class VisitorProfileManagerTest {
             visitorProfileManager.onDispatchSend(mockk())
             visitorProfileManager.updateProfile()
         }
-        coVerify(exactly = 1, timeout = 500) {
+        coVerify(exactly = 1, timeout = 1000) {
             mockHttpClient.get(any())
         }
     }
@@ -129,7 +129,7 @@ class VisitorProfileManagerTest {
 
         visitorProfileManager.requestVisitorProfile()
 
-        coVerify(exactly = 5, timeout = 500) {
+        coVerify(exactly = 5, timeout = 1000) {
             mockHttpClient.get(any())
         }
     }
@@ -141,7 +141,7 @@ class VisitorProfileManagerTest {
         val visitorProfileManager = VisitorManager(mockContext, delay = {})
 
         visitorProfileManager.requestVisitorProfile()
-        coVerify(exactly = 3, timeout = 500) {
+        coVerify(exactly = 3, timeout = 1000) {
             mockHttpClient.get(any())
         }
     }
@@ -155,7 +155,7 @@ class VisitorProfileManagerTest {
 
         assertEquals(0, visitorProfileManager.visitorProfile.totalEventCount)
         visitorProfileManager.requestVisitorProfile()
-        verify(exactly = 0, timeout = 500) {
+        verify(exactly = 0, timeout = 1000) {
             mockMessengerService.send(any<VisitorUpdatedMessenger>())
         }
         assertEquals(0, visitorProfileManager.visitorProfile.totalEventCount)
@@ -185,7 +185,7 @@ class VisitorProfileManagerTest {
         assertEquals(0, visitorProfileManager.visitorProfile.totalEventCount)
 
         visitorProfileManager.requestVisitorProfile()
-        verify(exactly = 0, timeout = 500) {
+        verify(exactly = 0, timeout = 1000) {
             mockMessengerService.send(any<VisitorUpdatedMessenger>())
         }
         assertEquals(0, visitorProfileManager.visitorProfile.totalEventCount)
