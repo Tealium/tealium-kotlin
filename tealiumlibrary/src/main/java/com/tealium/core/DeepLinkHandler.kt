@@ -1,6 +1,7 @@
 package com.tealium.core
 
 import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import com.tealium.core.messaging.ActivityObserverListener
 import com.tealium.core.persistence.Expiry
@@ -40,7 +41,7 @@ class DeepLinkHandler(private val context: TealiumContext) : ActivityObserverLis
      * If the app was launched from a deep link, adds the link and query parameters to the data layer for the current session.
      */
     fun handleDeepLink(uri: Uri) {
-        if (uri.isOpaque) return
+        if (uri.isOpaque || uri == Uri.EMPTY) return
 
         removeOldDeepLinkData()
         context.dataLayer.putString(Dispatch.Keys.DEEP_LINK_URL, uri.toString(), Expiry.SESSION)
@@ -74,6 +75,9 @@ class DeepLinkHandler(private val context: TealiumContext) : ActivityObserverLis
      */
     override fun onActivityResumed(activity: Activity?) {
         activity?.intent?.let { intent ->
+            if (Intent.ACTION_VIEW != intent.action)
+                return
+
             intent.data?.let { uri ->
                 if (uri.isOpaque) return
 

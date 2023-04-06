@@ -95,6 +95,7 @@ class DeepLinkHandlerTests {
 
         intent = Intent()
         every { mockActivity.intent } returns intent
+        intent.action = Intent.ACTION_VIEW
     }
 
     fun setupUriBuilder() {
@@ -165,6 +166,74 @@ class DeepLinkHandlerTests {
                 "deep_link_url",
                 uri.toString(),
                 Expiry.SESSION
+            )
+        }
+    }
+
+    @Test
+    fun testHandleDeepLinkIgnoresIncorrectActions() {
+        every { mockContext.config } returns configWithDeepLinkingEnabled
+        val mockActivityObserverListener = DeepLinkHandler(mockContext)
+        setupUriBuilder()
+
+        intent.data = uri
+        intent.action = Intent.ACTION_TRANSLATE
+        runBlocking {
+            mockActivityObserverListener.onActivityResumed(mockActivity)
+            delay(100)
+        }
+
+        verify(inverse = true) {
+            mockDataLayer.putString(
+                "deep_link_url",
+                uri.toString(),
+                Expiry.SESSION
+            )
+        }
+    }
+
+    @Test
+    fun testHandleDeepLinkIgnoresNullActions() {
+        every { mockContext.config } returns configWithDeepLinkingEnabled
+        val mockActivityObserverListener = DeepLinkHandler(mockContext)
+        setupUriBuilder()
+
+        intent.data = uri
+        intent.action = null
+        runBlocking {
+            mockActivityObserverListener.onActivityResumed(mockActivity)
+            delay(100)
+        }
+
+        verify(inverse = true) {
+            mockDataLayer.putString(
+                "deep_link_url",
+                uri.toString(),
+                Expiry.SESSION
+            )
+        }
+    }
+
+    @Test
+    fun testHandleDeepLinkIgnoresEmptyUris() {
+        every { mockContext.config } returns configWithDeepLinkingEnabled
+        val mockActivityObserverListener = DeepLinkHandler(mockContext)
+        setupUriBuilder()
+
+        intent.data = Uri.parse("")
+        runBlocking {
+            mockActivityObserverListener.onActivityResumed(mockActivity)
+            delay(100)
+        }
+
+        verify(inverse = true) {
+            mockDataLayer.putString(
+                "deep_link_url",
+                any(),
+                Expiry.SESSION
+            )
+            mockDataLayer.remove(
+                any()
             )
         }
     }
