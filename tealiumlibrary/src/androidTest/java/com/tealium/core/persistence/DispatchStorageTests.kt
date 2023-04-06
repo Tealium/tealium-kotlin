@@ -5,11 +5,14 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
+import com.tealium.dispatcher.Dispatch
+import io.mockk.*
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 
 class DispatchStorageTests {
@@ -352,6 +355,75 @@ class DispatchStorageTests {
         )
         assertEquals(3, cursor.count)
 
+    }
+
+    @Test
+    fun testDequeueReturnsNullWhenQueueAndDaoAreEmpty() {
+        val dbHelper = mockk<DatabaseHelper>()
+        val dao = mockk<DispatchStorageDao>()
+        val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dao)
+
+        every { dbHelper.db } returns mockk()
+        every { dao.dequeue() } returns null
+
+        assertNull(dispatchStorage.dequeue())
+    }
+
+    @Test
+    fun testEnqueueAddsToQueueWhenDbIsNull() {
+        val dbHelper = mockk<DatabaseHelper>()
+        val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue())
+        val dispatch = mockk<Dispatch>()
+
+        every { dispatch.id } returns "1234"
+        every { dispatch.payload() } returns emptyMap()
+        every { dispatch.timestamp } returns 123456789L
+        every { dbHelper.db } returns null
+        every { dbHelper.onDbReady(any()) } just Runs
+
+        dispatchStorage.enqueue(dispatch)
+
+        assertEquals(1, dispatchStorage.queue.size)
+    }
+
+    @Test
+    fun testDequeueReturnsItemFromQueueWhenQueueIsNotEmpty() {
+        val dbHelper = mockk<DatabaseHelper>()
+        val dao = mockk<DispatchStorageDao>()
+        val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dao)
+        every { dbHelper.db } returns null
+        val dispatch = mockk<Dispatch>()
+        dispatchStorage.queue.add(dispatch)
+
+        assertEquals(dispatch, dispatchStorage.dequeue())
+        assertEquals(0, dispatchStorage.queue.size)
+    }
+
+    @Test
+    fun testDequeueReturnsItemFromDaoWhenQueueIsEmpty() {
+        val timestamp = getTimestamp()
+        val dbHelper = mockk<DatabaseHelper>()
+        val dao = mockk<DispatchStorageDao>()
+        val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dao)
+
+        val item = PersistentItem(
+            "key_1",
+            JSONObject().toString(),
+            Expiry.FOREVER,
+            timestamp,
+            Serialization.JSON_OBJECT
+        )
+
+        dispatchStore.enqueue(item)
+
+        every { dao.dequeue() } returns item
+
+        val convertedItem = dispatchStorage.convertToDispatch(item)
+        val dequeuedItem = dispatchStorage.dequeue()
+
+        assertEquals(convertedItem.id, dequeuedItem?.id)
+        assertEquals(convertedItem.timestamp, dequeuedItem?.timestamp)
+        assertEquals(convertedItem.payload(), dequeuedItem?.payload())
     }
 
     /**

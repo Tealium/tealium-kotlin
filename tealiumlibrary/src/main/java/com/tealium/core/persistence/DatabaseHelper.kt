@@ -17,8 +17,12 @@ import java.util.concurrent.ConcurrentLinkedQueue
 internal class DatabaseHelper(config: TealiumConfig, databaseName: String? = databaseName(config)) :
     SQLiteOpenHelper(config.application.applicationContext, databaseName, null, DATABASE_VERSION) {
 
-    val db = writableDatabaseOrNull()
-    private val queue = ConcurrentLinkedQueue<() -> Unit>() // we haven't used this before. use something else?
+    private val queue = ConcurrentLinkedQueue<(SQLiteDatabase) -> Unit>()
+    private var _db: SQLiteDatabase? = null
+    val db
+        get() = _db ?: writableDatabaseOrNull()?.apply {
+            _db = this
+        }
 
     private fun writableDatabaseOrNull(): SQLiteDatabase? {
         return try {
@@ -29,8 +33,9 @@ internal class DatabaseHelper(config: TealiumConfig, databaseName: String? = dat
         }
     }
 
-    fun onDbReady(onReady: () -> Unit) {
-        if (db == null || db.isReadOnly) {
+    fun onDbReady(onReady: (SQLiteDatabase) -> Unit) {
+        val localDb = db
+        if (localDb == null || localDb.isReadOnly) {
             Logger.dev(BuildConfig.TAG, "Database is not in a writable state")
             //queue here?
             queue.add(onReady)
@@ -38,11 +43,11 @@ internal class DatabaseHelper(config: TealiumConfig, databaseName: String? = dat
         } else {
             if (queue.isNotEmpty()) {
                 queue.forEach {
-                    it.invoke()
+                    it.invoke(localDb)
                     queue.remove(it)
                 }
             }
-            onReady()
+            onReady(localDb)
         }
     }
 

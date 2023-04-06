@@ -5,33 +5,70 @@ import com.tealium.core.messaging.LibrarySettingsUpdatedListener
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.JsonDispatch
+import java.util.concurrent.ConcurrentLinkedQueue
 
-internal class DispatchStorage(dbHelper: DatabaseHelper,
-                               tableName: String)
-    : LibrarySettingsUpdatedListener,
+internal class DispatchStorage(
+    dbHelper: DatabaseHelper,
+    tableName: String,
+    val queue: ConcurrentLinkedQueue<Dispatch> = ConcurrentLinkedQueue<Dispatch>(),
+    private val dao: DispatchStorageDao = DispatchStorageDao(dbHelper, tableName)
+) : LibrarySettingsUpdatedListener,
     QueueingDao<String, Dispatch> {
-
-    private val dao = DispatchStorageDao(dbHelper, tableName)
 
     override fun enqueue(item: Dispatch) {
         dao.enqueue(convertToPersistentItem(item))
+        val db = dao.db
+        if (db == null || db.isReadOnly) {
+            queue.add(item)
+        }
     }
 
     override fun enqueue(items: List<Dispatch>) {
         val list = items.map { convertToPersistentItem(it) }
         dao.enqueue(list)
+
+        val db = dao.db
+        if (db == null || db.isReadOnly) {
+            queue.addAll(items)
+        }
     }
 
     override fun dequeue(): Dispatch? {
+        // empty queue or only pop first element?
+        if (queue.isNotEmpty()) {
+            val dispatch = queue.poll()
+            queue.remove(dispatch)
+            return dispatch
+        }
+
         return dao.dequeue()?.let {
             convertToDispatch(it)
         }
     }
 
     override fun dequeue(count: Int): List<Dispatch> {
-        return dao.dequeue(count).map {
-            convertToDispatch(it)
+        val list = mutableListOf<Dispatch>()
+
+        // empty queue or only get count from queue?
+        if (queue.isNotEmpty()) {
+            if (count > 0) {
+                for (i in 0 until count) {
+                    queue.poll()?.let {
+                        list.add(it)
+                        queue.remove(it)
+                    }
+                }
+            } else {
+                list.addAll(queue.toMutableList())
+                queue.clear()
+            }
         }
+
+        list.addAll(dao.dequeue(count).map {
+            convertToDispatch(it)
+        })
+
+        return list.toList()
     }
 
     override fun resize(size: Int) {
@@ -78,7 +115,7 @@ internal class DispatchStorage(dbHelper: DatabaseHelper,
     override fun contains(key: String): Boolean = dao.contains(key)
     override fun purgeExpired() = dao.purgeExpired()
 
-    private fun convertToDispatch(json: PersistentItem): Dispatch {
+    internal fun convertToDispatch(json: PersistentItem): Dispatch {
         return JsonDispatch(json)
     }
 
