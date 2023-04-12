@@ -57,11 +57,11 @@ class VisitorServiceTest {
 
     @Test
     fun visitorService_RequestsUpdatedProfile() = runBlocking {
-        coEvery { mockVisitorProfileManager.requestVisitorProfile() } just Runs
+        every { mockMessengerService.send(any<RequestVisitorProfileMessenger>()) } just Runs
         VisitorService(mockContext, mockVisitorProfileManager).requestVisitorProfile()
 
-        coVerify {
-            mockVisitorProfileManager.requestVisitorProfile()
+        verify {
+            mockMessengerService.send(any<RequestVisitorProfileMessenger>())
         }
     }
 
