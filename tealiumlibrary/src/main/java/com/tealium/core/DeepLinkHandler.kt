@@ -1,13 +1,19 @@
 package com.tealium.core
 
 import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import com.tealium.core.messaging.ActivityObserverListener
 import com.tealium.core.persistence.Expiry
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
-class DeepLinkHandler(private val context: TealiumContext) : ActivityObserverListener {
+class DeepLinkHandler(
+    private val context: TealiumContext,
+    private val backgroundScope: CoroutineScope
+) : ActivityObserverListener {
 
     /**
      * Adds the supplied Trace ID to the data layer for the current session.
@@ -36,11 +42,36 @@ class DeepLinkHandler(private val context: TealiumContext) : ActivityObserverLis
         context.track(dispatch)
     }
 
+    fun handleActivityResumed(activity: Activity) {
+        val intent = activity.intent ?: return
+        if (Intent.ACTION_VIEW != intent.action) return
+
+        val uri = intent.data ?: return
+        if (uri.isOpaque) return
+
+        if (context.config.qrTraceEnabled) {
+            uri.getQueryParameter(TRACE_ID_QUERY_PARAM)?.let { traceId ->
+                uri.getQueryParameter(KILL_VISITOR_SESSION)?.let {
+                    killTraceVisitorSession()
+                }
+                uri.getQueryParameter(LEAVE_TRACE_QUERY_PARAM)?.let {
+                    leaveTrace()
+                } ?: joinTrace(traceId)
+            }
+        }
+        if (context.config.deepLinkTrackingEnabled) {
+            handleDeepLink(uri)
+        }
+    }
+
     /**
      * If the app was launched from a deep link, adds the link and query parameters to the data layer for the current session.
      */
     fun handleDeepLink(uri: Uri) {
-        if (uri.isOpaque) return
+        if (uri.isOpaque || uri == Uri.EMPTY) return
+
+        val oldDeepLink = context.dataLayer.getString(Dispatch.Keys.DEEP_LINK_URL)
+        if (uri.toString() == oldDeepLink) return
 
         removeOldDeepLinkData()
         context.dataLayer.putString(Dispatch.Keys.DEEP_LINK_URL, uri.toString(), Expiry.SESSION)
@@ -73,23 +104,9 @@ class DeepLinkHandler(private val context: TealiumContext) : ActivityObserverLis
      * Handles deep linking and joinTrace, leaveTrace, killVisitorSession requests.
      */
     override fun onActivityResumed(activity: Activity?) {
-        activity?.intent?.let { intent ->
-            intent.data?.let { uri ->
-                if (uri.isOpaque) return
-
-                if (context.config.qrTraceEnabled) {
-                    uri.getQueryParameter(TRACE_ID_QUERY_PARAM)?.let { traceId ->
-                        uri.getQueryParameter(KILL_VISITOR_SESSION)?.let {
-                            killTraceVisitorSession()
-                        }
-                        uri.getQueryParameter(LEAVE_TRACE_QUERY_PARAM)?.let {
-                            leaveTrace()
-                        } ?: joinTrace(traceId)
-                    }
-                }
-                if (context.config.deepLinkTrackingEnabled) {
-                    handleDeepLink(uri)
-                }
+        activity?.let {
+            backgroundScope.launch {
+                handleActivityResumed(it)
             }
         }
     }
