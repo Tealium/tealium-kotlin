@@ -34,11 +34,8 @@ internal class DispatchStorage(
     }
 
     override fun dequeue(): Dispatch? {
-        // empty queue or only pop first element?
         if (queue.isNotEmpty()) {
-            val dispatch = queue.poll()
-            queue.remove(dispatch)
-            return dispatch
+            return queue.poll()
         }
 
         return dao.dequeue()?.let {
@@ -46,29 +43,31 @@ internal class DispatchStorage(
         }
     }
 
+    /**
+     * Pops the first [count] items off the queue; it reads then deletes.
+     * @param count limits the number of items to dequeue off the list; negative numbers will
+     * dequeue all currently queued items.
+     */
     override fun dequeue(count: Int): List<Dispatch> {
-        val list = mutableListOf<Dispatch>()
 
-        // empty queue or only get count from queue?
         if (queue.isNotEmpty()) {
-            if (count > 0) {
+            val list = mutableListOf<Dispatch>()
+            return if (count > 0) {
                 for (i in 0 until count) {
                     queue.poll()?.let {
-                        list.add(it)
-                        queue.remove(it)
-                    }
+                        list.add(it) }
                 }
+                list
             } else {
-                list.addAll(queue.toMutableList())
+                list.addAll(queue)
                 queue.clear()
+                list
             }
         }
 
-        list.addAll(dao.dequeue(count).map {
+        return dao.dequeue(count).map {
             convertToDispatch(it)
-        })
-
-        return list.toList()
+        }
     }
 
     override fun resize(size: Int) {
