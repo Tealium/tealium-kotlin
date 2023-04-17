@@ -92,22 +92,22 @@ class LibrarySettingsManager(
 
     private fun loadFromCache(file: File): LibrarySettings? {
         return loader.loadFromFile(file)?.let {
-            if (!JsonUtils.isValidJson(it)) {
+            val json = JsonUtils.tryParse(it)
+
+            if (json == null) {
                 // cached file is invalid; delete
                 removeFromCache()
                 return null
             }
 
-            val json = JSONObject(it)
             LibrarySettings.fromJson(json)
         }
     }
 
     private fun loadFromAsset(fileName: String): LibrarySettings? {
         return loader.loadFromAsset(fileName)?.let {
-            if (!JsonUtils.isValidJson(it)) return null
+            val json = JsonUtils.tryParse(it) ?: return null
 
-            val json = JSONObject(it)
             LibrarySettings.fromJson(json)
         }
     }
