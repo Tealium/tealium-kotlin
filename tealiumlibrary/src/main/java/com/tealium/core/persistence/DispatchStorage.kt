@@ -35,7 +35,11 @@ internal class DispatchStorage(
 
     override fun dequeue(): Dispatch? {
         if (queue.isNotEmpty()) {
-            return queue.poll()
+            val dispatch = queue.poll()
+            dispatch?.let {
+                dao.delete(it.id)
+            }
+            return dispatch
         }
 
         return dao.dequeue()?.let {
@@ -49,17 +53,20 @@ internal class DispatchStorage(
      * dequeue all currently queued items.
      */
     override fun dequeue(count: Int): List<Dispatch> {
-
         if (queue.isNotEmpty()) {
             val list = mutableListOf<Dispatch>()
             return if (count > 0) {
                 for (i in 0 until count) {
                     queue.poll()?.let {
+                        dao.delete(it.id)
                         list.add(it) }
                 }
                 list
             } else {
-                list.addAll(queue)
+                queue.forEach {
+                    dao.delete(it.id)
+                    list.add(it)
+                }
                 queue.clear()
                 list
             }
