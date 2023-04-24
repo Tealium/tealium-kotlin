@@ -24,11 +24,7 @@ internal class DispatchStorageDao(
     private val kvDao: KeyValueDao<String, PersistentItem> = PersistentStorageDao(dbHelper, tableName, false)
 ) : QueueingDao<String, PersistentItem>, KeyValueDao<String, PersistentItem> by kvDao {
 
-    private var _db: SQLiteDatabase? = null
-    val db
-        get() = _db ?: dbHelper.db?.apply {
-            _db = this
-        }
+    val db: SQLiteDatabase? = dbHelper.db
 
     /**
      * Sets the maximum number of items allowed in the queue.
@@ -117,18 +113,18 @@ internal class DispatchStorageDao(
      * Deletes entries for each item in the [items] list by its [PersistentItem.key]
      */
     private fun internalDeleteAll(items: List<PersistentItem>) {
-        dbHelper.onDbReady {
-            db?.beginTransaction()
+        dbHelper.onDbReady { database ->
+            database.beginTransaction()
             try {
                 items.forEach {
                     kvDao.delete(it.key)
                 }
-                db?.setTransactionSuccessful()
+                database.setTransactionSuccessful()
             } catch (e: Exception) {
                 Logger.dev(BuildConfig.TAG, "Error while trying to delete items")
             }
             finally {
-                db?.endTransaction()
+                database.endTransaction()
             }
         }
     }
@@ -145,7 +141,7 @@ internal class DispatchStorageDao(
             return list
         }
 
-        val cursor = db?.query(
+        val cursor = db.query(
             tableName,
             null,
             PersistentStorageDao.IS_NOT_EXPIRED_CLAUSE,

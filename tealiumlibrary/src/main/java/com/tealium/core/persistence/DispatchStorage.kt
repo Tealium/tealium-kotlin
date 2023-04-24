@@ -59,7 +59,8 @@ internal class DispatchStorage(
                 for (i in 0 until count) {
                     queue.poll()?.let {
                         dao.delete(it.id)
-                        list.add(it) }
+                        list.add(it)
+                    }
                 }
                 list
             } else {
