@@ -14,6 +14,7 @@ private const val KEY_WIFI_ONLY = "wifi_only"
 private const val KEY_REFRESH_INTERVAL = "refresh_interval"
 private const val KEY_LOG_LEVEL = "log_level"
 private const val KEY_DISABLE_LIBRARY = "disable_library"
+private const val KEY_ETAG = "etag"
 
 private const val MPS_KEY_COLLECT_DISPATCHER = "enable_collect"
 private const val MPS_KEY_TAG_MANAGEMENT_DISPATCHER = "enable_tag_management"
@@ -25,6 +26,7 @@ private const val MPS_KEY_BATTERY_SAVER = "battery_saver"
 private const val MPS_KEY_WIFI_ONLY = "wifi_only_sending"
 private const val MPS_KEY_LOG_LEVEL = "override_log"
 private const val MPS_KEY_DISABLE_LIBRARY = "_is_enabled"
+private const val MPS_KEY_ETAG = "etag"
 
 data class LibrarySettings(
         var collectDispatcherEnabled: Boolean = false,
@@ -34,7 +36,9 @@ data class LibrarySettings(
         var wifiOnly: Boolean = false,
         var refreshInterval: Int = 900,
         var disableLibrary: Boolean = false,
-        var logLevel: LogLevel = LogLevel.PROD) {
+        var logLevel: LogLevel = LogLevel.PROD,
+        var etag: String? = null
+) {
 
     companion object {
         fun toJson(librarySettings: LibrarySettings) : JSONObject {
@@ -48,6 +52,7 @@ data class LibrarySettings(
             json.put(KEY_REFRESH_INTERVAL, "${librarySettings.refreshInterval}s")
             json.put(KEY_LOG_LEVEL, librarySettings.logLevel.name)
             json.put(KEY_DISABLE_LIBRARY, librarySettings.disableLibrary)
+            json.put(KEY_ETAG, librarySettings.etag)
 
             return json
         }
@@ -71,6 +76,8 @@ data class LibrarySettings(
             val librarySettingsIntervalString = json.optString(KEY_REFRESH_INTERVAL)
             librarySettings.refreshInterval = LibrarySettingsExtractor.timeConverter(librarySettingsIntervalString)
             librarySettings.disableLibrary = json.optBoolean(KEY_DISABLE_LIBRARY, false)
+            val tag = json.optString(KEY_ETAG)
+            librarySettings.etag = if (!tag.isNullOrEmpty()) tag else null
 
             return librarySettings
         }
@@ -98,6 +105,7 @@ data class LibrarySettings(
             val librarySettingsInterval = LibrarySettingsExtractor.timeConverter("${json.optString(MPS_KEY_INTERVAL)}m")
             librarySettings.refreshInterval = librarySettingsInterval
             librarySettings.disableLibrary = !json.optBoolean(MPS_KEY_DISABLE_LIBRARY, false)
+            librarySettings.etag = json.optString(MPS_KEY_ETAG)
 
             return librarySettings
         }

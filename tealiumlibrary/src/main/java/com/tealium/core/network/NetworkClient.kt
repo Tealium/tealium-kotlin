@@ -15,7 +15,11 @@ interface NetworkClient {
 
     suspend fun ifModified(urlString: String, timestamp: Long): Boolean?
 
+    suspend fun ifNoneMatch(urlString: String, etag: String): Boolean?
+
     suspend fun get(urlString: String): String?
+
+    suspend fun getResourceEntity(urlString: String): ResourceEntity?
 
     fun validUrl(urlString: String): Boolean
 }

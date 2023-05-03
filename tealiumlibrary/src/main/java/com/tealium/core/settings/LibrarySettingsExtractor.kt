@@ -1,5 +1,6 @@
 package com.tealium.core.settings
 
+import com.tealium.core.network.ResourceEntity
 import org.json.JSONObject
 import java.util.*
 import java.util.regex.Pattern
@@ -15,6 +16,7 @@ class LibrarySettingsExtractor private constructor() {
         private const val REGEX_VARS = ";? *var +[\\w]+ *= *"
         private const val SUB_STRING_SRC = "src"
         private const val SUB_STRING_MPS = "mps"
+        private const val ETAG_KEY = "etag"
 
         // Returns the time in seconds
         fun timeConverter(time: String): Int {
@@ -37,10 +39,16 @@ class LibrarySettingsExtractor private constructor() {
             }
         }
 
-        fun extractHtmlLibrarySettings(html: String): JSONObject? {
-            return extract(html)?.let { entity ->
-                // only interested in v5 properties
-                JSONObject(entity).getJSONObject("5")
+        fun extractHtmlLibrarySettings(response: ResourceEntity): JSONObject? {
+            return response.response?.let {
+                extract(it)?.let { entity ->
+                    // only interested in v5 properties
+                    val json = JSONObject(entity).getJSONObject("5")
+                    response.etag?.let { tag ->
+                        json.put(ETAG_KEY, tag)
+                    }
+                    json
+                }
             }
         }
 

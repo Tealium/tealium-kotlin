@@ -2,6 +2,7 @@ package com.tealium.core.settings
 
 import com.tealium.core.*
 import com.tealium.core.messaging.EventRouter
+import com.tealium.core.network.ResourceEntity
 import com.tealium.core.network.NetworkClient
 import com.tealium.core.network.ResourceRetriever
 import com.tealium.tealiumlibrary.BuildConfig
@@ -21,7 +22,7 @@ class LibrarySettingsManager(
 ) {
 
     private val resourceRetriever: ResourceRetriever
-    private var job: Deferred<String?>? = null
+    private var job: Deferred<ResourceEntity?>? = null
 
     // Asset
     private val assetString: String = "tealium-settings.json"
@@ -32,6 +33,8 @@ class LibrarySettingsManager(
     private val urlString: String
         get() = config.overrideLibrarySettingsUrl
             ?: "https://tags.tiqcdn.com/utag/${config.accountName}/${config.profileName}/${config.environment.environment}/mobile.html"
+
+    private val etagKey: String = "etag"
 
     init {
         resourceRetriever = ResourceRetriever(config, urlString, networkClient)
@@ -49,7 +52,7 @@ class LibrarySettingsManager(
 
     suspend fun fetchLibrarySettings() = coroutineScope {
         when (config.useRemoteLibrarySettings) {
-            true -> fetchRemoteSettings()
+            true -> fetchRemoteSettings(librarySettings.etag)
             false -> {
                 if (!isAssetSettingsLoaded) {
                     loadFromAsset(assetString)
@@ -112,33 +115,38 @@ class LibrarySettingsManager(
         }
     }
 
-    private suspend fun fetchRemoteSettings() = coroutineScope {
+    private suspend fun fetchRemoteSettings(etag: String? = null) = coroutineScope {
         if (job?.isActive == false || job == null) {
             job = async {
                 if (isActive) {
-                    resourceRetriever.fetch()
+                    resourceRetriever.fetchWithEtag(etag)
                 } else {
                     null
                 }
             }
-            job?.await()?.let { string ->
-                Logger.dev(BuildConfig.TAG, "Loaded remote library settings $librarySettings.")
+            job?.await()?.let { resource ->
                 try {
-                    // TODO: should read response headers to determine the file type
+                    // TODO: should read resource headers to determine the file type
                     val settings = when (urlString.endsWith(".html")) {
                         true -> {
-                            val json = LibrarySettingsExtractor.extractHtmlLibrarySettings(string)
+                            val json = LibrarySettingsExtractor.extractHtmlLibrarySettings(resource)
                             json?.let {
                                 LibrarySettings.fromMobilePublishSettings(it)
                             }
                         }
                         false -> {
-                            if (JsonUtils.isValidJson(string)) {
-                                val json = JSONObject(string)
+                            if (resource.response?.let { JsonUtils.isValidJson(it) } == true) {
+                                val json = JSONObject(resource.response)
+                                resource.etag?.let {
+                                    json.put(etagKey, it)
+                                }
                                 LibrarySettings.fromJson(json)
                             } else null
                         }
                     }
+
+                    Logger.dev(BuildConfig.TAG, "Loaded remote library settings $settings.")
+
                     settings?.let {
                         writeToCache(LibrarySettings.toJson(settings).toString())
                         librarySettings = it

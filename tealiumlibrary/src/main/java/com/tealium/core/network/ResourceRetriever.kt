@@ -10,15 +10,17 @@ import java.util.*
 /**
  * Fetches a resource with the option to check if the resource is modified first, as well as retry capability.
  */
-class ResourceRetriever(private val config: TealiumConfig,
-                        private val resourceUrlString: String,
-                        var networkClient: NetworkClient = HttpClient(config)) {
+class ResourceRetriever(
+    private val config: TealiumConfig,
+    private val resourceUrlString: String,
+    var networkClient: NetworkClient = HttpClient(config)
+) {
 
     /**
      * Set this property to false if the URL does not support If-Modified.
      * Default is true.
      */
-    var useIfModifed = true
+    var useIfModifed = true // ugh, typo
 
     /**
      * Set this property to set the interval on which this resource is fetched again.
@@ -39,7 +41,8 @@ class ResourceRetriever(private val config: TealiumConfig,
 
     private val MS_IN_MINUTES = 60000L
 
-    private val dateFormat: SimpleDateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.ROOT)
+    private val dateFormat: SimpleDateFormat =
+        SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.ROOT)
 
     init {
         dateFormat.timeZone = TimeZone.getTimeZone("GMT")
@@ -49,6 +52,14 @@ class ResourceRetriever(private val config: TealiumConfig,
         async {
             retry(maxRetries, 500) {
                 fetchResource()
+            }
+        }.await()
+    }
+
+    suspend fun fetchWithEtag(etag: String?): ResourceEntity? = coroutineScope {
+        async {
+            retry(maxRetries, 500) {
+                fetchResourceEntity(etag)
             }
         }.await()
     }
@@ -69,6 +80,22 @@ class ResourceRetriever(private val config: TealiumConfig,
         }
     }
 
+    private suspend fun fetchResourceEntity(etag: String?): ResourceEntity? = coroutineScope {
+            withContext(Dispatchers.Default) {
+                if (isActive) {
+                    if (etag.isNullOrBlank()) {
+                        val entity = networkClient.getResourceEntity(resourceUrlString)
+                        Logger.dev(BuildConfig.TAG, "Fetched resource with JSON: ${entity?.response}.")
+                        entity
+                    } else {
+                        fetchIfNoneMatch(etag)
+                    }
+                } else {
+                    null
+                }
+            }
+        }
+
     private suspend fun fetchIfModified(): String? = coroutineScope {
         withContext(Dispatchers.Default) {
             if (isActive) {
@@ -86,6 +113,28 @@ class ResourceRetriever(private val config: TealiumConfig,
                     }
                 } else {
                     null
+                }
+            } else {
+                null
+            }
+        }
+    }
+
+    private suspend fun fetchIfNoneMatch(etag: String): ResourceEntity? = coroutineScope {
+        withContext(Dispatchers.Default) {
+            if (isActive) {
+                val resourceModified = async { shouldFetchIfNoneMatch(etag) }.await()
+                resourceModified?.let { modified ->
+                    if (modified) {
+                        val json = networkClient.getResourceEntity(resourceUrlString)
+                        Logger.dev(
+                            BuildConfig.TAG,
+                            "Fetched resource with JSON at $resourceUrlString: $json."
+                        )
+                        json
+                    } else {
+                        null
+                    }
                 }
             } else {
                 null
@@ -124,5 +173,9 @@ class ResourceRetriever(private val config: TealiumConfig,
             return networkClient.ifModified(resourceUrlString, timestamp)
         }
         return true
+    }
+
+    suspend fun shouldFetchIfNoneMatch(etag: String): Boolean? {
+        return networkClient.ifNoneMatch(resourceUrlString, etag)
     }
 }
