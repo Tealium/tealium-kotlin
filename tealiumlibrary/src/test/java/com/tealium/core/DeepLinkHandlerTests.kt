@@ -10,6 +10,7 @@ import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
 import io.mockk.impl.annotations.RelaxedMockK
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
@@ -80,6 +81,8 @@ class DeepLinkHandlerTests {
             return config
         }
 
+    val backgroundScope = CoroutineScope(kotlinx.coroutines.Dispatchers.Default)
+
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
@@ -95,6 +98,7 @@ class DeepLinkHandlerTests {
 
         intent = Intent()
         every { mockActivity.intent } returns intent
+        intent.action = Intent.ACTION_VIEW
     }
 
     fun setupUriBuilder() {
@@ -111,11 +115,11 @@ class DeepLinkHandlerTests {
     fun testHandleDeepLink() {
         every { mockContext.config } returns configWithDeepLinkingEnabled
 
-        val mockActivityObserverListener = DeepLinkHandler(mockContext)
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
         setupUriBuilder()
 
         runBlocking {
-            mockActivityObserverListener.handleDeepLink(uri)
+            deepLinkHandler.handleDeepLink(uri)
             delay(100)
         }
 
@@ -131,12 +135,12 @@ class DeepLinkHandlerTests {
     @Test
     fun testHandleDeepLinkDoesNotRunFromActivityResumeIfDisabled() {
         every { mockContext.config } returns configWithDeepLinkingDisabled
-        val mockActivityObserverListener = DeepLinkHandler(mockContext)
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
         setupUriBuilder()
 
         intent.data = uri
         runBlocking {
-            mockActivityObserverListener.onActivityResumed(mockActivity)
+            deepLinkHandler.handleActivityResumed(mockActivity)
             delay(100)
         }
         verify(exactly = 0) {
@@ -151,12 +155,12 @@ class DeepLinkHandlerTests {
     @Test
     fun testHandleDeepLinkFromActivityResume() {
         every { mockContext.config } returns configWithDeepLinkingEnabled
-        val mockActivityObserverListener = DeepLinkHandler(mockContext)
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
         setupUriBuilder()
 
         intent.data = uri
         runBlocking {
-            mockActivityObserverListener.onActivityResumed(mockActivity)
+            deepLinkHandler.handleActivityResumed(mockActivity)
             delay(100)
         }
 
@@ -170,14 +174,82 @@ class DeepLinkHandlerTests {
     }
 
     @Test
+    fun testHandleDeepLinkIgnoresIncorrectActions() {
+        every { mockContext.config } returns configWithDeepLinkingEnabled
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
+        setupUriBuilder()
+
+        intent.data = uri
+        intent.action = Intent.ACTION_TRANSLATE
+        runBlocking {
+            deepLinkHandler.handleActivityResumed(mockActivity)
+            delay(100)
+        }
+
+        verify(inverse = true) {
+            mockDataLayer.putString(
+                "deep_link_url",
+                uri.toString(),
+                Expiry.SESSION
+            )
+        }
+    }
+
+    @Test
+    fun testHandleDeepLinkIgnoresNullActions() {
+        every { mockContext.config } returns configWithDeepLinkingEnabled
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
+        setupUriBuilder()
+
+        intent.data = uri
+        intent.action = null
+        runBlocking {
+            deepLinkHandler.handleActivityResumed(mockActivity)
+            delay(100)
+        }
+
+        verify(inverse = true) {
+            mockDataLayer.putString(
+                "deep_link_url",
+                uri.toString(),
+                Expiry.SESSION
+            )
+        }
+    }
+
+    @Test
+    fun testHandleDeepLinkIgnoresEmptyUris() {
+        every { mockContext.config } returns configWithDeepLinkingEnabled
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
+        setupUriBuilder()
+
+        intent.data = Uri.parse("")
+        runBlocking {
+            deepLinkHandler.handleActivityResumed(mockActivity)
+            delay(100)
+        }
+
+        verify(inverse = true) {
+            mockDataLayer.putString(
+                "deep_link_url",
+                any(),
+                Expiry.SESSION
+            )
+            mockDataLayer.remove(
+                any()
+            )
+        }
+    }
+
+    @Test
     fun testHandleDeepLinkIgnoresOpaqueUris() {
         every { mockContext.config } returns configWithDeepLinkingEnabled
-        val mockActivityObserverListener = DeepLinkHandler(mockContext)
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
 
         val opaqueUri = Uri.Builder().scheme("tealium").opaquePart("test").build()
         assertTrue(opaqueUri.isOpaque)
         runBlocking {
-            mockActivityObserverListener.handleDeepLink(opaqueUri)
+            deepLinkHandler.handleDeepLink(opaqueUri)
             delay(100)
         }
 
@@ -189,14 +261,14 @@ class DeepLinkHandlerTests {
     @Test
     fun testOnActivityResumedIgnoresOpaqueUris() {
         every { mockContext.config } returns configWithDeepLinkingEnabled
-        val mockActivityObserverListener = DeepLinkHandler(mockContext)
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
         setupUriBuilder()
 
         val opaqueUri = Uri.Builder().scheme("tealium").opaquePart("test").build()
         assertTrue(opaqueUri.isOpaque)
         intent.data = opaqueUri
         runBlocking {
-            mockActivityObserverListener.onActivityResumed(mockActivity)
+            deepLinkHandler.handleActivityResumed(mockActivity)
             delay(100)
         }
 
@@ -208,7 +280,7 @@ class DeepLinkHandlerTests {
     @Test
     fun testHandleJoinTraceFromActivityResume() {
         every { mockContext.config } returns configWithQRTraceEnabled
-        val mockActivityObserverListener = DeepLinkHandler(mockContext)
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
         setupUriBuilder()
 
         val traceId = "abc123"
@@ -216,7 +288,7 @@ class DeepLinkHandlerTests {
 
         intent.data = builder.build()
         runBlocking {
-            mockActivityObserverListener.onActivityResumed(mockActivity)
+            deepLinkHandler.handleActivityResumed(mockActivity)
             delay(100)
         }
 
@@ -232,7 +304,7 @@ class DeepLinkHandlerTests {
     @Test
     fun testHandleLeaveTraceFromActivityResume() {
         every { mockContext.config } returns configWithQRTraceEnabled
-        val mockActivityObserverListener = DeepLinkHandler(mockContext)
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
         setupUriBuilder()
 
         val traceId = "abc123"
@@ -247,7 +319,7 @@ class DeepLinkHandlerTests {
 
         intent.data = builder.build()
         runBlocking {
-            mockActivityObserverListener.onActivityResumed(mockActivity)
+            deepLinkHandler.handleActivityResumed(mockActivity)
             delay(100)
         }
         verify(exactly = 1) { mockDataLayer.remove(Dispatch.Keys.TRACE_ID) }
@@ -260,7 +332,7 @@ class DeepLinkHandlerTests {
         setupUriBuilder()
 
         runBlocking {
-            val mockActivityObserverListener = DeepLinkHandler(mockContext)
+            val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
 
             val traceId = "abc123"
             val queryParams = mapOf<String, Any>(
@@ -274,7 +346,7 @@ class DeepLinkHandlerTests {
 
             intent.data = builder.build()
             runBlocking {
-                mockActivityObserverListener.onActivityResumed(mockActivity)
+                deepLinkHandler.handleActivityResumed(mockActivity)
                 delay(100)
             }
 
@@ -291,7 +363,7 @@ class DeepLinkHandlerTests {
     @Test
     fun testHandleJoinTraceDoesNotRunFromActivityResumeIfDisabled() {
         every { mockContext.config } returns configWithQRTraceDisabled
-        val mockActivityObserverListener = DeepLinkHandler(mockContext)
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
         setupUriBuilder()
 
         val traceId = "abc123"
@@ -299,7 +371,7 @@ class DeepLinkHandlerTests {
 
         intent.data = builder.build()
         runBlocking {
-            mockActivityObserverListener.onActivityResumed(mockActivity)
+            deepLinkHandler.handleActivityResumed(mockActivity)
             delay(100)
         }
 
@@ -309,16 +381,16 @@ class DeepLinkHandlerTests {
     @Test
     fun testJoinTrace() {
         every { mockContext.config } returns configWithQRTraceEnabled
-        val mockActivityObserverListener = DeepLinkHandler(mockContext)
-        mockActivityObserverListener.joinTrace("abc123")
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
+        deepLinkHandler.joinTrace("abc123")
         verify(exactly = 1) { mockDataLayer.putString("cp.trace_id", "abc123", Expiry.SESSION) }
     }
 
     @Test
     fun testLeaveTrace() {
         every { mockContext.config } returns configWithQRTraceEnabled
-        val mockActivityObserverListener = DeepLinkHandler(mockContext)
-        mockActivityObserverListener.leaveTrace()
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
+        deepLinkHandler.leaveTrace()
         verify(exactly = 1) { mockDataLayer.remove("cp.trace_id") }
     }
 
@@ -326,8 +398,8 @@ class DeepLinkHandlerTests {
     fun testKillVisitorSessionTriggersTrackCall() {
         every { mockContext.config } returns configWithQRTraceEnabled
         every { mockContext.track(TealiumEvent("kill_visitor_session")) } just Runs
-        val mockActivityObserverListener = DeepLinkHandler(mockContext)
-        mockActivityObserverListener.killTraceVisitorSession()
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
+        deepLinkHandler.killTraceVisitorSession()
 
         verify(exactly = 1) {
             mockContext.track(
@@ -348,8 +420,8 @@ class DeepLinkHandlerTests {
             "${Dispatch.Keys.DEEP_LINK_QUERY_PREFIX}_test2"
         )
 
-        val mockActivityObserverListener = DeepLinkHandler(mockContext)
-        mockActivityObserverListener.removeOldDeepLinkData()
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
+        deepLinkHandler.removeOldDeepLinkData()
 
         verify {
             mockDataLayer.remove("${Dispatch.Keys.DEEP_LINK_QUERY_PREFIX}_test1")
@@ -365,11 +437,11 @@ class DeepLinkHandlerTests {
     fun testNewDeepLinkAddsQueryParamsToDatalayer() {
         every { mockContext.config } returns configWithDeepLinkingEnabled
 
-        val mockActivityObserverListener = DeepLinkHandler(mockContext)
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
         setupUriBuilder()
 
         runBlocking {
-            mockActivityObserverListener.handleDeepLink(uri)
+            deepLinkHandler.handleDeepLink(uri)
             delay(100)
         }
 
@@ -405,8 +477,8 @@ class DeepLinkHandlerTests {
         setupUriBuilder()
 
         runBlocking {
-            val mockActivityObserverListener = DeepLinkHandler(mockContext)
-            mockActivityObserverListener.handleDeepLink(builder.build())
+            val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
+            deepLinkHandler.handleDeepLink(builder.build())
             delay(100)
         }
 
@@ -426,6 +498,44 @@ class DeepLinkHandlerTests {
         verify(inverse = true) {
             mockDataLayer.remove("tealium_key1")
             mockDataLayer.remove("other_key")
+        }
+    }
+
+    @Test
+    fun testSameDeepLinkDoesNotReplaceData() {
+        every { mockContext.config } returns configWithQRTraceEnabled
+        every { mockDataLayer.keys() } returns listOf(
+            "tealium_key1",
+            "other_key",
+            "${Dispatch.Keys.DEEP_LINK_QUERY_PREFIX}_test1",
+            "${Dispatch.Keys.DEEP_LINK_QUERY_PREFIX}_test2"
+        )
+
+        setupUriBuilder()
+
+        every { mockDataLayer.getString(Dispatch.Keys.DEEP_LINK_URL) } returns uri.toString()
+
+        runBlocking {
+            val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
+            deepLinkHandler.handleDeepLink(builder.build())
+            delay(100)
+        }
+
+        verify(inverse = true) {
+            mockDataLayer.putString(Dispatch.Keys.DEEP_LINK_URL, any(), any())
+            mockDataLayer.remove("${Dispatch.Keys.DEEP_LINK_QUERY_PREFIX}_test1")
+            mockDataLayer.remove("${Dispatch.Keys.DEEP_LINK_QUERY_PREFIX}_test2")
+            mockDataLayer.remove("tealium_key1")
+            mockDataLayer.remove("other_key")
+        }
+        queryParams.forEach {
+            verify(inverse = true) {
+                mockDataLayer.putString(
+                    "deep_link_param_" + it.key,
+                    it.value.toString(),
+                    Expiry.SESSION
+                )
+            }
         }
     }
 }

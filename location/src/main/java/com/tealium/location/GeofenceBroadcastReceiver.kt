@@ -34,7 +34,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             Geofence.GEOFENCE_TRANSITION_ENTER -> GeofenceTransitionType.ENTER
             Geofence.GEOFENCE_TRANSITION_EXIT -> GeofenceTransitionType.EXIT
             else -> {
-                Logger.dev(BuildConfig.TAG, "Error in geofence trasition type")
+                Logger.dev(BuildConfig.TAG, "Error in geofence transition type")
                 null
             }
         }

@@ -15,8 +15,9 @@ class JsonUtilsTest {
     @Test
     fun jsonForFlatKeysStringValues() {
         val payload = mapOf(
-                "key1" to "value1",
-                "key2" to "value2")
+            "key1" to "value1",
+            "key2" to "value2"
+        )
         val result = JsonUtils.jsonFor(payload)
         assertEquals("value1", result.optString("key1"))
         assertEquals("value2", result.optString("key2"))
@@ -25,8 +26,9 @@ class JsonUtilsTest {
     @Test
     fun jsonForFlatKeysIntValues() {
         val payload = mapOf(
-                "key1" to 1,
-                "key2" to 2)
+            "key1" to 1,
+            "key2" to 2
+        )
         val result = JsonUtils.jsonFor(payload)
         assertEquals(1, result.optInt("key1"))
         assertEquals(2, result.optInt("key2"))
@@ -35,8 +37,9 @@ class JsonUtilsTest {
     @Test
     fun jsonForFlatKeysDoubleValues() {
         val payload = mapOf(
-                "key1" to 1.2,
-                "key2" to 3.4)
+            "key1" to 1.2,
+            "key2" to 3.4
+        )
         val result = JsonUtils.jsonFor(payload)
         assertEquals(1.2, result.optDouble("key1"), 0.1)
         assertEquals(3.4, result.optDouble("key2"), 0.1)
@@ -45,10 +48,11 @@ class JsonUtilsTest {
     @Test
     fun jsonForArraysOfMaps() {
         val payload = mapOf(
-                "array" to arrayOf(
-                        mapOf("mapKey1" to "mapValue1"),
-                        mapOf("mapKey2" to "mapValue2")
-                ))
+            "array" to arrayOf(
+                mapOf("mapKey1" to "mapValue1"),
+                mapOf("mapKey2" to "mapValue2")
+            )
+        )
         val result = JsonUtils.jsonFor(payload)
         val jsonArray = result.getJSONArray("array")
         assertNotNull(jsonArray)
@@ -64,10 +68,11 @@ class JsonUtilsTest {
     @Test
     fun jsonForListsOfMaps() {
         val payload = mapOf(
-                "list" to listOf(
-                        mapOf("mapKey1" to "mapValue1"),
-                        mapOf("mapKey2" to "mapValue2")
-                ))
+            "list" to listOf(
+                mapOf("mapKey1" to "mapValue1"),
+                mapOf("mapKey2" to "mapValue2")
+            )
+        )
         val result = JsonUtils.jsonFor(payload)
         val jsonArray = result.getJSONArray("list")
         assertNotNull(jsonArray)
@@ -83,10 +88,11 @@ class JsonUtilsTest {
     @Test
     fun jsonForSetsOfMaps() {
         val payload = mapOf(
-                "set" to setOf(
-                        mapOf("mapKey1" to "mapValue1"),
-                        mapOf("mapKey2" to "mapValue2")
-                ))
+            "set" to setOf(
+                mapOf("mapKey1" to "mapValue1"),
+                mapOf("mapKey2" to "mapValue2")
+            )
+        )
         val result = JsonUtils.jsonFor(payload)
         val jsonArray = result.getJSONArray("set")
         assertNotNull(jsonArray)
@@ -102,10 +108,11 @@ class JsonUtilsTest {
     @Test
     fun jsonForArraysOfMapsOfArrays() {
         val payload = mapOf(
-                "array" to arrayOf(
-                        mapOf("mapKey1" to arrayOf("1", "2", "3")),
-                        mapOf("mapKey2" to listOf(1, 2, 3))
-                ))
+            "array" to arrayOf(
+                mapOf("mapKey1" to arrayOf("1", "2", "3")),
+                mapOf("mapKey2" to listOf(1, 2, 3))
+            )
+        )
         val result = JsonUtils.jsonFor(payload)
         val jsonArray = result.getJSONArray("array")
         assertNotNull(jsonArray)
@@ -125,5 +132,47 @@ class JsonUtilsTest {
         assertEquals(1, jsonArray2.get(0))
         assertEquals(2, jsonArray2.get(1))
         assertEquals(3, jsonArray2.get(2))
+    }
+
+    @Test
+    fun tryParseReturnsValidJsonObject() {
+        val jsonLibrarySettings = "{\n" +
+                "  \"collect_dispatcher\": false,\n" +
+                "  \"tag_management_dispatcher\": true,\n" +
+                "  \"batching\": {\n" +
+                "    \"batch_size\": 10,\n" +
+                "    \"max_queue_size\": 999,\n" +
+                "    \"expiration\": \"1d\"\n" +
+                "  },\n" +
+                "  \"battery_saver\": true,\n" +
+                "  \"wifi_only\": false,\n" +
+                "  \"refresh_interval\": \"15m\",\n" +
+                "  \"log_level\": \"dev\",\n" +
+                "  \"disable_library\": false\n" +
+                "}"
+
+        val jsonObject = JsonUtils.tryParse(jsonLibrarySettings)
+        assertNotNull(jsonObject)
+        assertEquals(false, jsonObject!!.getBoolean("collect_dispatcher"))
+    }
+
+    @Test
+    fun tryParseReturnsNullOnInvalidJsonObjectButDoesNotThrow() {
+        val malformedJsonLibrarySettings = "{\n" +
+                "  \"collect_dispatcher\": false,\n" +
+                "  \"tag_management_dispatcher\": true,\n" +
+                "  \"batching\": {\n" +
+                "    \"batch_size\": 10,\n" +
+                "    \"max_queue_size\": 999,\n" +
+                "    \"expiration\": \"1d\"\n" +
+                "  },\n" +
+                "  \"battery_saver\": true,\n" +
+                "  \"wifi_only\": false,\n" +
+                "  \"refresh_interval\": \"15m\",\n" +
+                "  \"log_level\": \"dev\",\n" +
+                "  \"disable_library\": false\n" // missing closing brace
+
+        val jsonObject = JsonUtils.tryParse(malformedJsonLibrarySettings)
+        assertNull(jsonObject)
     }
 }

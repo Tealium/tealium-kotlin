@@ -11,7 +11,6 @@ import com.tealium.remotecommanddispatcher.remotecommands.HttpRemoteCommand
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandContext
 import com.tealium.remotecommands.RemoteCommandRequest
-import java.lang.StringBuilder
 
 interface RemoteCommandDispatcherListener : DispatcherListener {
 }
@@ -75,34 +74,25 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
     }
 
     private fun parseJsonRemoteCommand(remoteCommand: RemoteCommand, dispatch: Dispatch) {
-        manager.getRemoteCommandConfigRetriever(remoteCommand.commandName)?.remoteCommandConfig.let { config ->
-            config?.mappings?.let { mappings ->
+        manager.getRemoteCommandConfigRetriever(remoteCommand.commandName)?.remoteCommandConfig?.let { config ->
+
+            val staticsDispatch = RemoteCommandParser.processStaticMappings(config.statics, dispatch.payload(), config.delimiters)
+
+            config.mappings?.let { mappings ->
                 // map the dispatch with the lookup
-                val mappedDispatch = RemoteCommandParser.mapPayload(dispatch.payload(), mappings)
-                val eventName = dispatch[Dispatch.Keys.TEALIUM_EVENT] as? String
-                val eventType = dispatch[Dispatch.Keys.TEALIUM_EVENT_TYPE] as? String
-                val commandsList = mutableListOf<String>()
+                val mappedDispatch = RemoteCommandParser.mapPayload(staticsDispatch, mappings)
 
                 config.apiConfig?.let {
                     mappedDispatch.putAll(it)
                 }
 
-                config.apiCommands?.get(Settings.ALL_EVENTS)?.let {
-                    if (eventType == DispatchType.EVENT) commandsList.add(it)
-                }
-                config.apiCommands?.get(Settings.ALL_VIEWS)?.let {
-                    if (eventType == DispatchType.VIEW) commandsList.add(it)
-                }
+                val commands = RemoteCommandParser.extractCommandNames(config.apiCommands, dispatch.payload(), config.delimiters)
 
-                config.apiCommands?.get(eventName)?.let {
-                    commandsList.add(it)
-                }
-
-                if (commandsList.isEmpty()) {
+                if (commands.isEmpty()) {
                     return
                 }
 
-                mappedDispatch[Settings.COMMAND_NAME] = commandsList.joinToString(",")
+                mappedDispatch[Settings.COMMAND_NAME] = commands
 
                 Logger.dev(
                     BuildConfig.TAG,

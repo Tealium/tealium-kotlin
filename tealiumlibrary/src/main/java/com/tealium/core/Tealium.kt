@@ -174,7 +174,7 @@ class Tealium private constructor(
         // Subscribe user event listeners
         eventRouter.subscribeAll(config.events.toList())
 
-        deepLinkHandler = DeepLinkHandler(context)
+        deepLinkHandler = DeepLinkHandler(context, backgroundScope)
         eventRouter.subscribeAll(listOf(Logger, sessionManager, deepLinkHandler))
         timedEvents = TimedEventsManager(context)
 

@@ -7,7 +7,7 @@ import com.tealium.core.messaging.Listener
  * The VisitorService module is responsible for fetching updates to a VisitorProfile, and notifying
  * delegates that there have been updates.
  */
-class VisitorService @JvmOverloads constructor(context: TealiumContext,
+class VisitorService @JvmOverloads constructor(private val context: TealiumContext,
                     private val visitorProfileManager: VisitorProfileManager = VisitorManager(context)) : Module {
 
     override val name: String = MODULE_NAME
@@ -24,7 +24,9 @@ class VisitorService @JvmOverloads constructor(context: TealiumContext,
     /**
      * Retrieves the latest VisitorProfile. If there are updates then the delegate will be informed.
      */
-    suspend fun requestVisitorProfile() = visitorProfileManager.requestVisitorProfile()
+    suspend fun requestVisitorProfile() {
+        context.events.send(RequestVisitorProfileMessenger())
+    }
 
     companion object : ModuleFactory {
         const val MODULE_NAME = "VisitorService"
