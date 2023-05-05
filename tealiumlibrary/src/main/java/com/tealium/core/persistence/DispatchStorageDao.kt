@@ -24,7 +24,8 @@ internal class DispatchStorageDao(
     private val kvDao: KeyValueDao<String, PersistentItem> = PersistentStorageDao(dbHelper, tableName, false)
 ) : QueueingDao<String, PersistentItem>, KeyValueDao<String, PersistentItem> by kvDao {
 
-    val db: SQLiteDatabase? = dbHelper.db
+    val db: SQLiteDatabase?
+        get() = dbHelper.db
 
     /**
      * Sets the maximum number of items allowed in the queue.
@@ -141,7 +142,7 @@ internal class DispatchStorageDao(
             return list
         }
 
-        val cursor = db.query(
+        val cursor = db?.query(
             tableName,
             null,
             PersistentStorageDao.IS_NOT_EXPIRED_CLAUSE,

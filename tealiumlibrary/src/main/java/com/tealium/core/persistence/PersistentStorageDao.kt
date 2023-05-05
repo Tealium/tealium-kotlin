@@ -33,7 +33,8 @@ internal open class PersistentStorageDao(
     private val onDataRemoved: ((Set<String>) -> Unit)? = null
 ) : KeyValueDao<String, PersistentItem>, NewSessionListener {
 
-    private val db: SQLiteDatabase? = dbHelper.db
+    private val db: SQLiteDatabase?
+        get() =  dbHelper.db
 
     override fun getAll(): Map<String, PersistentItem> {
         return getAll(
@@ -52,7 +53,7 @@ internal open class PersistentStorageDao(
             return map
         }
 
-        val cursor = db.query(
+        val cursor = db?.query(
             tableName,
             null,
             selection,
@@ -108,7 +109,7 @@ internal open class PersistentStorageDao(
             return null
         }
 
-        val cursor = db.query(
+        val cursor = db?.query(
             tableName,
             arrayOf(COLUMN_VALUE, COLUMN_TYPE, COLUMN_EXPIRY, COLUMN_TIMESTAMP),
             selection,
@@ -273,7 +274,7 @@ internal open class PersistentStorageDao(
             return keys
         }
 
-        val cursor = db.query(
+        val cursor = db?.query(
             tableName,
             arrayOf(COLUMN_KEY),
             selection,
@@ -302,7 +303,7 @@ internal open class PersistentStorageDao(
             return 0
         }
 
-        val cursor = db.rawQuery(
+        val cursor = db?.rawQuery(
             "SELECT COUNT(*) from $tableName $selection",
             selectionArgs
         )
@@ -325,7 +326,7 @@ internal open class PersistentStorageDao(
             return false
         }
 
-        val cursor = db.query(
+        val cursor = db?.query(
             tableName,
             arrayOf(COLUMN_KEY),
             selection,
