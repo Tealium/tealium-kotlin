@@ -5,6 +5,7 @@ import com.tealium.dispatcher.Dispatcher
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
+import org.junit.Assert
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -98,6 +99,46 @@ class ModuleManagerTests {
 
         val nonExistentModules = moduleManager.getModulesForType(NonExistentModule::class.java)
         assertEquals(0, nonExistentModules.size)
+    }
+
+    @Test
+    fun testMultiThreadedAccessDoesNotCrash() {
+        val mutableModuleManager = MutableModuleManager(listOf(mockCollector, mockDispatcher, mockValidator, mockMultiModule))
+        val repeats = 1000
+        var error = false
+
+        val getterThread = Thread {
+            repeat(repeats) {
+                try {
+                    val module = mutableModuleManager.getModule(Module::class.java)
+                    println("retrieved ${module?.name}")
+                } catch (e: Exception) {
+                    error = true
+                }
+            }
+        }
+        val creatorThread = Thread {
+            repeat(repeats) {
+                try {
+                    val module = object : Module {
+                        override val name: String = "mock_module_$it"
+                        override var enabled: Boolean = true
+                    }
+                    println("adding ${module.name}")
+                    mutableModuleManager.add(module)
+
+                } catch (e: Exception) {
+                    error = true
+                }
+            }
+        }
+        creatorThread.start()
+        getterThread.start()
+
+        getterThread.join()
+        creatorThread.join()
+
+        assertFalse(error)
     }
 }
 
