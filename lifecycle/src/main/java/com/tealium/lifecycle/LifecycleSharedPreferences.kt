@@ -127,16 +127,18 @@ internal class LifecycleSharedPreferences(
         secondsAwakeSinceLaunch += seconds
     }
 
-    fun setFirstLaunch(): String? {
-        reusableDate.time = timestampFirstLaunch
+    @JvmOverloads
+    fun setFirstLaunch(fallbackTimestamp: Long = System.currentTimeMillis()): String? {
+        reusableDate.time = LifecycleService.validOrDefault(timestampFirstLaunch, fallbackTimestamp)
         firstLaunch = formatIso8601.format(reusableDate)
         return firstLaunch
     }
 
-    fun setFirstLaunchMmDdYyyy(): String? {
+    @JvmOverloads
+    fun setFirstLaunchMmDdYyyy(fallbackTimestamp: Long = System.currentTimeMillis()): String? {
         val formatMmDdYyyy = SimpleDateFormat("MM/dd/yyy", Locale.ROOT)
         formatMmDdYyyy.timeZone = TimeZone.getTimeZone("UTC")
-        reusableDate.time = timestampFirstLaunch
+        reusableDate.time = LifecycleService.validOrDefault(timestampFirstLaunch, fallbackTimestamp)
         firstLaunchMmDdYyyy = formatMmDdYyyy.format(reusableDate)
 
         return firstLaunchMmDdYyyy
