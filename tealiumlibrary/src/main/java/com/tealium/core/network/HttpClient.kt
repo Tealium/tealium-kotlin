@@ -110,42 +110,14 @@ class HttpClient(
         }
     }
 
-    override suspend fun ifNoneMatch(urlString: String, etag: String): Boolean? = coroutineScope {
-        withContext(Dispatchers.IO) {
-            try {
-                with(URL(urlString).openConnection() as HttpURLConnection) {
-                    var noneMatch: Boolean? = null
-                    if (isActive && isConnected) {
-                        requestMethod = "HEAD"
-                        setRequestProperty("If-None-Match", etag)
-                        if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
-                            Logger.dev(
-                                BuildConfig.TAG,
-                                "Resource not modified, not fetching resource."
-                            )
-                            noneMatch = false
-                        }
-                        if (responseCode == HttpURLConnection.HTTP_OK) {
-                            noneMatch = true
-                        }
-                        networkClientListener?.onNetworkResponse(responseCode, responseMessage)
-                    }
-                    noneMatch
-                }
-            } catch (e: Exception) {
-                Logger.prod(BuildConfig.TAG, "An unknown exception occurred: $e.")
-                networkClientListener?.onNetworkError(e.toString())
-                null
-            }
-        }
-    }
-
-    override suspend fun getResourceEntity(urlString: String): ResourceEntity? = coroutineScope {
+    override suspend fun getResourceEntity(urlString: String, etag: String?): ResourceEntity? = coroutineScope {
         withContext(Dispatchers.IO) {
             try {
                 with(URL(urlString).openConnection() as HttpURLConnection) {
                     if (isActive && isConnected) {
                         requestMethod = "GET"
+                        setRequestProperty("If-None-Match", etag)
+
                         if (responseCode == HttpsURLConnection.HTTP_OK) {
                             ResourceEntity(
                                 inputStream.bufferedReader().readText(),

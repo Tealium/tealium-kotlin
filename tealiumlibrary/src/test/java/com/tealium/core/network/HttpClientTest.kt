@@ -178,84 +178,32 @@ class HttpClientTest {
     }
 
     @Test
-    fun ifNoneMatchReturnsNoneMatchEtag() = runBlocking {
-        every { mockConnectivity.isConnected() } returns true
-        mockkStatic(URLUtil::class)
-        every { URLUtil.isValidUrl(any()) } returns true
-        mockWebServer = MockWebServer()
-        mockWebServer.enqueue(
-            MockResponse()
-            .setResponseCode(200)
-            .setHeader("etag", "1234567890")
-        )
-        mockWebServer.start(port)
-
-        val urlString = "http://localhost:$port"
-        mockWebServer.url(urlString)
-
-        val isModified = httpClient.ifNoneMatch(urlString, "9876543210")
-        assertTrue(isModified!!)
-
-        val request = mockWebServer.takeRequest()
-        assertEquals("HEAD / HTTP/1.1", request.requestLine)
-        assertEquals(200, status)
-        assertEquals("OK", response)
-    }
-
-    @Test
-    fun ifNoneMatchReturnsMatchEtag() = runBlocking {
-        every { mockConnectivity.isConnected() } returns true
-        mockkStatic(URLUtil::class)
-        every { URLUtil.isValidUrl(any()) } returns true
-        mockWebServer = MockWebServer()
-        mockWebServer.enqueue(MockResponse()
-            .setResponseCode(304)
-            .setHeader("etag", "1234567890")
-        )
-        mockWebServer.start(port)
-
-        val urlString = "http://localhost:$port"
-        mockWebServer.url(urlString)
-
-        val isModified = httpClient.ifNoneMatch(urlString, "1234567890")
-        assertFalse(isModified!!)
-
-        val request = mockWebServer.takeRequest()
-        assertEquals("HEAD / HTTP/1.1", request.requestLine)
-        assertEquals(304, status)
-    }
-
-    @Test
-    fun ifNoneMatchReturnsNullOnException() = runBlocking {
-        every { mockConnectivity.isConnected() } returns true
-        mockkStatic(URLUtil::class)
-        every { URLUtil.isValidUrl(any()) } returns true
-        mockWebServer = MockWebServer()
-        mockWebServer.enqueue(MockResponse()
-            .setResponseCode(304)
-            .setHeader("etag", "1234567890")
-        )
-        mockWebServer.start(port)
-
-        val urlString = "http://localhost:1234"
-        mockWebServer.url(urlString)
-
-        val isModified = httpClient.ifNoneMatch(urlString, "1234567890")
-        assertNull(isModified)
-        assertNotNull(errorMessage)
-    }
-
-    @Test
-    fun ifNoneMatchReturnsNullNoConnection() = runBlocking {
-        every { mockConnectivity.isConnected() } returns false
-        mockWebServer = MockWebServer()
-        val isModified = httpClient.ifNoneMatch("http://test.com", "1234567890")
-        assertNull(isModified)
-        assertNotNull(errorMessage)
-    }
-
-    @Test
     fun getResourceEntitySuccess() = runBlocking {
+        every { mockConnectivity.isConnected() } returns true
+        mockWebServer = MockWebServer()
+        mockWebServer.enqueue(MockResponse()
+            .setResponseCode(200)
+            .setBody("{\"hello\":\"world\"}")
+            .setHeader("etag", "1234567890")
+        )
+        mockWebServer.start(port)
+
+        val urlString = "http://localhost:$port"
+        mockWebServer.url(urlString)
+
+        val resourceEntity = httpClient.getResourceEntity(urlString, "1234567890")
+        assertNotNull(resourceEntity)
+        val response = resourceEntity?.response
+        val etag = resourceEntity?.etag
+        assertEquals("{\"hello\":\"world\"}", response)
+        assertEquals("1234567890", etag)
+
+        val request = mockWebServer.takeRequest()
+        assertEquals("GET / HTTP/1.1", request.requestLine)
+    }
+
+    @Test
+    fun getResourceEntityWithInitialNonExistentEtag() = runBlocking {
         every { mockConnectivity.isConnected() } returns true
         mockWebServer = MockWebServer()
         mockWebServer.enqueue(MockResponse()

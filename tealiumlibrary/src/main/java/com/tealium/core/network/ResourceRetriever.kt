@@ -81,20 +81,16 @@ class ResourceRetriever(
     }
 
     private suspend fun fetchResourceEntity(etag: String?): ResourceEntity? = coroutineScope {
-            withContext(Dispatchers.Default) {
-                if (isActive) {
-                    if (etag.isNullOrBlank()) {
-                        val entity = networkClient.getResourceEntity(resourceUrlString)
-                        Logger.dev(BuildConfig.TAG, "Fetched resource with JSON: ${entity?.response}.")
-                        entity
-                    } else {
-                        fetchIfNoneMatch(etag)
-                    }
-                } else {
-                    null
-                }
+        withContext(Dispatchers.Default) {
+            if (isActive) {
+                val entity = networkClient.getResourceEntity(resourceUrlString, etag)
+                Logger.dev(BuildConfig.TAG, "Fetched resource with JSON: ${entity?.response}.")
+                entity
+            } else {
+                null
             }
         }
+    }
 
     private suspend fun fetchIfModified(): String? = coroutineScope {
         withContext(Dispatchers.Default) {
@@ -113,28 +109,6 @@ class ResourceRetriever(
                     }
                 } else {
                     null
-                }
-            } else {
-                null
-            }
-        }
-    }
-
-    private suspend fun fetchIfNoneMatch(etag: String): ResourceEntity? = coroutineScope {
-        withContext(Dispatchers.Default) {
-            if (isActive) {
-                val resourceModified = async { shouldFetchIfNoneMatch(etag) }.await()
-                resourceModified?.let { modified ->
-                    if (modified) {
-                        val json = networkClient.getResourceEntity(resourceUrlString)
-                        Logger.dev(
-                            BuildConfig.TAG,
-                            "Fetched resource with JSON at $resourceUrlString: $json."
-                        )
-                        json
-                    } else {
-                        null
-                    }
                 }
             } else {
                 null
@@ -173,9 +147,5 @@ class ResourceRetriever(
             return networkClient.ifModified(resourceUrlString, timestamp)
         }
         return true
-    }
-
-    suspend fun shouldFetchIfNoneMatch(etag: String): Boolean? {
-        return networkClient.ifNoneMatch(resourceUrlString, etag)
     }
 }
