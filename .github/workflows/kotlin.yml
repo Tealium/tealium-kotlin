@@ -7,7 +7,7 @@ on:
 jobs:
   test:
     name: Run Unit Tests
-    runs-on: macos-10.15
+    runs-on: macos-latest
     strategy:
       matrix:
         api-level: [21, 29]
@@ -24,12 +24,9 @@ jobs:
         with:
           api-level: ${{ matrix.api-level }}
           arch: x86
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-save -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./run_instrumented_tests.sh
-      - name: Test Coverage
-        continue-on-error: true
-        run: ./verify_coverage.sh
+          script: ./run_instrumented_tests.sh && ./verify_coverage.sh
       - name: Upload Reports
         continue-on-error: true
         uses: actions/upload-artifact@v2
