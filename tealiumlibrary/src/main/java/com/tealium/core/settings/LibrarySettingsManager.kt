@@ -80,7 +80,7 @@ class LibrarySettingsManager(
                     Logger.dev(BuildConfig.TAG, "Loaded remote settings from cache.")
                 }
                 backgroundScope.launch {
-                    fetchRemoteSettings()
+                    fetchRemoteSettings(cachedSettings?.etag)
                 }
                 cachedSettings
             }
