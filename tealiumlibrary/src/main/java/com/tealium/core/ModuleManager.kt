@@ -6,6 +6,7 @@ import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatcher
 import org.json.JSONObject
 import java.lang.Exception
+import java.util.concurrent.ConcurrentHashMap
 
 class MutableModuleManager(moduleList: List<Module>): ModuleManager(moduleList) {
     fun add(module: Module) {
@@ -22,7 +23,9 @@ class MutableModuleManager(moduleList: List<Module>): ModuleManager(moduleList) 
  */
 open class ModuleManager(moduleList: List<Module>): LibrarySettingsUpdatedListener {
 
-    protected val allModules: MutableMap<String, Module> = moduleList.associateBy { it.name }.toMutableMap()
+    protected val allModules: MutableMap<String, Module> = ConcurrentHashMap(
+        moduleList.associateBy { it.name }.toMutableMap()
+    )
 
     /**
      * Fetches all modules of the given type e.g. Collector/Dispatcher classes may have many different
