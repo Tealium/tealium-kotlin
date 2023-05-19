@@ -10,6 +10,7 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.spyk
 import io.mockk.verify
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.util.*
@@ -316,4 +317,41 @@ class LifecycleSharedPreferencesTest {
             mockEditor.apply()
         }
     }
+
+    @Test
+    fun setFirstLaunch_ReturnsCurrentDate_WhenInvalidTimestamp() {
+        every {
+            mockSharedPreferences.getLong(
+                LifecycleSPKey.TIMESTAMP_FIRST_LAUNCH,
+                any()
+            )
+        } returns LifecycleDefaults.TIMESTAMP_INVALID
+
+        val currentDate = Date(System.currentTimeMillis())
+
+        val spykLifecycleSharedPreferences = spyk(lifecycleSharedPreferences)
+        val firstLaunchDate = spykLifecycleSharedPreferences.setFirstLaunch()
+
+        assertTrue(firstLaunchDate!!.startsWith(currentDate.absoluteYear.toString()))
+    }
+
+    @Test
+    fun setFirstLaunchMmDdYyyy_ReturnsCurrentDate_WhenInvalidTimestamp() {
+        every {
+            mockSharedPreferences.getLong(
+                LifecycleSPKey.TIMESTAMP_FIRST_LAUNCH,
+                any()
+            )
+        } returns LifecycleDefaults.TIMESTAMP_INVALID
+
+        val currentDate = Date(System.currentTimeMillis())
+
+        val spykLifecycleSharedPreferences = spyk(lifecycleSharedPreferences)
+        val firstLaunchDdMmYyyy = spykLifecycleSharedPreferences.setFirstLaunchMmDdYyyy()
+
+        assertTrue(firstLaunchDdMmYyyy!!.endsWith(currentDate.absoluteYear.toString()))
+    }
+
+    private val Date.absoluteYear: Int
+        get() = this.year + 1900
 }

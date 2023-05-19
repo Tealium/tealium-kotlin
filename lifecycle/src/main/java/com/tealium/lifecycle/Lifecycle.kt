@@ -96,7 +96,8 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
         onForegrounding(LifecycleEvent.LAUNCH, state, timestamp)
         lifecycleSharedPreferences.lastLifecycleEvent = LifecycleEvent.LAUNCH
 
-        state[LifecycleStateKey.LIFECYCLE_PRIORSECONDSAWAKE] = lifecycleSharedPreferences.priorSecondsAwake
+        state[LifecycleStateKey.LIFECYCLE_PRIORSECONDSAWAKE] =
+            lifecycleSharedPreferences.priorSecondsAwake
 
         if (isFirstLaunch) {
             state[LifecycleStateKey.LIFECYCLE_ISFIRSTLAUNCH] = (true).toString()
@@ -128,8 +129,9 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
     }
 
     private fun trackSleepEvent(timestamp: Long, data: Map<String, Any>? = null) {
-        val foregroundStart: Long = if (lifecycleSharedPreferences.timestampLastWake > LifecycleDefaults.TIMESTAMP_INVALID) lifecycleSharedPreferences.timestampLastWake
-        else LifecycleDefaults.TIMESTAMP_INVALID
+        val foregroundStart: Long =
+            if (lifecycleSharedPreferences.timestampLastWake > LifecycleDefaults.TIMESTAMP_INVALID) lifecycleSharedPreferences.timestampLastWake
+            else LifecycleDefaults.TIMESTAMP_INVALID
         val secondsAwakeDelta: Int = ((timestamp - foregroundStart) / 1000L).toInt()
         lifecycleSharedPreferences.incrementSleep()
         lifecycleSharedPreferences.updateSecondsAwake(secondsAwakeDelta)
@@ -163,7 +165,8 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
 
         if (lifecycleService.didDetectCrash(eventName)) {
             data[LifecycleStateKey.LIFECYCLE_DIDDETECTCRASH] = (true).toString()
-            data[LifecycleStateKey.LIFECYCLE_TOTALCRASHCOUNT] = lifecycleSharedPreferences.countTotalCrash
+            data[LifecycleStateKey.LIFECYCLE_TOTALCRASHCOUNT] =
+                lifecycleSharedPreferences.countTotalCrash
         }
 
         val isFirstWakeResult = lifecycleService.isFirstWake(lastWake, timestamp)
@@ -212,7 +215,11 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
         val eventData = mapOf<String, Any>(LifecycleStateKey.AUTOTRACKED to true)
 
         if (lastResume == LifecycleDefaults.TIMESTAMP_INVALID) {
-            trackLaunchEvent(lifecycleSharedPreferences.timestampLastLaunch, eventData)
+            val timestampLastLaunch = LifecycleService.validOrDefault(
+                timestamp = lifecycleSharedPreferences.timestampLastLaunch,
+                default = System.currentTimeMillis()
+            )
+            trackLaunchEvent(timestampLastLaunch, eventData)
         }
 
         lifecycleSharedPreferences.lastLifecycleEvent = LifecycleEvent.PAUSE

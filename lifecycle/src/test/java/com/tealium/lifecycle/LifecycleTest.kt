@@ -47,16 +47,36 @@ class LifecycleTest {
         every { anyConstructed<TealiumConfig>().tealiumDirectory.mkdir() } returns mockk()
 
         config = TealiumConfig(context, "test", "profile", Environment.QA)
-        every { config.application.getSharedPreferences(any(), any()) } returns mockSharedPreferences
+        every {
+            config.application.getSharedPreferences(
+                any(),
+                any()
+            )
+        } returns mockSharedPreferences
 
         mockPackageInfo = spyk(PackageInfo())
         every { config.application.packageName } returns "test"
-        every { config.application.packageManager.getPackageInfo(any<String>(), any()) } returns mockPackageInfo
+        every {
+            config.application.packageManager.getPackageInfo(
+                any<String>(),
+                any<Int>()
+            )
+        } returns mockPackageInfo
 
 
         mockkConstructor(SharedPreferences::class)
-        every { anyConstructed<SharedPreferences>().getInt(LifecycleSPKey.COUNT_LAUNCH, 1) } returns 1
-        every { anyConstructed<SharedPreferences>().getInt(LifecycleSPKey.COUNT_SLEEP, 1) } returns 1
+        every {
+            anyConstructed<SharedPreferences>().getInt(
+                LifecycleSPKey.COUNT_LAUNCH,
+                1
+            )
+        } returns 1
+        every {
+            anyConstructed<SharedPreferences>().getInt(
+                LifecycleSPKey.COUNT_SLEEP,
+                1
+            )
+        } returns 1
         every { anyConstructed<SharedPreferences>().getInt(LifecycleSPKey.COUNT_WAKE, 1) } returns 1
         every { anyConstructed<SharedPreferences>().edit() } returns editor
         every { editor.apply() } just Runs

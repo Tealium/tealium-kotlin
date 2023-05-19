@@ -4,10 +4,10 @@ import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.verify
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 class LifecycleServiceTest {
 
@@ -81,6 +81,9 @@ class LifecycleServiceTest {
     fun didUpdate_ShouldBeFalse() {
         every { mockLifecycleSharedPreferences.currentAppVersion } returns "10"
         assertFalse(lifecycleService.didUpdate(1L, "10"))
+
+        every { mockLifecycleSharedPreferences.currentAppVersion } returns null
+        assertFalse(lifecycleService.didUpdate(1L, "10"))
     }
 
     @Test
@@ -91,5 +94,45 @@ class LifecycleServiceTest {
         verify {
             mockLifecycleSharedPreferences.resetCountsAfterAppUpdate(1L, "11")
         }
+    }
+
+    @Test
+    fun daysSince_ValidStartAndEndDates_IsPositive() {
+        val currentTimeMs = getCurrentTime()
+        var futureTimeMs = addDays(currentTimeMs, 3)
+
+        var daysSince = LifecycleService.daysSince(currentTimeMs, futureTimeMs)
+        assertEquals(3, daysSince)
+
+        futureTimeMs = addDays(currentTimeMs, 10)
+        daysSince = LifecycleService.daysSince(currentTimeMs, futureTimeMs)
+        assertEquals(10, daysSince)
+    }
+
+    @Test
+    fun daysSince_NegativeStartAndEndDates_IsAtLeastZero() {
+        val currentTimeMs = getCurrentTime()
+        var futureTimeMs = Long.MIN_VALUE
+
+        var daysSince = LifecycleService.daysSince(currentTimeMs, futureTimeMs)
+        assertEquals(0L, daysSince)
+
+        futureTimeMs = -1L
+        daysSince = LifecycleService.daysSince(currentTimeMs, futureTimeMs)
+        assertEquals(0L, daysSince)
+
+        daysSince = LifecycleService.daysSince(currentTimeMs, currentTimeMs)
+        assertEquals(0L, daysSince)
+
+        daysSince = LifecycleService.daysSince(Long.MIN_VALUE, 0L)
+        assertEquals(0L, daysSince)
+    }
+
+    private fun getCurrentTime(): Long {
+        return System.currentTimeMillis()
+    }
+
+    private fun addDays(timestampMs: Long, days: Long): Long {
+        return timestampMs + TimeUnit.DAYS.toMillis(days)
     }
 }
