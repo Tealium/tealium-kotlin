@@ -121,8 +121,7 @@ class HttpClient(
                         if (responseCode == HttpsURLConnection.HTTP_OK) {
                             ResourceEntity(
                                 inputStream.bufferedReader().readText(),
-                                getHeaderField("etag"),
-                                headerFields
+                                getHeaderField("etag")
                             )
                         } else {
                             null
