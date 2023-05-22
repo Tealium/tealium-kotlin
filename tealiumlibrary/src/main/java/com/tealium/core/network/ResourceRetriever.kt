@@ -20,7 +20,7 @@ class ResourceRetriever(
      * Set this property to false if the URL does not support If-Modified.
      * Default is true.
      */
-    var useIfModifed = true // ugh, typo
+    var useIfModifed = true // TODO - typo, should be useIfModified
 
     /**
      * Set this property to set the interval on which this resource is fetched again.
