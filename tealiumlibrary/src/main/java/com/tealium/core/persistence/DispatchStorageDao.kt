@@ -1,9 +1,12 @@
 package com.tealium.core.persistence
 
+import android.database.sqlite.SQLiteDatabase
+import com.tealium.core.Logger
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_EXPIRY
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_KEY
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_TIMESTAMP
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_VALUE
+import com.tealium.tealiumlibrary.BuildConfig
 import java.util.concurrent.TimeUnit
 
 /**
@@ -21,7 +24,8 @@ internal class DispatchStorageDao(
     private val kvDao: KeyValueDao<String, PersistentItem> = PersistentStorageDao(dbHelper, tableName, false)
 ) : QueueingDao<String, PersistentItem>, KeyValueDao<String, PersistentItem> by kvDao {
 
-    val db = dbHelper.writableDatabase
+    val db: SQLiteDatabase?
+        get() = dbHelper.db
 
     /**
      * Sets the maximum number of items allowed in the queue.
@@ -110,14 +114,19 @@ internal class DispatchStorageDao(
      * Deletes entries for each item in the [items] list by its [PersistentItem.key]
      */
     private fun internalDeleteAll(items: List<PersistentItem>) {
-        db.beginTransaction()
-        try {
-            items.forEach {
-                kvDao.delete(it.key)
+        dbHelper.onDbReady { database ->
+            database.beginTransaction()
+            try {
+                items.forEach {
+                    kvDao.delete(it.key)
+                }
+                database.setTransactionSuccessful()
+            } catch (e: Exception) {
+                Logger.dev(BuildConfig.TAG, "Error while trying to delete items")
             }
-            db.setTransactionSuccessful()
-        } finally {
-            db.endTransaction()
+            finally {
+                database.endTransaction()
+            }
         }
     }
 
@@ -129,7 +138,11 @@ internal class DispatchStorageDao(
     private fun internalPop(count: Int): List<PersistentItem> {
         val list: MutableList<PersistentItem> = mutableListOf()
 
-        val cursor = db.query(
+        if (db == null) {
+            return list
+        }
+
+        val cursor = db?.query(
             tableName,
             null,
             PersistentStorageDao.IS_NOT_EXPIRED_CLAUSE,
@@ -159,7 +172,7 @@ internal class DispatchStorageDao(
             }
         }
         internalDeleteAll(list)
-        cursor.close()
+        cursor?.close()
         return list
     }
 

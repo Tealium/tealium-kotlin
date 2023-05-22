@@ -1033,6 +1033,6 @@ class KeyValueStorageTests {
     @After
     fun tearDown() {
         // clear all.
-        dbHelper.writableDatabase.delete("datalayer", null, null)
+        dbHelper.db?.delete("datalayer", null, null)
     }
 }
