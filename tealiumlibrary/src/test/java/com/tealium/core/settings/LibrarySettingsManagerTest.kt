@@ -8,12 +8,12 @@ import com.tealium.core.Loader
 import com.tealium.core.TealiumConfig
 import com.tealium.core.messaging.EventRouter
 import com.tealium.core.network.NetworkClient
+import com.tealium.core.network.ResourceEntity
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
@@ -104,7 +104,7 @@ class LibrarySettingsManagerTest {
     fun librarySettingsInitialShouldLoadFromCache() = runBlocking {
         config.useRemoteLibrarySettings = true
         every { mockLoader.loadFromFile(any()) } returns null
-        coEvery { mockNetworkClient.get(any()) } returns null
+        coEvery { mockNetworkClient.getResourceEntity(any()) } returns null
         LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
 
         coVerify {
@@ -138,7 +138,7 @@ class LibrarySettingsManagerTest {
         config.overrideDefaultLibrarySettings = defaultOverride
 
         every { mockLoader.loadFromFile(any()) } returns null
-        coEvery { mockNetworkClient.get(any()) } returns null
+        coEvery { mockNetworkClient.getResourceEntity(any()) } returns null
         val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
 
         coVerify {
@@ -194,7 +194,7 @@ class LibrarySettingsManagerTest {
                 "}"
         config.useRemoteLibrarySettings = true
         every { mockLoader.loadFromFile(any()) } returns jsonLibrarySettings
-        coEvery { mockNetworkClient.get(any()) } returns null
+        coEvery { mockNetworkClient.getResourceEntity(any()) } returns null
         val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
 
         assertNotEquals(defaultLibrarySettings, librarySettingsManager.librarySettings)
@@ -220,13 +220,14 @@ class LibrarySettingsManagerTest {
                 "  \"log_level\": \"dev\",\n" +
                 "  \"disable_library\": false\n" +
                 "}"
+        val resource = ResourceEntity(jsonLibrarySettings)
         config.useRemoteLibrarySettings = true
         config.overrideLibrarySettingsUrl = "tealium-settings.json"
         every { mockLoader.loadFromFile(any()) } returns defaultJsonLibrarySettings
-        coEvery { mockNetworkClient.get(any()) } returns jsonLibrarySettings
+        coEvery { mockNetworkClient.getResourceEntity(any()) } returns resource
         val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
 
-        verify(exactly = 1, timeout = 1500) {
+        verify(exactly = 1, timeout = 2000) {
             mockEventRouter.onLibrarySettingsUpdated(any())
         }
 
@@ -246,10 +247,11 @@ class LibrarySettingsManagerTest {
                 "    \"max_queue_size\": 100,\n" +
                 "    \"expiration\" " +
                 "}"
+        val malFormedResource = ResourceEntity(malformedJson)
         config.useRemoteLibrarySettings = true
         config.overrideLibrarySettingsUrl = "tealium-settings.json"
         every { mockLoader.loadFromFile(any()) } returns null
-        coEvery { mockNetworkClient.get(any()) } returns malformedJson
+        coEvery { mockNetworkClient.getResourceEntity(any()) } returns malFormedResource
         val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
 
         verify(exactly = 0, timeout = 1500) {
@@ -273,10 +275,11 @@ class LibrarySettingsManagerTest {
                 "    \"max_queue_size\": 100,\n" +
                 "    \"expiration\" " +
                 "}"
+        val malFormedResource = ResourceEntity(malformedJson)
         config.useRemoteLibrarySettings = true
         config.overrideLibrarySettingsUrl = "tealium-settings.json"
         every { mockLoader.loadFromFile(any()) } returns malformedJson
-        coEvery { mockNetworkClient.get(any()) } returns malformedJson
+        coEvery { mockNetworkClient.getResourceEntity(any()) } returns malFormedResource
         val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
 
         verify(exactly = 0, timeout = 1500) {
@@ -307,10 +310,11 @@ class LibrarySettingsManagerTest {
                 <script type="text/javascript" src="//tags.tiqcdn.com/utag/tealium/test/dev/utag.js"></script>
                 </body>
                 </html>"""
+        val resource = ResourceEntity(htmlLibrarySettings)
         config.useRemoteLibrarySettings = true
         config.overrideLibrarySettingsUrl = "mobile.html"
         every { mockLoader.loadFromFile(any()) } returns defaultJsonLibrarySettings
-        coEvery { mockNetworkClient.get(any()) } returns htmlLibrarySettings
+        coEvery { mockNetworkClient.getResourceEntity(any()) } returns resource
         val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
 
         coVerify(exactly = 1, timeout = 1500) {

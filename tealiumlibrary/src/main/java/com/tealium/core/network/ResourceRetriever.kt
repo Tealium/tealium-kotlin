@@ -10,15 +10,17 @@ import java.util.*
 /**
  * Fetches a resource with the option to check if the resource is modified first, as well as retry capability.
  */
-class ResourceRetriever(private val config: TealiumConfig,
-                        private val resourceUrlString: String,
-                        var networkClient: NetworkClient = HttpClient(config)) {
+class ResourceRetriever(
+    private val config: TealiumConfig,
+    private val resourceUrlString: String,
+    var networkClient: NetworkClient = HttpClient(config)
+) {
 
     /**
      * Set this property to false if the URL does not support If-Modified.
      * Default is true.
      */
-    var useIfModifed = true
+    var useIfModifed = true // TODO - typo, should be useIfModified
 
     /**
      * Set this property to set the interval on which this resource is fetched again.
@@ -39,7 +41,8 @@ class ResourceRetriever(private val config: TealiumConfig,
 
     private val MS_IN_MINUTES = 60000L
 
-    private val dateFormat: SimpleDateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.ROOT)
+    private val dateFormat: SimpleDateFormat =
+        SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.ROOT)
 
     init {
         dateFormat.timeZone = TimeZone.getTimeZone("GMT")
@@ -49,6 +52,14 @@ class ResourceRetriever(private val config: TealiumConfig,
         async {
             retry(maxRetries, 500) {
                 fetchResource()
+            }
+        }.await()
+    }
+
+    suspend fun fetchWithEtag(etag: String?): ResourceEntity? = coroutineScope {
+        async {
+            retry(maxRetries, 500) {
+                fetchResourceEntity(etag)
             }
         }.await()
     }
@@ -63,6 +74,18 @@ class ResourceRetriever(private val config: TealiumConfig,
                 } else {
                     fetchIfModified()
                 }
+            } else {
+                null
+            }
+        }
+    }
+
+    private suspend fun fetchResourceEntity(etag: String?): ResourceEntity? = coroutineScope {
+        withContext(Dispatchers.Default) {
+            if (isActive) {
+                val entity = networkClient.getResourceEntity(resourceUrlString, etag)
+                Logger.dev(BuildConfig.TAG, "Fetched resource with JSON: ${entity?.response}.")
+                entity
             } else {
                 null
             }
