@@ -10,14 +10,17 @@ import java.io.File
  * the [config] parameter.
  * @param config - TealiumConfig item with
  */
-internal class DatabaseHelper(config: TealiumConfig, databaseName: String? = databaseName(config)) :
-    SQLiteOpenHelper(config.application.applicationContext, databaseName, null, DATABASE_VERSION) {
+internal class DatabaseHelper(
+        config: TealiumConfig,
+        databaseName: String? = databaseName(config),
+        private val databaseVersion: Int = DATABASE_VERSION
+) : SQLiteOpenHelper(config.application.applicationContext, databaseName, null, databaseVersion) {
 
     override fun onCreate(db: SQLiteDatabase?) {
         db?.execSQL(SqlDataLayer.Sql.getCreateTableSql("datalayer"))
         db?.execSQL(SqlDataLayer.Sql.getCreateTableSql("dispatches"))
         // apply all necessary upgrades
-        onUpgrade(db, 1, DATABASE_VERSION)
+        onUpgrade(db, 1, databaseVersion)
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
@@ -26,6 +29,14 @@ internal class DatabaseHelper(config: TealiumConfig, databaseName: String? = dat
                 it.upgrade(database)
             }
         }
+    }
+
+    override fun onDowngrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+        db?.execSQL(SqlDataLayer.Sql.getDeleteTableSql("datalayer"))
+        db?.execSQL(SqlDataLayer.Sql.getDeleteTableSql("dispatches"))
+        db?.execSQL(SqlDataLayer.Sql.getDeleteTableSql("visitors"))
+
+        onCreate(db)
     }
 
     companion object {
