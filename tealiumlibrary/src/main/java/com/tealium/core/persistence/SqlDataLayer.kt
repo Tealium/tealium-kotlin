@@ -21,5 +21,9 @@ object SqlDataLayer {
                     "${Columns.COLUMN_TIMESTAMP} LONG, " +
                     "${Columns.COLUMN_TYPE} SMALLINT)"
         }
+
+        fun getDeleteTableSql(tableName: String): String {
+            return "DROP TABLE $tableName"
+        }
     }
 }
