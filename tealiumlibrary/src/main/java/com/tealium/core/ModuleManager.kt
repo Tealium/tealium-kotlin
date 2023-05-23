@@ -6,6 +6,7 @@ import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatcher
 import org.json.JSONObject
 import java.lang.Exception
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 class MutableModuleManager(moduleList: List<Module>): ModuleManager(moduleList) {
@@ -23,7 +24,7 @@ class MutableModuleManager(moduleList: List<Module>): ModuleManager(moduleList) 
  */
 open class ModuleManager(moduleList: List<Module>): LibrarySettingsUpdatedListener {
 
-    protected val allModules: MutableMap<String, Module> = ConcurrentHashMap(
+    protected val allModules: MutableMap<String, Module> = Collections.synchronizedMap(
         moduleList.associateBy { it.name }.toMutableMap()
     )
 
@@ -34,7 +35,9 @@ open class ModuleManager(moduleList: List<Module>): LibrarySettingsUpdatedListen
      * @return all modules of the given type; else and empty set.
      */
     fun <T: Module> getModulesForType(clazz: Class<T>): Set<T> {
-        return allModules.values.filterIsInstance(clazz).toSet()
+        return synchronized(allModules) {
+            allModules.values.filterIsInstance(clazz).toSet()
+        }
     }
 
     /**
@@ -44,7 +47,9 @@ open class ModuleManager(moduleList: List<Module>): LibrarySettingsUpdatedListen
      * @return the first module for the given class.
      */
     fun <T: Module> getModule(clazz: Class<T>): T? {
-        return getModulesForType(clazz).firstOrNull()
+        return synchronized(allModules) {
+            getModulesForType(clazz).firstOrNull()
+        }
     }
 
 
@@ -54,7 +59,7 @@ open class ModuleManager(moduleList: List<Module>): LibrarySettingsUpdatedListen
      * @return the Module for the given name; else null
      */
     fun getModule(name: String): Module? {
-        return allModules[name]
+        return synchronized(allModules) { allModules[name] }
     }
 
     /**
@@ -62,8 +67,10 @@ open class ModuleManager(moduleList: List<Module>): LibrarySettingsUpdatedListen
      */
     override fun onLibrarySettingsUpdated(settings: LibrarySettings) {
         if (settings.disableLibrary) {
-            allModules.forEach {
-                it.value.enabled = false
+            synchronized(allModules) {
+                allModules.forEach {
+                    it.value.enabled = false
+                }
             }
         }
         //TODO - finish the updating of enabled/disabled logic for things other than just the SDK Disable. i.e. Tagmanagement/Collect enable/disable.
