@@ -370,6 +370,7 @@ class DispatchStorageTests {
     fun testEnqueueAddsToQueueWhenDbIsNull() {
         val dbHelper = mockk<DatabaseHelper>()
         every { dbHelper.db } returns null
+        every { dbHelper.writableDatabase } returns null
         every { dbHelper.onDbReady(any()) } just Runs
 
         val dispatchStorage = DispatchStorage(

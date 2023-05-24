@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 internal class DispatchStorage(
     dbHelper: DatabaseHelper,
     tableName: String,
-    val queue: ConcurrentLinkedQueue<Dispatch> = ConcurrentLinkedQueue<Dispatch>(),
+    internal val queue: ConcurrentLinkedQueue<Dispatch> = ConcurrentLinkedQueue<Dispatch>(),
     private val dao: DispatchStorageDao = DispatchStorageDao(dbHelper, tableName)
 ) : LibrarySettingsUpdatedListener,
     QueueingDao<String, Dispatch> {
