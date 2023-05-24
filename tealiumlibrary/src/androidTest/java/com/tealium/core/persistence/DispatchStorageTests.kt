@@ -360,11 +360,7 @@ class DispatchStorageTests {
 
     @Test
     fun testDequeueReturnsNullWhenQueueAndDaoAreEmpty() {
-//        val dao = mockk<DispatchStorageDao>()
         val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dispatchStore)
-
-//        every { dao.dequeue() } returns null
-
         val dequeuedItem = dispatchStorage.dequeue()
 
         assertNull(dequeuedItem)
@@ -375,6 +371,9 @@ class DispatchStorageTests {
         val dao = mockk<DispatchStorageDao>()
         val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dao)
         val dispatch = TealiumEvent("test")
+
+        mockkConstructor(PersistentStorageDao::class)
+        every { anyConstructed<PersistentStorageDao>().count() } returns 10
 
         every { dao.enqueue(any() as PersistentItem) } just Runs
         every { dao.db } returns null
@@ -387,10 +386,8 @@ class DispatchStorageTests {
 
     @Test
     fun testDequeueReturnsItemFromQueueWhenQueueIsNotEmpty() {
-//        val dao = mockk<DispatchStorageDao>()
         val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dispatchStore)
         val dispatch = TealiumEvent("test")
-//        every { dao.delete(any()) } just Runs
 
         dispatchStorage.queue.add(dispatch)
         val dequeuedItem = dispatchStorage.dequeue()
@@ -401,16 +398,8 @@ class DispatchStorageTests {
 
     @Test
     fun testDequeueReturnsItemFromDaoWhenQueueIsEmpty() {
-//        val dao = mockk<DispatchStorageDao>()
         val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dispatchStore)
         val dispatch = TealiumEvent("test")
-        val item = dispatchStorage.convertToPersistentItem(dispatch)
-        
-//        every { dao.db } returns mockk()
-//        every { dao.db?.isReadOnly } returns false
-//        every { dao.enqueue(any() as PersistentItem) } just Runs
-//        every { dao.dequeue() } returns item
-//        every { dao.delete(any()) } just Runs
 
         dispatchStorage.enqueue(dispatch)
         val dequeuedItem = dispatchStorage.dequeue()
