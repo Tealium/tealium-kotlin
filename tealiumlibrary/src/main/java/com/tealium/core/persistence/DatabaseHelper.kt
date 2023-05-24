@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 internal class DatabaseHelper(config: TealiumConfig, databaseName: String? = databaseName(config)) :
     SQLiteOpenHelper(config.application.applicationContext, databaseName, null, DATABASE_VERSION) {
 
-    private val queue = ConcurrentLinkedQueue<(SQLiteDatabase) -> Unit>()
+    internal val queue = ConcurrentLinkedQueue<(SQLiteDatabase) -> Unit>()
     private var _db: SQLiteDatabase? = null
     val db
         get() = _db ?: writableDatabaseOrNull()?.apply {
