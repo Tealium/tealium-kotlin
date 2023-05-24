@@ -126,7 +126,7 @@ internal class DispatchStorage(
         return JsonDispatch(json)
     }
 
-    private fun convertToPersistentItem(dispatch: Dispatch): PersistentItem {
+    internal fun convertToPersistentItem(dispatch: Dispatch): PersistentItem {
         val payload = dispatch.payload()
         return PersistentItem(
             dispatch.id,
