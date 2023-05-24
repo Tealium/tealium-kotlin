@@ -360,11 +360,9 @@ class DispatchStorageTests {
 
     @Test
     fun testDequeueReturnsNullWhenQueueAndDaoAreEmpty() {
-        val dbHelper = mockk<DatabaseHelper>()
         val dao = mockk<DispatchStorageDao>()
         val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dao)
 
-        every { dbHelper.db } returns mockk()
         every { dao.dequeue() } returns null
 
         val dequeuedItem = dispatchStorage.dequeue()
@@ -374,13 +372,10 @@ class DispatchStorageTests {
 
     @Test
     fun testEnqueueAddsToQueueWhenDbIsNull() {
-        val dbHelper = mockk<DatabaseHelper>()
         val dao = mockk<DispatchStorageDao>()
         val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dao)
         val dispatch = TealiumEvent("test")
 
-        every { dbHelper.db } returns null
-        every { dbHelper.onDbReady(any()) } just Runs
         every { dao.enqueue(any() as PersistentItem) } just Runs
         every { dao.db } returns null
         every { dao.db?.isReadOnly } returns true
@@ -392,11 +387,9 @@ class DispatchStorageTests {
 
     @Test
     fun testDequeueReturnsItemFromQueueWhenQueueIsNotEmpty() {
-        val dbHelper = mockk<DatabaseHelper>()
         val dao = mockk<DispatchStorageDao>()
         val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dao)
         val dispatch = TealiumEvent("test")
-        every { dbHelper.db } returns null
         every { dao.delete(any()) } just Runs
 
         dispatchStorage.queue.add(dispatch)
@@ -408,12 +401,11 @@ class DispatchStorageTests {
 
     @Test
     fun testDequeueReturnsItemFromDaoWhenQueueIsEmpty() {
-        val dbHelper = mockk<DatabaseHelper>()
         val dao = mockk<DispatchStorageDao>()
         val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dao)
         val dispatch = TealiumEvent("test")
         val item = dispatchStorage.convertToPersistentItem(dispatch)
-
+        
         every { dao.db } returns mockk()
         every { dao.db?.isReadOnly } returns false
         every { dao.enqueue(any() as PersistentItem) } just Runs
