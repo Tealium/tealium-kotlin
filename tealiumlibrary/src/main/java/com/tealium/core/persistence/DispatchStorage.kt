@@ -122,11 +122,11 @@ internal class DispatchStorage(
     override fun contains(key: String): Boolean = dao.contains(key)
     override fun purgeExpired() = dao.purgeExpired()
 
-    internal fun convertToDispatch(json: PersistentItem): Dispatch {
+    private fun convertToDispatch(json: PersistentItem): Dispatch {
         return JsonDispatch(json)
     }
 
-    internal fun convertToPersistentItem(dispatch: Dispatch): PersistentItem {
+    private fun convertToPersistentItem(dispatch: Dispatch): PersistentItem {
         val payload = dispatch.payload()
         return PersistentItem(
             dispatch.id,

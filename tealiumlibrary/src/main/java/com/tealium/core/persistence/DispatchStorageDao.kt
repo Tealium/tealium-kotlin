@@ -21,7 +21,7 @@ internal class DispatchStorageDao(
     private val tableName: String,
     maxQueueSize: Int = -1,
     expiryDays: Int = -1,
-    internal val kvDao: KeyValueDao<String, PersistentItem> = PersistentStorageDao(dbHelper, tableName, false)
+    private val kvDao: KeyValueDao<String, PersistentItem> = PersistentStorageDao(dbHelper, tableName, false)
 ) : QueueingDao<String, PersistentItem>, KeyValueDao<String, PersistentItem> by kvDao {
 
     val db: SQLiteDatabase?

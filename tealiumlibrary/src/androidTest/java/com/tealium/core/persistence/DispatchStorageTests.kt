@@ -368,15 +368,17 @@ class DispatchStorageTests {
 
     @Test
     fun testEnqueueAddsToQueueWhenDbIsNull() {
-        val dao = mockk<DispatchStorageDao>()
-        val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dao)
-        val dispatch = TealiumEvent("test")
+        val dbHelper = mockk<DatabaseHelper>()
+        every { dbHelper.db } returns null
+        every { dbHelper.onDbReady(any()) } just Runs
 
-        every { dao.enqueue(any() as PersistentItem) } just Runs
-        every { dao.db } returns null
-        every { dao.db?.isReadOnly } returns true
-        every { dao.kvDao } returns mockk()
-        every { dao.kvDao.count() } returns 10
+        val dispatchStorage = DispatchStorage(
+            dbHelper,
+            "table",
+            ConcurrentLinkedQueue(),
+            DispatchStorageDao(dbHelper, tableName, 20)
+        )
+        val dispatch = TealiumEvent("test")
 
         dispatchStorage.enqueue(dispatch)
 
