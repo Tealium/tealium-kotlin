@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import com.tealium.core.Logger
 import com.tealium.core.TealiumConfig
 import com.tealium.tealiumlibrary.BuildConfig
+import com.tealium.test.OpenForTesting
 import java.io.File
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -14,6 +15,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * the [config] parameter.
  * @param config - TealiumConfig item with
  */
+@OpenForTesting
 internal class DatabaseHelper(config: TealiumConfig, databaseName: String? = databaseName(config)) :
     SQLiteOpenHelper(config.application.applicationContext, databaseName, null, DATABASE_VERSION) {
 
