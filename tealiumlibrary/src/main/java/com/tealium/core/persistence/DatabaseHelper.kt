@@ -27,7 +27,7 @@ internal class DatabaseHelper(config: TealiumConfig, databaseName: String? = dat
 
     private fun writableDatabaseOrNull(): SQLiteDatabase? {
         return try {
-            return writableDatabase
+            return writableDatabase?.takeIf { !it.isReadOnly }
         } catch (ex: SQLiteException) {
             Logger.dev(BuildConfig.TAG, "Error fetching database: ${ex.message}")
             null
