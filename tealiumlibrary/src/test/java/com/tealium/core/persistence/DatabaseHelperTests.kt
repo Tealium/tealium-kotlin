@@ -1,5 +1,11 @@
 package com.tealium.core.persistence
 
+import android.app.Application
+import android.database.sqlite.SQLiteDatabase
+import com.tealium.core.TealiumConfig
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkConstructor
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -49,5 +55,27 @@ class DatabaseHelperTests {
 
         // no upgrade from v0 -> v1, so should be (DATABASE_VERSION - 1)
         assertEquals(DatabaseHelper.DATABASE_VERSION - 1, toApply.count())
+    }
+
+    @Test
+    fun db_ReturnsWritableDatabase_OrNull() {
+        val config: TealiumConfig = mockk()
+        val app: Application = mockk()
+        every { config.application } returns app
+        every { app.applicationContext } returns app
+
+        mockkConstructor(DatabaseHelper::class)
+        val mockDb: SQLiteDatabase = mockk()
+        // return null db first, then mock
+        every { anyConstructed<DatabaseHelper>().writableDatabase } returns null andThen mockDb
+        // return read-only first, then writable
+        every { mockDb.isReadOnly } returns true andThen false
+
+        val dbHelper = DatabaseHelper(config, null)
+
+        assertNull(dbHelper.db) // null db not allowed.
+        assertNull(dbHelper.db) // read-only not allowed.
+        assertNotNull(dbHelper.db)
+        assertFalse(dbHelper.db!!.isReadOnly)
     }
 }
