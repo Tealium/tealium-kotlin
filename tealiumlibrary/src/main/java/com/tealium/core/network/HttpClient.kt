@@ -17,11 +17,14 @@ import java.util.*
 import java.util.zip.GZIPOutputStream
 import javax.net.ssl.HttpsURLConnection
 
-class HttpClient(var config: TealiumConfig,
-                 override var connectivity: Connectivity = ConnectivityRetriever.getInstance(config.application),
-                 override var networkClientListener: NetworkClientListener? = null) : NetworkClient {
+class HttpClient(
+    var config: TealiumConfig,
+    override var connectivity: Connectivity = ConnectivityRetriever.getInstance(config.application),
+    override var networkClientListener: NetworkClientListener? = null
+) : NetworkClient {
 
-    private val dateFormat: SimpleDateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.ROOT)
+    private val dateFormat: SimpleDateFormat =
+        SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.ROOT)
 
     init {
         dateFormat.timeZone = TimeZone.getTimeZone("GMT")
@@ -33,8 +36,9 @@ class HttpClient(var config: TealiumConfig,
             false
         } else true
 
-    override suspend fun post(payload: String, urlString: String, gzip: Boolean): Unit = coroutineScope {
-        withContext(Dispatchers.IO) {
+    override suspend fun post(payload: String, urlString: String, gzip: Boolean): Unit =
+        coroutineScope {
+            withContext(Dispatchers.IO) {
                 try {
                     with(URL(urlString).openConnection() as HttpURLConnection) {
                         if (isActive && isConnected) {
@@ -68,9 +72,9 @@ class HttpClient(var config: TealiumConfig,
                     Logger.prod(BuildConfig.TAG, "An unknown exception occurred: $e.")
                     networkClientListener?.onNetworkError(e.toString())
                 }
-            Unit
+                Unit
+            }
         }
-    }
 
     /**
      * Checks if the resource has been modified from the timestamp.
@@ -85,7 +89,10 @@ class HttpClient(var config: TealiumConfig,
                         // e.g. Wed, 21 Oct 2015 07:28:00 GMT
                         setRequestProperty("If-Modified-Since", dateFormat.format(Date(timestamp)))
                         if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
-                            Logger.dev(BuildConfig.TAG, "Resource not modified, not fetching resource.")
+                            Logger.dev(
+                                BuildConfig.TAG,
+                                "Resource not modified, not fetching resource."
+                            )
                             isModified = false
                         }
                         if (responseCode == HttpURLConnection.HTTP_OK) {
@@ -94,6 +101,34 @@ class HttpClient(var config: TealiumConfig,
                         networkClientListener?.onNetworkResponse(responseCode, responseMessage)
                     }
                     isModified
+                }
+            } catch (e: Exception) {
+                Logger.prod(BuildConfig.TAG, "An unknown exception occurred: $e.")
+                networkClientListener?.onNetworkError(e.toString())
+                null
+            }
+        }
+    }
+
+    override suspend fun getResourceEntity(urlString: String, etag: String?): ResourceEntity? = coroutineScope {
+        withContext(Dispatchers.IO) {
+            try {
+                with(URL(urlString).openConnection() as HttpURLConnection) {
+                    if (isActive && isConnected) {
+                        requestMethod = "GET"
+                        setRequestProperty("If-None-Match", etag)
+
+                        if (responseCode == HttpsURLConnection.HTTP_OK) {
+                            ResourceEntity(
+                                inputStream.bufferedReader().readText(),
+                                getHeaderField("etag")
+                            )
+                        } else {
+                            null
+                        }
+                    } else {
+                        null
+                    }
                 }
             } catch (e: Exception) {
                 Logger.prod(BuildConfig.TAG, "An unknown exception occurred: $e.")

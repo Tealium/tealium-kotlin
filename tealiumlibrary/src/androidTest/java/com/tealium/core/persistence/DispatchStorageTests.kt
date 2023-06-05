@@ -2,14 +2,18 @@ package com.tealium.core.persistence
 
 import android.app.Application
 import android.content.Context
+import android.database.sqlite.SQLiteOpenHelper
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
+import com.tealium.dispatcher.TealiumEvent
+import io.mockk.*
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 
 class DispatchStorageTests {
@@ -354,6 +358,61 @@ class DispatchStorageTests {
 
     }
 
+    @Test
+    fun testDequeueReturnsNullWhenQueueAndDaoAreEmpty() {
+        val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dispatchStore)
+        val dequeuedItem = dispatchStorage.dequeue()
+
+        assertNull(dequeuedItem)
+    }
+
+    @Test
+    fun testEnqueueAddsToQueueWhenDbIsNull() {
+        val dbHelper = mockk<DatabaseHelper>()
+        every { dbHelper.db } returns null
+        every { dbHelper.writableDatabase } returns null
+        every { dbHelper.onDbReady(any()) } just Runs
+        every { dbHelper.queue } returns mockk()
+        every { dbHelper.queue.add(any()) } returns true
+
+        val dispatchStorage = DispatchStorage(
+            dbHelper,
+            "table",
+            ConcurrentLinkedQueue(),
+            DispatchStorageDao(dbHelper, tableName, 20)
+        )
+        val dispatch = TealiumEvent("test")
+
+        dispatchStorage.enqueue(dispatch)
+
+        assertEquals(1, dispatchStorage.queue.size)
+    }
+
+    @Test
+    fun testDequeueReturnsItemFromQueueWhenQueueIsNotEmpty() {
+        val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dispatchStore)
+        val dispatch = TealiumEvent("test")
+
+        dispatchStorage.queue.add(dispatch)
+        val dequeuedItem = dispatchStorage.dequeue()
+
+        assertEquals(dispatch, dequeuedItem)
+        assertEquals(0, dispatchStorage.queue.size)
+    }
+
+    @Test
+    fun testDequeueReturnsItemFromDaoWhenQueueIsEmpty() {
+        val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dispatchStore)
+        val dispatch = TealiumEvent("test")
+
+        dispatchStorage.enqueue(dispatch)
+        val dequeuedItem = dispatchStorage.dequeue()
+
+        assertEquals(dispatch.id, dequeuedItem?.id)
+        assertEquals(dispatch.timestamp, dequeuedItem?.timestamp)
+        assertEquals(dispatch.payload(), dequeuedItem?.payload())
+    }
+
     /**
      * Prepopulates the storage with [count] number of items. Items are generated with ascending keys
      * using the pattern "key_1" -> "key_n" and timestamps are ascending in intervals of 100, i.e.
@@ -379,6 +438,6 @@ class DispatchStorageTests {
     @After
     fun tearDown() {
         // clear all.
-        dbHelper.writableDatabase.delete("dispatches", null, null)
+        dbHelper.db?.delete("dispatches", null, null)
     }
 }

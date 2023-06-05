@@ -17,5 +17,7 @@ interface NetworkClient {
 
     suspend fun get(urlString: String): String?
 
+    suspend fun getResourceEntity(urlString: String, etag: String? = null): ResourceEntity?
+
     fun validUrl(urlString: String): Boolean
 }

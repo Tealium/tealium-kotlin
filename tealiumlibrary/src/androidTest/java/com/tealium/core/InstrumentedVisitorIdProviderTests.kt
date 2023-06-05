@@ -36,8 +36,8 @@ class InstrumentedVisitorIdProviderTests {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val config = TealiumConfig(context as Application, "test", "test", Environment.DEV)
         dbHelper = DatabaseHelper(config, null) // in-memory
-        dbHelper.onCreate(dbHelper.writableDatabase)
-        dbHelper.onUpgrade(dbHelper.writableDatabase,1, DatabaseHelper.DATABASE_VERSION)
+        dbHelper.onCreate(dbHelper.db)
+        dbHelper.onUpgrade(dbHelper.db,1, DatabaseHelper.DATABASE_VERSION)
 
         every { onVisitorIdUpdated(any()) } just Runs
 

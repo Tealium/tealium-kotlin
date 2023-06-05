@@ -8,7 +8,6 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockkStatic
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runBlockingTest
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.json.JSONObject
@@ -175,6 +174,65 @@ class HttpClientTest {
         mockWebServer = MockWebServer()
         val isModified = httpClient.ifModified("http://test.com", System.currentTimeMillis())
         assertNull(isModified)
+        assertNotNull(errorMessage)
+    }
+
+    @Test
+    fun getResourceEntitySuccess() = runBlocking {
+        every { mockConnectivity.isConnected() } returns true
+        mockWebServer = MockWebServer()
+        mockWebServer.enqueue(MockResponse()
+            .setResponseCode(200)
+            .setBody("{\"hello\":\"world\"}")
+            .setHeader("etag", "1234567890")
+        )
+        mockWebServer.start(port)
+
+        val urlString = "http://localhost:$port"
+        mockWebServer.url(urlString)
+
+        val resourceEntity = httpClient.getResourceEntity(urlString, "1234567890")
+        assertNotNull(resourceEntity)
+        val response = resourceEntity?.response
+        val etag = resourceEntity?.etag
+        assertEquals("{\"hello\":\"world\"}", response)
+        assertEquals("1234567890", etag)
+
+        val request = mockWebServer.takeRequest()
+        assertEquals("GET / HTTP/1.1", request.requestLine)
+    }
+
+    @Test
+    fun getResourceEntityWithInitialNonExistentEtag() = runBlocking {
+        every { mockConnectivity.isConnected() } returns true
+        mockWebServer = MockWebServer()
+        mockWebServer.enqueue(MockResponse()
+            .setResponseCode(200)
+            .setBody("{\"hello\":\"world\"}")
+            .setHeader("etag", "1234567890")
+        )
+        mockWebServer.start(port)
+
+        val urlString = "http://localhost:$port"
+        mockWebServer.url(urlString)
+
+        val resourceEntity = httpClient.getResourceEntity(urlString)
+        assertNotNull(resourceEntity)
+        val response = resourceEntity?.response
+        val etag = resourceEntity?.etag
+        assertEquals("{\"hello\":\"world\"}", response)
+        assertEquals("1234567890", etag)
+
+        val request = mockWebServer.takeRequest()
+        assertEquals("GET / HTTP/1.1", request.requestLine)
+    }
+
+    @Test
+    fun getResourceEntityReturnsNullNoConnection() = runBlocking {
+        every { mockConnectivity.isConnected() } returns false
+        mockWebServer = MockWebServer()
+        val resourceEntity = httpClient.getResourceEntity("http://test.com")
+        assertNull(resourceEntity)
         assertNotNull(errorMessage)
     }
 

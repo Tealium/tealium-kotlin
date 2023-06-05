@@ -5,31 +5,74 @@ import com.tealium.core.messaging.LibrarySettingsUpdatedListener
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.JsonDispatch
-import org.json.JSONObject
+import java.util.concurrent.ConcurrentLinkedQueue
 
-internal class DispatchStorage(dbHelper: DatabaseHelper,
-                               tableName: String)
-    : LibrarySettingsUpdatedListener,
+internal class DispatchStorage(
+    dbHelper: DatabaseHelper,
+    tableName: String,
+    internal val queue: ConcurrentLinkedQueue<Dispatch> = ConcurrentLinkedQueue<Dispatch>(),
+    private val dao: DispatchStorageDao = DispatchStorageDao(dbHelper, tableName)
+) : LibrarySettingsUpdatedListener,
     QueueingDao<String, Dispatch> {
-
-    private val dao = DispatchStorageDao(dbHelper, tableName)
 
     override fun enqueue(item: Dispatch) {
         dao.enqueue(convertToPersistentItem(item))
+        val db = dao.db
+        if (db == null || db.isReadOnly) {
+            queue.add(item)
+        }
     }
 
     override fun enqueue(items: List<Dispatch>) {
         val list = items.map { convertToPersistentItem(it) }
         dao.enqueue(list)
+
+        val db = dao.db
+        if (db == null || db.isReadOnly) {
+            queue.addAll(items)
+        }
     }
 
     override fun dequeue(): Dispatch? {
+        if (queue.isNotEmpty()) {
+            val dispatch = queue.poll()
+            dispatch?.let {
+                dao.delete(it.id)
+            }
+            return dispatch
+        }
+
         return dao.dequeue()?.let {
             convertToDispatch(it)
         }
     }
 
+    /**
+     * Pops the first [count] items off the queue; it reads then deletes.
+     * @param count limits the number of items to dequeue off the list; negative numbers will
+     * dequeue all currently queued items.
+     */
     override fun dequeue(count: Int): List<Dispatch> {
+        if (queue.isNotEmpty()) {
+            val list = mutableListOf<Dispatch>()
+            return if (count > 0) {
+                for (i in 0 until count) {
+                    queue.poll()?.let {
+                        dao.delete(it.id)
+                        list.add(it)
+                    }
+                }
+                list
+            } else {
+                queue.forEach {
+                    dao.delete(it.id)
+                    list.add(it)
+                }
+                queue.clear()
+                list
+            }
+        }
+
         return dao.dequeue(count).map {
             convertToDispatch(it)
         }
