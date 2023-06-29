@@ -79,8 +79,7 @@ class TagManagementDispatcherTest {
             mockSettings.databaseEnabled = any()
             mockSettings.javaScriptEnabled = any()
             mockSettings.domStorageEnabled = any()
-            mockSettings.setAppCacheEnabled(any())
-            mockSettings.setAppCachePath(any())
+            mockSettings.cacheMode = any()
 
         } just Runs
 
