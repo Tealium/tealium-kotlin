@@ -6,12 +6,12 @@ apply from: '../jacoco.gradle'
 version = '1.2.0'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 33
     buildToolsVersion "30.0.3"
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 33
 
         buildConfigField 'String', 'TAG', "\"Tealium-TagManagementDispatcher-$version\""
         buildConfigField 'String', 'VERSION_NAME', "\"$version\""
