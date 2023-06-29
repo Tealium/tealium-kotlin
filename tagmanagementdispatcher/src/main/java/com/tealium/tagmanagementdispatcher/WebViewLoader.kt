@@ -299,8 +299,6 @@ class WebViewLoader(
                     javaScriptEnabled = true
                     domStorageEnabled = true
                     cacheMode = WebSettings.LOAD_DEFAULT
-//                    setAppCacheEnabled(true)
-//                    setAppCachePath(context.config.tealiumDirectory.absolutePath)
                 }
 
                 // unrendered webview, disable hardware acceleration
