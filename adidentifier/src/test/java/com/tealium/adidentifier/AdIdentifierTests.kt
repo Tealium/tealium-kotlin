@@ -81,7 +81,7 @@ class AdIdentifierTests {
 
     @Test
     fun fetchAdInfo_DoesNotAddToDataLayer_WhenAdInfoUnavailable() {
-        every { AdvertisingIdClient.getAdvertisingIdInfo(any()) } returns null
+        every { AdvertisingIdClient.getAdvertisingIdInfo(any()).id } returns null
         AdIdentifier.create(tealiumContext) as AdIdentifier
 
         verify(timeout = 100) {

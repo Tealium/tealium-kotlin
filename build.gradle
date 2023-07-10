@@ -6,7 +6,7 @@ buildscript {
     ext.coroutines_android_version = '1.6.2'
     ext.coroutines_test_version = '1.6.2'
     ext.mockk_version = '1.12.0'
-    ext.robolectric_version = '4.6.1'
+    ext.robolectric_version = '4.10.3'
 
     repositories {
         google()

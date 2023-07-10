@@ -3,7 +3,6 @@ package com.tealium.media
 import com.tealium.core.TealiumContext
 import com.tealium.media.segments.Ad
 import com.tealium.media.segments.AdBreak
-import com.tealium.media.segments.Chapter
 import io.mockk.*
 import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.delay
