@@ -224,11 +224,12 @@ class SessionManagerTests {
         sessionManager = SessionManager(config, eventRouter)
         val session = sessionManager.currentSession
 
+        delay(20)
+
         val otherConfig = TealiumConfig(context, "test2", "main", Environment.QA)
         val otherSessionManager = SessionManager(otherConfig, eventRouter)
         val otherSession = otherSessionManager.currentSession
 
-        delay(20)
         assertNotEquals(session.id, otherSession.id)
     }
 
