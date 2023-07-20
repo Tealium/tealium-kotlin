@@ -1,7 +1,6 @@
 package com.tealium.adidentifier
 
 import android.content.Context
-import android.os.Build
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import com.google.android.gms.appset.AppSet
 import com.google.android.gms.appset.AppSetIdClient
