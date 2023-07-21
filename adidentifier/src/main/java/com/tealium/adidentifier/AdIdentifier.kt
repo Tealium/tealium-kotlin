@@ -1,9 +1,9 @@
 package com.tealium.adidentifier
 
 import android.content.Context
-import android.os.Build
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import com.google.android.gms.appset.AppSet
+import com.google.android.gms.appset.AppSetIdClient
 import com.tealium.core.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +13,11 @@ import java.lang.Exception
 /**
  * Module to retrieve Advertising ID from Google Play and save to Data Layer
  */
-class AdIdentifier(private val tealiumContext: TealiumContext) : Module {
+class AdIdentifier(
+    private val tealiumContext: TealiumContext,
+    private val adidInfoProvider: (Context) -> AdvertisingIdClient.Info = AdvertisingIdClient::getAdvertisingIdInfo,
+    private val appSetClientProvider: (Context) -> AppSetIdClient = AppSet::getClient
+) : Module {
 
     override val name: String
         get() = MODULE_NAME
@@ -85,7 +89,7 @@ class AdIdentifier(private val tealiumContext: TealiumContext) : Module {
      */
     private fun fetchAdInfo(context: Context) {
         try {
-            val adInfo = AdvertisingIdClient.getAdvertisingIdInfo(context)
+            val adInfo = adidInfoProvider.invoke(context)
             if (adInfo.id != null) {
                 adid = adInfo.id
             }
@@ -96,14 +100,12 @@ class AdIdentifier(private val tealiumContext: TealiumContext) : Module {
     }
 
     private fun fetchAppSetInfo(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val client = AppSet.getClient(context)
-            val task = client.appSetIdInfo
+        val client = appSetClientProvider.invoke(context)
+        val task = client.appSetIdInfo
 
-            task.addOnSuccessListener {
-                appSetId = it.id
-                appSetScope = it.scope
-            }
+        task.addOnSuccessListener {
+            appSetId = it.id
+            appSetScope = it.scope
         }
     }
 
