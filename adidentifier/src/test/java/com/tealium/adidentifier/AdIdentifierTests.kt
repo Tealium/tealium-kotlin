@@ -1,10 +1,11 @@
 package com.tealium.adidentifier
 
 import android.app.Application
+import android.content.Context
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
-import com.google.android.gms.appset.AppSet
 import com.google.android.gms.appset.AppSetIdClient
 import com.google.android.gms.appset.AppSetIdInfo
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.tasks.Task
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
@@ -16,7 +17,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 class AdIdentifierTests {
@@ -42,6 +42,9 @@ class AdIdentifierTests {
     @MockK
     lateinit var appSetIdInfo: AppSetIdInfo
 
+    private lateinit var adidProvider: (Context) -> AdvertisingIdClient.Info
+    private lateinit var appSetClientProvider: (Context) -> AppSetIdClient
+
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
@@ -52,9 +55,8 @@ class AdIdentifierTests {
 
         every { mockApplication.packageName } returns "testPackage"
 
-        mockkStatic(AdvertisingIdClient::class)
-
-        every { AdvertisingIdClient.getAdvertisingIdInfo(any()) } returns adInfo
+        adidProvider = { adInfo }
+        appSetClientProvider = { appSetClient }
 
         every { adInfo.id } returns "ad_id"
         every { adInfo.isLimitAdTrackingEnabled } returns false
@@ -62,16 +64,21 @@ class AdIdentifierTests {
         val mockAdInfoIdTask = mockk<Task<AppSetIdInfo>>()
         every { mockAdInfoIdTask.isSuccessful } returns true
         every { mockAdInfoIdTask.result } returns appSetIdInfo
-        every { mockAdInfoIdTask.addOnSuccessListener{ any<AppSetIdInfo>()} } returns mockAdInfoIdTask
 
-        mockkStatic(AppSet::class)
-        every { AppSet.getClient(any()) } returns appSetClient
+        val slot = slot<com.google.android.gms.tasks.OnSuccessListener<AppSetIdInfo>>()
+        every { mockAdInfoIdTask.addOnSuccessListener(capture(slot)) } answers {
+            slot.captured.onSuccess(appSetIdInfo)
+            mockAdInfoIdTask
+        }
+
         every { appSetClient.appSetIdInfo } returns mockAdInfoIdTask
+        every { appSetIdInfo.id } returns "app_set_id"
+        every { appSetIdInfo.scope } returns 1
     }
 
     @Test
     fun fetchAdInfo_AddsToDataLayer_WhenAdInfoAvailable() {
-        AdIdentifier.create(tealiumContext) as AdIdentifier
+        AdIdentifier(tealiumContext, adidProvider, appSetClientProvider)
 
         verify(timeout = 100) {
             dataLayer.putString("google_adid", "ad_id", any())
@@ -81,8 +88,8 @@ class AdIdentifierTests {
 
     @Test
     fun fetchAdInfo_DoesNotAddToDataLayer_WhenAdInfoUnavailable() {
-        every { AdvertisingIdClient.getAdvertisingIdInfo(any()) } returns null
-        AdIdentifier.create(tealiumContext) as AdIdentifier
+        every { adInfo.id } returns null
+        AdIdentifier(tealiumContext, adidProvider, appSetClientProvider)
 
         verify(timeout = 100) {
             dataLayer wasNot Called
@@ -91,7 +98,9 @@ class AdIdentifierTests {
 
     @Test
     fun fetchAdInfo_DoesNotAddToDataLayer_WhenGoogleApiUnavailable() {
-        AdIdentifier.create(tealiumContext) as AdIdentifier
+        AdIdentifier(tealiumContext, {
+            throw GooglePlayServicesNotAvailableException(0)
+        }, appSetClientProvider)
 
         verify(timeout = 100) {
             dataLayer wasNot Called
@@ -100,22 +109,20 @@ class AdIdentifierTests {
 
     @Test
     fun removeAdInfo_SuccessfulRemovalFromDataLayer() {
-        val adIdentifier = AdIdentifier.create(tealiumContext) as AdIdentifier
+        val adIdentifier = AdIdentifier(tealiumContext, adidProvider, appSetClientProvider)
         adIdentifier.removeAdInfo()
 
-        verify {
+        verify(timeout = 100) {
             dataLayer.remove("google_adid")
             dataLayer.remove("google_limit_ad_tracking")
         }
     }
 
-    // TODO Test currently ignored - robolectric does not support SDK 31
     @Test
-    @Config(sdk = [31])
     fun fetchAppSetIdInfo() {
-        AdIdentifier.create(tealiumContext) as AdIdentifier
+        AdIdentifier(tealiumContext, adidProvider, appSetClientProvider)
 
-        verify {
+        verify(timeout = 100) {
             dataLayer.putInt("google_app_set_scope", 1, any())
             dataLayer.putString("google_app_set_id", "app_set_id", any())
         }
@@ -123,10 +130,10 @@ class AdIdentifierTests {
 
     @Test
     fun removeAppSetIdInfo() {
-        val adIdentifier = AdIdentifier.create(tealiumContext) as AdIdentifier
+        val adIdentifier = AdIdentifier(tealiumContext, adidProvider, appSetClientProvider)
         adIdentifier.removeAppSetIdInfo()
 
-        verify {
+        verify(timeout = 100) {
             dataLayer.remove("google_app_set_id")
             dataLayer.remove("google_app_set_scope")
         }

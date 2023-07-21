@@ -45,6 +45,11 @@ android {
     testOptions {
         unitTests {
             includeAndroidResources = true
+            all {
+                jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+                jvmArgs("--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED")
+                jvmArgs("--add-opens", "java.base/java.io=ALL-UNNAMED")
+            }
         }
     }
 }
