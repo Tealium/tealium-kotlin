@@ -3,15 +3,15 @@ apply plugin: 'kotlin-android'
 apply plugin: 'maven-publish'
 apply from: '../jacoco.gradle'
 
-version = "1.0.0"
+version = "1.0.1"
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 33
     buildToolsVersion "30.0.3"
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 33
         buildConfigField 'String', 'TAG', "\"Tealium-AutoTracking-$version\""
         buildConfigField 'String', 'LIBRARY_VERSION', "\"$version\""
 
@@ -58,7 +58,7 @@ dependencies {
     testImplementation "org.robolectric:robolectric:$robolectric_version"
     androidTestImplementation "io.mockk:mockk-android:$mockk_version"
     androidTestImplementation 'androidx.test:runner:1.2.0'
-    androidTestImplementation 'androidx.test:core:1.2.0'
+    androidTestImplementation 'androidx.test:core:1.5.0'
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_core_version"
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
 
