@@ -65,7 +65,7 @@ class Tealium private constructor(
 
     // Dependencies for publicly accessible objects.
     private val databaseHelper: DatabaseHelper = DatabaseHelper(config)
-    private val eventRouter = EventDispatcher()
+    private val eventRouter = EventDispatcher(isReady = false)
     private val activityObserver: ActivityObserver =
         ActivityObserver(config, eventRouter, backgroundScope)
     private val sessionManager = SessionManager(config, eventRouter)
@@ -329,6 +329,8 @@ class Tealium private constructor(
      * debuffer any [Dispatch]es that might have been made whilst this instance was initializing.
      */
     private fun onInstanceReady() {
+        eventRouter.setReady()
+
         initialized.set(true)
         onReady?.invoke(this)
 

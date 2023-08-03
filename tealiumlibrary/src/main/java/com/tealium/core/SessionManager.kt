@@ -146,7 +146,7 @@ class SessionManager(config: TealiumConfig,
         /**
          * Returns the Account and Profile specific preferences file name
          */
-        private fun sharedPreferencesName(config: TealiumConfig): String {
+        internal fun sharedPreferencesName(config: TealiumConfig): String {
             return "tealium.sessionpreferences." + Integer.toHexString((config.accountName + config.profileName + config.environment.environment).hashCode())
         }
     }

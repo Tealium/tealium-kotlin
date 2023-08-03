@@ -2,15 +2,17 @@ package com.tealium.core
 
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
-import com.tealium.core.collection.*
 import com.tealium.core.consent.ConsentCategory
 import com.tealium.core.consent.ConsentPolicy
 import com.tealium.core.consent.consentManagerPolicy
 import com.tealium.core.messaging.ExternalListener
 import com.tealium.core.messaging.Messenger
+import com.tealium.core.messaging.NewSessionListener
+import com.tealium.core.persistence.Expiry
 import io.mockk.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.suspendCancellableCoroutine
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.After
@@ -132,7 +134,7 @@ class TealiumTests {
     }
 
     @Test
-    fun existingVisitorId() {
+    fun existingVisitorId() = runBlocking {
         val config = TealiumConfig(
             application,
             "testAccount",
@@ -141,7 +143,7 @@ class TealiumTests {
         )
         config.existingVisitorId = "testExistingVisitorId"
         deleteInstanceStorage(config)
-        val test = Tealium.create("tester", config)
+        val test = awaitCreateTealium("tester", config)
 
         val vid = test.visitorId
         assertNotNull(vid)
@@ -159,7 +161,7 @@ class TealiumTests {
         )
         config.existingVisitorId = "testExistingVisitorId"
         deleteInstanceStorage(config)
-        val teal = Tealium.create("tester2", config)
+        val teal = awaitCreateTealium("tester2", config)
 
         val vid = teal.visitorId
         val storedVid = teal.dataLayer.getString("tealium_visitor_id")
@@ -175,16 +177,18 @@ class TealiumTests {
     }
 
     @Test
-    fun retrieveDataLayerWithoutCollectors() {
+    fun retrieveDataLayerWithoutCollectors() = runBlocking {
         val config = TealiumConfig(
             application,
             "testAccount2",
             "testProfile2",
             Environment.DEV
         )
-        config.tealiumDirectory.deleteRecursively()
+        deleteInstanceStorage(config)
+
         config.existingVisitorId = "testExistingVisitorId"
-        Tealium.create("tester2", config) {
+
+        val teal = awaitCreateTealium("tester2", config) {
             val data = gatherTrackData()
             val storedVid = data["tealium_visitor_id"]
             assertEquals("testExistingVisitorId", storedVid)
@@ -201,13 +205,11 @@ class TealiumTests {
     fun testCallbackGetsExecuted() = runBlocking {
         var hasBeenCalled = false
 
-        val tealium = Tealium.create("name", configWithNoModules) {
+        val tealium = awaitCreateTealium("name", configWithNoModules) {
             hasBeenCalled = true
         }
-        if (!hasBeenCalled) {
-            delay(1000)
-            assertTrue(hasBeenCalled)
-        }
+
+        assertTrue(hasBeenCalled)
     }
 
     @Test
@@ -304,27 +306,23 @@ class TealiumTests {
 
     @Test
     fun testGatherTrackData() = runBlocking {
-        var hasBeenCalled = false
         val config = TealiumConfig(application, "", "", Environment.DEV, "")
         config.consentManagerPolicy = ConsentPolicy.GDPR
-        config.collectors.add(collectorFactory(
-            mapOf(
-                "String" to "string",
-                "Int" to 10,
-                "Double" to 10.0,
-                "Float" to 10.0f,
-                "Boolean" to true,
-                "JsonArray" to JSONArray().apply { put("string") },
-                "JsonObject" to JSONObject().apply { put("string", "string") },
+        config.collectors.add(
+            collectorFactory(
+                mapOf(
+                    "String" to "string",
+                    "Int" to 10,
+                    "Double" to 10.0,
+                    "Float" to 10.0f,
+                    "Boolean" to true,
+                    "JsonArray" to JSONArray().apply { put("string") },
+                    "JsonObject" to JSONObject().apply { put("string", "string") },
+                )
             )
-        ))
-        val tealium = Tealium.create("name", config) {
-            hasBeenCalled = true
-        }
-        if (!hasBeenCalled) {
-            delay(1000)
-            assertTrue(hasBeenCalled)
-        }
+        )
+        val tealium = awaitCreateTealium("name", config)
+
         tealium.consentManager.userConsentCategories = mutableSetOf(
             ConsentCategory.AFFILIATES,
             ConsentCategory.ANALYTICS,
@@ -338,25 +336,67 @@ class TealiumTests {
 
     @Test(expected = AssertionError::class)
     fun testGatherTrackDataFails() = runBlocking {
-        var hasBeenCalled = false
-        val tealium = Tealium.create(
+        val tealium = awaitCreateTealium(
             "name",
             TealiumConfig(application, "test", "test", Environment.DEV).apply {
-                collectors.add(collectorFactory(mapOf(
-                    "consent" to listOf<ConsentCategory>(ConsentCategory.CDP, ConsentCategory.CRM),
-                    "policy" to ConsentPolicy.GDPR
-                )))
-            }) {
-            hasBeenCalled = true
-        }
-        if (!hasBeenCalled) {
-            delay(1000)
-            assertTrue(hasBeenCalled)
-        }
+                collectors.add(
+                    collectorFactory(
+                        mapOf(
+                            "consent" to listOf<ConsentCategory>(
+                                ConsentCategory.CDP,
+                                ConsentCategory.CRM
+                            ),
+                            "policy" to ConsentPolicy.GDPR
+                        )
+                    )
+                )
+            })
 
         val data = tealium.gatherTrackData()
         assertFalse(data.isEmpty())
         assertTrue(containsOnlyValidTypes(data.values))
+    }
+
+    @Test
+    fun test_NewSessionEvents_AreBufferedOnLaunch() = runBlocking {
+        val newSessionListener = mockk<NewSessionListener>(relaxed = true)
+        val config = TealiumConfig(application, "test", "test", Environment.DEV).apply {
+            collectors.add(object : CollectorFactory {
+                override fun create(context: TealiumContext): Collector {
+                    return SessionListenerModule(newSessionListener)
+                }
+            })
+            events.add(newSessionListener)
+        }
+        deleteSessionInfo(config)
+
+        awaitCreateTealium(
+            "name",
+            config
+        )
+
+        verify(exactly = 2) {
+            newSessionListener.onNewSession(any())
+        }
+    }
+
+    @Test
+    fun test_SessionScopedData_IsRemovedOnLaunch_WhenNewSession() = runBlocking {
+        val config = TealiumConfig(application, "test", "test", Environment.DEV)
+
+        var tealium: Tealium = awaitCreateTealium("name", config) {
+            dataLayer.putInt("session_int", 10, Expiry.SESSION)
+        }
+
+        assertEquals(10, tealium.dataLayer.getInt("session_int"))
+        assertEquals(Expiry.SESSION, tealium.dataLayer.getExpiry("session_int"))
+
+        deleteSessionInfo(config)
+
+        tealium = awaitCreateTealium("name", config)
+
+        assertNull(tealium.dataLayer.getInt("session_int"))
+        assertNull(tealium.dataLayer.getExpiry("session_int"))
     }
 
     private fun containsOnlyValidTypes(data: Collection<*>): Boolean {
@@ -373,7 +413,27 @@ class TealiumTests {
     private fun deleteInstanceStorage(config: TealiumConfig) {
         try {
             config.tealiumDirectory.deleteRecursively()
-        } catch (ignored: Exception) { }
+        } catch (ignored: Exception) {
+        }
+    }
+
+    private fun deleteSessionInfo(config: TealiumConfig) {
+        application.getSharedPreferences(SessionManager.sharedPreferencesName(config), 0).edit()
+            .clear()
+            .commit()
+    }
+
+    private suspend fun awaitCreateTealium(
+        name: String,
+        config: TealiumConfig,
+        onReady: Tealium.() -> Unit = {}
+    ): Tealium {
+        return suspendCancellableCoroutine { cont ->
+            Tealium.create(name, config) {
+                onReady.invoke(this)
+                cont.resume(this, null)
+            }
+        }
     }
 }
 
@@ -398,6 +458,18 @@ private class TestFactory(context: TealiumContext, payload: Any?) : Collector {
             return TestFactory(context, payload)
         }
     }
+}
+
+private class SessionListenerModule(
+    private val listener: NewSessionListener
+) : Collector, NewSessionListener by listener {
+
+    override suspend fun collect(): Map<String, Any> {
+        return mapOf()
+    }
+
+    override val name: String = "TestListenerFactory"
+    override var enabled: Boolean = true
 }
 
 private interface TestListener : ExternalListener {
