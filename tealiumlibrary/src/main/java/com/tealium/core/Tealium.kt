@@ -106,22 +106,27 @@ class Tealium private constructor(
      */
     val events: Subscribable = MessengerService(eventRouter, backgroundScope)
 
+    private val _dataLayer: PersistentStorage = PersistentStorage(
+        databaseHelper,
+        "datalayer",
+        eventRouter = eventRouter,
+        backgroundScope = backgroundScope,
+        sessionId = sessionManager.currentSession.id,
+    )
+
     /**
      * Persistent storage location for data that should appear on all subsequent [Dispatch] events.
      * Data will be collected from here and merged into each [Dispatch] along with any other defined
      * [Collector] data.
      */
-    val dataLayer: DataLayer = PersistentStorage(
-        databaseHelper,
-        "datalayer",
-        eventRouter = eventRouter,
-        backgroundScope = backgroundScope
-    )
+    val dataLayer: DataLayer
+        get() = _dataLayer
 
     /**
      * Object representing the current Tealium session in progress.
      */
-    val session: Session = sessionManager.currentSession
+    val session: Session
+        get() = sessionManager.currentSession.copy()
 
     private val visitorIdProvider: VisitorIdProvider = VisitorIdProvider(
         config = config,
@@ -164,6 +169,9 @@ class Tealium private constructor(
 
     init {
         migratePersistentData()
+        if (sessionManager.isNewSessionOnLaunch) {
+            _dataLayer.clearSessionData(session.id)
+        }
 
         Logger.logLevel = config.logLevel ?: when (config.environment) {
             Environment.DEV -> LogLevel.DEV

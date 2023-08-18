@@ -399,6 +399,23 @@ class TealiumTests {
         assertNull(tealium.dataLayer.getExpiry("session_int"))
     }
 
+    @Test
+    fun test_SessionScopedData_WrittenByModules_IsNotRemovedOnLaunch_WhenNewSession() = runBlocking {
+
+        val config = TealiumConfig(application, "test", "test", Environment.DEV)
+        deleteSessionInfo(config)
+
+        config.modules.add(object : ModuleFactory {
+            override fun create(context: TealiumContext): Module {
+                return DataWritingModule(context)
+            }
+        })
+        val tealium: Tealium = awaitCreateTealium("name", config)
+
+        assertEquals(10, tealium.dataLayer.getInt("session_int"))
+        assertEquals(Expiry.SESSION, tealium.dataLayer.getExpiry("session_int"))
+    }
+
     private fun containsOnlyValidTypes(data: Collection<*>): Boolean {
         return data.filterNotNull().fold(true) { initial, entry ->
             initial && when (entry) {
@@ -466,6 +483,18 @@ private class SessionListenerModule(
 
     override suspend fun collect(): Map<String, Any> {
         return mapOf()
+    }
+
+    override val name: String = "TestListenerFactory"
+    override var enabled: Boolean = true
+}
+
+private class DataWritingModule(
+    context: TealiumContext
+) : Module {
+
+    init {
+        context.dataLayer.putInt("session_int", 10, Expiry.SESSION)
     }
 
     override val name: String = "TestListenerFactory"

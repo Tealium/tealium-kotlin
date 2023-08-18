@@ -20,6 +20,9 @@ class SessionManager(config: TealiumConfig,
     var currentSession: Session
         private set
 
+    var isNewSessionOnLaunch: Boolean
+        private set;
+
     /**
      * Storage for the current session.
      */
@@ -32,9 +35,13 @@ class SessionManager(config: TealiumConfig,
         // check that we have a stored session and that it's not expired.
         // otherwise create a new one.
         currentSession = when (isExpired(storedSession)) {
-            true -> newSession()
+            true -> {
+                isNewSessionOnLaunch = true
+                newSession()
+            }
             false -> {
                 Logger.qa(BuildConfig.TAG, "Found existing session; resuming.")
+                isNewSessionOnLaunch = false
                 storedSession
             }
         }
