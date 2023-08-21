@@ -12,8 +12,6 @@ import com.tealium.adidentifier.internal.AdvertisingInfoUpdatedListener
 import com.tealium.adidentifier.internal.AppSetInfoUpdatedMessenger
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
-import com.tealium.core.messaging.EventDispatcher
-import com.tealium.core.messaging.EventRouter
 import com.tealium.core.messaging.ExternalMessenger
 import com.tealium.core.messaging.MessengerService
 import com.tealium.core.persistence.DataLayer
@@ -52,7 +50,6 @@ class AdIdentifierTests {
     lateinit var appSetIdInfo: AppSetIdInfo
 
     private lateinit var messengerService: MessengerService
-    private lateinit var eventRouter: EventRouter
     private lateinit var adidProvider: (Context) -> AdvertisingIdClient.Info
     private lateinit var appSetClientProvider: (Context) -> AppSetIdClient
 
@@ -60,9 +57,8 @@ class AdIdentifierTests {
     fun setUp() {
         MockKAnnotations.init(this)
 
-        eventRouter = EventDispatcher()
-        val backgroundScope = CoroutineScope(Dispatchers.Default)
-        messengerService = spyk(MessengerService(eventRouter, backgroundScope))
+        messengerService =
+            spyk(MessengerService(mockk(relaxed = true), CoroutineScope(Dispatchers.Default)))
 
         every { tealiumContext.config } returns config
         every { tealiumContext.config.application } returns mockApplication
@@ -112,17 +108,6 @@ class AdIdentifierTests {
             })
         }
     }
-
-//    @Test
-    // TODO - not sure on this use case.
-//    fun fetchAdInfo_DoesNotAddToDataLayer_WhenAdInfoUnavailable() {
-//        every { adInfo.id } returns null
-//        AdIdentifier(tealiumContext, adidProvider, appSetClientProvider)
-//
-//        verify(timeout = 100) {
-//            dataLayer wasNot Called
-//        }
-//    }
 
     @Test
     fun fetchAdInfo_DoesNotAddToDataLayer_WhenGoogleApiUnavailable() {
