@@ -142,8 +142,9 @@ internal open class PersistentStorageDao(
 
     override fun insert(item: PersistentItem) {
         dbHelper.onDbReady { database ->
-            database.beginTransaction()
             try {
+                database.beginTransactionNonExclusive()
+
                 val inserted =
                     database.insertWithOnConflict(
                         tableName,
@@ -167,8 +168,9 @@ internal open class PersistentStorageDao(
 
     override fun update(item: PersistentItem) {
         dbHelper.onDbReady { database ->
-            database.beginTransaction()
             try {
+                database.beginTransactionNonExclusive()
+
                 val updated = database.update(
                     tableName, item.toContentValues(),
                     "$COLUMN_KEY = ?",
@@ -203,8 +205,9 @@ internal open class PersistentStorageDao(
 
     override fun delete(key: String) {
         dbHelper.onDbReady { database ->
-            database.beginTransaction()
             try {
+                database.beginTransactionNonExclusive()
+
                 val deleted = database.delete(
                     tableName,
                     "$COLUMN_KEY = ?",
@@ -226,8 +229,9 @@ internal open class PersistentStorageDao(
 
     private fun delete(keys: Set<String>) {
         dbHelper.onDbReady { database ->
-            database.beginTransaction()
             try {
+                database.beginTransactionNonExclusive()
+
                 database.delete(
                     tableName,
                     "$COLUMN_KEY IN (${keys.joinToString(", ") { "?" }})",
@@ -245,8 +249,9 @@ internal open class PersistentStorageDao(
 
     override fun clear() {
         dbHelper.onDbReady { database ->
-            database.beginTransaction()
             try {
+                database.beginTransactionNonExclusive()
+
                 val keys = keys()
                 database.delete(
                     tableName,
@@ -346,8 +351,9 @@ internal open class PersistentStorageDao(
 
     override fun purgeExpired() {
         dbHelper.onDbReady { database ->
-            database.beginTransaction()
             try {
+                database.beginTransactionNonExclusive()
+
                 val timestamp = getTimestamp()
                 val expired = getExpired(timestamp)
 
@@ -371,8 +377,9 @@ internal open class PersistentStorageDao(
 
     override fun onNewSession(sessionId: Long) {
         dbHelper.onDbReady { database ->
-            database.beginTransaction()
             try {
+                database.beginTransactionNonExclusive()
+
                 val selection = "$COLUMN_EXPIRY = ?"
                 val selectionArgs = arrayOf(Expiry.SESSION.expiryTime().toString())
                 val sessionItems = getAll(

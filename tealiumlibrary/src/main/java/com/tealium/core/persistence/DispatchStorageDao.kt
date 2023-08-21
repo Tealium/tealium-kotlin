@@ -115,8 +115,9 @@ internal class DispatchStorageDao(
      */
     private fun internalDeleteAll(items: List<PersistentItem>) {
         dbHelper.onDbReady { database ->
-            database.beginTransaction()
             try {
+                database.beginTransactionNonExclusive()
+
                 items.forEach {
                     kvDao.delete(it.key)
                 }

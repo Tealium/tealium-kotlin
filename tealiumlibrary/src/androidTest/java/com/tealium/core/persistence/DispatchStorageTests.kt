@@ -2,7 +2,6 @@ package com.tealium.core.persistence
 
 import android.app.Application
 import android.content.Context
-import android.database.sqlite.SQLiteOpenHelper
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
@@ -372,8 +371,6 @@ class DispatchStorageTests {
         every { dbHelper.db } returns null
         every { dbHelper.writableDatabase } returns null
         every { dbHelper.onDbReady(any()) } just Runs
-        every { dbHelper.queue } returns mockk()
-        every { dbHelper.queue.add(any()) } returns true
 
         val dispatchStorage = DispatchStorage(
             dbHelper,
