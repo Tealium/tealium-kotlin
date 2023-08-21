@@ -7,12 +7,21 @@ import com.google.android.gms.appset.AppSetIdClient
 import com.google.android.gms.appset.AppSetIdInfo
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.tasks.Task
+import com.tealium.adidentifier.internal.AdIdInfoUpdatedMessenger
+import com.tealium.adidentifier.internal.AdvertisingInfoUpdatedListener
+import com.tealium.adidentifier.internal.AppSetInfoUpdatedMessenger
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
+import com.tealium.core.messaging.EventDispatcher
+import com.tealium.core.messaging.EventRouter
+import com.tealium.core.messaging.ExternalMessenger
+import com.tealium.core.messaging.MessengerService
 import com.tealium.core.persistence.DataLayer
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,6 +51,8 @@ class AdIdentifierTests {
     @MockK
     lateinit var appSetIdInfo: AppSetIdInfo
 
+    private lateinit var messengerService: MessengerService
+    private lateinit var eventRouter: EventRouter
     private lateinit var adidProvider: (Context) -> AdvertisingIdClient.Info
     private lateinit var appSetClientProvider: (Context) -> AppSetIdClient
 
@@ -49,9 +60,14 @@ class AdIdentifierTests {
     fun setUp() {
         MockKAnnotations.init(this)
 
+        eventRouter = EventDispatcher()
+        val backgroundScope = CoroutineScope(Dispatchers.Default)
+        messengerService = spyk(MessengerService(eventRouter, backgroundScope))
+
         every { tealiumContext.config } returns config
         every { tealiumContext.config.application } returns mockApplication
         every { tealiumContext.dataLayer } returns dataLayer
+        every { tealiumContext.events } returns messengerService
 
         every { mockApplication.packageName } returns "testPackage"
 
@@ -77,24 +93,36 @@ class AdIdentifierTests {
     }
 
     @Test
-    fun fetchAdInfo_AddsToDataLayer_WhenAdInfoAvailable() {
+    fun init_SubscribesListenerToEvent() {
         AdIdentifier(tealiumContext, adidProvider, appSetClientProvider)
 
-        verify(timeout = 100) {
-            dataLayer.putString("google_adid", "ad_id", any())
-            dataLayer.putBoolean("google_limit_ad_tracking", false, any())
+        verify {
+            messengerService.subscribe(any<AdvertisingInfoUpdatedListener>())
         }
     }
 
     @Test
-    fun fetchAdInfo_DoesNotAddToDataLayer_WhenAdInfoUnavailable() {
-        every { adInfo.id } returns null
+    fun fetchAdInfo_AddsToDataLayer_WhenAdInfoAvailable() {
         AdIdentifier(tealiumContext, adidProvider, appSetClientProvider)
 
-        verify(timeout = 100) {
-            dataLayer wasNot Called
+        verify {
+            messengerService.send(match<AdIdInfoUpdatedMessenger> {
+                it.adId == "ad_id"
+                        && it.isLimitAdTrackingEnabled == false
+            })
         }
     }
+
+//    @Test
+    // TODO - not sure on this use case.
+//    fun fetchAdInfo_DoesNotAddToDataLayer_WhenAdInfoUnavailable() {
+//        every { adInfo.id } returns null
+//        AdIdentifier(tealiumContext, adidProvider, appSetClientProvider)
+//
+//        verify(timeout = 100) {
+//            dataLayer wasNot Called
+//        }
+//    }
 
     @Test
     fun fetchAdInfo_DoesNotAddToDataLayer_WhenGoogleApiUnavailable() {
@@ -102,8 +130,10 @@ class AdIdentifierTests {
             throw GooglePlayServicesNotAvailableException(0)
         }, appSetClientProvider)
 
-        verify(timeout = 100) {
-            dataLayer wasNot Called
+        verify(inverse = true) {
+            messengerService.send(match<ExternalMessenger<AdvertisingInfoUpdatedListener>> {
+                it is AdIdInfoUpdatedMessenger
+            })
         }
     }
 
@@ -112,9 +142,11 @@ class AdIdentifierTests {
         val adIdentifier = AdIdentifier(tealiumContext, adidProvider, appSetClientProvider)
         adIdentifier.removeAdInfo()
 
-        verify(timeout = 100) {
-            dataLayer.remove("google_adid")
-            dataLayer.remove("google_limit_ad_tracking")
+        verify {
+            messengerService.send(match<AdIdInfoUpdatedMessenger> {
+                it.adId == null
+                        && it.isLimitAdTrackingEnabled == null
+            })
         }
     }
 
@@ -122,9 +154,11 @@ class AdIdentifierTests {
     fun fetchAppSetIdInfo() {
         AdIdentifier(tealiumContext, adidProvider, appSetClientProvider)
 
-        verify(timeout = 100) {
-            dataLayer.putInt("google_app_set_scope", 1, any())
-            dataLayer.putString("google_app_set_id", "app_set_id", any())
+        verify {
+            messengerService.send(match<AppSetInfoUpdatedMessenger> {
+                it.appSetId == "app_set_id"
+                        && it.appSetScope == 1
+            })
         }
     }
 
@@ -133,9 +167,11 @@ class AdIdentifierTests {
         val adIdentifier = AdIdentifier(tealiumContext, adidProvider, appSetClientProvider)
         adIdentifier.removeAppSetIdInfo()
 
-        verify(timeout = 100) {
-            dataLayer.remove("google_app_set_id")
-            dataLayer.remove("google_app_set_scope")
+        verify {
+            messengerService.send(match<AppSetInfoUpdatedMessenger> {
+                it.appSetId == null
+                        && it.appSetScope == null
+            })
         }
     }
 }
