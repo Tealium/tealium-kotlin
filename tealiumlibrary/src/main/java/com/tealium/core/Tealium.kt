@@ -65,7 +65,7 @@ class Tealium private constructor(
 
     // Dependencies for publicly accessible objects.
     private val databaseHelper: DatabaseHelper = DatabaseHelper(config)
-    private val eventRouter = EventDispatcher()
+    private val eventRouter = EventDispatcher(isReady = false)
     private val activityObserver: ActivityObserver =
         ActivityObserver(config, eventRouter, backgroundScope)
     private val sessionManager = SessionManager(config, eventRouter)
@@ -106,22 +106,27 @@ class Tealium private constructor(
      */
     val events: Subscribable = MessengerService(eventRouter, backgroundScope)
 
+    private val _dataLayer: PersistentStorage = PersistentStorage(
+        databaseHelper,
+        "datalayer",
+        eventRouter = eventRouter,
+        backgroundScope = backgroundScope,
+        sessionId = sessionManager.currentSession.id,
+    )
+
     /**
      * Persistent storage location for data that should appear on all subsequent [Dispatch] events.
      * Data will be collected from here and merged into each [Dispatch] along with any other defined
      * [Collector] data.
      */
-    val dataLayer: DataLayer = PersistentStorage(
-        databaseHelper,
-        "datalayer",
-        eventRouter = eventRouter,
-        backgroundScope = backgroundScope
-    )
+    val dataLayer: DataLayer
+        get() = _dataLayer
 
     /**
      * Object representing the current Tealium session in progress.
      */
-    val session: Session = sessionManager.currentSession
+    val session: Session
+        get() = sessionManager.currentSession.copy()
 
     private val visitorIdProvider: VisitorIdProvider = VisitorIdProvider(
         config = config,
@@ -164,6 +169,9 @@ class Tealium private constructor(
 
     init {
         migratePersistentData()
+        if (sessionManager.isNewSessionOnLaunch) {
+            _dataLayer.clearSessionData(session.id)
+        }
 
         Logger.logLevel = config.logLevel ?: when (config.environment) {
             Environment.DEV -> LogLevel.DEV
@@ -329,6 +337,8 @@ class Tealium private constructor(
      * debuffer any [Dispatch]es that might have been made whilst this instance was initializing.
      */
     private fun onInstanceReady() {
+        eventRouter.setReady()
+
         initialized.set(true)
         onReady?.invoke(this)
 

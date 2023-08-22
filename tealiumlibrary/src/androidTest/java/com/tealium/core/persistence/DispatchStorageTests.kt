@@ -372,8 +372,6 @@ class DispatchStorageTests {
         every { dbHelper.db } returns null
         every { dbHelper.writableDatabase } returns null
         every { dbHelper.onDbReady(any()) } just Runs
-        every { dbHelper.queue } returns mockk()
-        every { dbHelper.queue.add(any()) } returns true
 
         val dispatchStorage = DispatchStorage(
             dbHelper,

@@ -57,7 +57,8 @@ internal class PersistentStorage(
                 }
             }
         },
-    ).also { it.purgeExpired() }
+    ).also { it.purgeExpired() },
+    private var sessionId: Long = 1L,
 ) : DataLayer,
     NewSessionListener {
 
@@ -326,6 +327,15 @@ internal class PersistentStorage(
     }
 
     override fun onNewSession(sessionId: Long) {
+        if (this.sessionId == sessionId) {
+            // skip duplicate sessionId
+            return
+        }
+
+        clearSessionData(sessionId)
+    }
+
+    fun clearSessionData(sessionId: Long) {
         (dao as? PersistentStorageDao)?.onNewSession(sessionId) ?: run {
             dao.getAll().filter {
                 it.value.expiry == Expiry.SESSION

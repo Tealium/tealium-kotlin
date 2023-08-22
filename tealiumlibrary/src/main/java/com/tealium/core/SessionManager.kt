@@ -20,6 +20,9 @@ class SessionManager(config: TealiumConfig,
     var currentSession: Session
         private set
 
+    var isNewSessionOnLaunch: Boolean
+        private set;
+
     /**
      * Storage for the current session.
      */
@@ -32,9 +35,13 @@ class SessionManager(config: TealiumConfig,
         // check that we have a stored session and that it's not expired.
         // otherwise create a new one.
         currentSession = when (isExpired(storedSession)) {
-            true -> newSession()
+            true -> {
+                isNewSessionOnLaunch = true
+                newSession()
+            }
             false -> {
                 Logger.qa(BuildConfig.TAG, "Found existing session; resuming.")
+                isNewSessionOnLaunch = false
                 storedSession
             }
         }
@@ -146,7 +153,7 @@ class SessionManager(config: TealiumConfig,
         /**
          * Returns the Account and Profile specific preferences file name
          */
-        private fun sharedPreferencesName(config: TealiumConfig): String {
+        internal fun sharedPreferencesName(config: TealiumConfig): String {
             return "tealium.sessionpreferences." + Integer.toHexString((config.accountName + config.profileName + config.environment.environment).hashCode())
         }
     }
