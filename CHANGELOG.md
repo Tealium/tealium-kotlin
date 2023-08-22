@@ -1,5 +1,26 @@
 # Change Log
 
+- 1.5.4 Aug 2023
+  - Core 1.5.4
+    - Session Data Expiration BugFix: fixes an issue whereby session scoped data may not be expired on launch
+    - Event Router events Buffering: buffers events until sdk is ready so events are not missed during startup
+    - Database Lock crash BugFix: Some uncaught exceptions in persistence led to possible crashes
+    - ProGuard rules updates to reinstate incorrectly obfuscated `BatchDispatch` class
+  - AdIdentifier 1.1.2
+    - BugFix: DataLayer writes moved onto Tealium background thread
+- 1.5.3 Jun 2023
+  - Database BugFix: add database status check before performing writable actions, and allow event queueing until database is fully operational
+  - Library Settings BugFix: update how remote settings were fetched and saved
+  - Module Manager BugFix: update to thread-safe collection
+- 1.5.2 Apr 2023
+  - Connectivity Collector BugFix:
+    - Fixes an issue in the event where there is a blank string returned from `telephonyManager.networkOperator`
+  - Deep Link Reporting BugFix:
+    - Deep Link handling limited to Activities launched with Intents where action == Intent.ACTION_VIEW
+    - Empty Uris are ignored, and deep links that match what is already stored is a no-op 
+    - Handling pushed onto Tealium background thread.
+- 1.5.1 Oct 2022
+  - BugFix - Fixes an edge case where events can arrive at dispatchers in the incorrect order 
 - 1.5.0 Oct 2022
   - Visitor Switching
     - Additional TealiumConfig option `visitorIdentityKey` to configure where to find a known identity in the DataLayer
