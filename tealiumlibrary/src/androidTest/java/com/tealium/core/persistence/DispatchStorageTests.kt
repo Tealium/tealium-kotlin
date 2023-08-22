@@ -2,7 +2,6 @@ package com.tealium.core.persistence
 
 import android.app.Application
 import android.content.Context
-import android.database.sqlite.SQLiteOpenHelper
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
