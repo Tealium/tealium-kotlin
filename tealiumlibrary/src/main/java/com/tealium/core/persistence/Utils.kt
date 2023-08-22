@@ -1,5 +1,8 @@
 package com.tealium.core.persistence
 
+import android.database.sqlite.SQLiteDatabase
+import com.tealium.core.Logger
+import com.tealium.tealiumlibrary.BuildConfig
 import java.security.MessageDigest
 import java.util.*
 
@@ -42,4 +45,40 @@ fun String.sha256() : String {
 
 internal fun PersistentItem.deserialize() : Any? {
     return Serdes.serdeFor(this.type.clazz)?.deserializer?.deserialize(this.value)
+}
+
+/**
+ * Convenience method to wrap database execution in the relevant transaction calls.
+ *
+ * @param errorMessage Log message to output if the [block] throws an exception.
+ * @param block The block of code to execute the database operations
+ */
+internal fun DatabaseHelper.transaction(errorMessage: String, block: (SQLiteDatabase) -> Unit) =
+    transaction({ Logger.dev(BuildConfig.TAG, errorMessage) }, block)
+
+/**
+ * Convenience method to wrap database execution in the relevant transaction calls.
+ *
+ * @param onException Listener for any exceptions thrown by the [block] provided
+ * @param block The block of code to execute the database operations
+ */
+internal fun DatabaseHelper.transaction(
+    onException: ((Exception) -> Unit)? = null,
+    block: (SQLiteDatabase) -> Unit
+) = onDbReady { database ->
+    try {
+        database.beginTransactionNonExclusive()
+
+        try {
+            block(database)
+
+            database.setTransactionSuccessful()
+        } catch (e: Exception) {
+            onException?.invoke(e)
+        } finally {
+            database.endTransaction()
+        }
+    } catch (ex: Exception) {
+        Logger.dev(BuildConfig.TAG, "Could not begin transaction: ${ex.message}")
+    }
 }

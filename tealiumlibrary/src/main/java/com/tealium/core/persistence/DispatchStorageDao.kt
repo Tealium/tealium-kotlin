@@ -1,12 +1,10 @@
 package com.tealium.core.persistence
 
 import android.database.sqlite.SQLiteDatabase
-import com.tealium.core.Logger
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_EXPIRY
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_KEY
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_TIMESTAMP
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_VALUE
-import com.tealium.tealiumlibrary.BuildConfig
 import java.util.concurrent.TimeUnit
 
 /**
@@ -21,7 +19,11 @@ internal class DispatchStorageDao(
     private val tableName: String,
     maxQueueSize: Int = -1,
     expiryDays: Int = -1,
-    private val kvDao: KeyValueDao<String, PersistentItem> = PersistentStorageDao(dbHelper, tableName, false)
+    private val kvDao: KeyValueDao<String, PersistentItem> = PersistentStorageDao(
+        dbHelper,
+        tableName,
+        false
+    )
 ) : QueueingDao<String, PersistentItem>, KeyValueDao<String, PersistentItem> by kvDao {
 
     val db: SQLiteDatabase?
@@ -114,19 +116,9 @@ internal class DispatchStorageDao(
      * Deletes entries for each item in the [items] list by its [PersistentItem.key]
      */
     private fun internalDeleteAll(items: List<PersistentItem>) {
-        dbHelper.onDbReady { database ->
-            try {
-                database.beginTransactionNonExclusive()
-
-                items.forEach {
-                    kvDao.delete(it.key)
-                }
-                database.setTransactionSuccessful()
-            } catch (e: Exception) {
-                Logger.dev(BuildConfig.TAG, "Error while trying to delete items")
-            }
-            finally {
-                database.endTransaction()
+        dbHelper.transaction("Error while trying to delete items") { database ->
+            items.forEach {
+                kvDao.delete(it.key)
             }
         }
     }

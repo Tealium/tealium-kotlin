@@ -2,14 +2,12 @@ package com.tealium.core.persistence
 
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE
-import com.tealium.core.Logger
 import com.tealium.core.messaging.NewSessionListener
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_EXPIRY
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_KEY
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_TIMESTAMP
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_TYPE
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_VALUE
-import com.tealium.tealiumlibrary.BuildConfig
 
 /**
  * DAO for Key-Value pairs.
@@ -140,7 +138,7 @@ internal open class PersistentStorageDao(
         }
     }
 
-    override fun insert(item: PersistentItem) = transaction("Error while trying to insert item") { database ->
+    override fun insert(item: PersistentItem) = dbHelper.transaction("Error while trying to insert item") { database ->
         val inserted =
             database.insertWithOnConflict(
                 tableName,
@@ -154,7 +152,7 @@ internal open class PersistentStorageDao(
         }
     }
 
-    override fun update(item: PersistentItem) = transaction("Error while trying to update item") { database ->
+    override fun update(item: PersistentItem) = dbHelper.transaction("Error while trying to update item") { database ->
         val updated = database.update(
             tableName, item.toContentValues(),
             "$COLUMN_KEY = ?",
@@ -179,7 +177,7 @@ internal open class PersistentStorageDao(
         }
     }
 
-    override fun delete(key: String) = transaction("Error while trying to delete key: $key") { database ->
+    override fun delete(key: String) = dbHelper.transaction("Error while trying to delete key: $key") { database ->
         val deleted = database.delete(
             tableName,
             "$COLUMN_KEY = ?",
@@ -191,7 +189,7 @@ internal open class PersistentStorageDao(
         }
     }
 
-    private fun delete(keys: Set<String>) = transaction("Error while trying to delete keys") { database ->
+    private fun delete(keys: Set<String>) = dbHelper.transaction("Error while trying to delete keys") { database ->
         database.delete(
             tableName,
             "$COLUMN_KEY IN (${keys.joinToString(", ") { "?" }})",
@@ -199,7 +197,7 @@ internal open class PersistentStorageDao(
         )
     }
 
-    override fun clear() = transaction("Error while trying to clear database") { database ->
+    override fun clear() = dbHelper.transaction("Error while trying to clear database") { database ->
         val keys = keys()
         database.delete(
             tableName,
@@ -290,7 +288,7 @@ internal open class PersistentStorageDao(
     }
 
     override fun purgeExpired() =
-        transaction("Error while trying to purge expired data") { database ->
+        dbHelper.transaction("Error while trying to purge expired data") { database ->
             val timestamp = getTimestamp()
             val expired = getExpired(timestamp)
 
@@ -305,7 +303,7 @@ internal open class PersistentStorageDao(
         }
 
     override fun onNewSession(sessionId: Long) =
-        transaction("Error while trying to update session data") { database ->
+        dbHelper.transaction("Error while trying to update session data") { database ->
             val selection = "$COLUMN_EXPIRY = ?"
             val selectionArgs = arrayOf(Expiry.SESSION.expiryTime().toString())
             val sessionItems = getAll(
@@ -321,42 +319,6 @@ internal open class PersistentStorageDao(
                 onDataRemoved?.invoke(sessionItems.map { it.key }.toSet())
             }
         }
-
-    /**
-     * Convenience method to wrap database execution in the relevant transaction calls.
-     *
-     * @param errorMessage Log message to output if the [block] throws an exception.
-     * @param block The block of code to execute the database operations
-     */
-    private fun transaction(errorMessage: String, block: (SQLiteDatabase) -> Unit) =
-        transaction({ Logger.dev(BuildConfig.TAG, errorMessage) }, block)
-
-    /**
-     * Convenience method to wrap database execution in the relevant transaction calls.
-     *
-     * @param onException Listener for any exceptions thrown by the [block] provided
-     * @param block The block of code to execute the database operations
-     */
-    private fun transaction(
-        onException: ((Exception) -> Unit)? = null,
-        block: (SQLiteDatabase) -> Unit
-    ) = dbHelper.onDbReady { database ->
-        try {
-             database.beginTransactionNonExclusive()
-
-            try {
-                block(database)
-
-                database.setTransactionSuccessful()
-            } catch (e: Exception) {
-                onException?.invoke(e)
-            } finally {
-                database.endTransaction()
-            }
-        } catch (ex: Exception) {
-            Logger.dev(BuildConfig.TAG, "Could not begin transaction: ${ex.message}")
-        }
-    }
 
     companion object {
         internal val IS_NOT_EXPIRED_CLAUSE =
