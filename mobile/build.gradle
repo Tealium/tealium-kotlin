@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 33
 
     defaultConfig {
         applicationId 'com.tealium.mobile'
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
         buildConfigField 'String', 'TAG', "\"App\""

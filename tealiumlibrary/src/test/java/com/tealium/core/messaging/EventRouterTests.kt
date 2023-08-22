@@ -12,12 +12,12 @@ import java.util.concurrent.Executors
 @RunWith(RobolectricTestRunner::class)
 class EventRouterTests {
 
-    private lateinit var eventRouter: EventRouter
+    private lateinit var eventRouter: EventDispatcher
     private val fakeDispatch = mockk<Dispatch>()
 
     @Before
     fun setUp() {
-        eventRouter = spyk<EventDispatcher>()
+        eventRouter = spyk(EventDispatcher())
     }
 
     @Test
@@ -148,5 +148,69 @@ class EventRouterTests {
         verify (exactly = 101) {
             listeners[1].onRevalidate(any())
         }
+    }
+
+    @Test
+    fun testEventsAreQueuedUntilMarkedAsReady() {
+        val listener = mockk<DispatchReadyListener>()
+        every { listener.onDispatchReady(fakeDispatch) } just Runs
+        eventRouter = EventDispatcher(isReady = false)
+
+        eventRouter.subscribe(listener)
+        eventRouter.onDispatchReady(fakeDispatch)
+
+        verify(exactly = 0) {
+            listener.onDispatchReady(fakeDispatch)
+        }
+    }
+
+    @Test
+    fun testEventsAreDequeuedWhenMarkedAsReady() {
+        val readyListener = mockk<DispatchReadyListener>()
+        val droppedListener = mockk<DispatchDroppedListener>()
+        every { readyListener.onDispatchReady(fakeDispatch) } just Runs
+        every { droppedListener.onDispatchDropped(fakeDispatch) } just Runs
+        eventRouter = spyk(EventDispatcher(isReady = false))
+
+        eventRouter.subscribe(readyListener)
+        eventRouter.subscribe(droppedListener)
+        eventRouter.onDispatchReady(fakeDispatch)
+        eventRouter.onDispatchDropped(fakeDispatch)
+
+        verify(exactly = 0) {
+            readyListener.onDispatchReady(fakeDispatch)
+            droppedListener.onDispatchDropped(fakeDispatch)
+        }
+
+        eventRouter.setReady()
+
+        verifyOrder {
+            readyListener.onDispatchReady(fakeDispatch)
+            droppedListener.onDispatchDropped(fakeDispatch)
+        }
+
+        confirmVerified()
+    }
+
+    @Test
+    fun testLateSubscribersReceiveEventsIfSubscribedWhenNotReady() {
+        val listener = mockk<DispatchReadyListener>()
+        every { listener.onDispatchReady(fakeDispatch) } just Runs
+        eventRouter = spyk(EventDispatcher(isReady = false))
+
+        eventRouter.onDispatchReady(fakeDispatch)
+        eventRouter.subscribe(listener)
+
+        verify(exactly = 0) {
+            listener.onDispatchReady(fakeDispatch)
+        }
+
+        eventRouter.setReady()
+
+        verify(exactly = 1) {
+            listener.onDispatchReady(fakeDispatch)
+        }
+
+        confirmVerified()
     }
 }

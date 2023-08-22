@@ -2,6 +2,7 @@ package com.tealium.core.persistence
 
 import android.app.Application
 import android.content.Context
+import android.database.sqlite.SQLiteDatabaseLockedException
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
@@ -13,6 +14,10 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
@@ -22,6 +27,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.lang.Exception
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class KeyValueStorageTests {
@@ -1028,6 +1034,28 @@ class KeyValueStorageTests {
             mockEventRouter.onDataUpdated("json_obj", match { it.toString() == json_obj1.toString() })
             mockEventRouter.onDataUpdated("json_obj", match { it.toString() == json_obj2.toString() })
         }
+    }
+
+    @Test
+    fun transaction_DoesNotCauseLockedException_FromMultipleThreads() = runBlocking {
+        val task: suspend CoroutineScope.() -> Unit = {
+            (0..100).forEach {
+                try {
+                    //Log.d("Task", "${Thread.currentThread().name}: $it")
+                    storage.putBoolean("boolean_even", it % 2 == 0)
+                    storage.putBoolean("boolean_odd", it % 2 == 1)
+                } catch (ex: SQLiteDatabaseLockedException) {
+                    fail()
+                }
+            }
+        }
+        val dispatcher1 = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
+        val dispatcher2 = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
+
+        val job1 = dispatcher1.launch(block = task)
+        val job2 = dispatcher2.launch(block = task)
+
+        listOf(job1, job2).joinAll()
     }
 
     @After

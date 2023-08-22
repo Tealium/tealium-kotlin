@@ -33,8 +33,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="https"
-                    android:host="tealium.com" />
+                    android:scheme="tealium"
+                    android:host="kotlin-example" />
             </intent-filter>
         </activity>
         <service android:name="com.tealium.media.MediaService"/>

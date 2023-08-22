@@ -15,6 +15,7 @@
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
+-dontshrink
 -keepparameternames
 -keeppackagenames
 -renamesourcefileattribute SourceFile
@@ -117,7 +118,11 @@
 }
 
 # Keep public Dispatch implementatations
--keep class com.tealium.dispatcher.TealiumEvent,com.tealium.dispatcher.TealiumView, com.tealium.dispatcher.Dispatch$Keys { *; }
+-keep class com.tealium.dispatcher.TealiumEvent,
+            com.tealium.dispatcher.TealiumView,
+            com.tealium.dispatcher.BatchDispatch,
+            com.tealium.dispatcher.Dispatch$Keys
+            { *; }
 
 # OpenForTesting Annotation
 -keep class com.tealium.test.* { *; }

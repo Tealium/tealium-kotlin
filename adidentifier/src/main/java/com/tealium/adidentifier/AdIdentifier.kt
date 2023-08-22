@@ -4,10 +4,11 @@ import android.content.Context
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import com.google.android.gms.appset.AppSet
 import com.google.android.gms.appset.AppSetIdClient
+import com.tealium.adidentifier.internal.AdIdInfoUpdatedMessenger
+import com.tealium.adidentifier.internal.AdvertisingInfoUpdatedListener
+import com.tealium.adidentifier.internal.AppSetInfoUpdatedMessenger
 import com.tealium.core.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.tealium.core.persistence.DataLayer
 import java.lang.Exception
 
 /**
@@ -23,65 +24,12 @@ class AdIdentifier(
         get() = MODULE_NAME
     override var enabled: Boolean = true
 
-    private val scope = CoroutineScope(Dispatchers.Default)
-
-    /**
-     * Advertising ID from Google Play
-     */
-    private var adid: String? = null
-        set(value) {
-            field = value
-            value?.let {
-                tealiumContext.dataLayer.putString(KEY_GOOGLE_ADID, it)
-            } ?: run {
-                tealiumContext.dataLayer.remove(KEY_GOOGLE_ADID)
-            }
-        }
-
-    /**
-     * Limit Ad Tracking flag from Google Play
-     */
-    private var isLimitAdTrackingEnabled: Boolean? = null
-        set(value) {
-            field = value
-            value?.let {
-                tealiumContext.dataLayer.putBoolean(KEY_GOOGLE_AD_TRACKING, it)
-            } ?: run {
-                tealiumContext.dataLayer.remove(KEY_GOOGLE_AD_TRACKING)
-            }
-        }
-
-    /**
-     * App Set ID
-     */
-    private var appSetId: String? = null
-        set(value) {
-            field = value
-            value?.let {
-                tealiumContext.dataLayer.putString(KEY_GOOGLE_APP_SET_ID, it)
-            } ?: run {
-                tealiumContext.dataLayer.remove(KEY_GOOGLE_APP_SET_ID)
-            }
-        }
-
-    /**
-     * App Set Scope
-     */
-    private var appSetScope: Int? = null
-        set(value) {
-            field = value
-            value?.let {
-                tealiumContext.dataLayer.putInt(KEY_GOOGLE_APP_SET_SCOPE, it)
-            } ?: run {
-                tealiumContext.dataLayer.remove(KEY_GOOGLE_APP_SET_SCOPE)
-            }
-        }
-
     init {
-        scope.launch {
-            fetchAdInfo(tealiumContext.config.application)
-            fetchAppSetInfo(tealiumContext.config.application)
-        }
+        val updateListener = createUpdateListener(tealiumContext.dataLayer)
+        tealiumContext.events.subscribe(updateListener)
+
+        fetchAdInfo(tealiumContext.config.application)
+        fetchAppSetInfo(tealiumContext.config.application)
     }
 
     /**
@@ -90,10 +38,8 @@ class AdIdentifier(
     private fun fetchAdInfo(context: Context) {
         try {
             val adInfo = adidInfoProvider.invoke(context)
-            if (adInfo.id != null) {
-                adid = adInfo.id
-            }
-            isLimitAdTrackingEnabled = adInfo.isLimitAdTrackingEnabled
+
+            saveAdIdInfoToDataLayer(adInfo.id, adInfo.isLimitAdTrackingEnabled)
         } catch (ex: Exception) {
             Logger.dev(BuildConfig.TAG, "Unable to retrieve AdvertisingIdInfo. See: ${ex.message}")
         }
@@ -104,25 +50,34 @@ class AdIdentifier(
         val task = client.appSetIdInfo
 
         task.addOnSuccessListener {
-            appSetId = it.id
-            appSetScope = it.scope
+            // Tasks get executed by default on Main thread.
+            saveAppSetInfoToDataLayer(it.id, it.scope)
         }
+    }
+
+    private fun saveAdIdInfoToDataLayer(
+        adId: String?,
+        isLimitAdTrackingEnabled: Boolean?
+    ) {
+        tealiumContext.events.send(AdIdInfoUpdatedMessenger(adId, isLimitAdTrackingEnabled))
+    }
+
+    private fun saveAppSetInfoToDataLayer(appSetId: String?, appSetScope: Int?) {
+        tealiumContext.events.send(AppSetInfoUpdatedMessenger(appSetId, appSetScope))
     }
 
     /**
      * Clears values and removes from data layer
      */
     fun removeAdInfo() {
-        adid = null
-        isLimitAdTrackingEnabled = null
+        saveAdIdInfoToDataLayer(null, null)
     }
 
     /**
      * Clears values and removes from data layer
      */
     fun removeAppSetIdInfo() {
-        appSetId = null
-        appSetScope = null
+        saveAppSetInfoToDataLayer(null, null)
     }
 
     companion object : ModuleFactory {
@@ -135,6 +90,39 @@ class AdIdentifier(
 
         override fun create(context: TealiumContext): Module {
             return AdIdentifier(context)
+        }
+
+        internal fun createUpdateListener(dataLayer: DataLayer): AdvertisingInfoUpdatedListener {
+            return object : AdvertisingInfoUpdatedListener {
+
+                override fun onAdIdInfoUpdated(adId: String?, isLimitAdTrackingEnabled: Boolean?) {
+                    if (adId != null) {
+                        dataLayer.putString(KEY_GOOGLE_ADID, adId)
+                    } else {
+                        dataLayer.remove(KEY_GOOGLE_ADID)
+                    }
+
+                    if (isLimitAdTrackingEnabled != null) {
+                        dataLayer.putBoolean(KEY_GOOGLE_AD_TRACKING, isLimitAdTrackingEnabled)
+                    } else {
+                        dataLayer.remove(KEY_GOOGLE_AD_TRACKING)
+                    }
+                }
+
+                override fun onAppSetInfoUpdated(appSetId: String?, appSetScope: Int?) {
+                    if (appSetId != null) {
+                        dataLayer.putString(KEY_GOOGLE_APP_SET_ID, appSetId)
+                    } else {
+                        dataLayer.remove(KEY_GOOGLE_APP_SET_ID)
+                    }
+
+                    if (appSetScope != null) {
+                        dataLayer.putInt(KEY_GOOGLE_APP_SET_SCOPE, appSetScope)
+                    } else {
+                        dataLayer.remove(KEY_GOOGLE_APP_SET_SCOPE)
+                    }
+                }
+            }
         }
     }
 }
