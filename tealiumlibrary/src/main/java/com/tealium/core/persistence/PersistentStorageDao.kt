@@ -138,31 +138,33 @@ internal open class PersistentStorageDao(
         }
     }
 
-    override fun insert(item: PersistentItem) = dbHelper.transaction("Error while trying to insert item") { database ->
-        val inserted =
-            database.insertWithOnConflict(
-                tableName,
-                null,
-                item.toContentValues(),
-                CONFLICT_REPLACE
+    override fun insert(item: PersistentItem) =
+        dbHelper.transaction("Error while trying to insert item") { database ->
+            val inserted =
+                database.insertWithOnConflict(
+                    tableName,
+                    null,
+                    item.toContentValues(),
+                    CONFLICT_REPLACE
+                )
+
+            if (inserted > 0) {
+                onDataUpdated?.invoke(item.key, item)
+            }
+        }
+
+    override fun update(item: PersistentItem) =
+        dbHelper.transaction("Error while trying to update item") { database ->
+            val updated = database.update(
+                tableName, item.toContentValues(),
+                "$COLUMN_KEY = ?",
+                arrayOf(item.key)
             )
 
-        if (inserted > 0) {
-            onDataUpdated?.invoke(item.key, item)
+            if (updated > 0) {
+                onDataUpdated?.invoke(item.key, item)
+            }
         }
-    }
-
-    override fun update(item: PersistentItem) = dbHelper.transaction("Error while trying to update item") { database ->
-        val updated = database.update(
-            tableName, item.toContentValues(),
-            "$COLUMN_KEY = ?",
-            arrayOf(item.key)
-        )
-
-        if (updated > 0) {
-            onDataUpdated?.invoke(item.key, item)
-        }
-    }
 
     override fun upsert(item: PersistentItem) {
         val oldItem = get(item.key)
@@ -177,35 +179,38 @@ internal open class PersistentStorageDao(
         }
     }
 
-    override fun delete(key: String) = dbHelper.transaction("Error while trying to delete key: $key") { database ->
-        val deleted = database.delete(
-            tableName,
-            "$COLUMN_KEY = ?",
-            arrayOf(key)
-        )
+    override fun delete(key: String) =
+        dbHelper.transaction("Error while trying to delete key: $key") { database ->
+            val deleted = database.delete(
+                tableName,
+                "$COLUMN_KEY = ?",
+                arrayOf(key)
+            )
 
-        if (deleted > 0) {
-            onDataRemoved?.invoke(setOf(key))
+            if (deleted > 0) {
+                onDataRemoved?.invoke(setOf(key))
+            }
         }
-    }
 
-    private fun delete(keys: Set<String>) = dbHelper.transaction("Error while trying to delete keys") { database ->
-        database.delete(
-            tableName,
-            "$COLUMN_KEY IN (${keys.joinToString(", ") { "?" }})",
-            keys.toTypedArray()
-        )
-    }
+    private fun delete(keys: Set<String>) =
+        dbHelper.transaction("Error while trying to delete keys") { database ->
+            database.delete(
+                tableName,
+                "$COLUMN_KEY IN (${keys.joinToString(", ") { "?" }})",
+                keys.toTypedArray()
+            )
+        }
 
-    override fun clear() = dbHelper.transaction("Error while trying to clear database") { database ->
-        val keys = keys()
-        database.delete(
-            tableName,
-            null,
-            null
-        )
-        onDataRemoved?.invoke(keys.toSet())
-    }
+    override fun clear() =
+        dbHelper.transaction("Error while trying to clear database") { database ->
+            val keys = keys()
+            database.delete(
+                tableName,
+                null,
+                null
+            )
+            onDataRemoved?.invoke(keys.toSet())
+        }
 
     override fun keys(): List<String> {
         val selection = if (shouldIncludeExpired) null else IS_NOT_EXPIRED_CLAUSE
