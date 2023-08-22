@@ -65,11 +65,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     implementation project(':tealiumlibrary:')
-//    implementation "com.tealium:kotlin-core:1.5.3"
     implementation project(':collectdispatcher:')
-//    implementation("com.tealium:kotlin-collect-dispatcher:1.1.0") {
-//        exclude group: "com.tealium", module: "kotlin-core"
-//    }
     implementation project(':tagmanagementdispatcher:')
     implementation project(':installreferrer')
     implementation project(':lifecycle')
