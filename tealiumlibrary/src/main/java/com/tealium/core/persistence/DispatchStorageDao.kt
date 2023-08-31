@@ -116,7 +116,7 @@ internal class DispatchStorageDao(
      * Deletes entries for each item in the [items] list by its [PersistentItem.key]
      */
     private fun internalDeleteAll(items: List<PersistentItem>) {
-        dbHelper.transaction("Error while trying to delete items") { database ->
+        dbHelper.transaction("Error while trying to delete items") { _ ->
             items.forEach {
                 kvDao.delete(it.key)
             }

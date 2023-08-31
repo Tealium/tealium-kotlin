@@ -121,6 +121,7 @@
 -keep class com.tealium.dispatcher.TealiumEvent,
             com.tealium.dispatcher.TealiumView,
             com.tealium.dispatcher.BatchDispatch,
+            com.tealium.dispatcher.BatchDispatch$Companion,
             com.tealium.dispatcher.Dispatch$Keys
             { *; }
 

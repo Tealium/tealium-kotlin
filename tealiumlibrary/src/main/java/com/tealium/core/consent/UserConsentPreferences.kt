@@ -22,9 +22,9 @@ enum class ConsentStatus(val value: String) {
         fun default(): ConsentStatus = UNKNOWN
 
         fun consentStatus(value: String): ConsentStatus {
-            return when (value.toLowerCase(Locale.ROOT)) {
-                CONSENTED.value.toLowerCase(Locale.ROOT) -> CONSENTED
-                NOT_CONSENTED.value.toLowerCase(Locale.ROOT) -> NOT_CONSENTED
+            return when (value.lowercase(Locale.ROOT)) {
+                CONSENTED.value.lowercase(Locale.ROOT) -> CONSENTED
+                NOT_CONSENTED.value.lowercase(Locale.ROOT) -> NOT_CONSENTED
                 else -> UNKNOWN
             }
         }
@@ -56,22 +56,22 @@ enum class ConsentCategory(val value: String) {
         val ALL = values().toSet()
 
         fun consentCategory(category: String): ConsentCategory? {
-            return when (category.toLowerCase(Locale.ROOT)) {
-                AFFILIATES.value.toLowerCase(Locale.ROOT) -> AFFILIATES
-                ANALYTICS.value.toLowerCase(Locale.ROOT) -> ANALYTICS
-                BIG_DATA.value.toLowerCase(Locale.ROOT) -> BIG_DATA
-                CDP.value.toLowerCase(Locale.ROOT) -> CDP
-                COOKIEMATCH.value.toLowerCase(Locale.ROOT) -> COOKIEMATCH
-                CRM.value.toLowerCase(Locale.ROOT) -> CRM
-                DISPLAY_ADS.value.toLowerCase(Locale.ROOT) -> DISPLAY_ADS
-                EMAIL.value.toLowerCase(Locale.ROOT) -> EMAIL
-                ENGAGEMENT.value.toLowerCase(Locale.ROOT) -> ENGAGEMENT
-                MOBILE.value.toLowerCase(Locale.ROOT) -> MOBILE
-                MONITORING.value.toLowerCase(Locale.ROOT) -> MONITORING
-                PERSONALIZATION.value.toLowerCase(Locale.ROOT) -> PERSONALIZATION
-                SEARCH.value.toLowerCase(Locale.ROOT) -> SEARCH
-                SOCIAL.value.toLowerCase(Locale.ROOT) -> SOCIAL
-                MISC.value.toLowerCase(Locale.ROOT) -> MISC
+            return when (category.lowercase(Locale.ROOT)) {
+                AFFILIATES.value.lowercase(Locale.ROOT) -> AFFILIATES
+                ANALYTICS.value.lowercase(Locale.ROOT) -> ANALYTICS
+                BIG_DATA.value.lowercase(Locale.ROOT) -> BIG_DATA
+                CDP.value.lowercase(Locale.ROOT) -> CDP
+                COOKIEMATCH.value.lowercase(Locale.ROOT) -> COOKIEMATCH
+                CRM.value.lowercase(Locale.ROOT) -> CRM
+                DISPLAY_ADS.value.lowercase(Locale.ROOT) -> DISPLAY_ADS
+                EMAIL.value.lowercase(Locale.ROOT) -> EMAIL
+                ENGAGEMENT.value.lowercase(Locale.ROOT) -> ENGAGEMENT
+                MOBILE.value.lowercase(Locale.ROOT) -> MOBILE
+                MONITORING.value.lowercase(Locale.ROOT) -> MONITORING
+                PERSONALIZATION.value.lowercase(Locale.ROOT) -> PERSONALIZATION
+                SEARCH.value.lowercase(Locale.ROOT) -> SEARCH
+                SOCIAL.value.lowercase(Locale.ROOT) -> SOCIAL
+                MISC.value.lowercase(Locale.ROOT) -> MISC
                 else -> null
             }
         }
