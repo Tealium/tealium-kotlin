@@ -59,6 +59,7 @@ class BatchDispatch private constructor(dispatchList: List<Dispatch>) {
             Dispatch.Keys.DEVICE_RESOLUTION
         )
 
+        @JvmStatic
         fun create(dispatchList: List<Dispatch>): BatchDispatch? {
             //TODO: consider filtering dispatches with other conditions, like missing required data
             if (dispatchList.isNotEmpty()) {

@@ -77,6 +77,7 @@ class ConnectivityRetriever private constructor(val context: Application): Conne
     }
 }
 
+@Suppress("DEPRECATION")
 class LegacyConnectivityRetriever(private val context: Application): Connectivity {
 
     private val connectivityManager: ConnectivityManager
@@ -91,7 +92,6 @@ class LegacyConnectivityRetriever(private val context: Application): Connectivit
         connectivityManager.allNetworks.fold(false) { input, network ->
             input || (connectivityManager.getNetworkInfo(network)?.isConnected ?: false)
         }
-        ?: false
     }
 
     override fun connectionType(): String {

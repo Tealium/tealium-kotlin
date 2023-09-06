@@ -17,7 +17,7 @@ enum class LogLevel(val level: Int) {
 
     companion object {
         fun fromString(string: String) : LogLevel {
-            return when(string.toLowerCase(Locale.ROOT)) {
+            return when(string.lowercase(Locale.ROOT)) {
                 "dev" -> DEV
                 "qa" -> QA
                 "prod" -> PROD

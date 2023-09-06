@@ -59,7 +59,7 @@ class LibrarySettingsExtractor private constructor() {
             var mps: String? = null
             while (scriptMatches.find() && mps == null) {
                 scriptMatches.group(1)?.let { matchGroup1 ->
-                    if (!matchGroup1.toLowerCase(Locale.ROOT).contains(SUB_STRING_SRC)) {
+                    if (!matchGroup1.lowercase(Locale.ROOT).contains(SUB_STRING_SRC)) {
                         scriptMatches.group(2)?.let { matchGroup2 ->
                             mps = findMps(varsPattern, matchGroup2)
                         }
@@ -75,7 +75,7 @@ class LibrarySettingsExtractor private constructor() {
             var mpsEnd = -1
             while (varMatches.find()) { // "var utag_cfg_ovrd=" or "; var nativeAppLiveHandlerData ="
                 varMatches.group(0)?.let { varMatch ->
-                    if (varMatch.toLowerCase(Locale.ROOT).contains(SUB_STRING_MPS)) { // Start at the stuff after the "var mps = "
+                    if (varMatch.lowercase(Locale.ROOT).contains(SUB_STRING_MPS)) { // Start at the stuff after the "var mps = "
                         mpsStart = js.indexOf(varMatch) + varMatch.length
                     } else if (mpsStart != -1 && mpsEnd == -1) { // The beginning has been found, set the ending
                         mpsEnd = js.indexOf(varMatch)

@@ -1,5 +1,8 @@
 # Change Log
 
+- 1.5.5 Sep 2023
+  - BugFix: proguard adjustment resolve missing `BatchDispatch$Companion` class.
+  - Minor lint warning fixes
 - 1.5.4 Aug 2023
   - Core 1.5.4
     - Session Data Expiration BugFix: fixes an issue whereby session scoped data may not be expired on launch

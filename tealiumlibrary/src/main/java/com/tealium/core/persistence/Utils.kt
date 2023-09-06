@@ -23,7 +23,7 @@ object DefaultHashingProvider : HashingProvider {
     override fun hash(algorithm: String, input: String): String {
         val bytes = MessageDigest.getInstance(algorithm)
             .digest(input.toByteArray())
-        return printHexBinary(bytes).toUpperCase(Locale.ROOT)
+        return printHexBinary(bytes).uppercase(Locale.ROOT)
     }
 
     private val HEX_CHARS = "0123456789ABCDEF".toCharArray()
