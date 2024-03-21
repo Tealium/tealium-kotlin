@@ -89,6 +89,64 @@ class RemoteCommandConfigRetrieverTests {
     }
 
     @Test
+    fun remoteCommandConfig_LoadsAssetWithJsonTypeExtension_WhenExtensionIsMissing_FromAsset() {
+        every { mockLoader.loadFromAsset("testCommandId.json") } returns validCommandsJson
+        every { mockLoader.loadFromAsset("testCommandId") } returns null
+
+        val configRetriever = AssetRemoteCommandConfigRetriever(
+            config,
+            "testCommandId",
+            loader = mockLoader,
+        )
+
+        assertValidRemoteCommandsConfig(configRetriever.remoteCommandConfig)
+        verify {
+            mockLoader.loadFromAsset("testCommandId.json")
+        }
+        verify(inverse = true) {
+            mockLoader.loadFromAsset("testCommandId")
+        }
+    }
+
+    @Test
+    fun remoteCommandConfig_LoadsAssetWithoutTypeExtension_WhenExtensionFailed_FromAsset() {
+        every { mockLoader.loadFromAsset("testCommandId.json") } returns null
+        every { mockLoader.loadFromAsset("testCommandId") } returns validCommandsJson
+
+        val configRetriever = AssetRemoteCommandConfigRetriever(
+            config,
+            "testCommandId",
+            loader = mockLoader,
+        )
+
+        assertValidRemoteCommandsConfig(configRetriever.remoteCommandConfig)
+        verify(ordering = Ordering.ORDERED) {
+            mockLoader.loadFromAsset("testCommandId.json")
+            mockLoader.loadFromAsset("testCommandId")
+        }
+    }
+
+    @Test
+    fun remoteCommandConfig_LoadsAssetWithTypeExtension_WhenExtensionIsSpecified_FromAsset() {
+        every { mockLoader.loadFromAsset("testCommandId.json") } returns validCommandsJson
+        every { mockLoader.loadFromAsset("testCommandId") } returns null
+
+        val configRetriever = AssetRemoteCommandConfigRetriever(
+            config,
+            "testCommandId.json",
+            loader = mockLoader,
+        )
+
+        assertValidRemoteCommandsConfig(configRetriever.remoteCommandConfig)
+        verify {
+            mockLoader.loadFromAsset("testCommandId.json")
+        }
+        verify(inverse = true) {
+            mockLoader.loadFromAsset("testCommandId")
+        }
+    }
+
+    @Test
     fun remoteCommandConfig_LoadsValidConfig_FromCache() = runBlocking {
         every { mockLoader.loadFromFile(any()) } returns validCommandsJson
         coEvery { mockNetworkClient.get(any()) } returns null

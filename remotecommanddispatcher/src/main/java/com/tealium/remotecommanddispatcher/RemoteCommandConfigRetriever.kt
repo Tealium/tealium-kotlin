@@ -27,7 +27,13 @@ class AssetRemoteCommandConfigRetriever(
         get() = _remoteCommandConfig
 
     private fun loadConfig(): RemoteCommandConfig {
-        return loadFromAsset(filename)?.also {
+        return filename.let {
+            if (!it.endsWith(".json", true)) {
+                loadFromAsset("$it.json") ?: loadFromAsset(it)
+            } else {
+                loadFromAsset(it)
+            }
+        }?.also {
             Logger.dev(BuildConfig.TAG, "Loaded local remote command settings.")
         } ?: RemoteCommandConfig()
     }
