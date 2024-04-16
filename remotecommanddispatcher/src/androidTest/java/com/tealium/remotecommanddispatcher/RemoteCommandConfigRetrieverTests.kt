@@ -32,6 +32,8 @@ class RemoteCommandConfigRetrieverTests {
         MockKAnnotations.init(this)
         context = ApplicationProvider.getApplicationContext()
 
+        // default to no backup asset
+        every { mockLoader.loadFromAsset(any()) } returns null
         mockNetworkClient = mockk()
 
         config = TealiumConfig(
@@ -235,6 +237,67 @@ class RemoteCommandConfigRetrieverTests {
 
         delay(500)
         assertDefaultRemoteCommandsConfig(configRetriever.remoteCommandConfig)
+    }
+
+    @Test
+    fun remoteCommandConfig_LoadsAsset_IfNoCacheAvailable() = runBlocking {
+        val testUrl = "testRemoteUrl"
+        val fileName = "test-asset.json"
+        every { mockLoader.loadFromFile(any()) } returns null
+        every { mockLoader.loadFromAsset(fileName) } returns validCommandsJson
+        coEvery { mockNetworkClient.get(testUrl) } returns null
+        val mockResourceRetriever = ResourceRetriever(config, testUrl, mockNetworkClient)
+
+        val configRetriever = UrlRemoteCommandConfigRetriever(
+            config,
+            "testCommandId",
+            remoteUrl = testUrl,
+            client = mockNetworkClient,
+            loader = mockLoader,
+            resourceRetriever = mockResourceRetriever,
+            backgroundScope = CoroutineScope(Dispatchers.IO),
+            localFileName = fileName
+        )
+
+        assertValidRemoteCommandsConfig(configRetriever.remoteCommandConfig)
+        verify {
+            mockLoader.loadFromAsset(fileName)
+        }
+    }
+
+    @Test
+    fun remoteCommandConfig_LoadsDefaultAsset_IfNoCacheAvailable_OrFileNameSupplied() = runBlocking {
+        val testUrl = "testRemoteUrl"
+        val commandId = "test-command"
+        every { mockLoader.loadFromFile(any()) } returns null
+        every { mockLoader.loadFromAsset("$commandId.json") } returns validCommandsJson
+        coEvery { mockNetworkClient.get(testUrl) } returns null
+        val mockResourceRetriever = ResourceRetriever(config, testUrl, mockNetworkClient)
+
+        val configRetriever = UrlRemoteCommandConfigRetriever(
+            config,
+            commandId,
+            remoteUrl = testUrl,
+            client = mockNetworkClient,
+            loader = mockLoader,
+            resourceRetriever = mockResourceRetriever,
+            backgroundScope = CoroutineScope(Dispatchers.IO),
+        )
+
+        assertValidRemoteCommandsConfig(configRetriever.remoteCommandConfig)
+        verify {
+            mockLoader.loadFromAsset("$commandId.json")
+        }
+    }
+
+    @Test
+    fun assetLoader_Appends_Json_Filetype_If_Missing() {
+        AssetRemoteCommandConfigRetriever.loadFromAsset(mockLoader, "test.json")
+        AssetRemoteCommandConfigRetriever.loadFromAsset(mockLoader, "test")
+
+        verify(exactly = 2) {
+            mockLoader.loadFromAsset("test.json")
+        }
     }
 
     private fun assertValidRemoteCommandsConfig(config: RemoteCommandConfig) {

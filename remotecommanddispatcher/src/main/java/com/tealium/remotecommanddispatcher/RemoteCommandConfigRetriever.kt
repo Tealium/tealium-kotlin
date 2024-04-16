@@ -33,16 +33,24 @@ class AssetRemoteCommandConfigRetriever(
     }
 
     private fun loadFromAsset(filename: String): RemoteCommandConfig? {
-        return loader.loadFromAsset(filename)?.let {
-            try {
-                val json = JSONObject(it)
-                RemoteCommandConfig.fromJson(json)
-            } catch (ex: JSONException) {
-                Logger.qa(
-                    BuildConfig.TAG,
-                    "Error loading RemoteCommandsConfig JSON from asset: ${ex.message}"
-                )
-                null
+        return loadFromAsset(loader, filename)
+    }
+
+    companion object {
+        fun loadFromAsset(loader: Loader, filename: String): RemoteCommandConfig? {
+            val fullFilename = if (filename.endsWith(".json")) filename else "$filename.json"
+
+            return loader.loadFromAsset(fullFilename)?.let {
+                try {
+                    val json = JSONObject(it)
+                    RemoteCommandConfig.fromJson(json)
+                } catch (ex: JSONException) {
+                    Logger.qa(
+                        BuildConfig.TAG,
+                        "Error loading RemoteCommandsConfig JSON from asset: ${ex.message}"
+                    )
+                    null
+                }
             }
         }
     }
@@ -60,7 +68,8 @@ class UrlRemoteCommandConfigRetriever(
             }
         },
     private val loader: Loader = JsonLoader.getInstance(config.application),
-    private val backgroundScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val backgroundScope: CoroutineScope = CoroutineScope(Dispatchers.Default),
+    private val localFileName: String? = null
 ) : RemoteCommandConfigRetriever {
 
     private val tealiumDleUrl =
@@ -82,7 +91,10 @@ class UrlRemoteCommandConfigRetriever(
         backgroundScope.launch {
             fetchRemoteSettings()
         }
-        return cachedSettings ?: RemoteCommandConfig()
+        return cachedSettings
+            ?: AssetRemoteCommandConfigRetriever.loadFromAsset(
+                loader, localFileName ?: "$commandId.json"
+            ) ?: RemoteCommandConfig()
     }
 
     private fun loadFromCache(file: File): RemoteCommandConfig? {
