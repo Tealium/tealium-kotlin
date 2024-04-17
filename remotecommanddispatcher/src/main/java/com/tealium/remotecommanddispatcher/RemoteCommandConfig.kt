@@ -1,6 +1,7 @@
 package com.tealium.remotecommanddispatcher
 
 import com.tealium.core.JsonUtils
+import org.json.JSONException
 import org.json.JSONObject
 
 data class Delimiters(
@@ -13,13 +14,13 @@ data class RemoteCommandConfig(
     var mappings: Map<String, String>? = null,
     var apiCommands: Map<String, String>? = null,
     var statics: Map<String, Any>? = null,
-    var delimiters: Delimiters = Delimiters()
+    var delimiters: Delimiters = Delimiters(),
+    val etag: String? = null
 ) {
     companion object {
         fun fromJson(jsonObject: JSONObject): RemoteCommandConfig {
-            val remoteCommandConfig = RemoteCommandConfig()
-
-            jsonObject.optJSONObject(Settings.CONFIG)?.let {
+            val configJson = jsonObject.optJSONObject(Settings.CONFIG)
+            val delimiters = configJson?.let {
                 var separatorDelimiter: String? = null
                 var equalityDelimiter: String? = null
                 if (it.has(Settings.KEYS_EQUALITY_DELIMITER)) {
@@ -31,39 +32,52 @@ data class RemoteCommandConfig(
                     it.remove(Settings.KEYS_SEPARATION_DELIMITER)
                 }
 
-                remoteCommandConfig.delimiters = Delimiters(
+                Delimiters(
                     equalityDelimiter ?: Settings.DEFAULT_EQUALITY_DELIMITER,
                     separatorDelimiter ?: Settings.DEFAULT_SEPARATION_DELIMITER
                 )
-
-                remoteCommandConfig.apiConfig = JsonUtils.mapFor(it)
             }
 
-            jsonObject.optJSONObject(Settings.MAPPINGS)?.let {
-                remoteCommandConfig.mappings = JsonUtils.mapFor(it)
+            val apiConfig = configJson?.let { JsonUtils.mapFor(it) }
+
+            val mappings = jsonObject.optJSONObject(Settings.MAPPINGS)?.let {
+                JsonUtils.mapFor(it)
                     .entries
                     .associate { entry ->
                         entry.key to entry.value as String
                     }
             }
 
-            jsonObject.optJSONObject(Settings.COMMANDS)?.let {
-                remoteCommandConfig.apiCommands = JsonUtils.mapFor(it)
+            val commands = jsonObject.optJSONObject(Settings.COMMANDS)?.let {
+                JsonUtils.mapFor(it)
                     .entries
                     .associate { entry ->
                         entry.key to entry.value as String
                     }
             }
 
-            jsonObject.optJSONObject(Settings.STATICS)?.let {
-                remoteCommandConfig.statics = JsonUtils.mapFor(it)
+            val statics = jsonObject.optJSONObject(Settings.STATICS)?.let {
+                JsonUtils.mapFor(it)
                     .entries
                     .associate { entry ->
                         entry.key to JsonUtils.mapFor(entry.value as JSONObject)
                     }
             }
 
-            return remoteCommandConfig
+            val etag: String? = try {
+                jsonObject.getString(Settings.ETAG)
+            } catch (ignored: JSONException) {
+                null
+            }
+
+            return RemoteCommandConfig(
+                apiConfig = apiConfig,
+                mappings = mappings,
+                apiCommands = commands,
+                statics = statics,
+                delimiters = delimiters ?: Delimiters(),
+                etag = etag
+            )
         }
 
         fun toJson(remoteCommandConfig: RemoteCommandConfig): JSONObject {
@@ -96,6 +110,9 @@ data class RemoteCommandConfig(
                     obj.put(key, JsonUtils.jsonFor(value as Map<String, Any>))
                 }
                 json.put(Settings.STATICS, obj)
+            }
+            remoteCommandConfig.etag?.let {
+                json.put(Settings.ETAG, it)
             }
 
             return json

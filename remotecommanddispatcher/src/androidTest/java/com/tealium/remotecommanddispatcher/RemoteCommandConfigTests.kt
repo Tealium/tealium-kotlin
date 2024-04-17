@@ -2,6 +2,7 @@ package com.tealium.remotecommanddispatcher
 
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class RemoteCommandConfigTests {
@@ -266,5 +267,23 @@ class RemoteCommandConfigTests {
         val configFromJson = RemoteCommandConfig.fromJson(configJson)
 
         assertEquals(config, configFromJson)
+    }
+
+    @Test
+    fun remoteCommandConfigWithEtagReturnsSameEtag() {
+        val config = RemoteCommandConfig(etag = "my-etag")
+        val configJson = RemoteCommandConfig.toJson(config)
+        val configFromJson = RemoteCommandConfig.fromJson(configJson)
+
+        assertEquals("my-etag", configFromJson.etag)
+    }
+
+    @Test
+    fun remoteCommandConfigWithNullEtagReturnsNullEtag() {
+        val config = RemoteCommandConfig()
+        val configJson = RemoteCommandConfig.toJson(config)
+        val configFromJson = RemoteCommandConfig.fromJson(configJson)
+
+        assertNull(configFromJson.etag)
     }
 }

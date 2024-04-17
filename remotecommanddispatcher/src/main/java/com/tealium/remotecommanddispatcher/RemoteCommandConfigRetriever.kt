@@ -14,6 +14,7 @@ import java.lang.Exception
 
 interface RemoteCommandConfigRetriever {
     val remoteCommandConfig: RemoteCommandConfig
+    fun refreshConfig()
 }
 
 class AssetRemoteCommandConfigRetriever(
@@ -34,6 +35,10 @@ class AssetRemoteCommandConfigRetriever(
 
     private fun loadFromAsset(filename: String): RemoteCommandConfig? {
         return loadFromAsset(loader, filename)
+    }
+
+    override fun refreshConfig() {
+        // nothing to do - asset is already loaded if valid.
     }
 
     companion object {
@@ -88,9 +93,7 @@ class UrlRemoteCommandConfigRetriever(
         val cachedSettings = loadFromCache(cachedSettingsFile)?.also {
             Logger.dev(BuildConfig.TAG, "Loaded remote command settings from cache")
         }
-        backgroundScope.launch {
-            fetchRemoteSettings()
-        }
+        refreshConfig()
         return cachedSettings
             ?: AssetRemoteCommandConfigRetriever.loadFromAsset(
                 loader, localFileName ?: "$commandId.json"
@@ -113,7 +116,7 @@ class UrlRemoteCommandConfigRetriever(
     }
 
     private suspend fun fetchRemoteSettings() = coroutineScope {
-        if (job?.isActive == false || job == null) {
+        if (job == null || job?.isActive == false) {
             job = async {
                 if (isActive) {
                     resourceRetriever.fetch()
@@ -155,5 +158,11 @@ class UrlRemoteCommandConfigRetriever(
         }
 
         return commandId
+    }
+
+    override fun refreshConfig() {
+        backgroundScope.launch {
+            fetchRemoteSettings()
+        }
     }
 }

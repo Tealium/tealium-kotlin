@@ -11,6 +11,7 @@ interface CommandsManager : Collector {
     fun getRemoteCommand(commandId: String): RemoteCommand?
     fun getRemoteCommandConfigRetriever(commandId: String): RemoteCommandConfigRetriever?
     fun getJsonRemoteCommands(): List<RemoteCommand>
+    fun refreshConfig()
 }
 
 class RemoteCommandsManager(private val config: TealiumConfig) : CommandsManager {
@@ -53,6 +54,12 @@ class RemoteCommandsManager(private val config: TealiumConfig) : CommandsManager
             }
         }
         return jsonRemoteCommands
+    }
+
+    override fun refreshConfig() {
+        commandsConfigRetriever.forEach { (_, retriever) ->
+            retriever.refreshConfig()
+        }
     }
 
     override suspend fun collect(): Map<String, Any> {

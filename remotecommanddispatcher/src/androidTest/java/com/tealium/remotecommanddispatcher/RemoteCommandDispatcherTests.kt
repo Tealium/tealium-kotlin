@@ -10,6 +10,7 @@ import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandRequest
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -87,6 +88,19 @@ class RemoteCommandDispatcherTests {
 
         assertEquals(remoteCommand.commandName, httpRemoteCommand.commandName)
         assertEquals(remoteCommand.description, httpRemoteCommand.description)
+    }
+
+    @Test
+    fun onDispatchSend_Triggers_CommandConfig_Refresh() = runBlocking {
+        val remoteCommandDispatcher = RemoteCommandDispatcher(tealiumContext, mockNetworkClient, mockRemoteCommandsManager)
+        every { mockRemoteCommandsManager.getJsonRemoteCommands() } returns emptyList()
+        every { mockRemoteCommandsManager.refreshConfig() } just Runs
+
+        remoteCommandDispatcher.onDispatchSend(mockk())
+
+        verify {
+            mockRemoteCommandsManager.refreshConfig()
+        }
     }
 
     private fun createResponseHandler(): RemoteCommand.ResponseHandler {
