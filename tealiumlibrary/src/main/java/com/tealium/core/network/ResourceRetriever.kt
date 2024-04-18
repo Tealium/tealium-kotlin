@@ -49,19 +49,15 @@ class ResourceRetriever(
     }
 
     suspend fun fetch(): String? = coroutineScope {
-        async {
-            retry(maxRetries, 500) {
-                fetchResource()
-            }
-        }.await()
+        retry(maxRetries, 500) {
+            fetchResource()
+        }
     }
 
     suspend fun fetchWithEtag(etag: String?): ResourceEntity? = coroutineScope {
-        async {
-            retry(maxRetries, 500) {
-                fetchResourceEntity(etag)
-            }
-        }.await()
+        retry(maxRetries, 500) {
+            fetchResourceEntity(etag)
+        }
     }
 
     private suspend fun fetchResource(): String? = coroutineScope {

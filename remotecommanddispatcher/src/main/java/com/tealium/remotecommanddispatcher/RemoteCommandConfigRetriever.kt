@@ -1,9 +1,9 @@
 package com.tealium.remotecommanddispatcher
 
-import android.webkit.URLUtil
 import com.tealium.core.*
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
+import com.tealium.core.network.ResourceEntity
 import com.tealium.core.network.ResourceRetriever
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers
@@ -74,29 +74,25 @@ class UrlRemoteCommandConfigRetriever(
         },
     private val loader: Loader = JsonLoader.getInstance(config.application),
     private val backgroundScope: CoroutineScope = CoroutineScope(Dispatchers.Default),
-    private val localFileName: String? = null
+    private val assetFileName: String? = null,
+    private val cacheFile: File = getCacheFile(config, commandId)
 ) : RemoteCommandConfigRetriever {
 
-    private val tealiumDleUrl =
-        "${Settings.DLE_PREFIX}/${config.accountName}/${config.profileName}/"
 
-    private val cachedSettingsFile: File =
-        File(config.tealiumDirectory.canonicalPath, "${getSettingsFilename()}.json")
-
-    private var job: Deferred<String?>? = null
+    private var job: Deferred<ResourceEntity?>? = null
 
     private var _remoteCommandConfig: RemoteCommandConfig = loadConfig()
     override val remoteCommandConfig: RemoteCommandConfig
         get() = _remoteCommandConfig
 
     private fun loadConfig(): RemoteCommandConfig {
-        val cachedSettings = loadFromCache(cachedSettingsFile)?.also {
+        val cachedSettings = loadFromCache(cacheFile)?.also {
             Logger.dev(BuildConfig.TAG, "Loaded remote command settings from cache")
         }
         refreshConfig()
         return cachedSettings
             ?: AssetRemoteCommandConfigRetriever.loadFromAsset(
-                loader, localFileName ?: "$commandId.json"
+                loader, assetFileName ?: "$commandId.json"
             ) ?: RemoteCommandConfig()
     }
 
@@ -119,23 +115,31 @@ class UrlRemoteCommandConfigRetriever(
         if (job == null || job?.isActive == false) {
             job = async {
                 if (isActive) {
-                    resourceRetriever.fetch()
+                    resourceRetriever.fetchWithEtag(remoteCommandConfig.etag)
                 } else {
                     null
                 }
             }
-            job?.await()?.let { string ->
-                Logger.dev(BuildConfig.TAG, "Loaded Remote Command config from remote URL")
-                try {
-                    val settings = RemoteCommandConfig.fromJson(JSONObject(string))
+            val resourceEntity = job?.await()
+            if (resourceEntity == null) {
+                Logger.dev(
+                    BuildConfig.TAG,
+                    "No entity returned for remote command config from remote URL"
+                )
+                return@coroutineScope
+            }
+
+            Logger.dev(BuildConfig.TAG, "Loaded Remote Command config from remote URL")
+            try {
+                RemoteCommandConfig.fromResourceEntity(resourceEntity)?.let { settings ->
                     saveSettingsToCache(RemoteCommandConfig.toJson(settings).toString())
                     _remoteCommandConfig = settings
-                } catch (ex: JSONException) {
-                    Logger.dev(
-                        BuildConfig.TAG,
-                        "Failed to load remote command config from remote URL"
-                    )
                 }
+            } catch (ex: JSONException) {
+                Logger.dev(
+                    BuildConfig.TAG,
+                    "Failed to parse remote command config from remote URL"
+                )
             }
         }
     }
@@ -143,26 +147,21 @@ class UrlRemoteCommandConfigRetriever(
     private fun saveSettingsToCache(string: String) {
         try {
             Logger.dev(BuildConfig.TAG, "Saving Remote Command settings to file")
-            cachedSettingsFile.writeText(string, Charsets.UTF_8)
+            cacheFile.writeText(string, Charsets.UTF_8)
         } catch (ex: Exception) {
             Logger.qa(BuildConfig.TAG, "Failed to save Remote Command settings to file")
         }
     }
 
-    private fun getSettingsFilename(): String {
-        // check if Tealium DLE URL
-        if (remoteUrl.contains(tealiumDleUrl)) {
-            return remoteUrl.substringAfter(tealiumDleUrl).substringBefore(".json")
-        } else if (URLUtil.isValidUrl(remoteUrl)) {
-            return commandId
-        }
-
-        return commandId
-    }
-
     override fun refreshConfig() {
         backgroundScope.launch {
             fetchRemoteSettings()
+        }
+    }
+
+    companion object {
+        fun getCacheFile(config: TealiumConfig, commandId: String) : File {
+            return File(config.tealiumDirectory.canonicalPath, "$commandId.json")
         }
     }
 }

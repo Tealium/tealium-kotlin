@@ -1,6 +1,7 @@
 package com.tealium.remotecommanddispatcher
 
 import com.tealium.core.JsonUtils
+import com.tealium.core.network.ResourceEntity
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -18,6 +19,21 @@ data class RemoteCommandConfig(
     val etag: String? = null
 ) {
     companion object {
+        fun fromResourceEntity(entity: ResourceEntity): RemoteCommandConfig? {
+            val (response, etag) = entity
+            if (response == null) return null
+
+            val jsonObject = try {
+                JSONObject(response)
+            } catch (ignored: JSONException) {
+                return null
+            }
+
+            jsonObject.put(Settings.ETAG, etag)
+
+            return fromJson(jsonObject)
+        }
+
         fun fromJson(jsonObject: JSONObject): RemoteCommandConfig {
             val configJson = jsonObject.optJSONObject(Settings.CONFIG)
             val delimiters = configJson?.let {
