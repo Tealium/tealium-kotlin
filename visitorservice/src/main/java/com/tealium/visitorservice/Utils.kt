@@ -1,6 +1,7 @@
 package com.tealium.visitorservice
 
 import com.tealium.core.Logger
+import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.Exception
 
@@ -150,4 +151,14 @@ internal fun JSONObject.asTallies(): Map<String, Map<String, Double>> {
         }
     }
     return map
+}
+
+fun JSONArray.asStringList(): List<String> {
+    val list = ArrayList<String>()
+    for (i in 0 until length()) {
+        val element = get(i) as String
+        list.add(element)
+    }
+
+    return list.toList()
 }

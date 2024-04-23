@@ -26,10 +26,16 @@ import com.tealium.remotecommanddispatcher.RemoteCommands
 import com.tealium.remotecommanddispatcher.remoteCommands
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.tagmanagementdispatcher.TagManagement
-import com.tealium.tagmanagementdispatcher.sessionCountingEnabled
 import com.tealium.visitorservice.VisitorProfile
 import com.tealium.visitorservice.VisitorService
 import com.tealium.visitorservice.VisitorUpdatedListener
+import com.tealium.visitorservice.momentsapi.EngineResponse
+import com.tealium.visitorservice.momentsapi.ErrorCode
+import com.tealium.visitorservice.momentsapi.MomentsApi
+import com.tealium.visitorservice.momentsapi.MomentsApiRegion
+import com.tealium.visitorservice.momentsapi.ResponseListener
+import com.tealium.visitorservice.momentsapi.momentsApi
+import com.tealium.visitorservice.momentsapi.momentsApiRegion
 import java.util.concurrent.TimeUnit
 
 object TealiumHelper : ActivityDataCollector {
@@ -49,7 +55,8 @@ object TealiumHelper : ActivityDataCollector {
                 Modules.InAppPurchaseManager,
                 Modules.AutoTracking,
                 Modules.Media,
-                QueryParamProviderModule
+                QueryParamProviderModule,
+                Modules.MomentsApi
             ),
             dispatchers = mutableSetOf(
                 Dispatchers.Collect,
@@ -81,6 +88,7 @@ object TealiumHelper : ActivityDataCollector {
             // overrideConsentCategoriesKey = "my_consent_categories_key"
 
             visitorIdentityKey = BuildConfig.IDENTITY_KEY
+            momentsApiRegion = MomentsApiRegion.OREGON
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
@@ -143,12 +151,30 @@ object TealiumHelper : ActivityDataCollector {
     fun trackEvent(name: String, data: Map<String, Any>?) {
         val eventDispatch = TealiumEvent(name, data)
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.track(eventDispatch)
+        getMomentsVisitorData()
     }
 
     fun trackPurchase(purchase: Purchase, data: Map<String, Any>?) {
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.inAppPurchaseManager?.trackInAppPurchase(
             purchase,
             data
+        )
+    }
+
+    fun getMomentsVisitorData() {
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.momentsApi?.requestVisitorDataForEngine(
+            "123",
+            object : ResponseListener<EngineResponse> {
+                override fun success(data: EngineResponse) {
+                    Logger.dev(BuildConfig.TAG, "Visitor data badges: ${data.badges.toString()}")
+                    Logger.dev(BuildConfig.TAG, "Visitor data audiences: ${data.audiences.toString()}")
+                    Logger.dev(BuildConfig.TAG, "Visitor data properties: ${data.properties.toString()}")
+                }
+
+                override fun failure(errorCode: ErrorCode, message: String) {
+                    Logger.dev(BuildConfig.TAG, "Moments API Error - ${errorCode}: $message")
+                }
+            }
         )
     }
 
