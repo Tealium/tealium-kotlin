@@ -44,7 +44,7 @@ object TealiumHelper : ActivityDataCollector {
         val config = TealiumConfig(
             application,
             "tealiummobile",
-            "android",
+            "demo",
             Environment.DEV,
             modules = mutableSetOf(
                 Modules.Lifecycle,
@@ -88,7 +88,7 @@ object TealiumHelper : ActivityDataCollector {
             // overrideConsentCategoriesKey = "my_consent_categories_key"
 
             visitorIdentityKey = BuildConfig.IDENTITY_KEY
-            momentsApiRegion = MomentsApiRegion.OREGON
+            momentsApiRegion = MomentsApiRegion.US_EAST
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
@@ -162,8 +162,8 @@ object TealiumHelper : ActivityDataCollector {
     }
 
     fun getMomentsVisitorData() {
-        Tealium[BuildConfig.TEALIUM_INSTANCE]?.momentsApi?.requestVisitorDataForEngine(
-            "123",
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.momentsApi?.fetchEngineResponse(
+            "4625fd31-cd87-444e-9470-7467f2e963ba",
             object : ResponseListener<EngineResponse> {
                 override fun success(data: EngineResponse) {
                     Logger.dev(BuildConfig.TAG, "Visitor data badges: ${data.badges.toString()}")
@@ -172,7 +172,7 @@ object TealiumHelper : ActivityDataCollector {
                 }
 
                 override fun failure(errorCode: ErrorCode, message: String) {
-                    Logger.dev(BuildConfig.TAG, "Moments API Error - ${errorCode}: $message")
+                    Logger.dev(BuildConfig.TAG, "Moments API Error - ${errorCode.value}: $message")
                 }
             }
         )

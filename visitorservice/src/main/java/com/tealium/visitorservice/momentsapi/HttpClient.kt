@@ -54,7 +54,7 @@ class HttpClient(private val context: Context) : NetworkClient {
                             val response = reader.readText()
                             listener.success(response)
                         }
-                        else -> listener.failure(ErrorCode.valueOf(responseCode.toString()), responseMessage)
+                        else -> listener.failure(ErrorCode.fromInt(responseCode), responseMessage)
                     }
                 } catch (ex: Exception) {
                     listener.failure(ErrorCode.UNKNOWN_ERROR, ex.message ?: "Unknown error fetching engine response")
