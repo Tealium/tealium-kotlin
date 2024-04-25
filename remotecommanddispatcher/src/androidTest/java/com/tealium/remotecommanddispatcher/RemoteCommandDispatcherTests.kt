@@ -94,11 +94,11 @@ class RemoteCommandDispatcherTests {
     fun onDispatchSend_Triggers_CommandConfig_Refresh() = runBlocking {
         val remoteCommandDispatcher = RemoteCommandDispatcher(tealiumContext, mockNetworkClient, mockRemoteCommandsManager)
         every { mockRemoteCommandsManager.getJsonRemoteCommands() } returns emptyList()
-        every { mockRemoteCommandsManager.refreshConfig() } just Runs
+        coEvery { mockRemoteCommandsManager.refreshConfig() } just Runs
 
         remoteCommandDispatcher.onDispatchSend(mockk())
 
-        verify {
+        coVerify {
             mockRemoteCommandsManager.refreshConfig()
         }
     }

@@ -11,7 +11,7 @@ interface CommandsManager : Collector {
     fun getRemoteCommand(commandId: String): RemoteCommand?
     fun getRemoteCommandConfigRetriever(commandId: String): RemoteCommandConfigRetriever?
     fun getJsonRemoteCommands(): List<RemoteCommand>
-    fun refreshConfig()
+    suspend fun refreshConfig()
 }
 
 class RemoteCommandsManager(private val config: TealiumConfig) : CommandsManager {
@@ -32,10 +32,12 @@ class RemoteCommandsManager(private val config: TealiumConfig) : CommandsManager
 
     override fun remove(commandId: String) {
         allCommands.remove(commandId)
+        commandsConfigRetriever.remove(commandId)
     }
 
     override fun removeAll() {
         allCommands.clear()
+        commandsConfigRetriever.clear()
     }
 
     override fun getRemoteCommand(commandId: String): RemoteCommand? {
@@ -47,16 +49,12 @@ class RemoteCommandsManager(private val config: TealiumConfig) : CommandsManager
     }
 
     override fun getJsonRemoteCommands(): List<RemoteCommand> {
-        val jsonRemoteCommands = mutableListOf<RemoteCommand>()
-        commandsConfigRetriever.forEach { (key, command) ->
-            allCommands[key]?.let {
-                jsonRemoteCommands.add(it)
-            }
+        return commandsConfigRetriever.mapNotNull { (key, _) ->
+            allCommands[key]
         }
-        return jsonRemoteCommands
     }
 
-    override fun refreshConfig() {
+    override suspend fun refreshConfig() {
         commandsConfigRetriever.forEach { (_, retriever) ->
             retriever.refreshConfig()
         }
