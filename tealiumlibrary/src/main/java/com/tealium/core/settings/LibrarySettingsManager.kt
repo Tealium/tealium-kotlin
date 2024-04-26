@@ -133,7 +133,8 @@ class LibrarySettingsManager(
                     null
                 }
             }
-            job?.await()?.let { resource ->
+            val resource = job?.await()
+            resource?.let { resource ->
                 try {
                     // TODO: should read resource headers to determine the file type
                     val settings = when (urlString.endsWith(".html")) {

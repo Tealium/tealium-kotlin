@@ -15,6 +15,7 @@ import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Assert
@@ -228,7 +229,8 @@ class RemoteCommandConfigRetrieverTests {
         runBlocking {
             coEvery { mockNetworkClient.getResourceEntity(testUrl, any()) } returns ResourceEntity(
                 validCommandsJson,
-                "some-etag"
+                "some-etag",
+                ResponseStatus.Success
             )
             mockkStatic("kotlin.io.FilesKt__FileReadWriteKt")
             val mockFile =
@@ -279,8 +281,10 @@ class RemoteCommandConfigRetrieverTests {
                 resourceRetriever = mockResourceRetriever,
                 cooldownHelper = mockCooldown
             )
-            configRetriever.refreshConfig()
-
+            launch {
+                configRetriever.refreshConfig()
+            }
+            delay(100)
             coVerify(timeout = 1000, inverse = true) {
                 mockResourceRetriever.fetchWithEtag(any())
             }
@@ -300,8 +304,10 @@ class RemoteCommandConfigRetrieverTests {
                 resourceRetriever = mockResourceRetriever,
                 cooldownHelper = mockCooldown
             )
-            configRetriever.refreshConfig()
-
+            launch {
+                configRetriever.refreshConfig()
+            }
+            delay(100)
             coVerify(timeout = 1000, exactly = 1) {
                 mockResourceRetriever.fetchWithEtag(any())
             }
@@ -323,9 +329,11 @@ class RemoteCommandConfigRetrieverTests {
                 resourceRetriever = mockResourceRetriever,
                 cooldownHelper = CooldownHelper(15_000L, 5_000L)
             )
-            configRetriever.refreshConfig()
-            configRetriever.refreshConfig()
-
+            launch {
+                configRetriever.refreshConfig()
+                configRetriever.refreshConfig()
+            }
+            delay(100)
             coVerify(timeout = 1000, exactly = 1) {
                 mockResourceRetriever.fetchWithEtag(any())
             }
