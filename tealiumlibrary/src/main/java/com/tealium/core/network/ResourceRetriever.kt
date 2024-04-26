@@ -82,12 +82,14 @@ class ResourceRetriever @JvmOverloads constructor(
 
     private inline fun <T> fetch(block: () -> T?): T? {
         if (!shouldRefresh) {
-            Logger.dev(BuildConfig.TAG, "Resource timeout has not expired. Will not fetch.")
+            Logger.dev(BuildConfig.TAG, "Resource timeout has not expired. Will not fetch: $resourceUrlString")
             return null
         }
 
         return try {
             _isFetching = true
+            Logger.dev(BuildConfig.TAG, "Fetching resource: $resourceUrlString")
+
             block()
         } finally {
             lastFetchTimestamp = getTimestampMilliseconds()
