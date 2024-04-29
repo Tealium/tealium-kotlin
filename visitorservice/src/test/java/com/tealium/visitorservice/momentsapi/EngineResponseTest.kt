@@ -8,7 +8,7 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class EngineResponseTest {
-    val validEngineResponseString = """
+    private val validEngineResponseString = """
 {
   "audiences": [
     "audience_1",
@@ -22,7 +22,11 @@ class EngineResponseTest {
     "45": "Android",
     "46": "Android",
     "47": "mobile application",
-    "5135": "blue_shoes"
+    "5135": "blue_shoes",
+    "24"=true,
+    "23"=1714149813216,
+    "22"=44.0, 
+    "21"=3
   }
 }
 """
@@ -66,10 +70,10 @@ class EngineResponseTest {
         val json = JSONObject(validEngineResponseString)
         val engineResponse = EngineResponse.fromJson(json)
 
-        assertEquals(engineResponse.properties?.getValue("45"), "Android")
-        assertEquals(engineResponse.properties?.getValue("46"), "Android")
-        assertEquals(engineResponse.properties?.getValue("47"), "mobile application")
-        assertEquals(engineResponse.properties?.getValue("5135"), "blue_shoes")
+        assertEquals(engineResponse.attributes?.getValue("45"), "Android")
+        assertEquals(engineResponse.attributes?.getValue("46"), "Android")
+        assertEquals(engineResponse.attributes?.getValue("47"), "mobile application")
+        assertEquals(engineResponse.attributes?.getValue("5135"), "blue_shoes")
     }
 
     @Test
@@ -77,6 +81,63 @@ class EngineResponseTest {
         val json = JSONObject(validEngineResponseString)
         val engineResponse = EngineResponse.fromJson(json)
 
-        assertNull(engineResponse.properties?.get("333"))
+        assertNull(engineResponse.attributes?.get("333"))
+    }
+
+    @Test
+    fun engineResponseDecodeStringFromAttributes() {
+        val json = JSONObject(validEngineResponseString)
+        val engineResponse = EngineResponse.fromJson(json)
+        val strings = engineResponse.strings
+
+        strings?.isNotEmpty()?.let { assertTrue(it) }
+    }
+
+    @Test(expected = Exception::class)
+    fun testFromJson_InvalidJsonValue() {
+        val jsonString = """
+    {
+      "properties": {"key1": null},
+      "badges": ["badge1", "badge2"]
+    }
+  """
+        val json = JSONObject(jsonString)
+        EngineResponse.fromJson(json)
+    }
+
+    @Test
+    fun testFromJson_ValidTimestamps() {
+        val jsonString = """
+      {
+        "properties": {"dateKey": 1651516800000}
+      }
+    """
+        val json = JSONObject(jsonString)
+        val engineResponse = EngineResponse.fromJson(json)
+        val dates = engineResponse.dates
+
+        assertNotNull(dates)
+        assertEquals(1, dates!!.size)
+        assertEquals("dateKey", dates.keys.first())
+        assertEquals(1651516800000, dates.values.first())
+    }
+
+    @Test
+    fun testFromJson_IntAddedToNumbers() {
+        val num = 1651516800
+        val jsonString = """
+      {
+        "properties": {"dateKey": $num}
+      }
+    """
+        val json = JSONObject(jsonString)
+        val engineResponse = EngineResponse.fromJson(json)
+        val numbers = engineResponse.numbers
+
+        assertNull(engineResponse.dates)
+        assertNotNull(numbers)
+        assertEquals(1, numbers!!.size)
+        assertEquals("dateKey", numbers.keys.first())
+        assertEquals(num, numbers.values.first().toInt())
     }
 }

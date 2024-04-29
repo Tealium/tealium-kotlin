@@ -58,8 +58,8 @@ class MomentsApiServiceTest {
     fun fetchEngineResponseForSuccessfulNetworkData() {
         val engineId = "testEngine"
 
-        coEvery { networkClient.get(any(), any<ResponseListener<String>>()) } answers {
-            secondArg<ResponseListener<String>>().success("{ \"audiences\": [\"VIP\", \"Women's Apparel\", \"Lifetime visit count\"] }")
+        coEvery { networkClient.get(any(), any(), any<ResponseListener<String>>()) } answers {
+            thirdArg<ResponseListener<String>>().success("{ \"audiences\": [\"VIP\", \"Women's Apparel\", \"Lifetime visit count\"] }")
         }
 
         apiService.fetchEngineResponse(engineId, listener)
@@ -71,8 +71,8 @@ class MomentsApiServiceTest {
     fun fetchEngineResponseForFailedNetworkData() {
         val engineId = "testEngine"
 
-        coEvery { networkClient.get(any(), any<ResponseListener<String>>()) } answers {
-            secondArg<ResponseListener<String>>().failure(ErrorCode.UNKNOWN_ERROR, "Network Error")
+        coEvery { networkClient.get(any(), any(), any<ResponseListener<String>>()) } answers {
+            thirdArg<ResponseListener<String>>().failure(ErrorCode.UNKNOWN_ERROR, ErrorCode.UNKNOWN_ERROR.message)
         }
 
         apiService.fetchEngineResponse(engineId, listener)
@@ -80,7 +80,7 @@ class MomentsApiServiceTest {
         verify {
             listener.failure(
                 ErrorCode.UNKNOWN_ERROR,
-                "Network Error"
+                ErrorCode.UNKNOWN_ERROR.message
             )
         }
     }
@@ -89,8 +89,8 @@ class MomentsApiServiceTest {
     fun fetchEngineResponseForInvalidJsonData() {
         val engineId = "testEngine"
 
-        coEvery { networkClient.get(any(), any<ResponseListener<String>>()) } answers {
-            secondArg<ResponseListener<String>>().success("invalid_json")
+        coEvery { networkClient.get(any(), any(), any<ResponseListener<String>>()) } answers {
+            thirdArg<ResponseListener<String>>().failure(ErrorCode.INVALID_JSON, ErrorCode.INVALID_JSON.message)
         }
 
         apiService.fetchEngineResponse(engineId, listener)
@@ -98,7 +98,7 @@ class MomentsApiServiceTest {
         verify {
             listener.failure(
                 ErrorCode.INVALID_JSON,
-                "Invalid JSON EngineResponse"
+                ErrorCode.INVALID_JSON.message
             )
         }
     }

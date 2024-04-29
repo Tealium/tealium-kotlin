@@ -16,7 +16,7 @@ import javax.net.ssl.HttpsURLConnection
 
 interface NetworkClient {
     fun isConnected(): Boolean
-    suspend fun get(url:URL, listener: ResponseListener<String>)
+    suspend fun get(url:URL, referer: String, listener: ResponseListener<String>)
 }
 
 class HttpClient(private val context: Context) : NetworkClient {
@@ -38,14 +38,15 @@ class HttpClient(private val context: Context) : NetworkClient {
         return activeNetworkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) ?: false
     }
 
-    override suspend fun get(url: URL, listener: ResponseListener<String>) = coroutineScope {
+    override suspend fun get(url: URL, referer: String, listener: ResponseListener<String>) = coroutineScope {
         if (!isConnected()) {
-            listener.failure(ErrorCode.NOT_CONNECTED, "No connectivity established")
+            listener.failure(ErrorCode.NOT_CONNECTED, ErrorCode.NOT_CONNECTED.message)
         }
 
         withContext(Dispatchers.IO) {
             with(url.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"
+                setRequestProperty("Referer", referer)
                 val reader: BufferedReader?
                 try {
                     when(responseCode) {
@@ -54,10 +55,10 @@ class HttpClient(private val context: Context) : NetworkClient {
                             val response = reader.readText()
                             listener.success(response)
                         }
-                        else -> listener.failure(ErrorCode.fromInt(responseCode), responseMessage)
+                        else -> listener.failure(ErrorCode.fromInt(responseCode), ErrorCode.fromInt(responseCode).message)
                     }
                 } catch (ex: Exception) {
-                    listener.failure(ErrorCode.UNKNOWN_ERROR, ex.message ?: "Unknown error fetching engine response")
+                    listener.failure(ErrorCode.UNKNOWN_ERROR, ex.message ?: ErrorCode.UNKNOWN_ERROR.message)
                 }
             }
         }

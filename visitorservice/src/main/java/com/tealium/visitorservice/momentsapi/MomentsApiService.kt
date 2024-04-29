@@ -13,30 +13,36 @@ import org.json.JSONObject
 import java.lang.Exception
 import java.net.URL
 
+interface MomentsApi {
+    fun fetchEngineResponse(engineId: String, responseListener: ResponseListener<EngineResponse>)
+}
+
 class MomentsApiService @JvmOverloads constructor(
     private val context: TealiumContext,
     private val networkClient: NetworkClient = HttpClient(context.config.application),
     private val backgroundScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
-) : Module {
+) : Module, MomentsApi {
 
     override var enabled: Boolean = true // change
     override val name: String = MODULE_NAME
 
-    fun fetchEngineResponse(engineId: String, responseListener: ResponseListener<EngineResponse>) {
+    private val referrer = "https://tags.tiqcdn.com/utag/${context.config.accountName}/${context.config.profileName}/${context.config.environment.environment}/mobile.html"
+
+    override fun fetchEngineResponse(engineId: String, responseListener: ResponseListener<EngineResponse>) {
         fetchResponse(engineId, responseListener)
     }
 
     private fun fetchResponse(engineId: String, handler: ResponseListener<EngineResponse>) {
         backgroundScope.launch {
             val urlString = generateMomentsApiUrl(engineId)
-            networkClient.get(URL(urlString), object : ResponseListener<String> {
+            networkClient.get(URL(urlString), referrer, object : ResponseListener<String> {
                 override fun success(data: String) {
                     try {
                         val json = JSONObject(data)
                         val visitorData = EngineResponse.fromJson(json)
                         handler.success(visitorData)
                     } catch (ex: Exception) {
-                        handler.failure(ErrorCode.INVALID_JSON, "Invalid JSON EngineResponse")
+                        handler.failure(ErrorCode.INVALID_JSON, ErrorCode.INVALID_JSON.message)
                     }
                 }
 

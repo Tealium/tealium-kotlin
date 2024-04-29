@@ -168,7 +168,11 @@ object TealiumHelper : ActivityDataCollector {
                 override fun success(data: EngineResponse) {
                     Logger.dev(BuildConfig.TAG, "Visitor data badges: ${data.badges.toString()}")
                     Logger.dev(BuildConfig.TAG, "Visitor data audiences: ${data.audiences.toString()}")
-                    Logger.dev(BuildConfig.TAG, "Visitor data properties: ${data.properties.toString()}")
+                    Logger.dev(BuildConfig.TAG, "Visitor data properties: ${data.attributes.toString()}")
+                    Logger.dev(BuildConfig.TAG, "Visitor data string properties: ${data.strings.toString()}")
+                    Logger.dev(BuildConfig.TAG, "Visitor data booleans properties: ${data.booleans.toString()}")
+                    Logger.dev(BuildConfig.TAG, "Visitor data dates properties: ${data.dates.toString()}")
+                    Logger.dev(BuildConfig.TAG, "Visitor data numbers properties: ${data.numbers.toString()}")
                 }
 
                 override fun failure(errorCode: ErrorCode, message: String) {
