@@ -347,10 +347,7 @@ class WebViewLoader(
     private fun enableCookieManager() {
         CookieManager.getInstance().apply {
             setAcceptCookie(true)
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                setAcceptThirdPartyCookies(webView, true)
-            }
+            setAcceptThirdPartyCookies(webView, true)
 
             Logger.dev(BuildConfig.TAG, "WebView: $webView created and cookies enabled")
         }
@@ -395,12 +392,15 @@ class WebViewLoader(
     override fun onLibrarySettingsUpdated(settings: LibrarySettings) {
         isWifiOnlySending = settings.wifiOnly
         timeoutInterval = settings.refreshInterval // seconds
-        if (isTimedOut()) {
-            loadUrlToWebView()
-        }
     }
 
     override fun onSessionStarted(sessionId: Long) {
+        if (this.sessionId != INVALID_SESSION_ID
+            && this.sessionId != sessionId
+            && webViewStatus.compareAndSet(PageStatus.LOADED_SUCCESS, PageStatus.LOADED_ERROR)) {
+            loadUrlToWebView()
+        }
+
         this.sessionId = sessionId
         shouldRegisterSession.set(true)
 
