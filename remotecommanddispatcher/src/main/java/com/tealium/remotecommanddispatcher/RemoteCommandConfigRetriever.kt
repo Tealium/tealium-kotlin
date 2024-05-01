@@ -45,9 +45,11 @@ class AssetRemoteCommandConfigRetriever(
 
     companion object {
         fun loadFromAsset(loader: Loader, filename: String): RemoteCommandConfig? {
-            val fullFilename = if (filename.endsWith(".json")) filename else "$filename.json"
-
-            return loader.loadFromAsset(fullFilename)?.let {
+            return if (!filename.endsWith(".json", true)) {
+                loader.loadFromAsset("$filename.json") ?: loader.loadFromAsset(filename)
+            } else {
+                loader.loadFromAsset(filename)
+            }?.let {
                 try {
                     val json = JSONObject(it)
                     RemoteCommandConfig.fromJson(json)
@@ -128,9 +130,10 @@ class UrlRemoteCommandConfigRetriever(
             }
             val resourceEntity = job?.await() ?: return@coroutineScope
 
-            if(!(resourceEntity.status == ResponseStatus.Success
+            if (!(resourceEntity.status == ResponseStatus.Success
                         || (resourceEntity.status is ResponseStatus.Non200Response
-                        && (resourceEntity.status as ResponseStatus.Non200Response).code < 400))) {
+                        && (resourceEntity.status as ResponseStatus.Non200Response).code < 400))
+            ) {
                 Logger.dev(
                     BuildConfig.TAG,
                     "No entity returned for remote command config from remote URL"

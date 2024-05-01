@@ -5,8 +5,8 @@
   - BugFix: `ResourceRetriever` refresh interval affecting library settings being fetched too often
   - BugFix: Reinstated missing `ResourceEntity` class
   - RemoteCommandDispatcher 1.4.0
-    - Adding a RemoteCommand with a remote URL config, now supports falling back to loading from an `Asset` names `{command id}.json on the first launch. 
-      - if the a file name is also provided, then it will use that name to lookup the `Asset`
+    - Adding a RemoteCommand with a remote URL config, now supports falling back to loading from an `Asset` names `{command id}.json` on the first launch. 
+      - if a file name is also provided, then it will use that name to lookup the `Asset`
     - It is also now safe to omit the `.json` extension on the `filename` parameter when adding a new remote command, though the `.json` extension of the actual file should still be present. 
     - BugFix: Refresh interval was not being adhered to
     - *Note* - `com.tealium:kotlin-core` module dependency minimum raised to `1.6.0` 

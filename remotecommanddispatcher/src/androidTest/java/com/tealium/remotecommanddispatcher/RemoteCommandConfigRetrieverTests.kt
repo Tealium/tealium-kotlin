@@ -349,6 +349,16 @@ class RemoteCommandConfigRetrieverTests {
         }
     }
 
+    @Test
+    fun assetLoader_Appends_Json_Filetype_First_If_Missing() {
+        AssetRemoteCommandConfigRetriever.loadFromAsset(mockLoader, "test")
+
+        verifyOrder {
+            mockLoader.loadFromAsset("test.json")
+            mockLoader.loadFromAsset("test")
+        }
+    }
+
     private fun createUrlRemoteCommandConfigRetriever(
         config: TealiumConfig = this.config,
         commandId: String = this.commandId,

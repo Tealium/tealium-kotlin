@@ -21,6 +21,7 @@ class ResourceRetriever @JvmOverloads constructor(
      * Set this property to false if the URL does not support If-Modified.
      * Default is true.
      */
+    @Deprecated("Prefer use of fetchWithEtag method, with a relevant etag for the resource being retrieved.")
     var useIfModifed = true // TODO - typo, should be useIfModified
 
     /**
