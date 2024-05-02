@@ -354,4 +354,48 @@ class LibrarySettingsManagerTest {
             mockEventRouter.onLibrarySettingsUpdated(any())
         }
     }
+
+    @Test
+    fun initialSettings_Returns_Null_When_NoCache_And_RemoteSetting_Enabled() {
+        config.useRemoteLibrarySettings = true
+        every { mockLoader.loadFromFile(any()) } returns null
+        every { mockLoader.loadFromAsset(any()) } returns null
+
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
+
+        assertNull(librarySettingsManager.initialSettings)
+    }
+
+    @Test
+    fun initialSettings_Returns_Null_When_NoAsset_And_RemoteSetting_Disabled() {
+        config.useRemoteLibrarySettings = false
+        every { mockLoader.loadFromFile(any()) } returns null
+        every { mockLoader.loadFromAsset(any()) } returns null
+
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
+
+        assertNull(librarySettingsManager.initialSettings)
+    }
+
+    @Test
+    fun initialSettings_Returns_CachedSettings_When_RemoteSetting_Enabled() {
+        config.useRemoteLibrarySettings = true
+        every { mockLoader.loadFromFile(any()) } returns LibrarySettings.toJson(LibrarySettings()).toString()
+        every { mockLoader.loadFromAsset(any()) } returns null
+
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
+
+        assertEquals(defaultLibrarySettings, librarySettingsManager.initialSettings)
+    }
+
+    @Test
+    fun initialSettings_Returns_AssetSettings_When_RemoteSetting_Disabled() {
+        config.useRemoteLibrarySettings = false
+        every { mockLoader.loadFromFile(any()) } returns null
+        every { mockLoader.loadFromAsset(any()) } returns LibrarySettings.toJson(LibrarySettings()).toString()
+
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
+
+        assertEquals(defaultLibrarySettings, librarySettingsManager.initialSettings)
+    }
 }

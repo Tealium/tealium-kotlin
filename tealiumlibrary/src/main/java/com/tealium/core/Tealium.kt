@@ -13,6 +13,7 @@ import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
 import com.tealium.core.persistence.*
+import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.settings.LibrarySettingsManager
 import com.tealium.core.validation.BatchingValidator
 import com.tealium.core.validation.BatteryValidator
@@ -173,17 +174,28 @@ class Tealium private constructor(
             _dataLayer.clearSessionData(session.id)
         }
 
-        Logger.logLevel = config.logLevel ?: when (config.environment) {
-            Environment.DEV -> LogLevel.DEV
-            Environment.QA -> LogLevel.QA
-            Environment.PROD -> LogLevel.PROD
-        }
+        Logger.logLevel = config.logLevel
+            ?: librarySettingsManager.initialSettings?.logLevel
+                    ?: config.overrideDefaultLibrarySettings?.logLevel
+                    ?: when (config.environment) {
+                Environment.DEV -> LogLevel.DEV
+                Environment.QA -> LogLevel.QA
+                Environment.PROD -> LogLevel.PROD
+            }
 
         // Subscribe user event listeners
         eventRouter.subscribeAll(config.events.toList())
 
         deepLinkHandler = DeepLinkHandler(context, backgroundScope)
-        eventRouter.subscribeAll(listOf(Logger, sessionManager, deepLinkHandler))
+        eventRouter.subscribeAll(listOf(Logger, sessionManager, deepLinkHandler,
+            object : LibrarySettingsUpdatedListener {
+                override fun onLibrarySettingsUpdated(settings: LibrarySettings) {
+                    // don't override if log level was set by code.
+                    if (config.logLevel == null) {
+                        Logger.logLevel = settings.logLevel
+                    }
+                }
+            }))
         timedEvents = TimedEventsManager(context)
 
         config.visitorIdentityKey?.let {
@@ -220,6 +232,7 @@ class Tealium private constructor(
                 sessionManager.track(dispatchCopy)
                 dispatchRouter.track(dispatchCopy)
             }
+
             false -> {
                 logger.dev(BuildConfig.TAG, "Instance not yet initialized; buffering.")
                 dispatchBuffer.add(dispatchCopy)
