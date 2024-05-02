@@ -1,4 +1,4 @@
-package com.tealium.visitorservice.momentsapi
+package com.tealium.momentsapi
 
 enum class MomentsApiRegion(val value: String) {
     GERMANY("eu-central-1"),

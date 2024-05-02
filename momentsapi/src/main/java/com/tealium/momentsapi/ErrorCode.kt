@@ -1,4 +1,4 @@
-package com.tealium.visitorservice.momentsapi
+package com.tealium.momentsapi
 
 enum class ErrorCode(val value: Int, val message: String) {
     BAD_REQUEST(400, "Bad Request."),

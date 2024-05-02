@@ -1,4 +1,4 @@
-package com.tealium.visitorservice.momentsapi
+package com.tealium.momentsapi
 
 interface ResponseListener<T> {
     fun success(data: T)

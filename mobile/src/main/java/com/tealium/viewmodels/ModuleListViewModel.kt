@@ -13,6 +13,7 @@ class ModuleListViewModel : ViewModel() {
         "Visitor Service",
         "Media Tracking",
         "WebView Consent Sync",
-        "In App Purchase"
+        "In App Purchase",
+        "Moments API"
     )
 }

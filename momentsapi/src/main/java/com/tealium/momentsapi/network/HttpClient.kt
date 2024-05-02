@@ -1,10 +1,12 @@
-package com.tealium.visitorservice.momentsapi
+package com.tealium.momentsapi.network
 
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import com.tealium.core.Logger
+import com.tealium.momentsapi.ErrorCode
+import com.tealium.momentsapi.ResponseListener
 import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -13,11 +15,6 @@ import java.io.BufferedReader
 import java.net.HttpURLConnection
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
-
-interface NetworkClient {
-    fun isConnected(): Boolean
-    suspend fun get(url:URL, referer: String, listener: ResponseListener<String>)
-}
 
 class HttpClient(private val context: Context) : NetworkClient {
 
@@ -55,7 +52,10 @@ class HttpClient(private val context: Context) : NetworkClient {
                             val response = reader.readText()
                             listener.success(response)
                         }
-                        else -> listener.failure(ErrorCode.fromInt(responseCode), ErrorCode.fromInt(responseCode).message)
+                        else -> listener.failure(
+                            ErrorCode.fromInt(responseCode), ErrorCode.fromInt(
+                                responseCode
+                            ).message)
                     }
                 } catch (ex: Exception) {
                     listener.failure(ErrorCode.UNKNOWN_ERROR, ex.message ?: ErrorCode.UNKNOWN_ERROR.message)

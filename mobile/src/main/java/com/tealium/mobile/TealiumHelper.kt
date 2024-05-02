@@ -29,13 +29,13 @@ import com.tealium.tagmanagementdispatcher.TagManagement
 import com.tealium.visitorservice.VisitorProfile
 import com.tealium.visitorservice.VisitorService
 import com.tealium.visitorservice.VisitorUpdatedListener
-import com.tealium.visitorservice.momentsapi.EngineResponse
-import com.tealium.visitorservice.momentsapi.ErrorCode
-import com.tealium.visitorservice.momentsapi.MomentsApi
-import com.tealium.visitorservice.momentsapi.MomentsApiRegion
-import com.tealium.visitorservice.momentsapi.ResponseListener
-import com.tealium.visitorservice.momentsapi.momentsApi
-import com.tealium.visitorservice.momentsapi.momentsApiRegion
+import com.tealium.momentsapi.EngineResponse
+import com.tealium.momentsapi.ErrorCode
+import com.tealium.momentsapi.MomentsApi
+import com.tealium.momentsapi.MomentsApiRegion
+import com.tealium.momentsapi.ResponseListener
+import com.tealium.momentsapi.momentsApi
+import com.tealium.momentsapi.momentsApiRegion
 import java.util.concurrent.TimeUnit
 
 object TealiumHelper : ActivityDataCollector {
@@ -151,7 +151,6 @@ object TealiumHelper : ActivityDataCollector {
     fun trackEvent(name: String, data: Map<String, Any>?) {
         val eventDispatch = TealiumEvent(name, data)
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.track(eventDispatch)
-        getMomentsVisitorData()
     }
 
     fun trackPurchase(purchase: Purchase, data: Map<String, Any>?) {
@@ -164,7 +163,8 @@ object TealiumHelper : ActivityDataCollector {
     fun getMomentsVisitorData() {
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.momentsApi?.fetchEngineResponse(
             "4625fd31-cd87-444e-9470-7467f2e963ba",
-            object : ResponseListener<EngineResponse> {
+            object :
+                ResponseListener<EngineResponse> {
                 override fun success(data: EngineResponse) {
                     Logger.dev(BuildConfig.TAG, "Visitor data badges: ${data.badges.toString()}")
                     Logger.dev(BuildConfig.TAG, "Visitor data audiences: ${data.audiences.toString()}")

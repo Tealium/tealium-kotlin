@@ -1,4 +1,4 @@
-package com.tealium.visitorservice.momentsapi
+package com.tealium.momentsapi
 
 import org.json.JSONObject
 import org.junit.Assert.*
@@ -34,7 +34,7 @@ class EngineResponseTest {
     @Test
     fun engineResponseDecodeAudiencesSuccess() {
         val json = JSONObject(validEngineResponseString)
-        val engineResponse = EngineResponse.fromJson(json)
+        val engineResponse = com.tealium.momentsapi.EngineResponse.fromJson(json)
 
         assertEquals(engineResponse.audiences?.get(0), "audience_1")
         assertEquals(engineResponse.audiences?.get(1), "audience_2")
@@ -44,7 +44,7 @@ class EngineResponseTest {
     @Test
     fun engineResponseDecodeNullAudience() {
         val json = JSONObject(validEngineResponseString)
-        val engineResponse = EngineResponse.fromJson(json)
+        val engineResponse = com.tealium.momentsapi.EngineResponse.fromJson(json)
 
         engineResponse.audiences?.contains("audience_4")?.let { assertFalse(it) }
     }
@@ -52,7 +52,7 @@ class EngineResponseTest {
     @Test
     fun engineResponseDecodeBadgesSuccess() {
         val json = JSONObject(validEngineResponseString)
-        val engineResponse = EngineResponse.fromJson(json)
+        val engineResponse = com.tealium.momentsapi.EngineResponse.fromJson(json)
 
         engineResponse.badges?.contains("13")?.let { assertTrue(it) }
     }
@@ -60,7 +60,7 @@ class EngineResponseTest {
     @Test
     fun engineResponseDecodeNullBadge() {
         val json = JSONObject(validEngineResponseString)
-        val engineResponse = EngineResponse.fromJson(json)
+        val engineResponse = com.tealium.momentsapi.EngineResponse.fromJson(json)
 
         engineResponse.badges?.contains("33")?.let { assertFalse(it) }
     }
@@ -68,7 +68,7 @@ class EngineResponseTest {
     @Test
     fun engineResponseDecodePropertiesSuccess() {
         val json = JSONObject(validEngineResponseString)
-        val engineResponse = EngineResponse.fromJson(json)
+        val engineResponse = com.tealium.momentsapi.EngineResponse.fromJson(json)
 
         assertEquals(engineResponse.attributes?.getValue("45"), "Android")
         assertEquals(engineResponse.attributes?.getValue("46"), "Android")
@@ -79,7 +79,7 @@ class EngineResponseTest {
     @Test
     fun engineResponseDecodeNullProperty() {
         val json = JSONObject(validEngineResponseString)
-        val engineResponse = EngineResponse.fromJson(json)
+        val engineResponse = com.tealium.momentsapi.EngineResponse.fromJson(json)
 
         assertNull(engineResponse.attributes?.get("333"))
     }
@@ -87,7 +87,7 @@ class EngineResponseTest {
     @Test
     fun engineResponseDecodeStringFromAttributes() {
         val json = JSONObject(validEngineResponseString)
-        val engineResponse = EngineResponse.fromJson(json)
+        val engineResponse = com.tealium.momentsapi.EngineResponse.fromJson(json)
         val strings = engineResponse.strings
 
         strings?.isNotEmpty()?.let { assertTrue(it) }
@@ -102,7 +102,7 @@ class EngineResponseTest {
     }
   """
         val json = JSONObject(jsonString)
-        EngineResponse.fromJson(json)
+        com.tealium.momentsapi.EngineResponse.fromJson(json)
     }
 
     @Test
@@ -113,7 +113,7 @@ class EngineResponseTest {
       }
     """
         val json = JSONObject(jsonString)
-        val engineResponse = EngineResponse.fromJson(json)
+        val engineResponse = com.tealium.momentsapi.EngineResponse.fromJson(json)
         val dates = engineResponse.dates
 
         assertNotNull(dates)
@@ -131,7 +131,7 @@ class EngineResponseTest {
       }
     """
         val json = JSONObject(jsonString)
-        val engineResponse = EngineResponse.fromJson(json)
+        val engineResponse = com.tealium.momentsapi.EngineResponse.fromJson(json)
         val numbers = engineResponse.numbers
 
         assertNull(engineResponse.dates)

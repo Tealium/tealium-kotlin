@@ -1,11 +1,11 @@
-package com.tealium.visitorservice.momentsapi
+package com.tealium.momentsapi
 
 import com.tealium.core.Module
 import com.tealium.core.ModuleFactory
 import com.tealium.core.Modules
 import com.tealium.core.Tealium
 import com.tealium.core.TealiumContext
-import com.tealium.visitorservice.BuildConfig
+import com.tealium.momentsapi.network.HttpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -13,10 +13,24 @@ import org.json.JSONObject
 import java.lang.Exception
 import java.net.URL
 
+/**
+ * Interface defining methods for fetching engine responses.
+ */
 interface MomentsApi {
+    /**
+     * Fetches the engine response for the given engine ID.
+     * @param engineId The ID of the engine to fetch the response for.
+     * @param responseListener Listener for handling the response.
+     */
     fun fetchEngineResponse(engineId: String, responseListener: ResponseListener<EngineResponse>)
 }
 
+/**
+ * Service class providing implementation for the Moments API module.
+ * @param context The Tealium context.
+ * @param networkClient The network client used for making HTTP requests (default is HttpClient).
+ * @param backgroundScope The CoroutineScope used for background tasks (default is Dispatchers.IO).
+ */
 class MomentsApiService @JvmOverloads constructor(
     private val context: TealiumContext,
     private val networkClient: NetworkClient = HttpClient(context.config.application),
@@ -26,9 +40,13 @@ class MomentsApiService @JvmOverloads constructor(
     override var enabled: Boolean = true // change
     override val name: String = MODULE_NAME
 
-    private val referrer = "https://tags.tiqcdn.com/utag/${context.config.accountName}/${context.config.profileName}/${context.config.environment.environment}/mobile.html"
+    private val referrer = context.config.momentsApiReferer
+        ?: "https://tags.tiqcdn.com/utag/${context.config.accountName}/${context.config.profileName}/${context.config.environment.environment}/mobile.html"
 
-    override fun fetchEngineResponse(engineId: String, responseListener: ResponseListener<EngineResponse>) {
+    override fun fetchEngineResponse(
+        engineId: String,
+        responseListener: ResponseListener<EngineResponse>
+    ) {
         fetchResponse(engineId, responseListener)
     }
 
@@ -80,7 +98,7 @@ class MomentsApiService @JvmOverloads constructor(
             context.config.momentsApiRegion?.let {
                 return MomentsApiService(context)
             }
-                throw Exception("MomentsApi must have a region assigned. Ensure you have set one on TealiumConfig.")
+            throw Exception("MomentsApi must have a region assigned. Ensure you have set one on TealiumConfig.")
         }
     }
 }

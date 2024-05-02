@@ -152,17 +152,3 @@ internal fun JSONObject.asTallies(): Map<String, Map<String, Double>> {
     }
     return map
 }
-
-fun JSONArray.asListOfStrings(): List<String> {
-    val list = ArrayList<String>()
-    for (i in 0 until length()) {
-        try {
-            val element = getString(i)
-            list.add(element)
-        } catch (ex: Exception) {
-            Logger.dev(BuildConfig.TAG, "Failed to parse String: ${ex.message}")
-        }
-    }
-
-    return list.toList()
-}

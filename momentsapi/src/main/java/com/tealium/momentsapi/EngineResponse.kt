@@ -1,7 +1,6 @@
-package com.tealium.visitorservice.momentsapi
+package com.tealium.momentsapi
 
 import com.tealium.core.JsonUtils
-import com.tealium.visitorservice.asListOfStrings
 import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.Exception
@@ -113,4 +112,3 @@ data class EngineResponse(
 
     }
 }
-

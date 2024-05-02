@@ -1,4 +1,4 @@
-package com.tealium.visitorservice.momentsapi
+package com.tealium.momentsapi
 
 import android.app.Application
 import com.tealium.core.Environment
