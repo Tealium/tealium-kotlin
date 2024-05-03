@@ -1,6 +1,8 @@
 package com.tealium.fragments
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +21,8 @@ import com.tealium.momentsapi.ResponseListener
 import com.tealium.momentsapi.momentsApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class MomentsApiFragment : Fragment() {
     private lateinit var binding: FragmentMomentsApiBinding
@@ -37,12 +41,16 @@ class MomentsApiFragment : Fragment() {
 
         binding.fetchEngineResponseButton.setOnClickListener {
             TealiumHelper.trackEvent("fetch engine button click", emptyMap())
-            onFetchEngineData()
+            Executors.newSingleThreadScheduledExecutor().schedule({
+                onFetchEngineData()
+            }, 550, TimeUnit.MILLISECONDS)
         }
     }
 
     private fun onFetchEngineData() {
-            Tealium[BuildConfig.TEALIUM_INSTANCE]?.momentsApi?.fetchEngineResponse("4625fd31-cd87-444e-9470-7467f2e963ba", object : ResponseListener<EngineResponse> {
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.momentsApi?.fetchEngineResponse(
+            "4625fd31-cd87-444e-9470-7467f2e963ba",
+            object : ResponseListener<EngineResponse> {
                 override fun success(data: EngineResponse) {
                     activity?.runOnUiThread {
                         setEngineResponseData(data)

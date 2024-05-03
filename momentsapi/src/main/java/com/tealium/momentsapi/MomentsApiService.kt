@@ -6,6 +6,7 @@ import com.tealium.core.Modules
 import com.tealium.core.Tealium
 import com.tealium.core.TealiumContext
 import com.tealium.momentsapi.network.HttpClient
+import com.tealium.momentsapi.network.NetworkClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
