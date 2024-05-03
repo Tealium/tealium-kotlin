@@ -68,7 +68,12 @@
 -keep public class com.tealium.core.network.ConnectivityRetriever,
                     com.tealium.core.network.ConnectivityRetriever$Companion,
                     com.tealium.core.network.HttpClient,
-                    com.tealium.core.network.ResourceRetriever {
+                    com.tealium.core.network.ResourceRetriever,
+                    com.tealium.core.network.ResourceEntity,
+                    com.tealium.core.network.ResponseStatus,
+                    com.tealium.core.network.ResponseStatus$*,
+                    com.tealium.core.network.CooldownHelper,
+                    com.tealium.core.network.CooldownHelper$CooldownStatus {
     public protected *;
 }
 

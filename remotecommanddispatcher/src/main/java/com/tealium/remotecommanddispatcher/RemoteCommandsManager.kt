@@ -11,29 +11,33 @@ interface CommandsManager : Collector {
     fun getRemoteCommand(commandId: String): RemoteCommand?
     fun getRemoteCommandConfigRetriever(commandId: String): RemoteCommandConfigRetriever?
     fun getJsonRemoteCommands(): List<RemoteCommand>
+    suspend fun refreshConfig()
 }
 
 class RemoteCommandsManager(private val config: TealiumConfig) : CommandsManager {
     private val allCommands: MutableMap<String, RemoteCommand> = ConcurrentHashMap()
-    private val commandsConfigRetriever = mutableMapOf<String, RemoteCommandConfigRetriever>()
+    private val commandsConfigRetriever: MutableMap<String, RemoteCommandConfigRetriever> =
+        ConcurrentHashMap()
 
     override fun add(remoteCommand: RemoteCommand, filename: String?, remoteUrl: String?) {
         allCommands[remoteCommand.commandName] = remoteCommand
-        if (!filename.isNullOrEmpty()) {
-            commandsConfigRetriever[remoteCommand.commandName] =
-                AssetRemoteCommandConfigRetriever(config, filename)
-        } else if (!remoteUrl.isNullOrEmpty()) {
+        if (!remoteUrl.isNullOrEmpty()) {
             commandsConfigRetriever[remoteCommand.commandName] =
                 UrlRemoteCommandConfigRetriever(config, remoteCommand.commandName, remoteUrl)
+        } else if (!filename.isNullOrEmpty()) {
+            commandsConfigRetriever[remoteCommand.commandName] =
+                AssetRemoteCommandConfigRetriever(config, filename)
         }
     }
 
     override fun remove(commandId: String) {
         allCommands.remove(commandId)
+        commandsConfigRetriever.remove(commandId)
     }
 
     override fun removeAll() {
         allCommands.clear()
+        commandsConfigRetriever.clear()
     }
 
     override fun getRemoteCommand(commandId: String): RemoteCommand? {
@@ -45,13 +49,15 @@ class RemoteCommandsManager(private val config: TealiumConfig) : CommandsManager
     }
 
     override fun getJsonRemoteCommands(): List<RemoteCommand> {
-        val jsonRemoteCommands = mutableListOf<RemoteCommand>()
-        commandsConfigRetriever.forEach { (key, command) ->
-            allCommands[key]?.let {
-                jsonRemoteCommands.add(it)
-            }
+        return commandsConfigRetriever.mapNotNull { (key, _) ->
+            allCommands[key]
         }
-        return jsonRemoteCommands
+    }
+
+    override suspend fun refreshConfig() {
+        commandsConfigRetriever.forEach { (_, retriever) ->
+            retriever.refreshConfig()
+        }
     }
 
     override suspend fun collect(): Map<String, Any> {

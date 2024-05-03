@@ -137,6 +137,8 @@ class RemoteCommandDispatcher(private val context: TealiumContext,
         manager.getJsonRemoteCommands().forEach { jsonCommand ->
             parseJsonRemoteCommand(jsonCommand, dispatch)
         }
+
+        manager.refreshConfig()
     }
 
     override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {

@@ -2,6 +2,7 @@ package com.tealium.remotecommanddispatcher
 
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class RemoteCommandConfigTests {
@@ -14,28 +15,28 @@ class RemoteCommandConfigTests {
 
     @Test
     fun remoteCommandConfigValidParseFromJson() {
-        val remoteCommandConfig = "{\n" +
-                "  \"config\": {\n" +
-                "  \"config_setting1\": \"setting1\",\n" +
-                "  \"config_setting2\": \"setting2\",\n" +
-                "  \"config_setting3\": \"setting3\",\n" +
-                "  \"config_setting4\": \"setting4\"\n" +
-                "  },\n" +
-                "  \"mappings\": {\n" +
-                "  \"mappings_test1\": \"param_test1\",\n" +
-                "  \"mappings_test2\": \"param_test2\",\n" +
-                "  \"mappings_test3\": \"param_test3\",\n" +
-                "  \"mappings_test4\": \"param_test4\",\n" +
-                "  \"mappings_test5\": \"param_test5\"\n" +
-                "  },\n" +
-                "  \"commands\": {\n" +
-                "  \"launch\": \"initialize\",\n" +
-                "  \"screen_view\": \"setscreenname\",\n" +
-                "  \"click_thru\": \"logevent\",\n" +
-                "  \"social_media_activity\": \"setuserid\",\n" +
-                "  \"user_login\": \"logevent\"\n" +
-                "  }\n" +
-                "}"
+        val remoteCommandConfig = """{
+          "config": {
+          "config_setting1": "setting1",
+          "config_setting2": "setting2",
+          "config_setting3": "setting3",
+          "config_setting4": "setting4"
+          },
+          "mappings": {
+          "mappings_test1": "param_test1",
+          "mappings_test2": "param_test2",
+          "mappings_test3": "param_test3",
+          "mappings_test4": "param_test4",
+          "mappings_test5": "param_test5"
+          },
+          "commands": {
+          "launch": "initialize",
+          "screen_view": "setscreenname",
+          "click_thru": "logevent",
+          "social_media_activity": "setuserid",
+          "user_login": "logevent"
+          }
+        }"""
         val json = JSONObject(remoteCommandConfig)
         val config = RemoteCommandConfig.fromJson(json)
 
@@ -46,28 +47,28 @@ class RemoteCommandConfigTests {
 
     @Test
     fun remoteCommandConfigWithCompoundCommandsValidParseFromJson() {
-        val remoteCommandConfig = "{\n" +
-                "  \"config\": {\n" +
-                "  \"config_setting1\": \"setting1\",\n" +
-                "  \"config_setting2\": \"setting2\",\n" +
-                "  \"config_setting3\": \"setting3\",\n" +
-                "  \"config_setting4\": \"setting4\"\n" +
-                "  },\n" +
-                "  \"mappings\": {\n" +
-                "  \"mappings_test1\": \"param_test1\",\n" +
-                "  \"mappings_test2\": \"param_test2\",\n" +
-                "  \"mappings_test3\": \"param_test3\",\n" +
-                "  \"mappings_test4\": \"param_test4\",\n" +
-                "  \"mappings_test5\": \"param_test5\"\n" +
-                "  },\n" +
-                "  \"commands\": {\n" +
-                "  \"tealium_event:launch\": \"initialize\",\n" +
-                "  \"screen_view:home,page_content:homeView\": \"setscreenname\",\n" +
-                "  \"click_thru\": \"logevent\",\n" +
-                "  \"social_media_activity\": \"setuserid\",\n" +
-                "  \"user_login\": \"logevent\"\n" +
-                "  }\n" +
-                "}"
+        val remoteCommandConfig = """{
+          "config": {
+          "config_setting1": "setting1",
+          "config_setting2": "setting2",
+          "config_setting3": "setting3",
+          "config_setting4": "setting4"
+          },
+          "mappings": {
+          "mappings_test1": "param_test1",
+          "mappings_test2": "param_test2",
+          "mappings_test3": "param_test3",
+          "mappings_test4": "param_test4",
+          "mappings_test5": "param_test5"
+          },
+          "commands": {
+          "tealium_event:launch": "initialize",
+          "screen_view:home,page_content:homeView": "setscreenname",
+          "click_thru": "logevent",
+          "social_media_activity": "setuserid",
+          "user_login": "logevent"
+          }
+        }"""
         val json = JSONObject(remoteCommandConfig)
         val config = RemoteCommandConfig.fromJson(json)
 
@@ -78,28 +79,28 @@ class RemoteCommandConfigTests {
 
     @Test
     fun remoteCommandConfigValidToJson() {
-        val remoteCommandConfig = "{\n" +
-                "  \"config\": {\n" +
-                "  \"config_setting1\": \"setting1\",\n" +
-                "  \"config_setting2\": \"setting2\",\n" +
-                "  \"config_setting3\": \"setting3\",\n" +
-                "  \"config_setting4\": \"setting4\"\n" +
-                "  },\n" +
-                "  \"mappings\": {\n" +
-                "  \"mappings_test1\": \"param_test1\",\n" +
-                "  \"mappings_test2\": \"param_test2\",\n" +
-                "  \"mappings_test3\": \"param_test3\",\n" +
-                "  \"mappings_test4\": \"param_test4\",\n" +
-                "  \"mappings_test5\": \"param_test5\"\n" +
-                "  },\n" +
-                "  \"commands\": {\n" +
-                "  \"launch\": \"initialize\",\n" +
-                "  \"screen_view\": \"setscreenname\",\n" +
-                "  \"click_thru\": \"logevent\",\n" +
-                "  \"social_media_activity\": \"setuserid\",\n" +
-                "  \"user_login\": \"logevent\"\n" +
-                "  }\n" +
-                "}"
+        val remoteCommandConfig = """{
+          "config": {
+          "config_setting1": "setting1",
+          "config_setting2": "setting2",
+          "config_setting3": "setting3",
+          "config_setting4": "setting4"
+          },
+          "mappings": {
+          "mappings_test1": "param_test1",
+          "mappings_test2": "param_test2",
+          "mappings_test3": "param_test3",
+          "mappings_test4": "param_test4",
+          "mappings_test5": "param_test5"
+          },
+          "commands": {
+          "launch": "initialize",
+          "screen_view": "setscreenname",
+          "click_thru": "logevent",
+          "social_media_activity": "setuserid",
+          "user_login": "logevent"
+          }
+        }"""
         val json = JSONObject(remoteCommandConfig)
         val config = RemoteCommandConfig(apiConfig = expectedConfig, mappings = expectedMappings, apiCommands = expectedCommands)
         val configJson = RemoteCommandConfig.toJson(config)
@@ -109,28 +110,28 @@ class RemoteCommandConfigTests {
 
     @Test
     fun remoteCommandConfigWithCompoundCommandsValidToJson() {
-        val remoteCommandConfig = "{\n" +
-                "  \"config\": {\n" +
-                "  \"config_setting1\": \"setting1\",\n" +
-                "  \"config_setting2\": \"setting2\",\n" +
-                "  \"config_setting3\": \"setting3\",\n" +
-                "  \"config_setting4\": \"setting4\"\n" +
-                "  },\n" +
-                "  \"mappings\": {\n" +
-                "  \"mappings_test1\": \"param_test1\",\n" +
-                "  \"mappings_test2\": \"param_test2\",\n" +
-                "  \"mappings_test3\": \"param_test3\",\n" +
-                "  \"mappings_test4\": \"param_test4\",\n" +
-                "  \"mappings_test5\": \"param_test5\"\n" +
-                "  },\n" +
-                "  \"commands\": {\n" +
-                "  \"tealium_event:launch\": \"initialize\",\n" +
-                "  \"screen_view:home,page_content:homeView\": \"setscreenname\",\n" +
-                "  \"click_thru\": \"logevent\",\n" +
-                "  \"social_media_activity\": \"setuserid\",\n" +
-                "  \"user_login\": \"logevent\"\n" +
-                "  }\n" +
-                "}"
+        val remoteCommandConfig = """{
+          "config": {
+          "config_setting1": "setting1",
+          "config_setting2": "setting2",
+          "config_setting3": "setting3",
+          "config_setting4": "setting4"
+          },
+          "mappings": {
+          "mappings_test1": "param_test1",
+          "mappings_test2": "param_test2",
+          "mappings_test3": "param_test3",
+          "mappings_test4": "param_test4",
+          "mappings_test5": "param_test5"
+          },
+          "commands": {
+          "tealium_event:launch": "initialize",
+          "screen_view:home,page_content:homeView": "setscreenname",
+          "click_thru": "logevent",
+          "social_media_activity": "setuserid",
+          "user_login": "logevent"
+          }
+        }"""
         val json = JSONObject(remoteCommandConfig)
         val config = RemoteCommandConfig(apiConfig = expectedConfig, mappings = expectedMappings, apiCommands = expectedCompoundCommands)
         val configJson = RemoteCommandConfig.toJson(config)
@@ -140,28 +141,28 @@ class RemoteCommandConfigTests {
 
     @Test
     fun remoteCommandConfigWithDefaultDelimitersValidToJson() {
-        val remoteCommandConfig = "{\n" +
-                "  \"config\": {\n" +
-                "  \"config_setting1\": \"setting1\",\n" +
-                "  \"config_setting2\": \"setting2\",\n" +
-                "  \"config_setting3\": \"setting3\",\n" +
-                "  \"config_setting4\": \"setting4\"\n" +
-                "  },\n" +
-                "  \"mappings\": {\n" +
-                "  \"mappings_test1\": \"param_test1\",\n" +
-                "  \"mappings_test2\": \"param_test2\",\n" +
-                "  \"mappings_test3\": \"param_test3\",\n" +
-                "  \"mappings_test4\": \"param_test4\",\n" +
-                "  \"mappings_test5\": \"param_test5\"\n" +
-                "  },\n" +
-                "  \"commands\": {\n" +
-                "  \"launch\": \"initialize\",\n" +
-                "  \"screen_view\": \"setscreenname\",\n" +
-                "  \"click_thru\": \"logevent\",\n" +
-                "  \"social_media_activity\": \"setuserid\",\n" +
-                "  \"user_login\": \"logevent\"\n" +
-                "  }\n" +
-                "}"
+        val remoteCommandConfig = """{
+          "config": {
+          "config_setting1": "setting1",
+          "config_setting2": "setting2",
+          "config_setting3": "setting3",
+          "config_setting4": "setting4"
+          },
+          "mappings": {
+          "mappings_test1": "param_test1",
+          "mappings_test2": "param_test2",
+          "mappings_test3": "param_test3",
+          "mappings_test4": "param_test4",
+          "mappings_test5": "param_test5"
+          },
+          "commands": {
+          "launch": "initialize",
+          "screen_view": "setscreenname",
+          "click_thru": "logevent",
+          "social_media_activity": "setuserid",
+          "user_login": "logevent"
+          }
+        }"""
         val json = JSONObject(remoteCommandConfig)
         val config = RemoteCommandConfig.fromJson(json)
 
@@ -171,28 +172,28 @@ class RemoteCommandConfigTests {
 
     @Test
     fun remoteCommandConfigWithCustomDelimitersValidToJson() {
-        val remoteCommandConfig = "{\n" +
-                "  \"config\": {\n" +
-                "  \"config_setting1\": \"setting1\",\n" +
-                "  \"config_setting2\": \"setting2\",\n" +
-                "  \"keys_separation_delimiter\": \"&&\",\n" +
-                "  \"keys_equality_delimiter\": \"==\"\n" +
-                "  },\n" +
-                "  \"mappings\": {\n" +
-                "  \"mappings_test1\": \"param_test1\",\n" +
-                "  \"mappings_test2\": \"param_test2\",\n" +
-                "  \"mappings_test3\": \"param_test3\",\n" +
-                "  \"mappings_test4\": \"param_test4\",\n" +
-                "  \"mappings_test5\": \"param_test5\"\n" +
-                "  },\n" +
-                "  \"commands\": {\n" +
-                "  \"launch\": \"initialize\",\n" +
-                "  \"screen_view\": \"setscreenname\",\n" +
-                "  \"click_thru\": \"logevent\",\n" +
-                "  \"social_media_activity\": \"setuserid\",\n" +
-                "  \"user_login\": \"logevent\"\n" +
-                "  }\n" +
-                "}"
+        val remoteCommandConfig = """{
+          "config": {
+          "config_setting1": "setting1",
+          "config_setting2": "setting2",
+          "keys_separation_delimiter": "&&",
+          "keys_equality_delimiter": "=="
+          },
+          "mappings": {
+          "mappings_test1": "param_test1",
+          "mappings_test2": "param_test2",
+          "mappings_test3": "param_test3",
+          "mappings_test4": "param_test4",
+          "mappings_test5": "param_test5"
+          },
+          "commands": {
+          "launch": "initialize",
+          "screen_view": "setscreenname",
+          "click_thru": "logevent",
+          "social_media_activity": "setuserid",
+          "user_login": "logevent"
+          }
+        }"""
         val json = JSONObject(remoteCommandConfig)
         val config = RemoteCommandConfig.fromJson(json)
 
@@ -202,37 +203,37 @@ class RemoteCommandConfigTests {
 
     @Test
     fun remoteCommandConfigWithStaticsValidToJson() {
-        val remoteCommandConfig = "{\n" +
-                "  \"config\": {\n" +
-                "  \"config_setting1\": \"setting1\",\n" +
-                "  \"config_setting2\": \"setting2\",\n" +
-                "  \"config_setting3\": \"setting3\",\n" +
-                "  \"config_setting4\": \"setting4\"\n" +
-                "  },\n" +
-                "  \"mappings\": {\n" +
-                "  \"mappings_test1\": \"param_test1\",\n" +
-                "  \"mappings_test2\": \"param_test2\",\n" +
-                "  \"mappings_test3\": \"param_test3\",\n" +
-                "  \"mappings_test4\": \"param_test4\",\n" +
-                "  \"mappings_test5\": \"param_test5\"\n" +
-                "  },\n" +
-                "  \"commands\": {\n" +
-                "  \"launch\": \"initialize\",\n" +
-                "  \"screen_view\": \"setscreenname\",\n" +
-                "  \"click_thru\": \"logevent\",\n" +
-                "  \"social_media_activity\": \"setuserid\",\n" +
-                "  \"user_login\": \"logevent\"\n" +
-                "  },\n" +
-                "  \"statics\": {\n" +
-                "  \"launch\": {\n" +
-                "  \"static_key1\": launch_event,\n" +
-                "  \"static_key2\": \"some_value\"\n" +
-                "  },\n" +
-                "  \"tealium_event:click,page_name:home\": {\n" +
-                "  \"static_key\": \"click_value\"\n" +
-                "  }\n" +
-                "  }\n" +
-                "}"
+        val remoteCommandConfig = """{
+          "config": {
+          "config_setting1": "setting1",
+          "config_setting2": "setting2",
+          "config_setting3": "setting3",
+          "config_setting4": "setting4"
+          },
+          "mappings": {
+          "mappings_test1": "param_test1",
+          "mappings_test2": "param_test2",
+          "mappings_test3": "param_test3",
+          "mappings_test4": "param_test4",
+          "mappings_test5": "param_test5"
+          },
+          "commands": {
+          "launch": "initialize",
+          "screen_view": "setscreenname",
+          "click_thru": "logevent",
+          "social_media_activity": "setuserid",
+          "user_login": "logevent"
+          },
+          "statics": {
+          "launch": {
+          "static_key1": launch_event,
+          "static_key2": "some_value"
+          },
+          "tealium_event:click,page_name:home": {
+          "static_key": "click_value"
+          }
+          }
+        }"""
         val json = JSONObject(remoteCommandConfig)
         val config = RemoteCommandConfig(apiConfig = expectedConfig, mappings = expectedMappings, apiCommands = expectedCommands, statics = expectedStatics)
         val configJson = RemoteCommandConfig.toJson(config)
@@ -266,5 +267,23 @@ class RemoteCommandConfigTests {
         val configFromJson = RemoteCommandConfig.fromJson(configJson)
 
         assertEquals(config, configFromJson)
+    }
+
+    @Test
+    fun remoteCommandConfigWithEtagReturnsSameEtag() {
+        val config = RemoteCommandConfig(etag = "my-etag")
+        val configJson = RemoteCommandConfig.toJson(config)
+        val configFromJson = RemoteCommandConfig.fromJson(configJson)
+
+        assertEquals("my-etag", configFromJson.etag)
+    }
+
+    @Test
+    fun remoteCommandConfigWithNullEtagReturnsNullEtag() {
+        val config = RemoteCommandConfig()
+        val configJson = RemoteCommandConfig.toJson(config)
+        val configFromJson = RemoteCommandConfig.fromJson(configJson)
+
+        assertNull(configFromJson.etag)
     }
 }

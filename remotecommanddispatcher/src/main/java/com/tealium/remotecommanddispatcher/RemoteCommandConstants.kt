@@ -8,6 +8,7 @@ object Settings {
     const val COMMANDS = "commands"
     const val STATICS = "statics"
     const val COMMAND_NAME = "command_name"
+    const val ETAG = "etag"
 
     const val ALL_EVENTS = "all_events"
     const val ALL_VIEWS = "all_views"
