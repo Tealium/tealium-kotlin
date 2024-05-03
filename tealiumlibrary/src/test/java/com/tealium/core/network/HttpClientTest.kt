@@ -17,6 +17,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.net.MalformedURLException
 
 @RunWith(RobolectricTestRunner::class)
 class HttpClientTest {
@@ -184,7 +185,7 @@ class HttpClientTest {
         mockWebServer.enqueue(MockResponse()
             .setResponseCode(200)
             .setBody("{\"hello\":\"world\"}")
-            .setHeader("etag", "1234567890")
+            .setHeader("etag", "11111111")
         )
         mockWebServer.start(port)
 
@@ -196,7 +197,7 @@ class HttpClientTest {
         val response = resourceEntity?.response
         val etag = resourceEntity?.etag
         assertEquals("{\"hello\":\"world\"}", response)
-        assertEquals("1234567890", etag)
+        assertEquals("11111111", etag)
 
         val request = mockWebServer.takeRequest()
         assertEquals("GET / HTTP/1.1", request.requestLine)
@@ -228,12 +229,47 @@ class HttpClientTest {
     }
 
     @Test
-    fun getResourceEntityReturnsNullNoConnection() = runBlocking {
+    fun getResourceEntityReturnsNoConnectionResponseStatus() = runBlocking {
         every { mockConnectivity.isConnected() } returns false
         mockWebServer = MockWebServer()
         val resourceEntity = httpClient.getResourceEntity("http://test.com")
-        assertNull(resourceEntity)
-        assertNotNull(errorMessage)
+        assertNotNull(resourceEntity)
+        assertEquals(ResponseStatus.NotConnected, resourceEntity?.status)
+    }
+
+    @Test
+    fun getResourceEntityReturnsNon200ResponseStatus() = runBlocking {
+        every { mockConnectivity.isConnected() } returns true
+        mockWebServer = MockWebServer()
+        mockWebServer.enqueue(MockResponse()
+            .setResponseCode(304))
+        mockWebServer.start(port)
+
+        val urlString = "http://localhost:$port"
+        mockWebServer.url(urlString)
+
+        val resourceEntity = httpClient.getResourceEntity(urlString)
+        assertNotNull(resourceEntity)
+        val status = resourceEntity!!.status as ResponseStatus.Non200Response
+        assertEquals(304, status.code)
+    }
+
+    @Test
+    fun getResourceEntityReturnsUnknownResponseStatus() = runBlocking {
+        every { mockConnectivity.isConnected() } returns true
+
+        mockWebServer = MockWebServer()
+        mockWebServer.enqueue(MockResponse()
+            .setResponseCode(304))
+        mockWebServer.start(port)
+
+        val urlString = "http://localhost:$port"
+        mockWebServer.url(urlString)
+
+        val resourceEntity = httpClient.getResourceEntity("")
+        assertNotNull(resourceEntity)
+        val error = resourceEntity!!.status as ResponseStatus.UnknownError
+        assertTrue(error.cause is MalformedURLException)
     }
 
     @Test

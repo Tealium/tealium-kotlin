@@ -219,6 +219,58 @@ class WebViewLoaderTest {
     }
 
     @Test
+    fun newSession_OnlyReloadsWebViewUrl_When_NewSession() = runBlocking {
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, webViewProvider = mockWebViewProvider)
+        delay(100)
+
+        webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
+        webViewLoader.lastUrlLoadTimestamp = 0L
+        webViewLoader.onSessionStarted(12345L)
+
+        verify(timeout = 1000, exactly = 1) { // initial load only
+            mockWebView.loadUrl(any())
+        }
+    }
+
+    @Test
+    fun newSession_ReloadsWebViewUrl_When_NewSession() = runBlocking {
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, webViewProvider = mockWebViewProvider)
+        delay(100)
+
+        webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
+        webViewLoader.lastUrlLoadTimestamp = 0L
+        webViewLoader.onSessionStarted(11111L)
+        webViewLoader.onSessionStarted(22222L)
+        webViewLoader.onSessionStarted(33333L)
+
+        verify(timeout = 1000, exactly = 2) { // initial load + one new session
+            mockWebView.loadUrl(any())
+        }
+    }
+
+    @Test
+    fun newSession_DoesNot_ReloadWebViewUrl_When_NotLoadedSuccess() = runBlocking {
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, webViewProvider = mockWebViewProvider)
+        delay(100)
+
+        webViewLoader.lastUrlLoadTimestamp = 0L
+        webViewLoader.webViewStatus.set(PageStatus.INIT)
+        webViewLoader.onSessionStarted(11111L)
+        webViewLoader.webViewStatus.set(PageStatus.INITIALIZING)
+        webViewLoader.onSessionStarted(22222L)
+        webViewLoader.webViewStatus.set(PageStatus.INITIALIZED)
+        webViewLoader.onSessionStarted(33333L)
+        webViewLoader.webViewStatus.set(PageStatus.LOADING)
+        webViewLoader.onSessionStarted(44444L)
+        webViewLoader.webViewStatus.set(PageStatus.LOADED_ERROR)
+        webViewLoader.onSessionStarted(55555L)
+
+        verify(timeout = 1000, exactly = 1) { // initial load only
+            mockWebView.loadUrl(any())
+        }
+    }
+
+    @Test
     fun createSessionUrlIsCorrect() {
         assertEquals("https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=test/profile/12345&cb=12345",
                 WebViewLoader.createSessionUrl(mockTealiumConfig, 12345L))

@@ -18,10 +18,10 @@ class LibrarySettingsManager(
     networkClient: NetworkClient,
     private var loader: Loader = JsonLoader.getInstance(config.application),
     private var eventRouter: EventRouter,
-    private val backgroundScope: CoroutineScope
+    private val backgroundScope: CoroutineScope,
 ) {
 
-    private val resourceRetriever: ResourceRetriever
+    internal val resourceRetriever: ResourceRetriever
     private var job: Deferred<ResourceEntity?>? = null
 
     // Asset
@@ -43,12 +43,20 @@ class LibrarySettingsManager(
     var librarySettings: LibrarySettings by Delegates.observable(
         initialValue = loadSettings(),
         onChange = { _, _, new ->
+            setRefreshInterval(new.refreshInterval)
             eventRouter.onLibrarySettingsUpdated(new)
         }
     )
     private val defaultInitialSettings: LibrarySettings
         get() = config.overrideDefaultLibrarySettings ?: LibrarySettings()
 
+    init {
+        setRefreshInterval(librarySettings.refreshInterval)
+    }
+
+    private fun setRefreshInterval(seconds: Int) {
+        resourceRetriever.refreshInterval = seconds / 60
+    }
 
     suspend fun fetchLibrarySettings() = coroutineScope {
         when (config.useRemoteLibrarySettings) {
@@ -84,6 +92,7 @@ class LibrarySettingsManager(
                 }
                 cachedSettings
             }
+
             false -> {
                 loadFromAsset(assetString).also {
                     if (it != null) Logger.dev(BuildConfig.TAG, "Loaded local library settings.")
@@ -124,7 +133,8 @@ class LibrarySettingsManager(
                     null
                 }
             }
-            job?.await()?.let { resource ->
+            val resource = job?.await()
+            resource?.let { resource ->
                 try {
                     // TODO: should read resource headers to determine the file type
                     val settings = when (urlString.endsWith(".html")) {
@@ -134,6 +144,7 @@ class LibrarySettingsManager(
                                 LibrarySettings.fromMobilePublishSettings(it)
                             }
                         }
+
                         false -> {
                             if (resource.response?.let { JsonUtils.isValidJson(it) } == true) {
                                 val json = JSONObject(resource.response)
