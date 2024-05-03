@@ -72,8 +72,16 @@ open class ModuleManager(moduleList: List<Module>): LibrarySettingsUpdatedListen
                     it.value.enabled = false
                 }
             }
+            return
         }
-        //TODO - finish the updating of enabled/disabled logic for things other than just the SDK Disable. i.e. Tagmanagement/Collect enable/disable.
+
+        val collectModule = getModule("Collect")    // Collect 1.0.4 and above
+            ?: getModule("COLLECT_DISPATCHER")      // Collect 1.0.3 and below
+        collectModule?.enabled = settings.collectDispatcherEnabled
+
+        val tagManagementModule = getModule("TagManagement")    // TagMgmt 1.0.5 and above
+            ?: getModule("TAG_MANAGEMENT_DISPATCHER")           // TagMgmt 1.0.4 and below
+        tagManagementModule?.enabled = settings.tagManagementDispatcherEnabled
     }
 
     /**

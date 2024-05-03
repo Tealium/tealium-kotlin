@@ -312,7 +312,7 @@ class LibrarySettingsManagerTest {
                 "    \"max_queue_size\": 100,\n" +
                 "    \"expiration\" " +
                 "}"
-        val malFormedResource = ResourceEntity(malformedJson)
+        val malFormedResource = ResourceEntity(malformedJson, status = ResponseStatus.Success)
         config.useRemoteLibrarySettings = true
         config.overrideLibrarySettingsUrl = "tealium-settings.json"
         every { mockLoader.loadFromFile(any()) } returns null
@@ -330,8 +330,8 @@ class LibrarySettingsManagerTest {
         }
 
         assertEquals(defaultLibrarySettings, librarySettingsManager.librarySettings)
-        assertEquals(false, librarySettingsManager.librarySettings.collectDispatcherEnabled)
-        assertEquals(false, librarySettingsManager.librarySettings.tagManagementDispatcherEnabled)
+        assertEquals(true, librarySettingsManager.librarySettings.collectDispatcherEnabled)
+        assertEquals(true, librarySettingsManager.librarySettings.tagManagementDispatcherEnabled)
         assertEquals(100, librarySettingsManager.librarySettings.batching.maxQueueSize)
         assertEquals(false, librarySettingsManager.librarySettings.batterySaver)
     }
@@ -346,7 +346,7 @@ class LibrarySettingsManagerTest {
                 "    \"max_queue_size\": 100,\n" +
                 "    \"expiration\" " +
                 "}"
-        val malFormedResource = ResourceEntity(malformedJson)
+        val malFormedResource = ResourceEntity(malformedJson, status = ResponseStatus.Success)
         config.useRemoteLibrarySettings = true
         config.overrideLibrarySettingsUrl = "tealium-settings.json"
         every { mockLoader.loadFromFile(any()) } returns malformedJson
@@ -364,8 +364,8 @@ class LibrarySettingsManagerTest {
         }
 
         assertEquals(defaultLibrarySettings, librarySettingsManager.librarySettings)
-        assertEquals(false, librarySettingsManager.librarySettings.collectDispatcherEnabled)
-        assertEquals(false, librarySettingsManager.librarySettings.tagManagementDispatcherEnabled)
+        assertEquals(true, librarySettingsManager.librarySettings.collectDispatcherEnabled)
+        assertEquals(true, librarySettingsManager.librarySettings.tagManagementDispatcherEnabled)
         assertEquals(100, librarySettingsManager.librarySettings.batching.maxQueueSize)
         assertEquals(false, librarySettingsManager.librarySettings.batterySaver)
     }
@@ -377,7 +377,7 @@ class LibrarySettingsManagerTest {
                 <html>
                 <head><title>Tealium Mobile Webview</title></head>
                 <body>
-                <script type="text/javascript">var utag_cfg_ovrd={noview:true};var mps = {"4":{"_is_enabled":"true","battery_saver":"true","dispatch_expiration":"-1","event_batch_size":"1","ivar_tracking":"true","mobile_companion":"true","offline_dispatch_limit":"-1","ui_auto_tracking":"true","wifi_only_sending":"false"},"5":{"_is_enabled":"true","battery_saver":"true","dispatch_expiration":"-1","enable_collect":"true","enable_s2s_legacy":"false","enable_tag_management":"true","event_batch_size":"1","minutes_between_refresh":"15.0","offline_dispatch_limit":"100","override_log":"dev","wifi_only_sending":"false"},"_firstpublish":"true"}</script>
+                <script type="text/javascript">var utag_cfg_ovrd={noview:true};var mps = {"4":{"_is_enabled":"true","battery_saver":"true","dispatch_expiration":"-1","event_batch_size":"1","ivar_tracking":"true","mobile_companion":"true","offline_dispatch_limit":"-1","ui_auto_tracking":"true","wifi_only_sending":"false"},"5":{"_is_enabled":"true","battery_saver":"true","dispatch_expiration":"-1","enable_collect":"false","enable_s2s_legacy":"false","enable_tag_management":"false","event_batch_size":"1","minutes_between_refresh":"15.0","offline_dispatch_limit":"100","override_log":"dev","wifi_only_sending":"false"},"_firstpublish":"true"}</script>
                 <script type="text/javascript">
                     if (("" + location.search).indexOf("sdk_session_count=true") > -1) {
                       window.utag_cfg_ovrd = window.utag_cfg_ovrd || {};
@@ -404,8 +404,8 @@ class LibrarySettingsManagerTest {
             mockEventRouter.onLibrarySettingsUpdated(any())
         }
 
-        assertEquals(true, librarySettingsManager.librarySettings.collectDispatcherEnabled)
-        assertEquals(true, librarySettingsManager.librarySettings.tagManagementDispatcherEnabled)
+        assertEquals(false, librarySettingsManager.librarySettings.collectDispatcherEnabled)
+        assertEquals(false, librarySettingsManager.librarySettings.tagManagementDispatcherEnabled)
         assertEquals(100, librarySettingsManager.librarySettings.batching.maxQueueSize)
         assertEquals(true, librarySettingsManager.librarySettings.batterySaver)
     }
@@ -504,5 +504,49 @@ class LibrarySettingsManagerTest {
 
         delay(500)
         assertEquals(25, librarySettingsManager.resourceRetriever.refreshInterval)
+    }
+
+    @Test
+    fun initialSettings_Returns_Null_When_NoCache_And_RemoteSetting_Enabled() {
+        config.useRemoteLibrarySettings = true
+        every { mockLoader.loadFromFile(any()) } returns null
+        every { mockLoader.loadFromAsset(any()) } returns null
+
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
+
+        assertNull(librarySettingsManager.initialSettings)
+    }
+
+    @Test
+    fun initialSettings_Returns_Null_When_NoAsset_And_RemoteSetting_Disabled() {
+        config.useRemoteLibrarySettings = false
+        every { mockLoader.loadFromFile(any()) } returns null
+        every { mockLoader.loadFromAsset(any()) } returns null
+
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
+
+        assertNull(librarySettingsManager.initialSettings)
+    }
+
+    @Test
+    fun initialSettings_Returns_CachedSettings_When_RemoteSetting_Enabled() {
+        config.useRemoteLibrarySettings = true
+        every { mockLoader.loadFromFile(any()) } returns LibrarySettings.toJson(LibrarySettings()).toString()
+        every { mockLoader.loadFromAsset(any()) } returns null
+
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
+
+        assertEquals(defaultLibrarySettings, librarySettingsManager.initialSettings)
+    }
+
+    @Test
+    fun initialSettings_Returns_AssetSettings_When_RemoteSetting_Disabled() {
+        config.useRemoteLibrarySettings = false
+        every { mockLoader.loadFromFile(any()) } returns null
+        every { mockLoader.loadFromAsset(any()) } returns LibrarySettings.toJson(LibrarySettings()).toString()
+
+        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
+
+        assertEquals(defaultLibrarySettings, librarySettingsManager.initialSettings)
     }
 }

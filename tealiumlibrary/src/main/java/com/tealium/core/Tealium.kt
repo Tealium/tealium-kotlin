@@ -14,6 +14,7 @@ import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
 import com.tealium.core.persistence.*
 import com.tealium.core.settings.LibrarySettingsManager
+import com.tealium.core.settings.LogLevelUpdateHandler
 import com.tealium.core.validation.BatchingValidator
 import com.tealium.core.validation.BatteryValidator
 import com.tealium.core.validation.ConnectivityValidator
@@ -173,17 +174,20 @@ class Tealium private constructor(
             _dataLayer.clearSessionData(session.id)
         }
 
-        Logger.logLevel = config.logLevel ?: when (config.environment) {
-            Environment.DEV -> LogLevel.DEV
-            Environment.QA -> LogLevel.QA
-            Environment.PROD -> LogLevel.PROD
-        }
+        Logger.logLevel = config.logLevel
+            ?: librarySettingsManager.initialSettings?.logLevel
+                    ?: config.overrideDefaultLibrarySettings?.logLevel
+                    ?: when (config.environment) {
+                Environment.DEV -> LogLevel.DEV
+                Environment.QA -> LogLevel.QA
+                Environment.PROD -> LogLevel.PROD
+            }
 
         // Subscribe user event listeners
         eventRouter.subscribeAll(config.events.toList())
 
         deepLinkHandler = DeepLinkHandler(context, backgroundScope)
-        eventRouter.subscribeAll(listOf(Logger, sessionManager, deepLinkHandler))
+        eventRouter.subscribeAll(listOf(Logger, sessionManager, deepLinkHandler, LogLevelUpdateHandler(config.logLevel)))
         timedEvents = TimedEventsManager(context)
 
         config.visitorIdentityKey?.let {
@@ -220,6 +224,7 @@ class Tealium private constructor(
                 sessionManager.track(dispatchCopy)
                 dispatchRouter.track(dispatchCopy)
             }
+
             false -> {
                 logger.dev(BuildConfig.TAG, "Instance not yet initialized; buffering.")
                 dispatchBuffer.add(dispatchCopy)

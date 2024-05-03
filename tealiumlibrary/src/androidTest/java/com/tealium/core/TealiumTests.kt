@@ -9,10 +9,13 @@ import com.tealium.core.messaging.ExternalListener
 import com.tealium.core.messaging.Messenger
 import com.tealium.core.messaging.NewSessionListener
 import com.tealium.core.persistence.Expiry
+import com.tealium.core.settings.LibrarySettings
 import io.mockk.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.After
@@ -108,6 +111,96 @@ class TealiumTests {
             ).apply { logLevel = LogLevel.QA }
         )
         assertEquals(Logger.logLevel, LogLevel.QA)
+    }
+
+    @Test
+    fun testConfig_LogLevel_Uses_CachedLibrarySettings_When_Present() {
+        val mockLoader = mockk<JsonLoader>()
+        mockkObject(JsonLoader.Companion)
+        every { JsonLoader.Companion.getInstance(any()) } returns mockLoader
+        every { mockLoader.loadFromFile(any()) } returns """
+            { "log_level": "qa" }
+        """.trimIndent()
+        every { mockLoader.loadFromAsset(any()) } returns null
+
+        Tealium.create(
+            "loglevel", TealiumConfig(
+                application,
+                configWithNoModules.accountName,
+                configWithNoModules.profileName,
+                Environment.PROD
+            ).apply { useRemoteLibrarySettings = true }
+        )
+        assertEquals(Logger.logLevel, LogLevel.QA)
+
+        unmockkObject(JsonLoader.Companion)
+    }
+
+    @Test
+    fun testConfig_LogLevel_Uses_AssetLibrarySettings_When_Present() {
+        val mockLoader = mockk<JsonLoader>()
+        mockkObject(JsonLoader.Companion)
+        every { JsonLoader.Companion.getInstance(any()) } returns mockLoader
+        every { mockLoader.loadFromFile(any()) } returns null
+        every { mockLoader.loadFromAsset(any()) } returns """
+            { "log_level": "qa" }
+        """.trimIndent()
+
+        Tealium.create(
+            "loglevel", TealiumConfig(
+                application,
+                configWithNoModules.accountName,
+                configWithNoModules.profileName,
+                Environment.PROD
+            ).apply { useRemoteLibrarySettings = false }
+        )
+        assertEquals(Logger.logLevel, LogLevel.QA)
+
+        unmockkObject(JsonLoader.Companion)
+    }
+
+    @Test
+    fun testConfig_LogLevel_Uses_OverrideDefaultLibrarySettings_When_Present() {
+        Tealium.create(
+            "loglevel", TealiumConfig(
+                application,
+                configWithNoModules.accountName,
+                configWithNoModules.profileName,
+                Environment.PROD
+            ).apply { overrideDefaultLibrarySettings = LibrarySettings(logLevel = LogLevel.DEV) }
+        )
+        assertEquals(Logger.logLevel, LogLevel.DEV)
+    }
+
+    @Test
+    fun testConfig_LogLevel_IsNotOverriddenByRemote_When_Config_IsSet() = runBlocking {
+        val mockWebServer = MockWebServer()
+        mockWebServer.enqueue(
+            MockResponse().setResponseCode(200).setBody(
+                """
+                    { "log_level": "qa" }
+                """.trimIndent()
+            )
+        )
+
+        mockWebServer.start()
+        val url = mockWebServer.url("/tealium-settings.json")
+
+        Tealium.create(
+            "loglevel", TealiumConfig(
+                application,
+                configWithNoModules.accountName,
+                configWithNoModules.profileName,
+                Environment.PROD
+            ).apply {
+                logLevel = LogLevel.DEV
+                useRemoteLibrarySettings = true
+                overrideLibrarySettingsUrl = url.toString()
+            }
+        )
+        assertEquals(Logger.logLevel, LogLevel.DEV)
+        delay(2500)
+        assertEquals(Logger.logLevel, LogLevel.DEV)
     }
 
     @Test
@@ -400,21 +493,22 @@ class TealiumTests {
     }
 
     @Test
-    fun test_SessionScopedData_WrittenByModules_IsNotRemovedOnLaunch_WhenNewSession() = runBlocking {
+    fun test_SessionScopedData_WrittenByModules_IsNotRemovedOnLaunch_WhenNewSession() =
+        runBlocking {
 
-        val config = TealiumConfig(application, "test", "test", Environment.DEV)
-        deleteSessionInfo(config)
+            val config = TealiumConfig(application, "test", "test", Environment.DEV)
+            deleteSessionInfo(config)
 
-        config.modules.add(object : ModuleFactory {
-            override fun create(context: TealiumContext): Module {
-                return DataWritingModule(context)
-            }
-        })
-        val tealium: Tealium = awaitCreateTealium("name", config)
+            config.modules.add(object : ModuleFactory {
+                override fun create(context: TealiumContext): Module {
+                    return DataWritingModule(context)
+                }
+            })
+            val tealium: Tealium = awaitCreateTealium("name", config)
 
-        assertEquals(10, tealium.dataLayer.getInt("session_int"))
-        assertEquals(Expiry.SESSION, tealium.dataLayer.getExpiry("session_int"))
-    }
+            assertEquals(10, tealium.dataLayer.getInt("session_int"))
+            assertEquals(Expiry.SESSION, tealium.dataLayer.getExpiry("session_int"))
+        }
 
     private fun containsOnlyValidTypes(data: Collection<*>): Boolean {
         return data.filterNotNull().fold(true) { initial, entry ->
