@@ -9,7 +9,9 @@
       - if a file name is also provided, then it will use that name to lookup the `Asset`
     - It is also now safe to omit the `.json` extension on the `filename` parameter when adding a new remote command, though the `.json` extension of the actual file should still be present. 
     - BugFix: Refresh interval was not being adhered to
-    - *Note* - `com.tealium:kotlin-core` module dependency minimum raised to `1.6.0` 
+    - *Note* - `com.tealium:kotlin-core` module dependency minimum raised to `1.6.0`
+  - TagManagementDispatcher 1.2.2
+    - WebView is refreshed on new session to ensure latest IQ configuration is available.  
 - 1.5.5 Sep 2023
   - BugFix: proguard adjustment resolve missing `BatchDispatch$Companion` class.
   - Minor lint warning fixes
