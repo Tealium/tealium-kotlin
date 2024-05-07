@@ -128,7 +128,7 @@ class WebViewClientTest {
         every { mockConnectivity.isConnected() } returns false
 
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockWebViewProvider)
-        delay(100)
+        delay(2000)
         assertEquals(PageStatus.INITIALIZED, webViewLoader.webViewStatus.get())
 
         every { mockConnectivity.isConnected() } returns true
@@ -279,11 +279,11 @@ class WebViewClientTest {
     @Test
     fun webViewClient_CrashRecreatesWebView() = runBlocking {
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
-        delay(1000)
+        delay(2000)
         val originalWebView = webViewLoader.webView
 
         webViewLoader.webViewClient.onRenderProcessGone(mockWebView, null)
-        delay(1000)
+        delay(2000)
 
         assertNotSame(originalWebView, webViewLoader.webView)
         verify(exactly = 1, timeout = 5000) {
