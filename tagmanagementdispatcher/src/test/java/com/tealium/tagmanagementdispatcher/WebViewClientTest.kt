@@ -286,7 +286,7 @@ class WebViewClientTest {
         delay(2000)
 
         assertNotSame(originalWebView, webViewLoader.webView)
-        verify(exactly = 1, timeout = 5000) {
+        verify(exactly = 1) {
             mockWebView.destroy()
         }
     }

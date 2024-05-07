@@ -4,8 +4,6 @@
 updatedModules
 
 echo "Checking test coverage: "
-reportsDir="reports"
-mkdir "$reportsDir"
 
 wereFailures=0
 
@@ -29,7 +27,6 @@ do
   echo "./gradlew $mod:detekt"
   ./gradlew $mod":detekt"
 
-  zip -r "$reportsDir/${failed}${mod}.zip" "$mod/build/reports/"
 done
 
 exit $wereFailures

@@ -27,8 +27,13 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-save -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: ./run_instrumented_tests.sh && ./verify_coverage.sh
+      - name: Compress Reports
+        continue-on-error: true
+        if: ${{ always() }}
+        run: ./zip_reports.sh
       - name: Upload Reports
         continue-on-error: true
+        if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
           name: Reports API ${{ matrix.api-level }}
