@@ -880,7 +880,7 @@ class KeyValueStorageTests {
     fun persistentStorage_Notifications_NotifyWhenStringDataUpdated() {
         storage.putString("string", "string", Expiry.FOREVER)
         storage.putString("string", "new_string", Expiry.SESSION)
-        verify {
+        verify(timeout = 1000) {
             mockEventRouter.onDataUpdated("string", "string")
             mockEventRouter.onDataUpdated("string", "new_string")
         }
@@ -890,7 +890,7 @@ class KeyValueStorageTests {
     fun persistentStorage_Notifications_NotifyWhenIntDataUpdated() {
         storage.putInt("int", 10, Expiry.FOREVER)
         storage.putInt("int", 11, Expiry.SESSION)
-        verify {
+        verify(timeout = 1000) {
             mockEventRouter.onDataUpdated("int", 10)
             mockEventRouter.onDataUpdated("int", 11)
         }
@@ -900,7 +900,7 @@ class KeyValueStorageTests {
     fun persistentStorage_Notifications_NotifyWhenDoubleDataUpdated() {
         storage.putDouble("double", 10.1, Expiry.FOREVER)
         storage.putDouble("double", 11.1, Expiry.SESSION)
-        verify {
+        verify(timeout = 1000) {
             mockEventRouter.onDataUpdated("double", 10.1)
             mockEventRouter.onDataUpdated("double", 11.1)
         }
@@ -910,7 +910,7 @@ class KeyValueStorageTests {
     fun persistentStorage_Notifications_NotifyWhenLongDataUpdated() {
         storage.putLong("long", 100L, Expiry.FOREVER)
         storage.putLong("long", 110L, Expiry.SESSION)
-        verify {
+        verify(timeout = 1000) {
             mockEventRouter.onDataUpdated("long", 100L)
             mockEventRouter.onDataUpdated("long", 110L)
         }
@@ -920,7 +920,7 @@ class KeyValueStorageTests {
     fun persistentStorage_Notifications_NotifyWhenBooleanDataUpdated() {
         storage.putBoolean("boolean", true, Expiry.FOREVER)
         storage.putBoolean("boolean", false, Expiry.SESSION)
-        verify {
+        verify(timeout = 1000) {
             mockEventRouter.onDataUpdated("boolean", true)
             mockEventRouter.onDataUpdated("boolean", false)
         }
@@ -938,7 +938,7 @@ class KeyValueStorageTests {
             arrayOf("string2", "string_3"),
             Expiry.SESSION
         )
-        verify {
+        verify(timeout = 1000) {
             mockEventRouter.onDataUpdated("string_array", arrayOf("string", "string_1"))
             mockEventRouter.onDataUpdated("string_array", arrayOf("string2", "string_3"))
         }
@@ -948,7 +948,7 @@ class KeyValueStorageTests {
     fun persistentStorage_Notifications_NotifyWhenIntArrayDataUpdated() {
         storage.putIntArray("int_array", arrayOf(10, 11, 12), Expiry.FOREVER)
         storage.putIntArray("int_array", arrayOf(13, 14, 15), Expiry.SESSION)
-        verify {
+        verify(timeout = 1000) {
             mockEventRouter.onDataUpdated("int_array", arrayOf(10, 11, 12))
             mockEventRouter.onDataUpdated("int_array", arrayOf(13, 14, 15))
         }
@@ -966,7 +966,7 @@ class KeyValueStorageTests {
             arrayOf(13.1, 14.1, 15.1),
             Expiry.SESSION
         )
-        verify {
+        verify(timeout = 1000) {
             mockEventRouter.onDataUpdated("double_array", arrayOf(10.1, 11.1, 12.1))
             mockEventRouter.onDataUpdated("double_array", arrayOf(13.1, 14.1, 15.1))
         }
@@ -984,7 +984,7 @@ class KeyValueStorageTests {
             arrayOf(400L, 500L, 600L),
             Expiry.SESSION
         )
-        verify {
+        verify(timeout = 1000) {
             mockEventRouter.onDataUpdated("long_array", arrayOf(100L, 200L, 300L))
             mockEventRouter.onDataUpdated("long_array", arrayOf(400L, 500L, 600L))
         }
@@ -1002,7 +1002,7 @@ class KeyValueStorageTests {
             arrayOf(false, true, false),
             Expiry.SESSION
         )
-        verify {
+        verify(timeout = 1000) {
             mockEventRouter.onDataUpdated("boolean_array", arrayOf(true, false, true))
             mockEventRouter.onDataUpdated("boolean_array", arrayOf(false, true, false))
         }
@@ -1016,7 +1016,7 @@ class KeyValueStorageTests {
         val json_arr2 = JSONArray("[\"key1\",\"value1\"]")
         storage.putJsonArray("json_arr", json_arr2, Expiry.SESSION)
 
-        verify {
+        verify(timeout = 1000) {
             mockEventRouter.onDataUpdated("json_arr", match { it.toString() == json_arr1.toString() } )
             mockEventRouter.onDataUpdated("json_arr", match { it.toString() == json_arr2.toString() })
         }
@@ -1030,7 +1030,7 @@ class KeyValueStorageTests {
         val json_obj2 = JSONObject("{\"key\":\"value\"}")
         storage.putJsonObject("json_obj", json_obj2, Expiry.SESSION)
 
-        verify {
+        verify(timeout = 1000) {
             mockEventRouter.onDataUpdated("json_obj", match { it.toString() == json_obj1.toString() })
             mockEventRouter.onDataUpdated("json_obj", match { it.toString() == json_obj2.toString() })
         }

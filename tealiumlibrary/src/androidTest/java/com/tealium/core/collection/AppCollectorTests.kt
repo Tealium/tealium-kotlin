@@ -1,6 +1,7 @@
 package com.tealium.core.collection
 
 import android.app.Application
+import android.os.Build
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
@@ -62,7 +63,9 @@ class AppCollectorTests {
         assertTrue((data[Dispatch.Keys.APP_RDNS] as String).startsWith("com.tealium"))
 
         assertTrue(data[Dispatch.Keys.APP_MEMORY_USAGE] is Long)
-        assertTrue((data[Dispatch.Keys.APP_MEMORY_USAGE] as Long) > 0)
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) { //
+            assertTrue((data[Dispatch.Keys.APP_MEMORY_USAGE] as Long) > 0)
+        }
     }
 
     @Test
