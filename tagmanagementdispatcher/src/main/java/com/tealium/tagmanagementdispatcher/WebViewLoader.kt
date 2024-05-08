@@ -48,6 +48,9 @@ class WebViewLoader(
     @Volatile
     lateinit var webView: WebView
 
+    var webViewInitialized: Deferred<Unit>
+        private set
+
     internal val webViewClient = object : WebViewClient() {
         override fun onPageFinished(view: WebView?, url: String?) {
             super.onPageFinished(view, url)
@@ -236,7 +239,7 @@ class WebViewLoader(
     }
 
     init {
-        initializeWebView()
+        webViewInitialized = initializeWebView()
         context.events.subscribe(this)
     }
 
@@ -310,7 +313,7 @@ class WebViewLoader(
 
             loadUrlToWebView()
             enableCookieManager()
-        }
+        }.also { webViewInitialized = it }
     }
 
     private fun createResponseHandler(): RemoteCommand.ResponseHandler {
