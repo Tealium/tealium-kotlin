@@ -1,7 +1,7 @@
 package com.tealium.remotecommanddispatcher
 
 import android.app.Application
-import androidx.test.core.app.ApplicationProvider
+//import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.Loader
 import com.tealium.core.TealiumConfig
@@ -18,12 +18,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
-import org.junit.Assert
+//import org.junit.Assert
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.io.File
 
+@RunWith(RobolectricTestRunner::class)
 class RemoteCommandConfigRetrieverTests {
     @MockK
     lateinit var mockNetworkClient: NetworkClient
@@ -40,7 +43,7 @@ class RemoteCommandConfigRetrieverTests {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
-        context = ApplicationProvider.getApplicationContext()
+        context = mockk(relaxed = true)//ApplicationProvider.getApplicationContext()
 
         // default to no backup asset
         every { mockLoader.loadFromAsset(any()) } returns null
@@ -233,8 +236,7 @@ class RemoteCommandConfigRetrieverTests {
                 ResponseStatus.Success
             )
             mockkStatic("kotlin.io.FilesKt__FileReadWriteKt")
-            val mockFile =
-                spyk<File>(UrlRemoteCommandConfigRetriever.getCacheFile(config, commandId))
+            val mockFile = mockk<File>()
             every { mockFile.writeBytes(any()) } just Runs
             every { mockFile.writeText(any(), any()) } just Runs
 

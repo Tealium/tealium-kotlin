@@ -121,8 +121,10 @@ class RemoteCommandsManagerTests {
     }
 
     private fun mockCommand(name: String = testCommandName): RemoteCommand {
-        val command = mockk<RemoteCommand>()
-        every { command.commandName } returns name
-        return command
+        return object : RemoteCommand(name, "") {
+            override fun onInvoke(p0: Response?) {
+
+            }
+        }
     }
 }
