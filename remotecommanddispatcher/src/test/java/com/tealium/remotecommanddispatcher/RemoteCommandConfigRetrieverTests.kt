@@ -1,7 +1,6 @@
 package com.tealium.remotecommanddispatcher
 
 import android.app.Application
-//import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.Loader
 import com.tealium.core.TealiumConfig
@@ -18,7 +17,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
-//import org.junit.Assert
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -43,7 +41,7 @@ class RemoteCommandConfigRetrieverTests {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
-        context = mockk(relaxed = true)//ApplicationProvider.getApplicationContext()
+        context = mockk(relaxed = true)
 
         // default to no backup asset
         every { mockLoader.loadFromAsset(any()) } returns null

@@ -63,7 +63,7 @@ class AppCollectorTests {
         assertTrue((data[Dispatch.Keys.APP_RDNS] as String).startsWith("com.tealium"))
 
         assertTrue(data[Dispatch.Keys.APP_MEMORY_USAGE] is Long)
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) { //
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
             assertTrue((data[Dispatch.Keys.APP_MEMORY_USAGE] as Long) > 0)
         }
     }
