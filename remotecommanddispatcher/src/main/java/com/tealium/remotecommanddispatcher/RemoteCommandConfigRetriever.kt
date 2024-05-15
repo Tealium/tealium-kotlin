@@ -1,10 +1,12 @@
 package com.tealium.remotecommanddispatcher
 
-import android.webkit.URLUtil
 import com.tealium.core.*
+import com.tealium.core.network.CooldownHelper
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
+import com.tealium.core.network.ResourceEntity
 import com.tealium.core.network.ResourceRetriever
+import com.tealium.core.network.ResponseStatus
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers
 import org.json.JSONException
@@ -13,7 +15,8 @@ import java.io.File
 import java.lang.Exception
 
 interface RemoteCommandConfigRetriever {
-    val remoteCommandConfig: RemoteCommandConfig
+    val remoteCommandConfig: RemoteCommandConfig?
+    suspend fun refreshConfig()
 }
 
 class AssetRemoteCommandConfigRetriever(
@@ -22,27 +25,41 @@ class AssetRemoteCommandConfigRetriever(
     private val loader: Loader = JsonLoader.getInstance(config.application)
 ) : RemoteCommandConfigRetriever {
 
-    private var _remoteCommandConfig: RemoteCommandConfig = loadConfig()
-    override val remoteCommandConfig: RemoteCommandConfig
+    private var _remoteCommandConfig: RemoteCommandConfig? = loadConfig()
+    override val remoteCommandConfig: RemoteCommandConfig?
         get() = _remoteCommandConfig
 
-    private fun loadConfig(): RemoteCommandConfig {
+    private fun loadConfig(): RemoteCommandConfig? {
         return loadFromAsset(filename)?.also {
             Logger.dev(BuildConfig.TAG, "Loaded local remote command settings.")
-        } ?: RemoteCommandConfig()
+        }
     }
 
     private fun loadFromAsset(filename: String): RemoteCommandConfig? {
-        return loader.loadFromAsset(filename)?.let {
-            try {
-                val json = JSONObject(it)
-                RemoteCommandConfig.fromJson(json)
-            } catch (ex: JSONException) {
-                Logger.qa(
-                    BuildConfig.TAG,
-                    "Error loading RemoteCommandsConfig JSON from asset: ${ex.message}"
-                )
-                null
+        return loadFromAsset(loader, filename)
+    }
+
+    override suspend fun refreshConfig() {
+        // nothing to do - asset is already loaded if valid.
+    }
+
+    companion object {
+        fun loadFromAsset(loader: Loader, filename: String): RemoteCommandConfig? {
+            return if (!filename.endsWith(".json", true)) {
+                loader.loadFromAsset("$filename.json") ?: loader.loadFromAsset(filename)
+            } else {
+                loader.loadFromAsset(filename)
+            }?.let {
+                try {
+                    val json = JSONObject(it)
+                    RemoteCommandConfig.fromJson(json)
+                } catch (ex: JSONException) {
+                    Logger.qa(
+                        BuildConfig.TAG,
+                        "Error loading RemoteCommandsConfig JSON from asset: ${ex.message}"
+                    )
+                    null
+                }
             }
         }
     }
@@ -60,29 +77,31 @@ class UrlRemoteCommandConfigRetriever(
             }
         },
     private val loader: Loader = JsonLoader.getInstance(config.application),
-    private val backgroundScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val backgroundScope: CoroutineScope = CoroutineScope(Dispatchers.Default),
+    private val assetFileName: String? = null,
+    private val cacheFile: File = getCacheFile(config, commandId),
+    private val cooldownHelper: CooldownHelper? = config.remoteCommandConfigRefresh?.let { refreshInterval ->
+        CooldownHelper(refreshInterval * 60 * 1000, 30_000L)
+    }
 ) : RemoteCommandConfigRetriever {
 
-    private val tealiumDleUrl =
-        "${Settings.DLE_PREFIX}/${config.accountName}/${config.profileName}/"
+    private var job: Deferred<ResourceEntity?>? = null
 
-    private val cachedSettingsFile: File =
-        File(config.tealiumDirectory.canonicalPath, "${getSettingsFilename()}.json")
-
-    private var job: Deferred<String?>? = null
-
-    private var _remoteCommandConfig: RemoteCommandConfig = loadConfig()
-    override val remoteCommandConfig: RemoteCommandConfig
+    private var _remoteCommandConfig: RemoteCommandConfig? = loadConfig()
+    override val remoteCommandConfig: RemoteCommandConfig?
         get() = _remoteCommandConfig
 
-    private fun loadConfig(): RemoteCommandConfig {
-        val cachedSettings = loadFromCache(cachedSettingsFile)?.also {
+    private fun loadConfig(): RemoteCommandConfig? {
+        val cachedSettings = loadFromCache(cacheFile)?.also {
             Logger.dev(BuildConfig.TAG, "Loaded remote command settings from cache")
         }
         backgroundScope.launch {
-            fetchRemoteSettings()
+            refreshConfig()
         }
-        return cachedSettings ?: RemoteCommandConfig()
+        return cachedSettings
+            ?: AssetRemoteCommandConfigRetriever.loadFromAsset(
+                loader, assetFileName ?: "$commandId.json"
+            )
     }
 
     private fun loadFromCache(file: File): RemoteCommandConfig? {
@@ -101,26 +120,42 @@ class UrlRemoteCommandConfigRetriever(
     }
 
     private suspend fun fetchRemoteSettings() = coroutineScope {
-        if (job?.isActive == false || job == null) {
+        if (job == null || job?.isActive == false) {
             job = async {
                 if (isActive) {
-                    resourceRetriever.fetch()
+                    resourceRetriever.fetchWithEtag(remoteCommandConfig?.etag)
                 } else {
                     null
                 }
             }
-            job?.await()?.let { string ->
-                Logger.dev(BuildConfig.TAG, "Loaded Remote Command config from remote URL")
-                try {
-                    val settings = RemoteCommandConfig.fromJson(JSONObject(string))
+            val resourceEntity = job?.await() ?: return@coroutineScope
+
+            if (!(resourceEntity.status == ResponseStatus.Success
+                        || (resourceEntity.status is ResponseStatus.Non200Response
+                        && (resourceEntity.status as ResponseStatus.Non200Response).code < 400))
+            ) {
+                Logger.dev(
+                    BuildConfig.TAG,
+                    "No entity returned for remote command config from remote URL"
+                )
+                cooldownHelper?.updateStatus(CooldownHelper.CooldownStatus.Failure)
+
+                return@coroutineScope
+            }
+
+            Logger.dev(BuildConfig.TAG, "Loaded Remote Command config from remote URL")
+            try {
+                cooldownHelper?.updateStatus(CooldownHelper.CooldownStatus.Success)
+
+                RemoteCommandConfig.fromResourceEntity(resourceEntity)?.let { settings ->
                     saveSettingsToCache(RemoteCommandConfig.toJson(settings).toString())
                     _remoteCommandConfig = settings
-                } catch (ex: JSONException) {
-                    Logger.dev(
-                        BuildConfig.TAG,
-                        "Failed to load remote command config from remote URL"
-                    )
                 }
+            } catch (ex: JSONException) {
+                Logger.dev(
+                    BuildConfig.TAG,
+                    "Failed to parse remote command config from remote URL"
+                )
             }
         }
     }
@@ -128,20 +163,31 @@ class UrlRemoteCommandConfigRetriever(
     private fun saveSettingsToCache(string: String) {
         try {
             Logger.dev(BuildConfig.TAG, "Saving Remote Command settings to file")
-            cachedSettingsFile.writeText(string, Charsets.UTF_8)
+            cacheFile.writeText(string, Charsets.UTF_8)
         } catch (ex: Exception) {
             Logger.qa(BuildConfig.TAG, "Failed to save Remote Command settings to file")
         }
     }
 
-    private fun getSettingsFilename(): String {
-        // check if Tealium DLE URL
-        if (remoteUrl.contains(tealiumDleUrl)) {
-            return remoteUrl.substringAfter(tealiumDleUrl).substringBefore(".json")
-        } else if (URLUtil.isValidUrl(remoteUrl)) {
-            return commandId
+    override suspend fun refreshConfig() {
+        val lastFetch = resourceRetriever.lastFetchTimestamp
+        if (_remoteCommandConfig == null
+            && lastFetch != null
+            && cooldownHelper?.isInCooldown(lastFetch) != false
+        ) {
+            Logger.dev(
+                BuildConfig.TAG,
+                "Not refreshing RemoteCommandConfig for $commandId; still in error cooldown period"
+            )
+            return
         }
 
-        return commandId
+        fetchRemoteSettings()
+    }
+
+    companion object {
+        fun getCacheFile(config: TealiumConfig, commandId: String): File {
+            return File(config.tealiumDirectory.canonicalPath, "$commandId.json")
+        }
     }
 }

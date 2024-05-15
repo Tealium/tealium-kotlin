@@ -92,9 +92,7 @@ class TagManagementDispatcher(
         onEvaluateJavascript(javascriptCall)
 
         CookieManager.getInstance().apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                flush()
-            }
+            flush()
         }
     }
 
@@ -115,6 +113,9 @@ class TagManagementDispatcher(
             }
             PageStatus.LOADING -> {
                 Logger.qa(BuildConfig.TAG, "WebView loading.")
+            }
+            else -> {
+                // do nothing.
             }
         }
     }

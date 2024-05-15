@@ -7,7 +7,7 @@ echo "Running unit tests: "
 for mod in $updated_modules
 do
   echo "./gradlew $mod:testDebugUnitTest"
-  if ./gradlew $mod":testDebugUnitTest"; then
+  if ./gradlew $mod":testDebugUnitTest" --stacktrace; then
     echo "$mod Unit Test Succeeded" >&2
   else
     echo "$mod Unit Test failed" >&2

@@ -18,10 +18,10 @@ class LibrarySettingsManager(
     networkClient: NetworkClient,
     private var loader: Loader = JsonLoader.getInstance(config.application),
     private var eventRouter: EventRouter,
-    private val backgroundScope: CoroutineScope
+    private val backgroundScope: CoroutineScope,
 ) {
 
-    private val resourceRetriever: ResourceRetriever
+    internal val resourceRetriever: ResourceRetriever
     private var job: Deferred<ResourceEntity?>? = null
 
     // Asset
@@ -40,15 +40,44 @@ class LibrarySettingsManager(
         resourceRetriever = ResourceRetriever(config, urlString, networkClient)
     }
 
+    /**
+     * This is the startup settings based on what is currently present on the device.
+     *
+     * If [TealiumConfig.useRemoteLibrarySettings] is true, then this will be the cached set of settings
+     * if present. If [TealiumConfig.useRemoteLibrarySettings] if false, then this will be the settings
+     * derived from the `tealium-settings.json` asset if present.
+     */
+    val initialSettings: LibrarySettings? = loadSettings()
+
+    /**
+     * This is the computed settings but with defaults returned if no other settings were available
+     * at launch.
+     * If remote settings are enabled, then the cached settings will be loaded; if remote
+     * settings are not enabled then this will load the `tealium-settings.json` asset.
+     *
+     * If those settings were not available, then it will return defaults, in the following order of
+     * preference:
+     *  - [TealiumConfig.overrideDefaultLibrarySettings] if present
+     *  - [LibrarySettings] defaults
+     */
     var librarySettings: LibrarySettings by Delegates.observable(
-        initialValue = loadSettings(),
+        initialValue = initialSettings ?: defaultInitialSettings,
         onChange = { _, _, new ->
+            setRefreshInterval(new.refreshInterval)
             eventRouter.onLibrarySettingsUpdated(new)
         }
     )
+
     private val defaultInitialSettings: LibrarySettings
         get() = config.overrideDefaultLibrarySettings ?: LibrarySettings()
 
+    init {
+        setRefreshInterval(librarySettings.refreshInterval)
+    }
+
+    private fun setRefreshInterval(seconds: Int) {
+        resourceRetriever.refreshInterval = seconds / 60
+    }
 
     suspend fun fetchLibrarySettings() = coroutineScope {
         when (config.useRemoteLibrarySettings) {
@@ -73,7 +102,7 @@ class LibrarySettingsManager(
      * If all else fails, then use the default [LibrarySettings] or
      * [TealiumConfig.overrideDefaultLibrarySettings] if set.
      */
-    private fun loadSettings(): LibrarySettings {
+    private fun loadSettings(): LibrarySettings? {
         return when (config.useRemoteLibrarySettings) {
             true -> {
                 val cachedSettings = loadFromCache(cachedSettingsFile)?.also {
@@ -84,13 +113,14 @@ class LibrarySettingsManager(
                 }
                 cachedSettings
             }
+
             false -> {
                 loadFromAsset(assetString).also {
                     if (it != null) Logger.dev(BuildConfig.TAG, "Loaded local library settings.")
                     isAssetSettingsLoaded = true
                 }
             }
-        } ?: defaultInitialSettings
+        }
     }
 
     private fun loadFromCache(file: File): LibrarySettings? {
@@ -124,7 +154,8 @@ class LibrarySettingsManager(
                     null
                 }
             }
-            job?.await()?.let { resource ->
+            val resource = job?.await()
+            resource?.let { resource ->
                 try {
                     // TODO: should read resource headers to determine the file type
                     val settings = when (urlString.endsWith(".html")) {
@@ -134,6 +165,7 @@ class LibrarySettingsManager(
                                 LibrarySettings.fromMobilePublishSettings(it)
                             }
                         }
+
                         false -> {
                             if (resource.response?.let { JsonUtils.isValidJson(it) } == true) {
                                 val json = JSONObject(resource.response)

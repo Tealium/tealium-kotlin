@@ -9,10 +9,13 @@ import com.tealium.core.messaging.ExternalListener
 import com.tealium.core.messaging.Messenger
 import com.tealium.core.messaging.NewSessionListener
 import com.tealium.core.persistence.Expiry
+import com.tealium.core.settings.LibrarySettings
 import io.mockk.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.After
@@ -400,21 +403,22 @@ class TealiumTests {
     }
 
     @Test
-    fun test_SessionScopedData_WrittenByModules_IsNotRemovedOnLaunch_WhenNewSession() = runBlocking {
+    fun test_SessionScopedData_WrittenByModules_IsNotRemovedOnLaunch_WhenNewSession() =
+        runBlocking {
 
-        val config = TealiumConfig(application, "test", "test", Environment.DEV)
-        deleteSessionInfo(config)
+            val config = TealiumConfig(application, "test", "test", Environment.DEV)
+            deleteSessionInfo(config)
 
-        config.modules.add(object : ModuleFactory {
-            override fun create(context: TealiumContext): Module {
-                return DataWritingModule(context)
-            }
-        })
-        val tealium: Tealium = awaitCreateTealium("name", config)
+            config.modules.add(object : ModuleFactory {
+                override fun create(context: TealiumContext): Module {
+                    return DataWritingModule(context)
+                }
+            })
+            val tealium: Tealium = awaitCreateTealium("name", config)
 
-        assertEquals(10, tealium.dataLayer.getInt("session_int"))
-        assertEquals(Expiry.SESSION, tealium.dataLayer.getExpiry("session_int"))
-    }
+            assertEquals(10, tealium.dataLayer.getInt("session_int"))
+            assertEquals(Expiry.SESSION, tealium.dataLayer.getExpiry("session_int"))
+        }
 
     private fun containsOnlyValidTypes(data: Collection<*>): Boolean {
         return data.filterNotNull().fold(true) { initial, entry ->

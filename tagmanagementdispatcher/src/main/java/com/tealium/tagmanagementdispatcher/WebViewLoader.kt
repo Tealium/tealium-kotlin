@@ -48,6 +48,9 @@ class WebViewLoader(
     @Volatile
     lateinit var webView: WebView
 
+    var webViewInitialized: Deferred<Unit>
+        private set
+
     internal val webViewClient = object : WebViewClient() {
         override fun onPageFinished(view: WebView?, url: String?) {
             super.onPageFinished(view, url)
@@ -236,7 +239,7 @@ class WebViewLoader(
     }
 
     init {
-        initializeWebView()
+        webViewInitialized = initializeWebView()
         context.events.subscribe(this)
     }
 
@@ -310,7 +313,7 @@ class WebViewLoader(
 
             loadUrlToWebView()
             enableCookieManager()
-        }
+        }.also { webViewInitialized = it }
     }
 
     private fun createResponseHandler(): RemoteCommand.ResponseHandler {
@@ -347,10 +350,7 @@ class WebViewLoader(
     private fun enableCookieManager() {
         CookieManager.getInstance().apply {
             setAcceptCookie(true)
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                setAcceptThirdPartyCookies(webView, true)
-            }
+            setAcceptThirdPartyCookies(webView, true)
 
             Logger.dev(BuildConfig.TAG, "WebView: $webView created and cookies enabled")
         }
@@ -395,12 +395,15 @@ class WebViewLoader(
     override fun onLibrarySettingsUpdated(settings: LibrarySettings) {
         isWifiOnlySending = settings.wifiOnly
         timeoutInterval = settings.refreshInterval // seconds
-        if (isTimedOut()) {
-            loadUrlToWebView()
-        }
     }
 
     override fun onSessionStarted(sessionId: Long) {
+        if (this.sessionId != INVALID_SESSION_ID
+            && this.sessionId != sessionId
+            && webViewStatus.compareAndSet(PageStatus.LOADED_SUCCESS, PageStatus.LOADED_ERROR)) {
+            loadUrlToWebView()
+        }
+
         this.sessionId = sessionId
         shouldRegisterSession.set(true)
 

@@ -114,26 +114,38 @@ class HttpClient(
         withContext(Dispatchers.IO) {
             try {
                 with(URL(urlString).openConnection() as HttpURLConnection) {
-                    if (isActive && isConnected) {
-                        requestMethod = "GET"
-                        setRequestProperty("If-None-Match", etag)
+                    if (!isActive) {
+                        return@with ResourceEntity(
+                            status = ResponseStatus.Cancelled
+                        )
+                    }
+                    if (!isConnected) {
+                        return@with ResourceEntity(
+                            status = ResponseStatus.NotConnected
+                        )
+                    }
 
-                        if (responseCode == HttpsURLConnection.HTTP_OK) {
-                            ResourceEntity(
-                                inputStream.bufferedReader().readText(),
-                                getHeaderField("etag")
-                            )
-                        } else {
-                            null
-                        }
+                    requestMethod = "GET"
+                    setRequestProperty("If-None-Match", etag)
+
+                    if (responseCode == HttpsURLConnection.HTTP_OK) {
+                        ResourceEntity(
+                            inputStream.bufferedReader().readText(),
+                            getHeaderField("etag"),
+                            ResponseStatus.Success
+                        )
                     } else {
-                        null
+                        ResourceEntity(
+                            status = ResponseStatus.Non200Response(responseCode)
+                        )
                     }
                 }
             } catch (e: Exception) {
                 Logger.prod(BuildConfig.TAG, "An unknown exception occurred: $e.")
                 networkClientListener?.onNetworkError(e.toString())
-                null
+                ResourceEntity(
+                    status = ResponseStatus.UnknownError(e)
+                )
             }
         }
     }

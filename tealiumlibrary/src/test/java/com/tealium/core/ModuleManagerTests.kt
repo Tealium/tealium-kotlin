@@ -1,17 +1,20 @@
 package com.tealium.core
 
+import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
+import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
+import io.mockk.verify
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
 class ModuleManagerTests {
 
-    private lateinit var moduleManager: ModuleManager
+    private lateinit var moduleManager: MutableModuleManager
 
     private lateinit var mockMultiModule: MultiModule
     private lateinit var mockCollector: Collector
@@ -30,7 +33,16 @@ class ModuleManagerTests {
         mockMultiModule = mockk()
         every { mockMultiModule.name } returns "mock_multimodule"
 
-        moduleManager = spyk(ModuleManager(listOf(mockCollector, mockDispatcher, mockValidator, mockMultiModule)))
+        moduleManager = spyk(
+            MutableModuleManager(
+                listOf(
+                    mockCollector,
+                    mockDispatcher,
+                    mockValidator,
+                    mockMultiModule
+                )
+            )
+        )
     }
 
     @Test
@@ -54,7 +66,7 @@ class ModuleManagerTests {
 
     @Test
     fun testRetrieveMultiModuleByEachImplementedClass() {
-        moduleManager = ModuleManager(listOf(mockMultiModule))
+        moduleManager = MutableModuleManager(listOf(mockMultiModule))
 
         val byClass = moduleManager.getModule(MultiModule::class.java)
         assertSame(mockMultiModule, byClass)
@@ -102,7 +114,14 @@ class ModuleManagerTests {
 
     @Test
     fun testMultiThreadedAccessDoesNotCrash() {
-        val mutableModuleManager = MutableModuleManager(listOf(mockCollector, mockDispatcher, mockValidator, mockMultiModule))
+        val mutableModuleManager = MutableModuleManager(
+            listOf(
+                mockCollector,
+                mockDispatcher,
+                mockValidator,
+                mockMultiModule
+            )
+        )
         val repeats = 1000
         var error = false
 
@@ -138,6 +157,142 @@ class ModuleManagerTests {
         creatorThread.join()
 
         assertFalse(error)
+    }
+
+    @Test
+    fun onLibrarySettingsUpdated_Disables_CollectDispatcher() {
+        val collectDispatcher = mockDispatcher("Collect")
+        moduleManager.add(collectDispatcher)
+
+        moduleManager.onLibrarySettingsUpdated(LibrarySettings(collectDispatcherEnabled = false))
+
+        verify {
+            collectDispatcher.enabled = false
+        }
+    }
+
+    @Test
+    fun onLibrarySettingsUpdated_Disables_LegacyCollectDispatcher() {
+        val legacyCollectDispatcher = mockDispatcher("COLLECT_DISPATCHER")
+        moduleManager.add(legacyCollectDispatcher)
+
+        moduleManager.onLibrarySettingsUpdated(LibrarySettings(collectDispatcherEnabled = false))
+
+        verify {
+            legacyCollectDispatcher.enabled = false
+        }
+    }
+
+    @Test
+    fun onLibrarySettingsUpdated_Enables_CollectDispatcher() {
+        val collectDispatcher = mockDispatcher("Collect")
+        moduleManager.add(collectDispatcher)
+
+        moduleManager.onLibrarySettingsUpdated(LibrarySettings(collectDispatcherEnabled = true))
+
+        verify {
+            collectDispatcher.enabled = true
+        }
+    }
+
+    @Test
+    fun onLibrarySettingsUpdated_Enables_LegacyCollectDispatcher() {
+        val legacyCollectDispatcher = mockDispatcher("COLLECT_DISPATCHER")
+        moduleManager.add(legacyCollectDispatcher)
+
+        moduleManager.onLibrarySettingsUpdated(LibrarySettings(collectDispatcherEnabled = true))
+
+        verify {
+            legacyCollectDispatcher.enabled = true
+        }
+    }
+
+    @Test
+    fun onLibrarySettingsUpdated_Disables_TagManagementDispatcher() {
+        val tagManagementDispatcher = mockDispatcher("TagManagement")
+        moduleManager.add(tagManagementDispatcher)
+
+        moduleManager.onLibrarySettingsUpdated(LibrarySettings(tagManagementDispatcherEnabled = false))
+
+        verify {
+            tagManagementDispatcher.enabled = false
+        }
+    }
+
+    @Test
+    fun onLibrarySettingsUpdated_Disables_LegacyTagManagementDispatcher() {
+        val legacyTagManagementDispatcher = mockDispatcher("TAG_MANAGEMENT_DISPATCHER")
+        moduleManager.add(legacyTagManagementDispatcher)
+
+        moduleManager.onLibrarySettingsUpdated(LibrarySettings(tagManagementDispatcherEnabled = false))
+
+        verify {
+            legacyTagManagementDispatcher.enabled = false
+        }
+    }
+
+    @Test
+    fun onLibrarySettingsUpdated_Enables_TagManagementDispatcher() {
+        val tagManagementDispatcher = mockDispatcher("TagManagement")
+        moduleManager.add(tagManagementDispatcher)
+
+        moduleManager.onLibrarySettingsUpdated(LibrarySettings(tagManagementDispatcherEnabled = true))
+
+        verify {
+            tagManagementDispatcher.enabled = true
+        }
+    }
+
+    @Test
+    fun onLibrarySettingsUpdated_Enables_LegacyTagManagementDispatcher() {
+        val legacyTagManagementDispatcher = mockDispatcher("TAG_MANAGEMENT_DISPATCHER")
+        moduleManager.add(legacyTagManagementDispatcher)
+
+        moduleManager.onLibrarySettingsUpdated(LibrarySettings(tagManagementDispatcherEnabled = true))
+
+        verify {
+            legacyTagManagementDispatcher.enabled = true
+        }
+    }
+
+    @Test
+    fun onLibrarySettingsUpdated_Disables_Collect_And_TagManagement_When_LibraryDisabled() {
+        val collectDispatcher = mockDispatcher("Collect")
+        val tagManagementDispatcher = mockDispatcher("TagManagement")
+        moduleManager = MutableModuleManager(listOf(collectDispatcher, tagManagementDispatcher))
+
+        moduleManager.onLibrarySettingsUpdated(
+            LibrarySettings(
+                disableLibrary = true,
+                collectDispatcherEnabled = true,
+                tagManagementDispatcherEnabled = true
+            )
+        )
+
+        verify {
+            collectDispatcher.enabled = false
+            tagManagementDispatcher.enabled = false
+        }
+        verify(inverse = true) {
+            collectDispatcher.enabled = true
+            tagManagementDispatcher.enabled = true
+        }
+    }
+
+    private fun mockDispatcher(name: String, enabled: Boolean = true): Dispatcher {
+        val dispatcher = object : Dispatcher {
+            override val name: String
+                get() = name
+            override var enabled: Boolean = enabled
+
+            override suspend fun onDispatchSend(dispatch: Dispatch) {
+            }
+
+            override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {
+            }
+        }
+
+        return spyk(dispatcher)
     }
 }
 
