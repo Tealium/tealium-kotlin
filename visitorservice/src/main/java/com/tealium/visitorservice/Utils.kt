@@ -1,7 +1,6 @@
 package com.tealium.visitorservice
 
 import com.tealium.core.Logger
-import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.Exception
 

@@ -4,6 +4,7 @@ import android.app.Application
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
+import com.tealium.momentsapi.network.NetworkClient
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.every
@@ -50,7 +51,7 @@ class MomentsApiServiceTest {
         every { mockContext.config } returns config
         every { mockContext.visitorId } returns "abc123"
 
-        apiService = MomentsApiService(mockContext, networkClient)
+        apiService = MomentsApiService(mockContext, MomentsApiRegion.US_EAST, networkClient)
         listener = mockk()
     }
 
@@ -59,7 +60,7 @@ class MomentsApiServiceTest {
         val engineId = "testEngine"
 
         coEvery { networkClient.get(any(), any(), any<ResponseListener<String>>()) } answers {
-            thirdArg<ResponseListener<String>>().success("{ \"audiences\": [\"VIP\", \"Women's Apparel\", \"Lifetime visit count\"] }")
+            thirdArg<ResponseListener<String>>().success("{ \"audiences\": {\"audience_1\": \"VIP\", \"audience_2\": \"Women's Apparel\", \"audience_2\": \"Lifetime visit count\"} }")
         }
 
         apiService.fetchEngineResponse(engineId, listener)
