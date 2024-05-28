@@ -2,8 +2,8 @@ package com.tealium.momentsapi
 
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -12,19 +12,18 @@ import org.robolectric.RobolectricTestRunner
 class EngineResponseTest {
     private val validEngineResponseString = """
 {
-   "audiences":{
-      "audience_1":"testAudience1",
-      "audience_2":"testAudience2",
-      "audience_3":"testAudience3"
-   },
-   "badges":{
-      "13":true,
-      "24":false
-   },
+   "audiences":[
+      "audience_1",
+      "audience_2",
+      "audience_3"
+   ],
+   "badges":[
+      "13",
+      "24"
+   ],
    "properties":{
       "45":"Android",
-      "46":"Android",
-      "47":"mobile application",
+      "46":"mobile application",
       "5135":"blue_shoes"
    },
    "metrics":{
@@ -44,9 +43,9 @@ class EngineResponseTest {
         val json = JSONObject(validEngineResponseString)
         val engineResponse = EngineResponse.fromJson(json)
 
-        assertEquals(engineResponse.audiences?.get("audience_1"), "testAudience1")
-        assertEquals(engineResponse.audiences?.get("audience_2"), "testAudience2")
-        assertEquals(engineResponse.audiences?.get("audience_3"), "testAudience3")
+        assertEquals(engineResponse.audiences?.get(0), "audience_1")
+        assertEquals(engineResponse.audiences?.get(1), "audience_2")
+        assertEquals(engineResponse.audiences?.get(2), "audience_3")
     }
 
     @Test
@@ -54,7 +53,9 @@ class EngineResponseTest {
         val json = JSONObject(validEngineResponseString)
         val engineResponse = EngineResponse.fromJson(json)
 
-        assertNull(engineResponse.audiences?.get("audience_4"))
+        engineResponse.audiences?.let {
+            assertFalse(it.contains("audience_4"))
+        }
     }
 
     @Test
@@ -62,7 +63,7 @@ class EngineResponseTest {
         val json = JSONObject(validEngineResponseString)
         val engineResponse = EngineResponse.fromJson(json)
 
-        assertTrue(engineResponse.badges?.getValue("13")!!)
+        assertEquals(engineResponse.badges?.get(0), "13")
     }
 
     @Test
@@ -70,7 +71,9 @@ class EngineResponseTest {
         val json = JSONObject(validEngineResponseString)
         val engineResponse = EngineResponse.fromJson(json)
 
-        assertNull(engineResponse.badges?.get("33"), )
+        engineResponse.badges?.let {
+            assertFalse(it.contains("33"))
+        }
     }
 
     @Test
@@ -79,8 +82,7 @@ class EngineResponseTest {
         val engineResponse = EngineResponse.fromJson(json)
 
         assertEquals(engineResponse.strings?.getValue("45"), "Android")
-        assertEquals(engineResponse.strings?.getValue("46"), "Android")
-        assertEquals(engineResponse.strings?.getValue("47"), "mobile application")
+        assertEquals(engineResponse.strings?.getValue("46"), "mobile application")
         assertEquals(engineResponse.strings?.getValue("5135"), "blue_shoes")
     }
 

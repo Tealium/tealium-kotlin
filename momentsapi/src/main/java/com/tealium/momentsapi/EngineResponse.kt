@@ -1,10 +1,11 @@
 package com.tealium.momentsapi
 
+import org.json.JSONArray
 import org.json.JSONObject
 
 data class EngineResponse(
-    val audiences: Map<String, String>? = null,
-    val badges: Map<String, Boolean>? = null,
+    val badges: List<String>? = null,
+    val audiences: List<String>? = null,
     val strings: Map<String, String>? = null,
     val booleans: Map<String, Boolean>? = null,
     val dates: Map<String, Long>? = null,
@@ -25,11 +26,11 @@ data class EngineResponse(
             val json = JSONObject()
 
             engineResponse.audiences?.let {
-                json.put(KEY_AUDIENCES, JSONObject(it))
+                json.put(KEY_AUDIENCES, JSONArray(it))
             }
 
             engineResponse.badges?.let {
-                json.put(KEY_BADGES, JSONObject(it))
+                json.put(KEY_BADGES, JSONArray(it))
             }
 
             engineResponse.strings?.let {
@@ -53,8 +54,8 @@ data class EngineResponse(
 
         fun fromJson(json: JSONObject): EngineResponse {
             return EngineResponse(
-                badges = json.optJSONObject(KEY_BADGES)?.asBooleans(),
-                audiences = json.optJSONObject(KEY_AUDIENCES)?.asStrings(),
+                badges = json.optJSONArray(KEY_BADGES)?.asListOfStrings(),
+                audiences = json.optJSONArray(KEY_AUDIENCES)?.asListOfStrings(),
                 strings = json.optJSONObject(KEY_PROPERTIES)?.asStrings(),
                 booleans = json.optJSONObject(KEY_FLAGS)?.asBooleans(),
                 dates = json.optJSONObject(KEY_DATES)?.asDates(),

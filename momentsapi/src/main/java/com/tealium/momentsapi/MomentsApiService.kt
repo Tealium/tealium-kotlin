@@ -63,7 +63,6 @@ class MomentsApiService @JvmOverloads constructor(
                 object : ResponseListener<String> {
                     override fun success(data: String) {
                         try {
-                            println("data string response: $data")
                             val json = JSONObject(data)
                             val visitorData = EngineResponse.fromJson(json)
                             handler.success(visitorData)
