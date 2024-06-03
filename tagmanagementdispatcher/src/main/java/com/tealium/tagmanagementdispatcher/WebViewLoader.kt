@@ -17,6 +17,7 @@ import com.tealium.remotecommands.RemoteCommandRequest
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers
 import org.json.JSONObject
+import java.lang.ref.WeakReference
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -28,7 +29,8 @@ class WebViewLoader(
     private val connectivityRetriever: Connectivity = ConnectivityRetriever.getInstance(context.config.application),
     private val webViewProvider: () -> WebView = { WebView(context.config.application) }
 ) : LibrarySettingsUpdatedListener,
-    SessionStartedListener {
+    SessionStartedListener,
+    InstanceShutdownListener {
 
     val webViewStatus = AtomicReference<PageStatus>(PageStatus.INIT)
     var lastUrlLoadTimestamp = 0L
@@ -408,6 +410,14 @@ class WebViewLoader(
         shouldRegisterSession.set(true)
 
         registerNewSessionIfNeeded(sessionId)
+    }
+
+    override fun onInstanceShutdown(name: String, instance: WeakReference<Tealium>) {
+        try {
+            webView.destroy()
+        } catch (t: Throwable) {
+            Logger.dev(BuildConfig.TAG, "Error destroying WebView on shutdown: ${t.localizedMessage}")
+        }
     }
 
     private fun registerNewSessionIfNeeded(sessionId: Long) {

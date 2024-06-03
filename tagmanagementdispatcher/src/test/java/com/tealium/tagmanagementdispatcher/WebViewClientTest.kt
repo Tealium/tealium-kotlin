@@ -4,6 +4,7 @@ import android.app.Application
 import android.net.Uri
 import android.webkit.*
 import com.tealium.core.Logger
+import com.tealium.core.Tealium
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
@@ -21,6 +22,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.io.File
+import java.lang.ref.WeakReference
 import java.util.*
 
 class WebViewClientTest {
@@ -288,6 +290,39 @@ class WebViewClientTest {
         assertNotSame(originalWebView, webViewLoader.webView)
         verify(exactly = 1) {
             mockWebView.destroy()
+        }
+    }
+
+    @Test
+    fun webViewClient_DestroyWebViewOnInstanceShutdown() = runBlocking {
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockWebViewProvider)
+        delay(1000)
+
+        webViewLoader.onInstanceShutdown("testName", WeakReference(Tealium::class.java.cast(null)))
+        delay(1000)
+
+        verify(exactly = 1, timeout = 1000) {
+            mockWebView.destroy()
+        }
+    }
+
+    @Test
+    fun webViewClient_DestroyWebViewHandlesExceptionOnInstanceShutdown() = runBlocking {
+        every { mockWebView.destroy() } throws RuntimeException("Test WebView destruction exception")
+
+        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockWebViewProvider)
+        delay(1000)
+
+        webViewLoader.onInstanceShutdown("testName", WeakReference(Tealium::class.java.cast(null)))
+        delay(1000)
+
+        verify(exactly = 1) {
+            mockWebView.destroy()
+        }
+        verify {
+            Logger.dev(any(), match {
+                it.startsWith("Error destroying WebView on shutdown:")
+            })
         }
     }
 }
