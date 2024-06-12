@@ -413,14 +413,15 @@ class WebViewLoader(
     }
 
     override fun onInstanceShutdown(name: String, instance: WeakReference<Tealium>) {
-        try {
-            mainScope.launch {
+        mainScope.launch {
+            try {
                 webView.destroy()
+            } catch (t: Throwable) {
+                Logger.dev(
+                    BuildConfig.TAG,
+                    "Error destroying WebView on shutdown: ${t.localizedMessage}"
+                )
             }
-        } catch (t: Throwable) {
-            Logger.dev(BuildConfig.TAG,
-                "Error destroying WebView on shutdown: ${t.localizedMessage}"
-            )
         }
     }
 
