@@ -39,10 +39,10 @@ class MomentsApiService @JvmOverloads constructor(
     private val backgroundScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) : Module, MomentsApi {
 
-    override var enabled: Boolean = true // change
+    override var enabled: Boolean = true
     override val name: String = MODULE_NAME
 
-    private val enginUrl: String =
+    private val engineUrl: String =
         "https://personalization-api.${region.value}.prod.tealiumapis.com/personalization/accounts/${context.config.accountName}/profiles/${context.config.profileName}/"
 
     private val referer = context.config.momentsApiReferer
@@ -58,7 +58,7 @@ class MomentsApiService @JvmOverloads constructor(
     private fun fetchResponse(engineId: String, handler: ResponseListener<EngineResponse>) {
         backgroundScope.launch {
             networkClient.get(
-                URL("$enginUrl/engines/$engineId/visitors/${context.visitorId}?ignoreTapid=true"),
+                URL("$engineUrl/engines/$engineId/visitors/${context.visitorId}?ignoreTapid=true"),
                 referer,
                 object : ResponseListener<String> {
                     override fun success(data: String) {
