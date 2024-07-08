@@ -155,6 +155,10 @@ object TealiumHelper : ActivityDataCollector {
         )
     }
 
+    fun shutdown() {
+        Tealium.destroy(BuildConfig.TEALIUM_INSTANCE)
+    }
+
     fun retrieveDatalayer(): Map<String, Any>? {
         return Tealium[BuildConfig.TEALIUM_INSTANCE]?.gatherTrackData()
     }
