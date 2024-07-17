@@ -22,6 +22,17 @@ data class EngineResponse(
         const val KEY_DATES = "dates"
         const val KEY_FLAGS = "flags"
 
+        fun fromJson(json: JSONObject): EngineResponse {
+            return EngineResponse(
+                badges = json.optJSONArray(KEY_BADGES)?.asListOfStrings(),
+                audiences = json.optJSONArray(KEY_AUDIENCES)?.asListOfStrings(),
+                strings = json.optJSONObject(KEY_PROPERTIES)?.asStrings(),
+                booleans = json.optJSONObject(KEY_FLAGS)?.asBooleans(),
+                dates = json.optJSONObject(KEY_DATES)?.asDates(),
+                numbers = json.optJSONObject(KEY_METRICS)?.asNumbers()
+            )
+        }
+
         fun toJson(engineResponse: EngineResponse): JSONObject {
             val json = JSONObject()
 
@@ -50,17 +61,6 @@ data class EngineResponse(
             }
 
             return json
-        }
-
-        fun fromJson(json: JSONObject): EngineResponse {
-            return EngineResponse(
-                badges = json.optJSONArray(KEY_BADGES)?.asListOfStrings(),
-                audiences = json.optJSONArray(KEY_AUDIENCES)?.asListOfStrings(),
-                strings = json.optJSONObject(KEY_PROPERTIES)?.asStrings(),
-                booleans = json.optJSONObject(KEY_FLAGS)?.asBooleans(),
-                dates = json.optJSONObject(KEY_DATES)?.asDates(),
-                numbers = json.optJSONObject(KEY_METRICS)?.asNumbers()
-            )
         }
     }
 }

@@ -46,12 +46,12 @@ class MomentsApiServiceTest {
             "test",
             "test",
             Environment.DEV
-        ).apply { momentsApiRegion = MomentsApiRegion.US_EAST }
+        )
 
         every { mockContext.config } returns config
         every { mockContext.visitorId } returns "abc123"
 
-        apiService = MomentsApiService(mockContext, MomentsApiRegion.US_EAST, networkClient)
+        apiService = MomentsApiService(mockContext, MomentsApiRegion.UsEast, networkClient)
         listener = mockk()
     }
 

@@ -88,7 +88,8 @@ object TealiumHelper : ActivityDataCollector {
             // overrideConsentCategoriesKey = "my_consent_categories_key"
 
             visitorIdentityKey = BuildConfig.IDENTITY_KEY
-            momentsApiRegion = MomentsApiRegion.US_EAST
+            momentsApiRegion = MomentsApiRegion.UsEast
+//            momentsApiRegion = MomentsApiRegion.Custom("myRegion")
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {

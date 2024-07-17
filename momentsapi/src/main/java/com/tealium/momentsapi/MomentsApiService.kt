@@ -29,6 +29,7 @@ interface MomentsApi {
 /**
  * Service class providing implementation for the Moments API module.
  * @param context The Tealium context.
+ * @param region The region used for calls to Moments API endpoint (Required).
  * @param networkClient The network client used for making HTTP requests (default is HttpClient).
  * @param backgroundScope The CoroutineScope used for background tasks (default is Dispatchers.IO).
  */
@@ -48,14 +49,7 @@ class MomentsApiService @JvmOverloads constructor(
     private val referer = context.config.momentsApiReferer
         ?: "https://tags.tiqcdn.com/utag/${context.config.accountName}/${context.config.profileName}/${context.config.environment.environment}/mobile.html"
 
-    override fun fetchEngineResponse(
-        engineId: String,
-        responseListener: ResponseListener<EngineResponse>
-    ) {
-        fetchResponse(engineId, responseListener)
-    }
-
-    private fun fetchResponse(engineId: String, handler: ResponseListener<EngineResponse>) {
+    override fun fetchEngineResponse(engineId: String, responseListener: ResponseListener<EngineResponse>) {
         backgroundScope.launch {
             networkClient.get(
                 URL("$engineUrl/engines/$engineId/visitors/${context.visitorId}?ignoreTapid=true"),
@@ -65,14 +59,14 @@ class MomentsApiService @JvmOverloads constructor(
                         try {
                             val json = JSONObject(data)
                             val visitorData = EngineResponse.fromJson(json)
-                            handler.success(visitorData)
+                            responseListener.success(visitorData)
                         } catch (ex: Exception) {
-                            handler.failure(ErrorCode.INVALID_JSON, ErrorCode.INVALID_JSON.message)
+                            responseListener.failure(ErrorCode.INVALID_JSON, ErrorCode.INVALID_JSON.message)
                         }
                     }
 
                     override fun failure(errorCode: ErrorCode, message: String) {
-                        handler.failure(errorCode, message)
+                        responseListener.failure(errorCode, message)
                     }
                 })
         }

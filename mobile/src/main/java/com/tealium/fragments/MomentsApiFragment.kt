@@ -49,7 +49,7 @@ class MomentsApiFragment : Fragment() {
 
     private fun onFetchEngineData() {
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.momentsApi?.fetchEngineResponse(
-            "4625fd31-cd87-444e-9470-7467f2e963ba",
+            "a2faaf0c-7534-4682-a665-e236151360f0",
             object : ResponseListener<EngineResponse> {
                 override fun success(data: EngineResponse) {
                     activity?.runOnUiThread {
@@ -67,40 +67,40 @@ class MomentsApiFragment : Fragment() {
 
     @UiThread
     private fun setEngineResponseData(engineResponse: EngineResponse) {
-        if (engineResponse.audiences != null) {
+        engineResponse.audiences?.let {
             binding.txtAudiencesLabel.visibility = View.VISIBLE
             binding.txtAudiencesPlaceholder.visibility = View.VISIBLE
-            binding.txtAudiencesPlaceholder.text = engineResponse.audiences.toString()
+            binding.txtAudiencesPlaceholder.text = it.toString()
         }
 
-        if (engineResponse.badges != null) {
+        engineResponse.badges?.let {
             binding.txtBadgesLabel.visibility = View.VISIBLE
             binding.txtBadgesPlaceholder.visibility = View.VISIBLE
-            binding.txtBadgesPlaceholder.text = engineResponse.audiences.toString()
+            binding.txtBadgesPlaceholder.text = it.toString()
         }
 
-        if (engineResponse.strings != null) {
+        engineResponse.strings?.let {
             binding.txtStringsLabel.visibility = View.VISIBLE
             binding.txtStringsPlaceholder.visibility = View.VISIBLE
-            binding.txtStringsPlaceholder.text = engineResponse.strings.toString()
+            binding.txtStringsPlaceholder.text = it.toString()
         }
 
-        if (engineResponse.numbers != null) {
+        engineResponse.numbers?.let {
             binding.txtNumbersLabel.visibility = View.VISIBLE
             binding.txtNumbersPlaceholder.visibility = View.VISIBLE
-            binding.txtNumbersPlaceholder.text = engineResponse.numbers.toString()
+            binding.txtNumbersPlaceholder.text = it.toString()
         }
 
-        if (engineResponse.booleans != null) {
+        engineResponse.booleans?.let {
             binding.txtBooleansLabel.visibility = View.VISIBLE
             binding.txtBooleansPlaceholder.visibility = View.VISIBLE
-            binding.txtBooleansPlaceholder.text = engineResponse.booleans.toString()
+            binding.txtBooleansPlaceholder.text = it.toString()
         }
 
-        if (engineResponse.dates != null) {
+        engineResponse.dates?.let {
             binding.txtDatesLabel.visibility = View.VISIBLE
             binding.txtDatesPlaceholder.visibility = View.VISIBLE
-            binding.txtDatesPlaceholder.text = engineResponse.dates.toString()
+            binding.txtDatesPlaceholder.text = it.toString()
         }
     }
 
