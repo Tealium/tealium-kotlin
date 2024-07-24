@@ -8,6 +8,7 @@
     <string name="module_name">Module Name</string>
     <string name="fetch_profile">Fetch Profile</string>
     <string name="fetch_engine_response">Fetch Engine Response</string>
+    <string name="engine_id">Enter Engine ID</string>
     <string name="visitor_profile">Visitor Profile</string>
     <string name="kill_trace">Kill Trace</string>
     <string name="track_item">Track Item</string>

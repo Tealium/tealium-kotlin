@@ -1,8 +1,9 @@
 package com.tealium.fragments
 
+import android.content.Context
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,22 +11,19 @@ import android.widget.Toast
 import androidx.annotation.UiThread
 import androidx.fragment.app.Fragment
 import com.tealium.core.Tealium
-import com.tealium.dispatcher.Dispatch
 import com.tealium.mobile.BuildConfig
 import com.tealium.mobile.TealiumHelper
 import com.tealium.mobile.databinding.FragmentMomentsApiBinding
-import com.tealium.mobile.databinding.FragmentVisitorServiceBinding
 import com.tealium.momentsapi.EngineResponse
 import com.tealium.momentsapi.ErrorCode
 import com.tealium.momentsapi.ResponseListener
 import com.tealium.momentsapi.momentsApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class MomentsApiFragment : Fragment() {
     private lateinit var binding: FragmentMomentsApiBinding
+    private var lastEngineId: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,6 +36,21 @@ class MomentsApiFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val sharedPreferences = requireActivity().getPreferences(Context.MODE_PRIVATE)
+
+        val savedEngineId = sharedPreferences.getString("engineId", "")
+        binding.editEngineId.setText(savedEngineId)
+
+        binding.editEngineId.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                lastEngineId = s.toString()
+                sharedPreferences.edit().putString("engineId", lastEngineId).apply()
+            }
+        })
 
         binding.fetchEngineResponseButton.setOnClickListener {
             TealiumHelper.trackEvent("fetch engine button click", emptyMap())
@@ -49,7 +62,7 @@ class MomentsApiFragment : Fragment() {
 
     private fun onFetchEngineData() {
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.momentsApi?.fetchEngineResponse(
-            "a2faaf0c-7534-4682-a665-e236151360f0",
+            lastEngineId,
             object : ResponseListener<EngineResponse> {
                 override fun success(data: EngineResponse) {
                     activity?.runOnUiThread {
