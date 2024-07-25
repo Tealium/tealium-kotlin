@@ -22,7 +22,6 @@
 
 -keep class com.tealium.momentsapi.MomentsApiService
 -keep class com.tealium.momentsapi.EngineResponse
--keep class com.tealium.momentsapi.EngineResponseKt
 -keep class com.tealium.momentsapi.EngineResponse$Companion
 -keep class com.tealium.momentsapi.MomentsApiRegion
 -keep class com.tealium.momentsapi.ResponseListener
