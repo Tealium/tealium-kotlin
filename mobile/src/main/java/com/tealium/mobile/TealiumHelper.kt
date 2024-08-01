@@ -60,7 +60,7 @@ object TealiumHelper : ActivityDataCollector {
             ),
             dispatchers = mutableSetOf(
                 Dispatchers.Collect,
-                Dispatchers.TagManagement,
+//                Dispatchers.TagManagement,
                 Dispatchers.RemoteCommands
             )
         ).apply {
@@ -161,24 +161,10 @@ object TealiumHelper : ActivityDataCollector {
         )
     }
 
-    fun getMomentsVisitorData() {
+    fun getMomentsVisitorData(engineId: String, responseListener: ResponseListener<EngineResponse>) {
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.momentsApi?.fetchEngineResponse(
-            "4625fd31-cd87-444e-9470-7467f2e963ba",
-            object :
-                ResponseListener<EngineResponse> {
-                override fun success(data: EngineResponse) {
-                    Logger.dev(BuildConfig.TAG, "Visitor data audiences: ${data.audiences.toString()}")
-                    Logger.dev(BuildConfig.TAG, "Visitor data badges: ${data.badges.toString()}")
-                    Logger.dev(BuildConfig.TAG, "Visitor data string properties: ${data.strings.toString()}")
-                    Logger.dev(BuildConfig.TAG, "Visitor data booleans properties: ${data.booleans.toString()}")
-                    Logger.dev(BuildConfig.TAG, "Visitor data dates properties: ${data.dates.toString()}")
-                    Logger.dev(BuildConfig.TAG, "Visitor data numbers properties: ${data.numbers.toString()}")
-                }
-
-                override fun failure(errorCode: ErrorCode, message: String) {
-                    Logger.dev(BuildConfig.TAG, "Moments API Error - ${errorCode.value}: $message")
-                }
-            }
+            engineId,
+            responseListener
         )
     }
 

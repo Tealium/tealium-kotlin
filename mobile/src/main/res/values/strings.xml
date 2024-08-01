@@ -6,6 +6,7 @@
     <string name="unknown">Unknown</string>
     <string name="reset_consent">Reset</string>
     <string name="module_name">Module Name</string>
+    <string name="moments_attr_label">Moments Atrr. Label</string>
     <string name="fetch_profile">Fetch Profile</string>
     <string name="fetch_engine_response">Fetch Engine Response</string>
     <string name="engine_id">Enter Engine ID</string>
@@ -42,17 +43,5 @@
     <string name="btn_identify">Identify</string>
     <string name="visitor_id_label">Visitor Id:</string>
     <string name="visitor_id_placeholder"><![CDATA[<visitor id>]]></string>
-    <string name="moments_api_audiences_label">Audiences:</string>
-    <string name="moments_engine_response_audiences_placeholder"><![CDATA[Loading…]]></string>
-    <string name="moments_api_badges_label">Badges:</string>
-    <string name="moments_engine_response_badges_placeholder"><![CDATA[Loading…]]></string>
-    <string name="moments_api_strings_label">Strings:</string>
-    <string name="moments_engine_response_strings_placeholder"><![CDATA[Loading…]]></string>
-    <string name="moments_api_numbers_label">Numbers:</string>
-    <string name="moments_engine_response_numbers_placeholder"><![CDATA[Loading…]]></string>
-    <string name="moments_api_booleans_label">Booleans:</string>
-    <string name="moments_engine_response_booleans_placeholder"><![CDATA[Loading…]]></string>
-    <string name="moments_api_dates_label">Dates:</string>
-    <string name="moments_engine_response_dates_placeholder"><![CDATA[Loading…]]></string>
 
 </resources>
