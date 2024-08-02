@@ -17,14 +17,14 @@ class HttpClient(
     )
 ) : NetworkClient {
 
-    override fun get(url: URL, referer: String, listener: ResponseListener<String>) {
+    override fun get(url: URL, referrer: String, listener: ResponseListener<String>) {
         if (!connectivityRetriever.isConnected()) {
             listener.failure(ErrorCode.NOT_CONNECTED, ErrorCode.NOT_CONNECTED.message)
         }
 
         with(url.openConnection() as HttpURLConnection) {
             requestMethod = "GET"
-            setRequestProperty("Referer", referer)
+            setRequestProperty("Referer", referrer)
             var reader: BufferedReader? = null
             try {
                 when (responseCode) {

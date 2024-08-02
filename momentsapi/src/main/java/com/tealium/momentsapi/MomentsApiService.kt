@@ -46,14 +46,14 @@ class MomentsApiService @JvmOverloads constructor(
     private val engineUrl: String =
         "https://personalization-api.${region.value}.prod.tealiumapis.com/personalization/accounts/${context.config.accountName}/profiles/${context.config.profileName}/"
 
-    private val referer = context.config.momentsApiReferer
+    private val referrer = context.config.momentsApiReferrer
         ?: "https://tags.tiqcdn.com/utag/${context.config.accountName}/${context.config.profileName}/${context.config.environment.environment}/mobile.html"
 
     override fun fetchEngineResponse(engineId: String, responseListener: ResponseListener<EngineResponse>) {
         backgroundScope.launch {
             networkClient.get(
                 URL("$engineUrl/engines/$engineId/visitors/${context.visitorId}?ignoreTapid=true"),
-                referer,
+                referrer,
                 object : ResponseListener<String> {
                     override fun success(data: String) {
                         try {
