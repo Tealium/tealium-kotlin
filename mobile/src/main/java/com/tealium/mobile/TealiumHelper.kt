@@ -27,10 +27,16 @@ import com.tealium.remotecommanddispatcher.remoteCommandConfigRefresh
 import com.tealium.remotecommanddispatcher.remoteCommands
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.tagmanagementdispatcher.TagManagement
-import com.tealium.tagmanagementdispatcher.sessionCountingEnabled
 import com.tealium.visitorservice.VisitorProfile
 import com.tealium.visitorservice.VisitorService
 import com.tealium.visitorservice.VisitorUpdatedListener
+import com.tealium.momentsapi.EngineResponse
+import com.tealium.momentsapi.ErrorCode
+import com.tealium.momentsapi.MomentsApi
+import com.tealium.momentsapi.MomentsApiRegion
+import com.tealium.momentsapi.ResponseListener
+import com.tealium.momentsapi.momentsApi
+import com.tealium.momentsapi.momentsApiRegion
 import java.util.concurrent.TimeUnit
 
 object TealiumHelper : ActivityDataCollector {
@@ -39,7 +45,7 @@ object TealiumHelper : ActivityDataCollector {
         val config = TealiumConfig(
             application,
             "tealiummobile",
-            "android",
+            "demo",
             Environment.DEV,
             modules = mutableSetOf(
                 Modules.Lifecycle,
@@ -50,11 +56,12 @@ object TealiumHelper : ActivityDataCollector {
                 Modules.InAppPurchaseManager,
                 Modules.AutoTracking,
                 Modules.Media,
-                QueryParamProviderModule
+                QueryParamProviderModule,
+                Modules.MomentsApi
             ),
             dispatchers = mutableSetOf(
                 Dispatchers.Collect,
-                Dispatchers.TagManagement,
+//                Dispatchers.TagManagement,
                 Dispatchers.RemoteCommands
             )
         ).apply {
@@ -82,6 +89,9 @@ object TealiumHelper : ActivityDataCollector {
             // overrideConsentCategoriesKey = "my_consent_categories_key"
 
             visitorIdentityKey = BuildConfig.IDENTITY_KEY
+
+            momentsApiRegion = MomentsApiRegion.UsEast
+//            momentsApiRegion = MomentsApiRegion.Custom("myRegion")
 
             remoteCommandConfigRefresh = 1
         }
@@ -152,6 +162,13 @@ object TealiumHelper : ActivityDataCollector {
         Tealium[BuildConfig.TEALIUM_INSTANCE]?.inAppPurchaseManager?.trackInAppPurchase(
             purchase,
             data
+        )
+    }
+
+    fun getMomentsVisitorData(engineId: String, responseListener: ResponseListener<EngineResponse>) {
+        Tealium[BuildConfig.TEALIUM_INSTANCE]?.momentsApi?.fetchEngineResponse(
+            engineId,
+            responseListener
         )
     }
 

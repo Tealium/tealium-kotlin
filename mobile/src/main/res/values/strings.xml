@@ -6,7 +6,10 @@
     <string name="unknown">Unknown</string>
     <string name="reset_consent">Reset</string>
     <string name="module_name">Module Name</string>
+    <string name="moments_attr_label">Moments Atrr. Label</string>
     <string name="fetch_profile">Fetch Profile</string>
+    <string name="fetch_engine_response">Fetch Engine Response</string>
+    <string name="engine_id">Enter Engine ID</string>
     <string name="visitor_profile">Visitor Profile</string>
     <string name="kill_trace">Kill Trace</string>
     <string name="track_item">Track Item</string>
@@ -40,4 +43,5 @@
     <string name="btn_identify">Identify</string>
     <string name="visitor_id_label">Visitor Id:</string>
     <string name="visitor_id_placeholder"><![CDATA[<visitor id>]]></string>
+
 </resources>
