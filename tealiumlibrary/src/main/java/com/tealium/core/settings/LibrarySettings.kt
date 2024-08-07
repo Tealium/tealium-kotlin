@@ -28,9 +28,24 @@ private const val MPS_KEY_LOG_LEVEL = "override_log"
 private const val MPS_KEY_DISABLE_LIBRARY = "_is_enabled"
 private const val MPS_KEY_ETAG = "etag"
 
+/**
+ * These settings describe the options that can be remotely configured, either via a JSON file, or
+ * through the Mobile Publish Settings available in Tealium IQ and the Mobile.html
+ * @see com.tealium.core.TealiumConfig.overrideLibrarySettingsUrl
+ * @see com.tealium.core.settings.Batching
+ *
+ * @param collectDispatcherEnabled Whether or not events should be sent using Collect Dispatcher (default: true)
+ * @param tagManagementDispatcherEnabled Whether or not events should be sent using TagManagement Dispatcher (default: true)
+ * @param batching Configuration for batch size, if required, as well as queue limits and Dispatch time-to-live
+ * @param batterySaver set to true to restrict the sending of events in low battery scenarios, otherwise false (default: false)
+ * @param wifiOnly set to true to only send events in when the device has WiFi capabilities, otherwise false (default: false)
+ * @param refreshInterval the time, in seconds, before the [LibrarySettings] are fetched again (default 900s; 15 minutes)
+ * @param disableLibrary set to true to disable all modules, and effectively disable all processing of new events (default: false)
+ * @param logLevel sets the LogLevel to consider when writing out Tealium log messages
+ */
 data class LibrarySettings(
-        var collectDispatcherEnabled: Boolean = false,
-        var tagManagementDispatcherEnabled: Boolean = false,
+        var collectDispatcherEnabled: Boolean = true,
+        var tagManagementDispatcherEnabled: Boolean = true,
         var batching: Batching = Batching(),
         var batterySaver: Boolean = false,
         var wifiOnly: Boolean = false,
@@ -112,6 +127,15 @@ data class LibrarySettings(
     }
 }
 
+/**
+ * Configures the available batching and queueing options.
+ *
+ * @param batchSize The number of dispatches to wait for before sending in a single payload. (default: 1 - i.e. no batching)
+ * There is a limit of 10 for this value.
+ * @param maxQueueSize The maximum number of events to persist on disk while sending is not possible.
+ * Dispatches are evicted in an oldest-first manner if this limit is exceeded. (default: 100)
+ * @param expiration The time-to-live, in seconds, for dispatches that remain on disk while sending is not possible. (default: 86400)
+ */
 data class Batching(var batchSize: Int = 1,
                     var maxQueueSize: Int = 100,
                     var expiration: Int = 86400) {

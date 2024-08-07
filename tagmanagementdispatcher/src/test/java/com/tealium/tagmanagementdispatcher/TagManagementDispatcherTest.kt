@@ -312,7 +312,7 @@ class TagManagementDispatcherTest {
 
         tagManagementDispatcher.callRemoteCommandTags(TealiumEvent("test"))
 
-        verify(exactly = 1) {
+        verify(exactly = 1, timeout = 1000) {
             mockWebView.evaluateJavascript(any(), any())
         }
     }
@@ -329,7 +329,7 @@ class TagManagementDispatcherTest {
 
         tagManagementDispatcher.callRemoteCommandTags(TealiumEvent("test"))
 
-        verify(exactly = 0) {
+        verify(exactly = 0, timeout = 1000) {
             mockWebView.evaluateJavascript(any(), any())
         }
     }

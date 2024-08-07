@@ -23,6 +23,7 @@ import com.tealium.media.Media
 import com.tealium.media.mediaBackgroundSessionEnabled
 import com.tealium.media.mediaBackgroundSessionEndInterval
 import com.tealium.remotecommanddispatcher.RemoteCommands
+import com.tealium.remotecommanddispatcher.remoteCommandConfigRefresh
 import com.tealium.remotecommanddispatcher.remoteCommands
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.tagmanagementdispatcher.TagManagement
@@ -88,8 +89,11 @@ object TealiumHelper : ActivityDataCollector {
             // overrideConsentCategoriesKey = "my_consent_categories_key"
 
             visitorIdentityKey = BuildConfig.IDENTITY_KEY
+
             momentsApiRegion = MomentsApiRegion.UsEast
 //            momentsApiRegion = MomentsApiRegion.Custom("myRegion")
+
+            remoteCommandConfigRefresh = 1
         }
 
         Tealium.create(BuildConfig.TEALIUM_INSTANCE, config) {
@@ -166,6 +170,10 @@ object TealiumHelper : ActivityDataCollector {
             engineId,
             responseListener
         )
+    }
+
+    fun shutdown() {
+        Tealium.destroy(BuildConfig.TEALIUM_INSTANCE)
     }
 
     fun retrieveDatalayer(): Map<String, Any>? {

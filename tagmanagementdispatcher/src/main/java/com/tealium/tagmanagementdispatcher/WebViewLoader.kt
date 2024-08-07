@@ -17,6 +17,7 @@ import com.tealium.remotecommands.RemoteCommandRequest
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers
 import org.json.JSONObject
+import java.lang.ref.WeakReference
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -28,7 +29,8 @@ class WebViewLoader(
     private val connectivityRetriever: Connectivity = ConnectivityRetriever.getInstance(context.config.application),
     private val webViewProvider: () -> WebView = { WebView(context.config.application) }
 ) : LibrarySettingsUpdatedListener,
-    SessionStartedListener {
+    SessionStartedListener,
+    InstanceShutdownListener {
 
     val webViewStatus = AtomicReference<PageStatus>(PageStatus.INIT)
     var lastUrlLoadTimestamp = 0L
@@ -47,6 +49,9 @@ class WebViewLoader(
 
     @Volatile
     lateinit var webView: WebView
+
+    var webViewInitialized: Deferred<Unit>
+        private set
 
     internal val webViewClient = object : WebViewClient() {
         override fun onPageFinished(view: WebView?, url: String?) {
@@ -236,7 +241,7 @@ class WebViewLoader(
     }
 
     init {
-        initializeWebView()
+        webViewInitialized = initializeWebView()
         context.events.subscribe(this)
     }
 
@@ -310,7 +315,7 @@ class WebViewLoader(
 
             loadUrlToWebView()
             enableCookieManager()
-        }
+        }.also { webViewInitialized = it }
     }
 
     private fun createResponseHandler(): RemoteCommand.ResponseHandler {
@@ -347,10 +352,7 @@ class WebViewLoader(
     private fun enableCookieManager() {
         CookieManager.getInstance().apply {
             setAcceptCookie(true)
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                setAcceptThirdPartyCookies(webView, true)
-            }
+            setAcceptThirdPartyCookies(webView, true)
 
             Logger.dev(BuildConfig.TAG, "WebView: $webView created and cookies enabled")
         }
@@ -395,16 +397,32 @@ class WebViewLoader(
     override fun onLibrarySettingsUpdated(settings: LibrarySettings) {
         isWifiOnlySending = settings.wifiOnly
         timeoutInterval = settings.refreshInterval // seconds
-        if (isTimedOut()) {
-            loadUrlToWebView()
-        }
     }
 
     override fun onSessionStarted(sessionId: Long) {
+        if (this.sessionId != INVALID_SESSION_ID
+            && this.sessionId != sessionId
+            && webViewStatus.compareAndSet(PageStatus.LOADED_SUCCESS, PageStatus.LOADED_ERROR)) {
+            loadUrlToWebView()
+        }
+
         this.sessionId = sessionId
         shouldRegisterSession.set(true)
 
         registerNewSessionIfNeeded(sessionId)
+    }
+
+    override fun onInstanceShutdown(name: String, instance: WeakReference<Tealium>) {
+        mainScope.launch {
+            try {
+                webView.destroy()
+            } catch (t: Throwable) {
+                Logger.dev(
+                    BuildConfig.TAG,
+                    "Error destroying WebView on shutdown: ${t.localizedMessage}"
+                )
+            }
+        }
     }
 
     private fun registerNewSessionIfNeeded(sessionId: Long) {

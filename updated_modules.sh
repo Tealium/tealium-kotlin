@@ -13,6 +13,11 @@ function updatedModules() {
 
   while read -r line; do
     module_name=${line%%/*} # Gets the first word before '/'
+    if [[ "$module_name" == 'mobile' ]]; then
+      echo "Skipping $module_name"
+      continue
+    fi
+
     # Now we check if we haven't already added this module
     if [[ ${updated_modules} != *"${module_name}"* ]]; then
       #
