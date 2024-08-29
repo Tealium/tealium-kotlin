@@ -15,15 +15,22 @@
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
+-keepparameternames
+-keeppackagenames
+-renamesourcefileattribute SourceFile
+-keepattributes Exceptions,InnerClasses,Signature,Deprecated,
+                SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
 
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class com.tealium.momentsapi.MomentsApiService
--keep class com.tealium.momentsapi.EngineResponse
--keep class com.tealium.momentsapi.EngineResponse$Companion
--keep class com.tealium.momentsapi.MomentsApiRegion
--keep class com.tealium.momentsapi.ResponseListener
--keep class com.tealium.momentsapi.TealiumConfigMomentsApiKt
--keep class com.tealium.momentsapi.ErrorCode
+-keep class kotlin.Metadata { *; }
+
+-keep class com.tealium.momentsapi.MomentsApiService { *; }
+-keep class com.tealium.momentsapi.EngineResponse { *; }
+-keep class com.tealium.momentsapi.EngineResponse$Companion { *; }
+-keep class com.tealium.momentsapi.MomentsApiRegion { *; }
+-keep class com.tealium.momentsapi.ResponseListener { *; }
+-keep class com.tealium.momentsapi.TealiumConfigMomentsApiKt { *; }
+-keep class com.tealium.momentsapi.ErrorCode { *; }
