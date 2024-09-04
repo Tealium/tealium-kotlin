@@ -27,10 +27,14 @@
 
 -keep class kotlin.Metadata { *; }
 
+-keep interface com.tealium.momentsapi.** { *; }
+
 -keep class com.tealium.momentsapi.MomentsApiService { *; }
+-keep class com.tealium.momentsapi.MomentsApiServiceKt { *; }
 -keep class com.tealium.momentsapi.EngineResponse { *; }
 -keep class com.tealium.momentsapi.EngineResponse$Companion { *; }
 -keep class com.tealium.momentsapi.MomentsApiRegion { *; }
+-keep class com.tealium.momentsapi.MomentsApiRegion$** { *; }
 -keep class com.tealium.momentsapi.ResponseListener { *; }
 -keep class com.tealium.momentsapi.TealiumConfigMomentsApiKt { *; }
 -keep class com.tealium.momentsapi.ErrorCode { *; }
