@@ -1,5 +1,6 @@
 package com.tealium.visitorservice
 
+import android.util.Log
 import com.tealium.core.*
 import com.tealium.core.messaging.*
 import com.tealium.core.network.ResourceRetriever
@@ -9,6 +10,8 @@ import kotlinx.coroutines.Dispatchers
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
+import java.io.FileNotFoundException
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -117,7 +120,11 @@ class VisitorManager(
     }
 
     fun saveVisitorProfile(visitorProfile: VisitorProfile) {
-        file.writeText(VisitorProfile.toJson(visitorProfile).toString(), Charsets.UTF_8)
+//        try {
+            file.writeText(VisitorProfile.toJson(visitorProfile).toString(), Charsets.UTF_8)
+//        } catch (ioe: IOException) {
+//            Logger.dev(BuildConfig.TAG, "Error writing to file (${file.name}): ${ioe.message}")
+//        }
     }
 
     override suspend fun onDispatchSend(dispatch: Dispatch) {
