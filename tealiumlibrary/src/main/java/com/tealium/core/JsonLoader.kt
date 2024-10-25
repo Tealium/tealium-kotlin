@@ -42,7 +42,6 @@ class JsonLoader(val application: Application) : Loader {
             Logger.dev(BuildConfig.TAG, "Error reading from file (${file.name}): ${ioe.message} ")
             null
         }
-
     }
 
     override fun loadFromAsset(fileName: String): String? {
