@@ -120,11 +120,11 @@ class VisitorManager(
     }
 
     fun saveVisitorProfile(visitorProfile: VisitorProfile) {
-//        try {
+        try {
             file.writeText(VisitorProfile.toJson(visitorProfile).toString(), Charsets.UTF_8)
-//        } catch (ioe: IOException) {
-//            Logger.dev(BuildConfig.TAG, "Error writing to file (${file.name}): ${ioe.message}")
-//        }
+        } catch (ioe: IOException) {
+            Logger.dev(BuildConfig.TAG, "Error writing to file (${file.name}): ${ioe.message}")
+        }
     }
 
     override suspend fun onDispatchSend(dispatch: Dispatch) {
