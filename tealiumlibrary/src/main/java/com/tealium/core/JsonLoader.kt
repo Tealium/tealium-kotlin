@@ -30,10 +30,15 @@ interface Loader {
 class JsonLoader(val application: Application) : Loader {
 
     override fun loadFromFile(file: File): String? {
-        return if (file.exists()) {
-            file.readText(Charsets.UTF_8)
-        } else {
-            Logger.dev(BuildConfig.TAG, "File not found (${file.name})")
+        return try {
+            if (file.exists() && file.canRead()) {
+                file.readText(Charsets.UTF_8)
+            } else {
+                Logger.dev(BuildConfig.TAG, "File not accessible (${file.name})")
+                null
+            }
+        } catch (ioe: IOException) {
+            Logger.dev(BuildConfig.TAG, "Error reading from file (${file.name}): ${ioe.message} ")
             null
         }
     }

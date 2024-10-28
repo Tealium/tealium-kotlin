@@ -39,7 +39,7 @@ jobs:
       - name: Upload Reports
         continue-on-error: true
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: Reports API ${{ matrix.api-level }}
           path: reports/*.zip
@@ -57,7 +57,7 @@ jobs:
       - name: Build debug APK
         run: bash ./gradlew assembleDebug --stacktrace --warning-mode all
       - name: Upload APK
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mobile
           path: mobile/build/outputs/apk/debug/mobile-debug.apk
