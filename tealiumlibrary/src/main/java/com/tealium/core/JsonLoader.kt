@@ -4,7 +4,6 @@ import android.app.Application
 import com.tealium.tealiumlibrary.BuildConfig
 import org.json.*
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL

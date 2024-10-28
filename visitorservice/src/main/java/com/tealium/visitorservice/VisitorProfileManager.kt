@@ -1,6 +1,5 @@
 package com.tealium.visitorservice
 
-import android.util.Log
 import com.tealium.core.*
 import com.tealium.core.messaging.*
 import com.tealium.core.network.ResourceRetriever
@@ -10,7 +9,6 @@ import kotlinx.coroutines.Dispatchers
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
