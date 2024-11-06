@@ -7,6 +7,7 @@ import com.tealium.core.messaging.EventRouter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+@Deprecated("Replaced by [ActivityManager]")
 class ActivityObserver(config: TealiumConfig, val eventRouter: EventRouter, private val backgroundScope: CoroutineScope) {
 
     private val application: Application = config.application
