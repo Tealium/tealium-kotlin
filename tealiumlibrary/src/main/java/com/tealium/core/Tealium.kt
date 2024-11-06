@@ -67,8 +67,8 @@ class Tealium private constructor(
     // Dependencies for publicly accessible objects.
     private val databaseHelper: DatabaseHelper = DatabaseHelper(config)
     private val eventRouter = EventDispatcher(isReady = false)
-    private val activityObserver: ActivityObserver =
-        ActivityObserver(config, eventRouter, backgroundScope)
+    private val activityManager: ActivityManager = ActivityManager.getInstance(config.application)
+    private val activityListener: ActivityManager.ActivityLifecycleListener = createActivityListener(eventRouter)
     private val sessionManager = SessionManager(config, eventRouter)
     private val deepLinkHandler: DeepLinkHandler
     private val timedEvents: TimedEventsManager
@@ -194,6 +194,8 @@ class Tealium private constructor(
             dataLayer.subscribe(visitorIdProvider)
         }
 
+        activityManager.subscribe(activityListener)
+
         // Initialize everything else in the background.
         backgroundScope.launch {
             bootstrap()
@@ -294,6 +296,7 @@ class Tealium private constructor(
             eventRouter
         )
         eventRouter.subscribeAll(listOf(dispatchRouter, dispatchStore))
+
         onInstanceReady()
     }
 
@@ -463,8 +466,8 @@ class Tealium private constructor(
      */
     private fun shutdown() {
         initialized.set(false)
+        activityManager.unsubscribe(activityListener)
         eventRouter.onInstanceShutdown(key, WeakReference(this))
-
     }
 
     companion object {
@@ -504,6 +507,12 @@ class Tealium private constructor(
          */
         fun names(): Set<String> {
             return instances.keys.toSet()
+        }
+
+        private fun createActivityListener(eventRouter: EventRouter): ActivityManager.ActivityLifecycleListener {
+            return ActivityManager.ActivityLifecycleListener {
+                eventRouter.send(ActivityStatusChangedMessenger(it))
+            }
         }
     }
 }

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.tealium.mobile">
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -40,6 +42,11 @@
         <service android:name="com.tealium.media.MediaService"/>
         <activity android:name=".SecondActivity" />
         <activity android:name=".ThirdActivity" />
+        <!-- Uncomment to remove auto-init provider on merge -->
+<!--        <provider-->
+<!--            android:authorities="${applicationId}.tealiumautoinitprovider"-->
+<!--            android:name="com.tealium.core.internal.TealiumAutoInitContentProvider"-->
+<!--            tools:node="remove" />-->
     </application>
 
 </manifest>
