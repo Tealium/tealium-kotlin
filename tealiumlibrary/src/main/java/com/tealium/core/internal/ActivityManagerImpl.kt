@@ -132,7 +132,10 @@ class ActivityManagerImpl internal constructor(
                 }
 
                 mObservers.forEach {
-                    it.onActivityLifecycleUpdated(status)
+                    try {
+                        it.onActivityLifecycleUpdated(status)
+                    } catch (ignore: Exception) {
+                    }
                 }
             }
         }
@@ -163,6 +166,15 @@ class ActivityManagerImpl internal constructor(
                         }
                     }
                 }
+            } catch (ignore: Exception) {
+            }
+        }
+
+        override fun unregisterObserver(listener: ActivityManager.ActivityLifecycleListener?) {
+            if (listener == null) return
+
+            try {
+                super.registerObserver(listener)
             } catch (ignore: Exception) {
             }
         }
