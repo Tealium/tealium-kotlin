@@ -140,6 +140,10 @@ data class Batching(var batchSize: Int = 1,
                     var maxQueueSize: Int = 100,
                     var expiration: Int = 86400) {
 
+    init {
+        batchSize = sanitizeBatchSize(batchSize)
+    }
+
     companion object {
 
         const val maxBatchSize = 10
@@ -154,17 +158,21 @@ data class Batching(var batchSize: Int = 1,
 
         fun fromJson(json: JSONObject): Batching {
             return Batching().apply {
-                var remoteBatchSize = json.optInt(KEY_BATCH_SIZE)
-                if (remoteBatchSize > maxBatchSize) {
-                    remoteBatchSize = maxBatchSize
-                }
-                batchSize = remoteBatchSize
+                batchSize = sanitizeBatchSize(json.optInt(KEY_BATCH_SIZE))
 
                 maxQueueSize = json.optInt(KEY_MAX_QUEUE_SIZE)
 
                 val expirationString = json.optString(KEY_EXPIRATION)
                 expiration = LibrarySettingsExtractor.timeConverter(expirationString)
             }
+        }
+
+        private fun sanitizeBatchSize(batchSize: Int): Int {
+            return if (batchSize > maxBatchSize) {
+                maxBatchSize
+            } else if (batchSize <= 0) {
+                1
+            } else batchSize
         }
     }
 }

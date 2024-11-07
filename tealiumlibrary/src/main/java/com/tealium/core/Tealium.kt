@@ -314,7 +314,13 @@ class Tealium private constructor(
         return setOf<DispatchValidator>(
             BatteryValidator(config, librarySettingsManager.librarySettings, events),
             ConnectivityValidator(connectivity, librarySettingsManager.librarySettings),
-            BatchingValidator(dispatchStore, librarySettingsManager.librarySettings, eventRouter)
+            BatchingValidator(dispatchStore, librarySettingsManager.librarySettings, object : ValidationChangedListener {
+                override fun onRevalidate(override: Class<out DispatchValidator>?) {
+                    backgroundScope.launch {
+                        eventRouter.onRevalidate(override)
+                    }
+                }
+            })
         ).union(customValidators)
     }
 
