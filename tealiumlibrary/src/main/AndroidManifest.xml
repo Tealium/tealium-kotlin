@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.tealium.tealiumlibrary">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -6,10 +7,17 @@
 
     <application>
         <provider
-            android:name="com.tealium.core.internal.TealiumAutoInitContentProvider"
-            android:authorities="${applicationId}.tealiumautoinitprovider"
+            android:name="com.tealium.core.internal.TealiumInitProvider"
+            android:authorities="${applicationId}.tealiuminitprovider"
             android:exported="false"
-            android:initOrder="100" />
+            android:initOrder="100"
+            tools:node="merge">
+            <meta-data
+                android:name="com.tealium.core.internal.TealiumInitProvider.TIMEOUT_SECONDS"
+                android:value="10"
+                tools:node="merge"
+                />
+        </provider>
     </application>
 
 </manifest>

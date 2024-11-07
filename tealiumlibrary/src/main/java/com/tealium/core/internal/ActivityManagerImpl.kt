@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.tealium.core.Tealium
 import com.tealium.core.ActivityManager
 import com.tealium.tealiumlibrary.BuildConfig
 import java.util.LinkedList
@@ -14,11 +15,11 @@ import java.util.Queue
 import java.util.concurrent.TimeUnit
 
 /**
- * This is the default ActivityManager implementation, expected to be subscribed to by Tealium instances
+ * This is the default [ActivityManager] implementation, expected to be subscribed to by Tealium instances
  * and not necessarily the individual components. It is expected to be initialized during
  * [Application.onCreate] to ensure that all updates are collected.
- * This allows for [Tealium] instances to loaded later in the initialization process to minimize
- * impact on startup time.
+ * This allows for [Tealium] instances to be loaded later in the initialization process, and on non-main
+ * Threads to minimize impact on startup time.
  *
  * To further minimize startup times, Activity and Application state updates are collected and
  * published on the Main Thread so as not to require the Tealium processing thread to be created
@@ -42,14 +43,20 @@ class ActivityManagerImpl internal constructor(
         activityStatusObservable.unregisterObserver(listener)
     }
 
+    override fun clear() {
+        activityStatusObservable.timeout()
+    }
+
     init {
-        mainHandler.postDelayed({
-            Log.d(
-                BuildConfig.TAG,
-                "Init grace period expired. Clearing buffered Activities"
-            )
-            activityStatusObservable.timeout()
-        }, TimeUnit.SECONDS.toMillis(timeoutSeconds))
+        if (timeoutSeconds >= 0) {
+            mainHandler.postDelayed({
+                Log.d(
+                    BuildConfig.TAG,
+                    "Init grace period expired. Clearing buffered Activities"
+                )
+                activityStatusObservable.timeout()
+            }, TimeUnit.SECONDS.toMillis(timeoutSeconds))
+        }
 
         application.registerActivityLifecycleCallbacks(activityMonitor)
     }

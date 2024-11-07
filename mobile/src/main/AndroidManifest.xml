@@ -43,10 +43,16 @@
         <activity android:name=".SecondActivity" />
         <activity android:name=".ThirdActivity" />
         <!-- Uncomment to remove auto-init provider on merge -->
-<!--        <provider-->
-<!--            android:authorities="${applicationId}.tealiumautoinitprovider"-->
-<!--            android:name="com.tealium.core.internal.TealiumAutoInitContentProvider"-->
-<!--            tools:node="remove" />-->
+        <provider
+            android:authorities="${applicationId}.tealiuminitprovider"
+            android:name="com.tealium.core.internal.TealiumInitProvider"
+            android:exported="false"
+            >
+<!--            <meta-data-->
+<!--                android:name="com.tealium.core.internal.TealiumInitProvider.TIMEOUT_SECONDS"-->
+<!--                android:value="30"-->
+<!--                tools:node="replace"/>-->
+        </provider>
     </application>
 
 </manifest>
