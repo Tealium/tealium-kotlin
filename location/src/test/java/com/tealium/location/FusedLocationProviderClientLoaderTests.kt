@@ -157,6 +157,11 @@ class FusedLocationProviderClientLoaderTests {
     }
 
     @Test
+    fun stopLocationTracking_DoesNotThrow_IfNotStartedTracking() {
+        fusedLocationProviderClientLoader.stopLocationUpdates()
+    }
+
+    @Test
     fun callback_SetsLastLocation() {
         fusedLocationProviderClientLoader.geofenceLocationClient = mockk(relaxed = true)
         fusedLocationProviderClientLoader.startLocationTracking(true, 10)
