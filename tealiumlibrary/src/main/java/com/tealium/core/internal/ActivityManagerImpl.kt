@@ -174,7 +174,7 @@ class ActivityManagerImpl internal constructor(
             if (listener == null) return
 
             try {
-                super.registerObserver(listener)
+                super.unregisterObserver(listener)
             } catch (ignore: Exception) {
             }
         }

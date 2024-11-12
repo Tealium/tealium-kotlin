@@ -14,6 +14,12 @@ import android.util.Log
 import com.tealium.core.ActivityManager
 import com.tealium.tealiumlibrary.BuildConfig
 
+/**
+ * The [TealiumInitProvider] is responsible for registering Tealium components that are
+ * required at application initialization - this happens during the [ContentProvider.onCreate] method.
+ *
+ * Although it extends [ContentProvider] it is a non-functional implementation and should not be used as such.
+ */
 class TealiumInitProvider : ContentProvider() {
 
     private val COMPONENT_NAME = "com.tealium.core.internal.TealiumInitProvider"

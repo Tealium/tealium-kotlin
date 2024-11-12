@@ -50,7 +50,7 @@ interface ActivityManager {
      *
      * @param type The [Activity] lifecycle type
      * @param activity The [Activity] instance for this lifecycle event
-     * @param timestamp The system timestamp in milliseconds that this event occured
+     * @param timestamp The system timestamp in milliseconds that this event occurred
      *
      * @see [Application.ActivityLifecycleCallbacks]
      */
