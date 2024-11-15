@@ -15,6 +15,10 @@ internal class GenericDispatch(dispatch: Dispatch) : Dispatch {
         payload.putAll(data)
     }
 
+    override fun remove(key: String) {
+        payload.remove(key)
+    }
+
     companion object Utils {
 
         /**

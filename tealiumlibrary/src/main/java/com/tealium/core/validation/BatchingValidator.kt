@@ -2,14 +2,10 @@ package com.tealium.core.validation
 
 import android.app.Activity
 import com.tealium.core.messaging.ActivityObserverListener
-import com.tealium.core.messaging.EventRouter
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
-import com.tealium.core.messaging.ValidationChangedListener
-import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.persistence.DispatchStorage
+import com.tealium.core.settings.LibrarySettings
 import com.tealium.dispatcher.Dispatch
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kotlin.math.max
 
 /**
@@ -19,7 +15,7 @@ import kotlin.math.max
 internal class BatchingValidator(
     private val dispatchStorage: DispatchStorage,
     librarySettings: LibrarySettings,
-    private val onRevalidate: ValidationChangedListener,
+    private val onBackgrounding: () -> Unit,
 ) : DispatchValidator, LibrarySettingsUpdatedListener, ActivityObserverListener {
 
     override val name: String = "BatchingValidator"
@@ -50,7 +46,7 @@ internal class BatchingValidator(
         // accounts for case where the first "Resumed" is missed.
         activityCount = max(activityCount - 1, 0)
         if (activityCount == 0 && !isChangingConfiguration) {
-            onRevalidate.onRevalidate(BatchingValidator::class.java)
+            onBackgrounding.invoke()
         }
     }
 

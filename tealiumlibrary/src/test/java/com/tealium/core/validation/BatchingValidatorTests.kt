@@ -24,14 +24,14 @@ class BatchingValidatorTests {
     private lateinit var mockStore: DispatchStorage
     private lateinit var mockSettings: LibrarySettings
     private lateinit var batchSettings: Batching
-    private lateinit var onRevalidate: ValidationChangedListener
+    private lateinit var onBackgrounding: () -> Unit
 
     @Before
     fun setUp() {
         mockStore = mockk()
         mockSettings = mockk()
         batchSettings = mockk()
-        onRevalidate = mockk(relaxed = true)
+        onBackgrounding = mockk(relaxed = true)
         every { mockSettings.batching } returns batchSettings
     }
 
@@ -41,7 +41,7 @@ class BatchingValidatorTests {
         every { batchSettings.batchSize } returns 10
         every { batchSettings.maxQueueSize } returns 15
 
-        val batchingValidator = BatchingValidator(mockStore, mockSettings, onRevalidate)
+        val batchingValidator = BatchingValidator(mockStore, mockSettings, onBackgrounding)
         assertTrue(batchingValidator.shouldQueue(dispatch))
         assertFalse(batchingValidator.shouldDrop(dispatch))
     }
@@ -52,7 +52,7 @@ class BatchingValidatorTests {
         every { batchSettings.batchSize } returns 10
         every { batchSettings.maxQueueSize } returns 15
 
-        val batchingValidator = BatchingValidator(mockStore, mockSettings, onRevalidate)
+        val batchingValidator = BatchingValidator(mockStore, mockSettings, onBackgrounding)
         assertFalse(batchingValidator.shouldQueue(dispatch))
         assertFalse(batchingValidator.shouldDrop(dispatch))
     }
@@ -63,7 +63,7 @@ class BatchingValidatorTests {
         every { batchSettings.batchSize } returns 10
         every { batchSettings.maxQueueSize } returns 15
 
-        val batchingValidator = BatchingValidator(mockStore, mockSettings, onRevalidate)
+        val batchingValidator = BatchingValidator(mockStore, mockSettings, onBackgrounding)
         assertFalse(batchingValidator.shouldQueue(dispatch))
         assertFalse(batchingValidator.shouldDrop(dispatch))
     }
@@ -74,7 +74,7 @@ class BatchingValidatorTests {
         every { batchSettings.batchSize } returns 10
         every { batchSettings.maxQueueSize } returns 10
 
-        val batchingValidator = BatchingValidator(mockStore, mockSettings, onRevalidate)
+        val batchingValidator = BatchingValidator(mockStore, mockSettings, onBackgrounding)
         assertFalse(batchingValidator.shouldQueue(dispatch))
         assertFalse(batchingValidator.shouldDrop(dispatch))
     }
@@ -85,23 +85,23 @@ class BatchingValidatorTests {
         every { batchSettings.batchSize } returns 10
         every { batchSettings.maxQueueSize } returns 10
 
-        every { onRevalidate.onRevalidate(any()) } just Runs
+        every { onBackgrounding.invoke() } just Runs
 
-        val batchingValidator = BatchingValidator(mockStore, mockSettings, onRevalidate)
+        val batchingValidator = BatchingValidator(mockStore, mockSettings, onBackgrounding)
 
         // simulates a 2 activity app
         batchingValidator.onActivityResumed()       // activity count = 1
         batchingValidator.onActivityResumed()       // activity count = 2
         batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = 1
         verify(exactly = 0) {
-            onRevalidate.onRevalidate(any())
+            onBackgrounding.invoke()
         }
 
         batchingValidator.onActivityResumed()       // activity count = 2
         batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = 1
         batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = 0
         verify(exactly = 1) {
-            onRevalidate.onRevalidate(any())
+            onBackgrounding.invoke()
         }
     }
 
@@ -111,29 +111,29 @@ class BatchingValidatorTests {
         every { batchSettings.batchSize } returns 10
         every { batchSettings.maxQueueSize } returns 10
 
-        every { onRevalidate.onRevalidate(any()) } just Runs
+        every { onBackgrounding.invoke() } just Runs
 
-        val batchingValidator = BatchingValidator(mockStore, mockSettings, onRevalidate)
+        val batchingValidator = BatchingValidator(mockStore, mockSettings, onBackgrounding)
 
         // simulates a 2 activity app
         batchingValidator.onActivityResumed()       // activity count = 1
         batchingValidator.onActivityResumed()       // activity count = 2
         batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = 1
         verify(exactly = 0) {
-            onRevalidate.onRevalidate(any())
+            onBackgrounding.invoke()
         }
 
         // change configuration (screen rotation) causes "stopped" to called prior to "resumed".
         batchingValidator.onActivityStopped(isChangingConfiguration = true)   // activity count = 0
         batchingValidator.onActivityResumed()       // activity count = 1
         verify(exactly = 0) {
-            onRevalidate.onRevalidate(any())
+            onBackgrounding.invoke()
         }
 
         // backgrounding
         batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = 1
         verify(exactly = 1) {
-            onRevalidate.onRevalidate(any())
+            onBackgrounding.invoke()
         }
     }
 
@@ -143,13 +143,13 @@ class BatchingValidatorTests {
         every { batchSettings.batchSize } returns 10
         every { batchSettings.maxQueueSize } returns 10
 
-        every { onRevalidate.onRevalidate(any()) } just Runs
+        every { onBackgrounding.invoke() } just Runs
 
-        val batchingValidator = BatchingValidator(mockStore, mockSettings, onRevalidate)
+        val batchingValidator = BatchingValidator(mockStore, mockSettings, onBackgrounding)
 
         batchingValidator.onActivityStopped(isChangingConfiguration = false)  // activity count = "-1"
         verify(exactly = 1) {
-            onRevalidate.onRevalidate(any())
+            onBackgrounding.invoke()
         }
     }
 }
