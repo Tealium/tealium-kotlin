@@ -14,7 +14,6 @@ import com.tealium.core.messaging.EventDispatcher
 import com.tealium.core.messaging.Listener
 import com.tealium.core.messaging.MessengerService
 import com.tealium.core.messaging.Subscribable
-import com.tealium.core.messaging.ValidationChangedListener
 import com.tealium.core.network.Connectivity
 import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.network.HttpClient
@@ -538,10 +537,5 @@ class Tealium private constructor(
         fun names(): Set<String> {
             return instances.keys.toSet()
         }
-
-        private val ModuleManager.isTagManagementModuleEnabled: Boolean
-            get() = getModule("TagManagement")?.enabled    // TagMgmt 1.0.5 and above
-                ?: getModule("TAG_MANAGEMENT_DISPATCHER")?.enabled
-                ?: false
     }
 }

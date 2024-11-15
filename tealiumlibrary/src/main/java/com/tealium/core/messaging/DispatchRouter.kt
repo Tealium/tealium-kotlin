@@ -253,7 +253,7 @@ internal class DispatchRouter(
         try {
             eventRouter.onProcessRemoteCommand(dispatch)
         } catch (e: Exception) {
-            Logger.dev(BuildConfig.TAG, "Error processing ")
+            Logger.dev(BuildConfig.TAG, "Error processing dispatch for RemoteCommands: ${e.message}")
         }
     }
 
