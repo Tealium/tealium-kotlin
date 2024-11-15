@@ -388,13 +388,12 @@ class DispatchRouterTests {
         every { batching.batchSize } returns 2
         dispatchRouter.track(eventDispatch)
 
-        coVerify(timeout = 1000) {
+        coVerify(timeout = 1000, exactly = 1) {
             dispatcher.onBatchDispatchSend(match { batch ->
                 batch[0].id == queuedEvents[0].id
                         && batch[1].id == queuedEvents[1].id
             })
-            dispatcher.onDispatchSend(match { dispatch ->
-                dispatch.id == eventDispatch.id })
+            dispatcher.onDispatchSend(eventDispatch)
         }
     }
 
@@ -409,6 +408,17 @@ class DispatchRouterTests {
                         && batch[1].id == queuedEvents[1].id
                         && batch[2].id == eventDispatch.id
             })
+        }
+    }
+
+    @Test
+    fun testSendsIncomingWhenNothingElseQueued() {
+        every { batching.batchSize } returns 3
+        dispatchStore.clear()
+        dispatchRouter.track(eventDispatch)
+
+        coVerify(timeout = 1000, exactly = 1) {
+            dispatcher.onDispatchSend(eventDispatch)
         }
     }
 

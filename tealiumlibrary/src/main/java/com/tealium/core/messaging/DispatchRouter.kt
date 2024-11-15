@@ -124,19 +124,19 @@ internal class DispatchRouter(
         return validators.filter { it.enabled }
             .fold(initialResult) { input, validator ->
                 val shouldQueue = shouldQueue(dispatch, validator, override)
-                val remoteCommandProcessingAllowed = !shouldQueue || remoteCommandProcessingAllowed(validator)
+                if (shouldQueue) {
+                    Logger.qa(
+                        BuildConfig.TAG,
+                        "Queueing dispatch requested by: ${validator.name}"
+                    )
+                }
+                val remoteCommandProcessingAllowed =
+                    !shouldQueue || remoteCommandProcessingAllowed(validator)
 
                 input.copy(
                     shouldQueue = input.shouldQueue || shouldQueue,
                     shouldProcessRemoteCommand = input.shouldProcessRemoteCommand && remoteCommandProcessingAllowed
-                ).also { queueResult ->
-                    if (queueResult.shouldQueue) {
-                        Logger.qa(
-                            BuildConfig.TAG,
-                            "Queueing dispatch requested by: ${validator.name}"
-                        )
-                    }
-                }
+                )
             }
     }
 
@@ -188,28 +188,30 @@ internal class DispatchRouter(
      * Pops all currently queued items off the queue in batches
      */
     fun batchedDequeue(dispatch: Dispatch?) {
-        val batchSize = settings.batching.batchSize
         val queueSize = dispatchStore.count()
+        if (queueSize == 0) {
+            dispatch?.let {
+                sendDispatches(listOf(it))
+            }
+            return
+        }
+
+        val batchSize = settings.batching.batchSize
         val batches = ceil(queueSize.toDouble() / batchSize).toInt()
-        Logger.dev(BuildConfig.TAG, "Sending $queueSize events in batches of $batchSize")
+        Logger.dev(
+            BuildConfig.TAG,
+            "Sending ${queueSize + if (dispatch != null) 1 else 0} events in batches of $batchSize"
+        )
 
         var batchNo = 0
         var batch: List<Dispatch> = dispatchStore.dequeue(batchSize)
         while (batch.isNotEmpty()) {
             batchNo++
-            Logger.dev(BuildConfig.TAG, "Sending batch no. $batchNo of $batches")
 
             if (batchNo >= batches && dispatch != null) {
-                // if final batch, add incoming to batch if possible
-                if (batch.size + 1 > batchSize) {
-                    sendDispatches(batch)
-                    sendDispatches(listOf(dispatch))
-                } else {
-                    sendDispatches(batch.plus(dispatch))
-                }
-            } else {
-                sendDispatches(batch)
+                batch = batch.plus(dispatch)
             }
+            sendDispatches(batch)
 
             batch = dispatchStore.dequeue(batchSize)
         }
@@ -229,29 +231,19 @@ internal class DispatchRouter(
             rcDispatches.forEach(::processRemoteCommand)
         }
         scope.launch(Logger.exceptionHandler) {
-            when {
-                dispatches.count() == 1 -> eventRouter.onDispatchSend(dispatches.first())
-                dispatches.count() > 1 -> {
-                    settings.batching.batchSize.let { batchSize ->
-                        when {
-                            batchSize > 1 -> {
-                                dispatches.chunked(batchSize).forEach { batch ->
-                                    eventRouter.onBatchDispatchSend(batch)
-                                }
-                            }
-
-                            else -> {
-                                dispatches.forEach { dispatch ->
-                                    eventRouter.onDispatchSend(dispatch)
-                                }
-                            }
-                        }
-                    }
+            val batchSize = settings.batching.batchSize
+            dispatches.chunked(batchSize).forEach { batch ->
+                if (batch.count() == 1) {
+                    eventRouter.onDispatchSend(batch.first())
+                } else {
+                    eventRouter.onBatchDispatchSend(batch)
                 }
             }
             librarySettingsManager.fetchLibrarySettings()
         }
     }
+
+
 
     /**
      * Sends the [dispatch] for processing of RemoteCommands.
