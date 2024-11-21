@@ -1,5 +1,33 @@
 # Change Log
 
+- 1.7.0 Nov 2024
+  - `TealiumInitProvider` added to automatically execute the minimum amount of Tealium work on the Main Thread at app launch
+    - This will register for Application/Activity lifecycle events at launch
+    - This allows for `Tealium` instances to be safely created off of the Android Main Thread.
+    - `Tealium` instances have a grace period of 10s (by default) from launch to be created in order to ensure accurate Activity tracking
+      - This time limit is configurable either by:
+        - updating the content-provider's meta-data using AndroidManifest merge rules 
+        - or by removing it using AndroidManifest merge rules, and calling `ActivityManager.getInstance(context, <timeout in seconds>)` in `Application.onCreate()` before any `Tealium` instances are created.
+  - `Batching.batchSize` now actively restricts size to be between 1 and 10
+  - `Dispatch.remove(key: String)` method added to allow for removing data
+    - this was added to the `interface` in a backward compatible way, but any custom implementations are advised to override the default implementation.
+  - BugFix: RemoteCommands not being processed when expected
+    - Remote Command processing now inline with [tealium-swift](https://github.com/Tealium/tealium-swift)
+    - RemoteCommand events are now processed earlier in the dispatch process, unless explicitly forbidden by a `DispatchValidator` (e.g. Consent or a custom supplied `DispatchValidator`)
+    - The exceptions to this are for Batching, Connectivity and Low Battery. 
+    - __important__ - Users upgrading to `kotlin-core:1.7.0` are advised to update `kotlin-remotecommand-dispatcher` to `1.5.0` to avoid the possibility of duplicated events
+  - BugFix: Queued events sent on backgrounding sometimes caused ANRs or OOM
+    - Queue dispatches are now dispatched in batches according to the configured batch size to minimize memory requirements
+    - These dispatches are also processed on the Tealium processing thread.
+  - RemoteCommandDispatcher 1.5.0
+    - RemoteCommand events no longer processed on `onDispatchSend` but only on `onRemoteCommandSend` (WebView controlled) and `onProcessRemoteCommand` (JSON controlled)
+    - __important__ - Users upgrading to `kotlin-remotecommand-dispatcher:1.5.0` are advised to update `kotlin-core` to `1.7.0` to avoid the possibility of missed events
+  - Location 1.1.3
+    - BugFix: Stopping location tracking threw exceptions under some conditions
+- 1.6.1 Oct 2024 
+  - Added proper error handling for loadFromFile in JsonLoader
+  - VisitorService 1.2.1
+    - Added proper error handle when saving VisitorProfile
 - 1.6.0 May 2024
   - `HttpClient` now supports only retrying on retryable response codes. 
   - BugFix: `ResourceRetriever` refresh interval affecting library settings being fetched too often
