@@ -1,18 +1,17 @@
 package com.tealium.core.messaging
 
 import com.tealium.core.Collector
-import com.tealium.core.settings.LibrarySettingsManager
 import com.tealium.core.Logger
 import com.tealium.core.Transformer
 import com.tealium.core.consent.ConsentManagementPolicy
 import com.tealium.core.consent.UserConsentPreferences
 import com.tealium.core.persistence.QueueingDao
+import com.tealium.core.settings.LibrarySettingsManager
 import com.tealium.core.validation.BatchingValidator
 import com.tealium.core.validation.BatteryValidator
 import com.tealium.core.validation.ConnectivityValidator
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
-import com.tealium.dispatcher.GenericDispatch
 import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
