@@ -17,6 +17,10 @@ interface Dispatch {
         return payload()[key]
     }
 
+    fun remove(key: String) {
+        // backwards compatible, but can't mutate here
+    }
+
     @Deprecated("This feature will no longer be supported - prefer to use JsonUtils")
     fun toJsonString(): String {
         return JsonUtils.jsonFor(payload()).toString()

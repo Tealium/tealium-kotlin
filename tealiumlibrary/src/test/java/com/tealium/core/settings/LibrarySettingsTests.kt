@@ -115,4 +115,23 @@ class LibrarySettingsTests {
 
         assertEquals(librarySettings, settingsFromJson)
     }
+
+    @Test
+    fun batching_BatchSize_Gets_Sanitized() {
+        val batching1 = Batching(1)
+        assertEquals(1, batching1.batchSize)
+
+        val batching10 = Batching(10)
+        assertEquals(10, batching10.batchSize)
+
+        val batching11 = Batching(11)
+        assertEquals(10, batching11.batchSize)
+        val batching100 = Batching(100)
+        assertEquals(10, batching100.batchSize)
+
+        val batching0 = Batching(0)
+        assertEquals(1, batching0.batchSize)
+        val batchingMinus1 = Batching(-1)
+        assertEquals(1, batchingMinus1.batchSize)
+    }
 }

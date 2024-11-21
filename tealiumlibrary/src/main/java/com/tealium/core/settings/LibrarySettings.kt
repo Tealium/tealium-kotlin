@@ -44,19 +44,19 @@ private const val MPS_KEY_ETAG = "etag"
  * @param logLevel sets the LogLevel to consider when writing out Tealium log messages
  */
 data class LibrarySettings(
-        var collectDispatcherEnabled: Boolean = true,
-        var tagManagementDispatcherEnabled: Boolean = true,
-        var batching: Batching = Batching(),
-        var batterySaver: Boolean = false,
-        var wifiOnly: Boolean = false,
-        var refreshInterval: Int = 900,
-        var disableLibrary: Boolean = false,
-        var logLevel: LogLevel = LogLevel.PROD,
-        var etag: String? = null
+    var collectDispatcherEnabled: Boolean = true,
+    var tagManagementDispatcherEnabled: Boolean = true,
+    var batching: Batching = Batching(),
+    var batterySaver: Boolean = false,
+    var wifiOnly: Boolean = false,
+    var refreshInterval: Int = 900,
+    var disableLibrary: Boolean = false,
+    var logLevel: LogLevel = LogLevel.PROD,
+    var etag: String? = null
 ) {
 
     companion object {
-        fun toJson(librarySettings: LibrarySettings) : JSONObject {
+        fun toJson(librarySettings: LibrarySettings): JSONObject {
             val json = JSONObject()
 
             json.put(KEY_COLLECT_DISPATCHER, librarySettings.collectDispatcherEnabled)
@@ -75,8 +75,10 @@ data class LibrarySettings(
         fun fromJson(json: JSONObject): LibrarySettings {
             val librarySettings = LibrarySettings()
 
-            librarySettings.collectDispatcherEnabled = json.optBoolean(KEY_COLLECT_DISPATCHER, false)
-            librarySettings.tagManagementDispatcherEnabled = json.optBoolean(KEY_TAG_MANAGEMENT_DISPATCHER, false)
+            librarySettings.collectDispatcherEnabled =
+                json.optBoolean(KEY_COLLECT_DISPATCHER, false)
+            librarySettings.tagManagementDispatcherEnabled =
+                json.optBoolean(KEY_TAG_MANAGEMENT_DISPATCHER, false)
 
             json.optJSONObject(KEY_BATCHING)?.let {
                 librarySettings.batching = Batching.fromJson(it)
@@ -89,7 +91,8 @@ data class LibrarySettings(
             librarySettings.logLevel = LogLevel.fromString(logLevel)
 
             val librarySettingsIntervalString = json.optString(KEY_REFRESH_INTERVAL)
-            librarySettings.refreshInterval = LibrarySettingsExtractor.timeConverter(librarySettingsIntervalString)
+            librarySettings.refreshInterval =
+                LibrarySettingsExtractor.timeConverter(librarySettingsIntervalString)
             librarySettings.disableLibrary = json.optBoolean(KEY_DISABLE_LIBRARY, false)
             val tag = json.optString(KEY_ETAG)
             librarySettings.etag = if (!tag.isNullOrEmpty()) tag else null
@@ -101,15 +104,20 @@ data class LibrarySettings(
             val librarySettings = LibrarySettings()
 
             // MPS known dispatchers
-            librarySettings.collectDispatcherEnabled = json.optBoolean(MPS_KEY_COLLECT_DISPATCHER, false)
-            librarySettings.tagManagementDispatcherEnabled = json.optBoolean(MPS_KEY_TAG_MANAGEMENT_DISPATCHER, false)
+            librarySettings.collectDispatcherEnabled =
+                json.optBoolean(MPS_KEY_COLLECT_DISPATCHER, false)
+            librarySettings.tagManagementDispatcherEnabled =
+                json.optBoolean(MPS_KEY_TAG_MANAGEMENT_DISPATCHER, false)
 
             val batchSize = json.optInt(MPS_KEY_BATCH_SIZE, 1)
-            val expiration = LibrarySettingsExtractor.timeConverter("${json.optInt(MPS_KEY_EXPIRATION)}d")
+            val expiration =
+                LibrarySettingsExtractor.timeConverter("${json.optInt(MPS_KEY_EXPIRATION)}d")
             val queueSize = json.optInt(MPS_KEY_MAX_QUEUE_SIZE)
-            librarySettings.batching = Batching(batchSize = batchSize,
-                    expiration = expiration,
-                    maxQueueSize = queueSize)
+            librarySettings.batching = Batching(
+                batchSize = batchSize,
+                expiration = expiration,
+                maxQueueSize = queueSize
+            )
 
             librarySettings.batterySaver = json.optBoolean(MPS_KEY_BATTERY_SAVER)
             librarySettings.wifiOnly = json.optBoolean(MPS_KEY_WIFI_ONLY, false)
@@ -117,7 +125,8 @@ data class LibrarySettings(
             val logLevel = json.optString(MPS_KEY_LOG_LEVEL, "")
             librarySettings.logLevel = LogLevel.fromString(logLevel)
 
-            val librarySettingsInterval = LibrarySettingsExtractor.timeConverter("${json.optString(MPS_KEY_INTERVAL)}m")
+            val librarySettingsInterval =
+                LibrarySettingsExtractor.timeConverter("${json.optString(MPS_KEY_INTERVAL)}m")
             librarySettings.refreshInterval = librarySettingsInterval
             librarySettings.disableLibrary = !json.optBoolean(MPS_KEY_DISABLE_LIBRARY, false)
             librarySettings.etag = json.optString(MPS_KEY_ETAG)
@@ -136,9 +145,15 @@ data class LibrarySettings(
  * Dispatches are evicted in an oldest-first manner if this limit is exceeded. (default: 100)
  * @param expiration The time-to-live, in seconds, for dispatches that remain on disk while sending is not possible. (default: 86400)
  */
-data class Batching(var batchSize: Int = 1,
-                    var maxQueueSize: Int = 100,
-                    var expiration: Int = 86400) {
+data class Batching(
+    var batchSize: Int = 1,
+    var maxQueueSize: Int = 100,
+    var expiration: Int = 86400
+) {
+
+    init {
+        batchSize = sanitizeBatchSize(batchSize)
+    }
 
     companion object {
 
@@ -154,11 +169,7 @@ data class Batching(var batchSize: Int = 1,
 
         fun fromJson(json: JSONObject): Batching {
             return Batching().apply {
-                var remoteBatchSize = json.optInt(KEY_BATCH_SIZE)
-                if (remoteBatchSize > maxBatchSize) {
-                    remoteBatchSize = maxBatchSize
-                }
-                batchSize = remoteBatchSize
+                batchSize = sanitizeBatchSize(json.optInt(KEY_BATCH_SIZE))
 
                 maxQueueSize = json.optInt(KEY_MAX_QUEUE_SIZE)
 
@@ -166,5 +177,8 @@ data class Batching(var batchSize: Int = 1,
                 expiration = LibrarySettingsExtractor.timeConverter(expirationString)
             }
         }
+
+        private fun sanitizeBatchSize(batchSize: Int): Int =
+            batchSize.coerceIn(1, maxBatchSize)
     }
 }

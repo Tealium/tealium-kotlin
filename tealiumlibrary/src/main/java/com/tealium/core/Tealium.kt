@@ -7,12 +7,25 @@ import com.tealium.core.consent.ConsentManager
 import com.tealium.core.events.EventTrigger
 import com.tealium.core.events.TimedEvents
 import com.tealium.core.events.TimedEventsManager
-import com.tealium.core.messaging.*
+import com.tealium.core.messaging.ActivityStatusChangedMessenger
+import com.tealium.core.messaging.AfterDispatchSendCallbacks
+import com.tealium.core.messaging.DispatchRouter
+import com.tealium.core.messaging.DispatchSendCallbacks
+import com.tealium.core.messaging.EventDispatcher
+import com.tealium.core.messaging.EventRouter
+import com.tealium.core.messaging.Listener
+import com.tealium.core.messaging.MessengerService
+import com.tealium.core.messaging.Subscribable
 import com.tealium.core.network.Connectivity
 import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.network.HttpClient
 import com.tealium.core.network.NetworkClient
-import com.tealium.core.persistence.*
+import com.tealium.core.persistence.DataLayer
+import com.tealium.core.persistence.DatabaseHelper
+import com.tealium.core.persistence.DefaultVisitorStorage
+import com.tealium.core.persistence.DispatchStorage
+import com.tealium.core.persistence.Expiry
+import com.tealium.core.persistence.PersistentStorage
 import com.tealium.core.settings.LibrarySettingsManager
 import com.tealium.core.settings.LogLevelUpdateHandler
 import com.tealium.core.validation.BatchingValidator
@@ -24,9 +37,14 @@ import com.tealium.dispatcher.Dispatcher
 import com.tealium.dispatcher.GenericDispatch
 import com.tealium.tealiumlibrary.BuildConfig
 import com.tealium.test.OpenForTesting
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.lang.ref.WeakReference
-import java.util.*
+import java.util.LinkedList
+import java.util.Queue
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -187,7 +205,14 @@ class Tealium private constructor(
         eventRouter.subscribeAll(config.events.toList())
 
         deepLinkHandler = DeepLinkHandler(context, backgroundScope)
-        eventRouter.subscribeAll(listOf(Logger, sessionManager, deepLinkHandler, LogLevelUpdateHandler(config.logLevel)))
+        eventRouter.subscribeAll(
+            listOf(
+                Logger,
+                sessionManager,
+                deepLinkHandler,
+                LogLevelUpdateHandler(config.logLevel)
+            )
+        )
         timedEvents = TimedEventsManager(context)
 
         config.visitorIdentityKey?.let {
@@ -248,7 +273,7 @@ class Tealium private constructor(
         }
 
         backgroundScope.launch {
-            eventRouter.onRevalidate(BatchingValidator::class.java)
+            dispatchRouter.sendQueuedEvents()
         }
     }
 
@@ -291,8 +316,6 @@ class Tealium private constructor(
             modules.getModulesForType(DispatchValidator::class.java),
             dispatchStore,
             librarySettingsManager,
-            connectivity,
-            consentManager,
             eventRouter
         )
         eventRouter.subscribeAll(listOf(dispatchRouter, dispatchStore))
@@ -317,7 +340,12 @@ class Tealium private constructor(
         return setOf<DispatchValidator>(
             BatteryValidator(config, librarySettingsManager.librarySettings, events),
             ConnectivityValidator(connectivity, librarySettingsManager.librarySettings),
-            BatchingValidator(dispatchStore, librarySettingsManager.librarySettings, eventRouter)
+            BatchingValidator(dispatchStore, librarySettingsManager.librarySettings) {
+                backgroundScope.launch {
+                    delay(1000)
+                    dispatchRouter.sendQueuedEvents()
+                }
+            }
         ).union(customValidators)
     }
 
@@ -393,7 +421,9 @@ class Tealium private constructor(
      */
     @Suppress("unused")
     fun joinTrace(id: String) {
-        deepLinkHandler.joinTrace(id)
+        backgroundScope.launch {
+            deepLinkHandler.joinTrace(id)
+        }
     }
 
     /**
@@ -401,7 +431,9 @@ class Tealium private constructor(
      */
     @Suppress("unused")
     fun leaveTrace() {
-        deepLinkHandler.leaveTrace()
+        backgroundScope.launch {
+            deepLinkHandler.leaveTrace()
+        }
     }
 
     /**
@@ -410,7 +442,9 @@ class Tealium private constructor(
      */
     @Suppress("unused")
     fun killTraceVisitorSession() {
-        deepLinkHandler.killTraceVisitorSession()
+        backgroundScope.launch {
+            deepLinkHandler.killTraceVisitorSession()
+        }
     }
 
     override fun startTimedEvent(name: String, data: Map<String, Any>?): Long? =

@@ -20,4 +20,8 @@ internal class JsonDispatch (json: PersistentItem) : Dispatch {
             json.put(key, value)
         }
     }
+
+    override fun remove(key: String) {
+        json.remove(key)
+    }
 }
