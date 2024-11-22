@@ -1,33 +1,33 @@
 package com.tealium.core.messaging
 
 import com.tealium.core.Collector
-import com.tealium.core.settings.LibrarySettingsManager
 import com.tealium.core.Logger
 import com.tealium.core.Transformer
 import com.tealium.core.consent.ConsentManagementPolicy
-import com.tealium.core.consent.ConsentManager
-import com.tealium.core.consent.ConsentStatus
 import com.tealium.core.consent.UserConsentPreferences
-import com.tealium.core.network.Connectivity
-import com.tealium.core.persistence.DispatchStorage
+import com.tealium.core.persistence.QueueingDao
+import com.tealium.core.settings.LibrarySettingsManager
+import com.tealium.core.validation.BatchingValidator
+import com.tealium.core.validation.BatteryValidator
+import com.tealium.core.validation.ConnectivityValidator
 import com.tealium.core.validation.DispatchValidator
 import com.tealium.dispatcher.Dispatch
 import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlin.math.ceil
 
-internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
-                              private val collectors: Set<Collector>,
-                              private val transformers: Set<Transformer>,
-                              private val validators: Set<DispatchValidator>,
-                              private val dispatchStore: DispatchStorage,
-                              private val librarySettingsManager: LibrarySettingsManager,
-                              private val connectivity: Connectivity,
-                              private val consentManager: ConsentManager,
-                              private val eventRouter: EventRouter)
-    : ValidationChangedListener,
-        UserConsentPreferencesUpdatedListener {
+internal class DispatchRouter(
+    coroutineDispatcher: CoroutineDispatcher,
+    private val collectors: Set<Collector>,
+    private val transformers: Set<Transformer>,
+    private val validators: Set<DispatchValidator>,
+    private val dispatchStore: QueueingDao<String, Dispatch>,
+    private val librarySettingsManager: LibrarySettingsManager,
+    private val eventRouter: EventRouter
+) : ValidationChangedListener,
+    UserConsentPreferencesUpdatedListener {
 
     private val scope = CoroutineScope(coroutineDispatcher)
     private val settings
@@ -61,7 +61,15 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
             }
 
             // Validation - Queue
-            if (shouldQueue(dispatch)) {
+            val queueResult = shouldQueue(dispatch)
+
+            if (queueResult.shouldProcessRemoteCommand) {
+                processRemoteCommand(dispatch)
+            } else {
+                dispatch.addAll(mapOf(TEALIUM_RC_PROCESSED to false))
+            }
+
+            if (queueResult.shouldQueue) {
                 dispatch.addAll(mapOf(Dispatch.Keys.WAS_QUEUED to true))
                 dispatchStore.enqueue(dispatch)
                 scope.launch(Logger.exceptionHandler) {
@@ -71,8 +79,7 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
             }
 
             // Dispatch Send
-            val queue = dequeue(dispatch).sortedBy { d -> d.timestamp }
-            sendDispatches(queue)
+            batchedDequeue(dispatch)
         }
     }
 
@@ -108,21 +115,43 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
      * Checks all [DispatchValidator] instances for whether this Dispatch should be queued.
      * @return true if dispatch should be queued; else false
      */
-    fun shouldQueue(dispatch: Dispatch?, override: Class<out DispatchValidator>? = null): Boolean {
-        return validators.filter { it.enabled }.fold(false) { input, validator ->
-            input ||
-                    if (override != null && override.isInstance(validator)) {
-                        false
-                    } else validator.shouldQueue(dispatch).also { queueing ->
-                        if (queueing) {
-                            Logger.qa(BuildConfig.TAG, "Queueing dispatch requested by: ${validator.name}")
-                            if (validator.name == "BATCHING_VALIDATOR") {
-                                attemptSendRemoteCommand(dispatch)
-                            }
-                        }
-                    }
-        }
+    fun shouldQueue(
+        dispatch: Dispatch?,
+        override: Class<out DispatchValidator>? = null
+    ): QueueResult {
+        val initialResult = QueueResult(false, true)
+        return validators.filter { it.enabled }
+            .fold(initialResult) { input, validator ->
+                val shouldQueue = shouldQueue(dispatch, validator, override)
+                if (shouldQueue) {
+                    Logger.qa(
+                        BuildConfig.TAG,
+                        "Queueing dispatch requested by: ${validator.name}"
+                    )
+                }
+                val remoteCommandProcessingAllowed =
+                    !shouldQueue || remoteCommandProcessingAllowed(validator)
+
+                input.copy(
+                    shouldQueue = input.shouldQueue || shouldQueue,
+                    shouldProcessRemoteCommand = input.shouldProcessRemoteCommand && remoteCommandProcessingAllowed
+                )
+            }
     }
+
+    private fun shouldQueue(
+        dispatch: Dispatch?,
+        validator: DispatchValidator,
+        override: Class<out DispatchValidator>?
+    ): Boolean =
+        if (override != null && override.isInstance(validator)) {
+            false
+        } else validator.shouldQueue(dispatch)
+
+    private fun remoteCommandProcessingAllowed(validator: DispatchValidator): Boolean =
+        validator.javaClass == BatchingValidator::class.java
+                || validator.javaClass == ConnectivityValidator::class.java
+                || validator.javaClass == BatteryValidator::class.java
 
     /**
      * Checks all [DispatchValidator] instances for whether this Dispatch should be dropped.
@@ -131,7 +160,10 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
     fun shouldDrop(dispatch: Dispatch): Boolean {
         return validators.filter { it.enabled }.fold(false) { input, validator ->
             input || validator.shouldDrop(dispatch).also { dropping ->
-                if (dropping) Logger.qa(BuildConfig.TAG, "Dropping dispatch requested by: ${validator.name}")
+                if (dropping) Logger.qa(
+                    BuildConfig.TAG,
+                    "Dropping dispatch requested by: ${validator.name}"
+                )
             }
         }
     }
@@ -139,9 +171,10 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
     /**
      * Pops all currently queued items off the queue, and adds the [dispatch] if one is supplied.
      */
+    @Deprecated("Use [batchedDequeue]")
     fun dequeue(dispatch: Dispatch?): List<Dispatch> {
         // check if remote commands should be triggered, only on incoming dispatch
-        attemptSendRemoteCommand(dispatch)
+        processRemoteCommand(dispatch)
         var queue = dispatchStore.dequeue(-1)
         dispatch?.let {
             queue = queue.plus(it)
@@ -151,54 +184,75 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
     }
 
     /**
+     * Pops all currently queued items off the queue in batches
+     */
+    fun batchedDequeue(dispatch: Dispatch?) {
+        val queueSize = dispatchStore.count()
+        if (queueSize == 0) {
+            dispatch?.let {
+                sendDispatches(listOf(it))
+            }
+            return
+        }
+
+        val batchSize = settings.batching.batchSize
+        val batches = ceil(queueSize.toDouble() / batchSize).toInt()
+        Logger.dev(
+            BuildConfig.TAG,
+            "Sending ${queueSize + if (dispatch != null) 1 else 0} events in batches of $batchSize"
+        )
+
+        var batchNo = 0
+        var batch: List<Dispatch> = dispatchStore.dequeue(batchSize)
+        while (batch.isNotEmpty()) {
+            batchNo++
+
+            if (batchNo >= batches && dispatch != null) {
+                batch = batch.plus(dispatch)
+            }
+            sendDispatches(batch)
+
+            batch = dispatchStore.dequeue(batchSize)
+        }
+    }
+
+    /**
      * Handles the business logic for sending dispatches. Breaks a list into batches, or sends
      * individually where appropriate.
      */
     fun sendDispatches(dispatches: List<Dispatch>) {
+        val rcDispatches = dispatches.filter { it[TEALIUM_RC_PROCESSED] == false }
+        dispatches.forEach { dispatch ->
+            dispatch.remove(TEALIUM_RC_PROCESSED)
+        }
+
         scope.launch(Logger.exceptionHandler) {
-            when {
-                dispatches.count() == 1 -> eventRouter.onDispatchSend(dispatches.first())
-                dispatches.count() > 1 -> {
-                    settings.batching.batchSize.let { batchSize ->
-                        when {
-                            batchSize > 1 -> {
-                                dispatches.chunked(batchSize).forEach { batch ->
-                                    eventRouter.onBatchDispatchSend(batch)
-                                }
-                            }
-                            else -> {
-                                dispatches.forEach { dispatch ->
-                                    eventRouter.onDispatchSend(dispatch)
-                                }
-                            }
-                        }
-                    }
+            rcDispatches.forEach(::processRemoteCommand)
+        }
+        scope.launch(Logger.exceptionHandler) {
+            val batchSize = settings.batching.batchSize
+            dispatches.chunked(batchSize).forEach { batch ->
+                if (batch.count() == 1) {
+                    eventRouter.onDispatchSend(batch.first())
+                } else {
+                    eventRouter.onBatchDispatchSend(batch)
                 }
             }
             librarySettingsManager.fetchLibrarySettings()
         }
     }
 
+
+
     /**
-     * If batching is enabled, attempt to send remote commands. If Consent Manager
-     * is enabled, verify consent is granted. If disabled, check connectivity.
+     * Sends the [dispatch] for processing of RemoteCommands.
      */
-    private fun attemptSendRemoteCommand(dispatch: Dispatch?) {
-        if (settings.batching.batchSize > 1) {
-            dispatch?.let {
-                when (consentManager.enabled) {
-                    true -> {
-                        if (consentManager.userConsentStatus == ConsentStatus.CONSENTED && connectivity.isConnected()) {
-                            eventRouter.onProcessRemoteCommand(it)
-                        }
-                    }
-                    false -> {
-                        if (connectivity.isConnected()) {
-                            eventRouter.onProcessRemoteCommand(it)
-                        }
-                    }
-                }
-            }
+    private fun processRemoteCommand(dispatch: Dispatch?) {
+        if (dispatch == null) return
+        try {
+            eventRouter.onProcessRemoteCommand(dispatch)
+        } catch (e: Exception) {
+            Logger.dev(BuildConfig.TAG, "Error processing dispatch for RemoteCommands: ${e.message}")
         }
     }
 
@@ -209,22 +263,22 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
     override fun onRevalidate(override: Class<out DispatchValidator>?) {
         Logger.dev(BuildConfig.TAG, "Revalidation requested.")
 
-        if (!shouldQueue(null, override)) {
-            val dispatches = dequeue(null)
-            sendDispatches(dispatches)
-
-            if (dispatches.count() > 1) {
-                dispatches.forEach {
-                    attemptSendRemoteCommand(it)
-                }
-            }
+        if (!shouldQueue(null, override).shouldQueue) {
+            batchedDequeue(null)
         }
+    }
+
+    fun sendQueuedEvents() {
+        onRevalidate(BatchingValidator::class.java)
     }
 
     /**
      * Checks the [policy] for whether or not to purge any queued [Dispatch] instances.
      */
-    override fun onUserConsentPreferencesUpdated(userConsentPreferences: UserConsentPreferences, policy: ConsentManagementPolicy) {
+    override fun onUserConsentPreferencesUpdated(
+        userConsentPreferences: UserConsentPreferences,
+        policy: ConsentManagementPolicy
+    ) {
         if (policy.shouldDrop()) {
             dispatchStore.clear()
         }
@@ -232,5 +286,14 @@ internal class DispatchRouter(coroutineDispatcher: CoroutineDispatcher,
         if (dispatchStore.count() > 0 && !policy.shouldQueue()) {
             onRevalidate(null)
         }
+    }
+
+    internal data class QueueResult(
+        val shouldQueue: Boolean,
+        val shouldProcessRemoteCommand: Boolean
+    )
+
+    companion object {
+        const val TEALIUM_RC_PROCESSED = "tealium_remote_command_processed"
     }
 }

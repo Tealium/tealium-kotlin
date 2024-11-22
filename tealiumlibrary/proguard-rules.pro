@@ -130,5 +130,12 @@
             com.tealium.dispatcher.Dispatch$Keys
             { *; }
 
+-keep class com.tealium.core.ActivityManager$* {
+    *;
+}
+-keep class com.tealium.core.internal.TealiumInitProvider {
+    public protected *;
+}
+
 # OpenForTesting Annotation
 -keep class com.tealium.test.* { *; }

@@ -142,6 +142,10 @@ class FusedLocationProviderClientLoader(
     }
 
     fun stopLocationUpdates() {
+        if (!this::locationCallback.isInitialized) {
+            Logger.dev(BuildConfig.TAG, "Location tracking was not started")
+            return
+        }
         locationClient.removeLocationUpdates(locationCallback)
         Logger.dev(BuildConfig.TAG, "Location tracking stopped")
     }

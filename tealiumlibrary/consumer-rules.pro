@@ -23,3 +23,6 @@
 -keepclassmembers class * implements com.tealium.core.Module {
     static final java.lang.String MODULE_VERSION;
 }
+-keep class com.tealium.core.internal.TealiumInitProvider {
+    public protected *;
+}

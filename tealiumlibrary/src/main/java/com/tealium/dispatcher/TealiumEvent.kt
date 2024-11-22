@@ -26,5 +26,9 @@ data class TealiumEvent(var eventName: String) : Dispatch {
     override fun addAll(data: Map<String, Any>) {
         mutableMap.putAll(data)
     }
+
+    override fun remove(key: String) {
+        mutableMap.remove(key)
+    }
 }
 
