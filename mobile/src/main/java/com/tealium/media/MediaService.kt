@@ -23,6 +23,7 @@ import com.tealium.media.segments.Ad
 import com.tealium.media.segments.AdBreak
 import com.tealium.media.segments.Chapter
 import com.tealium.mobile.BuildConfig
+import com.tealium.mobile.R
 
 class MediaService : Service() {
 

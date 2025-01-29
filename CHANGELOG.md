@@ -1,5 +1,8 @@
 # Change Log
 
+- 1.7.1 Jan 2025
+  - Update targetSdk version to 35
+  - Update Android Gradle Plugin to 1.8.22
 - 1.7.0 Nov 2024
   - `TealiumInitProvider` added to automatically execute the minimum amount of Tealium work on the Main Thread at app launch
     - This will register for Application/Activity lifecycle events at launch

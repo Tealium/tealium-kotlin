@@ -13,7 +13,7 @@ class TealiumUtils private constructor() {
         fun getAppVersion(context: Context): String {
             val packageName = context.packageName
             val packageInfo = context.packageManager.getPackageInfo(packageName, 0)
-            return packageInfo.versionName
+            return packageInfo.versionName ?: ""
         }
     }
 }

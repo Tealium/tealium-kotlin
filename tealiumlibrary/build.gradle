@@ -4,15 +4,16 @@ apply plugin: 'maven-publish'
 apply plugin: 'kotlin-allopen'
 apply from: '../jacoco.gradle'
 
-version = '1.7.0'
+version = '1.7.2'
 
 android {
-    compileSdkVersion 33
-    buildToolsVersion "30.0.3"
+    namespace = 'com.tealium.tealiumlibrary'
+
+    compileSdk = 35
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 35
         buildConfigField 'String', 'TAG', "\"Tealium-$version\""
         buildConfigField 'String', 'LIBRARY_NAME', "\"android-kotlin\""
         buildConfigField 'String', 'LIBRARY_VERSION', "\"$version\""
@@ -34,13 +35,17 @@ android {
         }
     }
 
+    buildFeatures {
+        buildConfig true
+    }
+
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11
+        jvmTarget = JavaVersion.VERSION_17
     }
 
     testOptions {
