@@ -15,6 +15,7 @@
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
+-dontwarn com.tealium.**
 -dontshrink
 -keepparameternames
 -keeppackagenames

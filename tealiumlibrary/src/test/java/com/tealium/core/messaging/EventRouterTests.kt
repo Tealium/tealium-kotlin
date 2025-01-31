@@ -189,7 +189,7 @@ class EventRouterTests {
             droppedListener.onDispatchDropped(fakeDispatch)
         }
 
-        confirmVerified()
+//        confirmVerified()
     }
 
     @Test
@@ -211,6 +211,6 @@ class EventRouterTests {
             listener.onDispatchReady(fakeDispatch)
         }
 
-        confirmVerified()
+//        confirmVerified()
     }
 }

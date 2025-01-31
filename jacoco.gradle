@@ -21,7 +21,7 @@ def debugTree = fileTree(dir: "$project.buildDir/tmp/kotlin-classes/debug",
 def mainSrc = "$project.projectDir/src/main/java"
 
 tasks.register('jacocoTestReport', JacocoReport) {
-    dependsOn['testDebugUnitTest', 'createDebugCoverageReport']
+    dependsOn 'testDebugUnitTest', 'createDebugCoverageReport'
 
     reports {
         xml.required = true

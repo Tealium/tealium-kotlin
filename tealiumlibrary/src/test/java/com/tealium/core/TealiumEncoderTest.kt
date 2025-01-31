@@ -4,6 +4,8 @@ import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumView
 import io.mockk.every
 import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
+import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -15,6 +17,11 @@ class TealiumEncoderTest {
     fun setUp() {
         mockkStatic(UUID::class)
         every { UUID.randomUUID().toString() } returns "test_id"
+    }
+
+    @After
+    fun tearDown() {
+        unmockkStatic(UUID::class)
     }
 
     @Test

@@ -26,8 +26,8 @@ android {
     }
 
     compileOptions {
-        targetCompatibility JavaVersion.VERSION_17
-        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_11
     }
 
     buildTypes {
@@ -49,7 +49,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17
+        jvmTarget = JavaVersion.VERSION_11
     }
 }
 

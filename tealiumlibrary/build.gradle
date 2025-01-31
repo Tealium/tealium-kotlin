@@ -4,7 +4,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'kotlin-allopen'
 apply from: '../jacoco.gradle'
 
-version = '1.7.2'
+version = '1.7.1'
 
 android {
     namespace = 'com.tealium.tealiumlibrary'
@@ -40,12 +40,13 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17
+        jvmTarget = JavaVersion.VERSION_11
+        
     }
 
     testOptions {

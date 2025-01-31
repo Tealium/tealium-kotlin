@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        api-level: [21, 29]
+        api-level: [21, 35]
     steps:
       - uses: actions/checkout@v1
       - name: Enable KVM

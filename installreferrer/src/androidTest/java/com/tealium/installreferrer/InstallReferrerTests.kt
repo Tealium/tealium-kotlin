@@ -4,6 +4,8 @@ import com.tealium.core.*
 import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.android.installreferrer.api.InstallReferrerClient
+import com.android.installreferrer.api.InstallReferrerStateListener
 import com.android.installreferrer.api.ReferrerDetails
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
@@ -103,11 +105,24 @@ class InstallReferrerTests {
 
     @Test
     fun installReferrerInfoIsNotSaved_WhenReferrerIsEmpty() {
-        val installReferrer = InstallReferrer(tealiumContext)
+        val referrerClient = mockk<InstallReferrerClient>()
+        val listenerSlot = slot<InstallReferrerStateListener>()
+
+        every { referrerClient.startConnection(capture(listenerSlot)) } answers {
+            listenerSlot.captured.onInstallReferrerSetupFinished(InstallReferrerClient.InstallReferrerResponse.OK)
+        }
+        every { referrerClient.endConnection() } just Runs
+
         val referrerDetails = mockk<ReferrerDetails>()
         every { referrerDetails.installReferrer } returns ""
         every { referrerDetails.installBeginTimestampSeconds } returns 100L
         every { referrerDetails.referrerClickTimestampSeconds } returns 101L
+        every { referrerClient.getInstallReferrer() } returns referrerDetails
+
+        mockkStatic(InstallReferrerClient::class)
+        every { InstallReferrerClient.newBuilder(any<Application>()).build() } returns referrerClient
+
+        val installReferrer = InstallReferrer(tealiumContext)
 
         installReferrer.save(referrerDetails)
 
