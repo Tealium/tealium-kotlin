@@ -61,6 +61,7 @@ class MomentsApiServiceTest {
 
         coEvery { networkClient.get(any(), any(), any<ResponseListener<String>>()) } answers {
             thirdArg<ResponseListener<String>>().success("{ \"audiences\": {\"audience_1\": \"VIP\", \"audience_2\": \"Women's Apparel\", \"audience_2\": \"Lifetime visit count\"} }")
+            thirdArg<ResponseListener<String>>().failure(ErrorCode.INVALID_JSON, ErrorCode.INVALID_JSON.message)
         }
 
         apiService.fetchEngineResponse(engineId, listener)
