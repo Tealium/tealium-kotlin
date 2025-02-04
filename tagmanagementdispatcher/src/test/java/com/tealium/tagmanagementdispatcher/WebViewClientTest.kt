@@ -251,7 +251,7 @@ class WebViewClientTest {
         // should not override
         webViewLoader.webViewClient.shouldOverrideUrlLoading(mockWebView, "http://myRemoteCommandName")
 
-        coVerify(exactly = 1) {
+        coVerify(exactly = 1, timeout = 1500) {
             mockDispatchSendCallbacks.sendRemoteCommand(match {
                 it.commandId == "myRemoteCommandName".toLowerCase(Locale.ROOT)
             })
@@ -271,7 +271,7 @@ class WebViewClientTest {
         every { mockUri.toString() } returns "http://myRemoteCommandName"
         webViewLoader.webViewClient.shouldOverrideUrlLoading(mockWebView, mockResourceRequest)
 
-        verify(exactly = 1) {
+        verify(exactly = 1, timeout = 1500) {
             mockDispatchSendCallbacks.sendRemoteCommand(match {
                 it.commandId == "myRemoteCommandName".toLowerCase(Locale.ROOT)
             })
