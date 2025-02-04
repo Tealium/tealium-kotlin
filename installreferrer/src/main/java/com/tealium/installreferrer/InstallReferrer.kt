@@ -8,13 +8,16 @@ import com.android.installreferrer.api.ReferrerDetails
 import com.tealium.core.*
 import com.tealium.core.persistence.Expiry
 
-class InstallReferrer(private val context: TealiumContext) : Module {
+class InstallReferrer(
+    private val context: TealiumContext,
+    private val referrerClient: InstallReferrerClient =
+        InstallReferrerClient.newBuilder(context.config.application)
+            .build()
+) : Module {
 
     override val name: String
         get() = "InstallReferrer"
     override var enabled: Boolean = true
-
-    private var referrerClient = InstallReferrerClient.newBuilder(context.config.application).build()
 
     init {
         referrerClient.startConnection(object : InstallReferrerStateListener {

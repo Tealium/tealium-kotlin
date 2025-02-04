@@ -13,11 +13,15 @@ import com.tealium.core.TealiumContext
 import com.tealium.core.persistence.DataLayer
 import com.tealium.core.persistence.Expiry
 import io.mockk.*
+import io.mockk.impl.annotations.RelaxedMockK
 import junit.framework.TestCase.*
 import org.junit.Before
 import org.junit.Test
 
 class InstallReferrerTests {
+
+    @RelaxedMockK
+    private lateinit var mockReferrerClient: InstallReferrerClient
 
     val account = "teal-account"
     val profile = "teal-profile"
@@ -32,6 +36,8 @@ class InstallReferrerTests {
 
     @Before
     fun setUp() {
+        MockKAnnotations.init(this)
+
         context = ApplicationProvider.getApplicationContext<Context>()
         config = spyk(
             TealiumConfig(
@@ -57,7 +63,7 @@ class InstallReferrerTests {
 
     @Test
     fun installReferrerInfoIsNullOnCreation() {
-        val installReferrer = InstallReferrer(tealiumContext)
+        val installReferrer = InstallReferrer(tealiumContext, mockReferrerClient)
 
         assertNull(installReferrer.referrer)
         assertNull(installReferrer.referrerBegin)
@@ -72,7 +78,7 @@ class InstallReferrerTests {
 
     @Test
     fun installReferrerInfoIsSaved_WhenReferrerIsNotEmpty() {
-        val installReferrer = InstallReferrer(tealiumContext)
+        val installReferrer = InstallReferrer(tealiumContext, mockReferrerClient)
         val referrerDetails = mockk<ReferrerDetails>()
         every { referrerDetails.installReferrer } returns "affiliate"
         every { referrerDetails.installBeginTimestampSeconds } returns 100L
@@ -105,24 +111,13 @@ class InstallReferrerTests {
 
     @Test
     fun installReferrerInfoIsNotSaved_WhenReferrerIsEmpty() {
-        val referrerClient = mockk<InstallReferrerClient>()
-        val listenerSlot = slot<InstallReferrerStateListener>()
-
-        every { referrerClient.startConnection(capture(listenerSlot)) } answers {
-            listenerSlot.captured.onInstallReferrerSetupFinished(InstallReferrerClient.InstallReferrerResponse.OK)
-        }
-        every { referrerClient.endConnection() } just Runs
-
         val referrerDetails = mockk<ReferrerDetails>()
         every { referrerDetails.installReferrer } returns ""
         every { referrerDetails.installBeginTimestampSeconds } returns 100L
         every { referrerDetails.referrerClickTimestampSeconds } returns 101L
-        every { referrerClient.getInstallReferrer() } returns referrerDetails
+        every { mockReferrerClient.installReferrer } returns referrerDetails
 
-        mockkStatic(InstallReferrerClient::class)
-        every { InstallReferrerClient.newBuilder(any<Application>()).build() } returns referrerClient
-
-        val installReferrer = InstallReferrer(tealiumContext)
+        val installReferrer = InstallReferrer(tealiumContext, mockReferrerClient)
 
         installReferrer.save(referrerDetails)
 
