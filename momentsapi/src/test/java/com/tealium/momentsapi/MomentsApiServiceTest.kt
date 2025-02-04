@@ -66,7 +66,7 @@ class MomentsApiServiceTest {
 
         apiService.fetchEngineResponse(engineId, listener)
 
-        verify { listener.success(any<EngineResponse>()) }
+        verify(timeout = 1000) { listener.success(any<EngineResponse>()) }
     }
 
     @Test
@@ -79,7 +79,7 @@ class MomentsApiServiceTest {
 
         apiService.fetchEngineResponse(engineId, listener)
 
-        verify {
+        verify(timeout = 1000) {
             listener.failure(
                 ErrorCode.UNKNOWN_ERROR,
                 ErrorCode.UNKNOWN_ERROR.message
@@ -97,7 +97,7 @@ class MomentsApiServiceTest {
 
         apiService.fetchEngineResponse(engineId, listener)
 
-        verify {
+        verify(timeout = 1000) {
             listener.failure(
                 ErrorCode.INVALID_JSON,
                 ErrorCode.INVALID_JSON.message
