@@ -61,11 +61,12 @@ class MomentsApiServiceTest {
 
         coEvery { networkClient.get(any(), any(), any<ResponseListener<String>>()) } answers {
             thirdArg<ResponseListener<String>>().success("{ \"audiences\": {\"audience_1\": \"VIP\", \"audience_2\": \"Women's Apparel\", \"audience_2\": \"Lifetime visit count\"} }")
+            thirdArg<ResponseListener<String>>().failure(ErrorCode.INVALID_JSON, ErrorCode.INVALID_JSON.message)
         }
 
         apiService.fetchEngineResponse(engineId, listener)
 
-        verify { listener.success(any<EngineResponse>()) }
+        verify(timeout = 1000) { listener.success(any<EngineResponse>()) }
     }
 
     @Test
@@ -78,7 +79,7 @@ class MomentsApiServiceTest {
 
         apiService.fetchEngineResponse(engineId, listener)
 
-        verify {
+        verify(timeout = 1000) {
             listener.failure(
                 ErrorCode.UNKNOWN_ERROR,
                 ErrorCode.UNKNOWN_ERROR.message
@@ -96,7 +97,7 @@ class MomentsApiServiceTest {
 
         apiService.fetchEngineResponse(engineId, listener)
 
-        verify {
+        verify(timeout = 1000) {
             listener.failure(
                 ErrorCode.INVALID_JSON,
                 ErrorCode.INVALID_JSON.message

@@ -29,7 +29,7 @@ import java.io.File
 import java.net.URL
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [21, 29])
+@Config(sdk = [21, 35])
 class TagManagementDispatcherTest {
 
     @MockK

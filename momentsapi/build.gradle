@@ -4,14 +4,15 @@ plugins {
     id 'maven-publish'
 }
 
-version = '1.0.2'
+version = '1.0.3'
 
 android {
-    namespace 'com.tealium.momentsapi'
-    compileSdk 34
+    namespace = 'com.tealium.momentsapi'
+    compileSdk = 35
 
     defaultConfig {
         minSdk 21
+        targetSdk 35
         buildConfigField 'String', 'TAG', "\"Tealium-MomentsApi-$version\""
         buildConfigField 'String', 'LIBRARY_VERSION', "\"$version\""
 
@@ -31,6 +32,10 @@ android {
         }
     }
 
+    buildFeatures {
+        buildConfig true
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
@@ -38,6 +43,7 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11
+        
     }
 }
 

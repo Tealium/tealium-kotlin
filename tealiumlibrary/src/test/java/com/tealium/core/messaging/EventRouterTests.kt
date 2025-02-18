@@ -170,7 +170,7 @@ class EventRouterTests {
         val droppedListener = mockk<DispatchDroppedListener>()
         every { readyListener.onDispatchReady(fakeDispatch) } just Runs
         every { droppedListener.onDispatchDropped(fakeDispatch) } just Runs
-        eventRouter = spyk(EventDispatcher(isReady = false))
+        eventRouter = EventDispatcher(isReady = false)
 
         eventRouter.subscribe(readyListener)
         eventRouter.subscribe(droppedListener)
@@ -188,15 +188,13 @@ class EventRouterTests {
             readyListener.onDispatchReady(fakeDispatch)
             droppedListener.onDispatchDropped(fakeDispatch)
         }
-
-        confirmVerified()
     }
 
     @Test
     fun testLateSubscribersReceiveEventsIfSubscribedWhenNotReady() {
         val listener = mockk<DispatchReadyListener>()
         every { listener.onDispatchReady(fakeDispatch) } just Runs
-        eventRouter = spyk(EventDispatcher(isReady = false))
+        eventRouter = EventDispatcher(isReady = false)
 
         eventRouter.onDispatchReady(fakeDispatch)
         eventRouter.subscribe(listener)
@@ -210,7 +208,5 @@ class EventRouterTests {
         verify(exactly = 1) {
             listener.onDispatchReady(fakeDispatch)
         }
-
-        confirmVerified()
     }
 }

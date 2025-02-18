@@ -39,7 +39,7 @@ class DatabaseHelperTests {
 
     @Test
     fun getDatabaseUpgrades_ReturnsUpgradesSorted() {
-        val toApply = DatabaseHelper.getDatabaseUpgrades(2, sampleUpgrades.reversed())
+        val toApply = DatabaseHelper.getDatabaseUpgrades(2, sampleUpgrades.asReversed())
 
         assertEquals(2, toApply.count())
         assertFalse(toApply.contains(upgrade2))

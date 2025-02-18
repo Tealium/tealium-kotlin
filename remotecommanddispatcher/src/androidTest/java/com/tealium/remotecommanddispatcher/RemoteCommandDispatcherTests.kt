@@ -12,6 +12,7 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.io.File
@@ -52,7 +53,10 @@ class RemoteCommandDispatcherTests {
     @Test
     fun validAddAndProcessJsonRemoteCommand() {
         val remoteCommandDispatcher = RemoteCommandDispatcher(tealiumContext, mockNetworkClient, mockRemoteCommandsManager)
-        val remoteCommand = spyk(TestCommand())
+        var invoked = false
+        val remoteCommand = TestCommand {
+            invoked = true
+        }
 
         every { mockRemoteCommandsManager.add(any(), any(), any()) } just Runs
         every { mockRemoteCommandsManager.getRemoteCommandConfigRetriever(any()) } returns remoteCommandConfigRetriever
@@ -63,18 +67,21 @@ class RemoteCommandDispatcherTests {
         val dispatch = TealiumEvent("event_test", mapOf("key1" to "value1", "key2" to "value2"))
         remoteCommandDispatcher.onProcessRemoteCommand(dispatch)
 
-        verify { remoteCommand.onInvoke(any()) }
+        assertTrue(invoked)
     }
 
     @Test
     fun validAddAndProcessWebViewRemoteCommand() {
         val remoteCommandDispatcher = RemoteCommandDispatcher(tealiumContext, mockNetworkClient)
-        val webViewCommand = spyk(TestCommand())
+        var invoked = false
+        val webViewCommand = TestCommand {
+            invoked = true
+        }
 
         remoteCommandDispatcher.add(webViewCommand)
         remoteCommandDispatcher.onRemoteCommandSend(RemoteCommandRequest(createResponseHandler(), "tealium://test?request={\"config\":{\"response_id\":\"123\"}, \"payload\":{\"hello\": \"world\"}}"))
 
-        verify { webViewCommand.onInvoke(any()) }
+        assertTrue(invoked)
     }
 
     @Test
@@ -110,8 +117,8 @@ class RemoteCommandDispatcherTests {
     }
 }
 
-open class TestCommand : RemoteCommand("test", "description") {
+open class TestCommand(private val onInvoked: ((RemoteCommand.Response?) -> Unit)? = null) : RemoteCommand("test", "description") {
     public override fun onInvoke(p0: Response?) {
-
+        onInvoked?.invoke(p0)
     }
 }

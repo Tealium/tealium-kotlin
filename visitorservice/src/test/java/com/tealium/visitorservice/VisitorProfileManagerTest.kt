@@ -95,12 +95,13 @@ class VisitorProfileManagerTest {
     }
 
     @Test
-    fun fetching_ShouldNotFetchWhenAlreadyUpdating() {
+    fun fetching_ShouldNotFetchWhenAlreadyUpdating() = runBlocking {
         val visitorProfileManager = VisitorManager(mockContext)
         visitorProfileManager.isUpdating.set(true)
 
         visitorProfileManager.requestVisitorProfile()
-        coVerify(exactly = 0, timeout = 1000) {
+        visitorProfileManager.profileUpdateJob?.join()
+        coVerify(exactly = 0) {
             mockHttpClient.get(any())
         }
     }
@@ -112,6 +113,8 @@ class VisitorProfileManagerTest {
         val visitorProfileManager = VisitorManager(mockContext)
 
         runBlocking {
+            visitorProfileManager.profileUpdateJob?.join()
+
             visitorProfileManager.onBatchDispatchSend(mockk())
             visitorProfileManager.onDispatchSend(mockk())
             visitorProfileManager.updateProfile()
@@ -122,14 +125,15 @@ class VisitorProfileManagerTest {
     }
 
     @Test
-    fun fetching_ShouldRetryFiveTimesOnly() {
+    fun fetching_ShouldRetryFiveTimesOnly() = runBlocking {
         coEvery { mockHttpClient.get(any()) } returnsMany listOf(null, null, "{}", "{}", validExampleProfileString, null)
 
         val visitorProfileManager = VisitorManager(mockContext, delay = {})
 
         visitorProfileManager.requestVisitorProfile()
+        visitorProfileManager.profileUpdateJob?.join()
 
-        coVerify(exactly = 5, timeout = 1000) {
+        coVerify(exactly = 5) {
             mockHttpClient.get(any())
         }
     }
@@ -141,13 +145,15 @@ class VisitorProfileManagerTest {
         val visitorProfileManager = VisitorManager(mockContext, delay = {})
 
         visitorProfileManager.requestVisitorProfile()
-        coVerify(exactly = 3, timeout = 1000) {
+        visitorProfileManager.profileUpdateJob?.join()
+
+        coVerify(exactly = 3) {
             mockHttpClient.get(any())
         }
     }
 
     @Test
-    fun updated_ShouldNotSendUpdateWhenEventCountSame() {
+    fun updated_ShouldNotSendUpdateWhenEventCountSame() = runBlocking {
         mockkObject(VisitorProfile.Companion)
         every { VisitorProfile.Companion.fromJson(any()) } returnsMany listOf(VisitorProfile(totalEventCount = 0), VisitorProfile(totalEventCount = 0))
         coEvery { mockHttpClient.get(any()) } returns validExampleProfileString
@@ -155,51 +161,54 @@ class VisitorProfileManagerTest {
 
         assertEquals(0, visitorProfileManager.visitorProfile.totalEventCount)
         visitorProfileManager.requestVisitorProfile()
-        verify(exactly = 0, timeout = 1000) {
+        visitorProfileManager.profileUpdateJob?.join()
+        verify(exactly = 0) {
             mockMessengerService.send(any<VisitorUpdatedMessenger>())
         }
         assertEquals(0, visitorProfileManager.visitorProfile.totalEventCount)
     }
 
     @Test
-    fun updated_ShouldSendUpdateWhenEventCountDifferent() {
+    fun updated_ShouldSendUpdateWhenEventCountDifferent() = runBlocking {
         mockkObject(VisitorProfile.Companion)
         every { VisitorProfile.Companion.fromJson(any()) } returnsMany listOf(VisitorProfile(totalEventCount = 0), VisitorProfile(totalEventCount = 1))
         coEvery { mockHttpClient.get(any()) } returns validExampleProfileString
         val visitorProfileManager = VisitorManager(mockContext)
         assertEquals(0, visitorProfileManager.visitorProfile.totalEventCount)
 
-        runBlocking {
-            visitorProfileManager.requestVisitorProfile()
-        }
-        verify(exactly = 1, timeout = 1000) {
+        visitorProfileManager.requestVisitorProfile()
+        visitorProfileManager.profileUpdateJob?.join()
+
+        verify(exactly = 1) {
             mockMessengerService.send(any<VisitorUpdatedMessenger>())
         }
         assertEquals(1, visitorProfileManager.visitorProfile.totalEventCount)
     }
 
     @Test
-    fun updated_ShouldNotSendUpdateWhenInvalidProfile() {
+    fun updated_ShouldNotSendUpdateWhenInvalidProfile() = runBlocking {
         coEvery { mockHttpClient.get(any()) } returns "{}"
         val visitorProfileManager = VisitorManager(mockContext)
         assertEquals(0, visitorProfileManager.visitorProfile.totalEventCount)
 
         visitorProfileManager.requestVisitorProfile()
-        verify(exactly = 0, timeout = 1000) {
+        visitorProfileManager.profileUpdateJob?.join()
+
+        verify(exactly = 0) {
             mockMessengerService.send(any<VisitorUpdatedMessenger>())
         }
         assertEquals(0, visitorProfileManager.visitorProfile.totalEventCount)
     }
 
     @Test
-    fun config_ShouldUseConfiguredUrlWhenProvided() {
+    fun config_ShouldUseConfiguredUrlWhenProvided() = runBlocking {
         every { mockConfig.overrideVisitorServiceUrl } returns "https://my.url.com"
         coEvery { mockHttpClient.get(any()) } returns validExampleProfileString
         val visitorProfileManager = VisitorManager(mockContext)
 
-        runBlocking {
-            visitorProfileManager.requestVisitorProfile()
-        }
+        visitorProfileManager.requestVisitorProfile()
+        visitorProfileManager.profileUpdateJob?.join()
+
         coVerify {
             mockHttpClient.get("https://my.url.com")
         }

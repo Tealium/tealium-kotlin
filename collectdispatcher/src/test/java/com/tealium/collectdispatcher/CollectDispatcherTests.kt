@@ -26,7 +26,7 @@ import java.io.File
 
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [21, 29])
+@Config(sdk = [21, 35])
 class CollectDispatcherTests {
 
     @MockK

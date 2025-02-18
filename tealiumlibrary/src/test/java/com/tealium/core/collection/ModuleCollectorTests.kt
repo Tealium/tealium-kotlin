@@ -74,7 +74,7 @@ class ModuleCollectorTests {
     @Test
     @Suppress("unchecked_cast")
     fun collect_Returns_SortedData() = runBlocking {
-        moduleCollector = ModuleCollector(moduleList.reversed())
+        moduleCollector = ModuleCollector(moduleList.asReversed())
         val collected = moduleCollector.collect()
         val moduleNames = collected["enabled_modules"] as List<String>
         val moduleVersions = collected["enabled_modules_versions"] as List<String>

@@ -3,15 +3,16 @@ apply plugin: 'kotlin-android'
 apply plugin: 'maven-publish'
 apply from: '../jacoco.gradle'
 
-version = '1.2.3'
+version = '1.2.4'
 
 android {
-    compileSdkVersion 33
-    buildToolsVersion "30.0.3"
+    namespace = 'com.tealium.tagmanagementdispatcher'
+
+    compileSdk = 35
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 35
 
         buildConfigField 'String', 'TAG', "\"Tealium-TagManagementDispatcher-$version\""
         buildConfigField 'String', 'VERSION_NAME', "\"$version\""
@@ -31,6 +32,10 @@ android {
         }
     }
 
+    buildFeatures {
+        buildConfig true
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
@@ -43,6 +48,7 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11
+        
     }
 }
 

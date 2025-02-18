@@ -1,19 +1,19 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.6.21'
-    ext.coroutines_core_version = '1.6.2'
-    ext.coroutines_android_version = '1.6.2'
-    ext.coroutines_test_version = '1.6.2'
-    ext.mockk_version = '1.12.0'
-    ext.robolectric_version = '4.10.3'
+    ext.kotlin_version = '1.8.22'
+    ext.coroutines_core_version = '1.8.0'
+    ext.coroutines_android_version = '1.8.0'
+    ext.coroutines_test_version = '1.8.0'
+    ext.mockk_version = '1.13.16'
+    ext.robolectric_version = '4.14.1'
 
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.2'
+        classpath 'com.android.tools.build:gradle:8.6.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -21,7 +21,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
 
         // Firebase integration
-        classpath 'com.google.gms:google-services:4.3.5'
+        classpath 'com.google.gms:google-services:4.4.2'
     }
 }
 
@@ -39,8 +39,8 @@ allprojects {
     }
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+tasks.register('clean', Delete) {
+    delete rootProject.getLayout().getBuildDirectory()
 }
 
 subprojects {
@@ -57,6 +57,21 @@ subprojects {
             reports {
                 html.required.set(true)
                 html.outputLocation.set(file("build/reports/detekt.html"))
+            }
+        }
+    }
+
+    afterEvaluate {
+        if (project.extensions.findByName("android") != null) {
+            android {
+                kotlinOptions.freeCompilerArgs = ["-Xstring-concat=inline"]
+                packagingOptions {
+                    resources {
+                        excludes += "/META-INF/{AL2.0,LGPL2.1}"
+                        merges += "META-INF/LICENSE.md"
+                        merges += "META-INF/LICENSE-notice.md"
+                    }
+                }
             }
         }
     }

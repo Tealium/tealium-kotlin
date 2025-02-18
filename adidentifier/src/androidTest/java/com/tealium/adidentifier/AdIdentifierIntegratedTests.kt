@@ -21,7 +21,7 @@ class AdIdentifierIntegratedTests {
 
     @Before
     fun setUp() {
-        config = spyk(
+        config =
             TealiumConfig(
                 application,
                 "test",
@@ -29,7 +29,6 @@ class AdIdentifierIntegratedTests {
                 Environment.DEV,
                 collectors = mutableSetOf()
             )
-        )
 
         dataLayer = mockk(relaxed = true)
         tealiumContext = TealiumContext(

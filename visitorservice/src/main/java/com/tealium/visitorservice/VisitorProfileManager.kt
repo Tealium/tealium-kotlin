@@ -59,7 +59,7 @@ class VisitorManager(
     private val ioScope = CoroutineScope(Dispatchers.IO)
 
     val isUpdating = AtomicBoolean(false)
-    private var profileUpdateJob: Job? = null
+    internal var profileUpdateJob: Job? = null
 
     @Volatile
     private var lastUpdate: Long = -1L
