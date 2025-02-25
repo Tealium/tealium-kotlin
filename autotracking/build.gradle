@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'maven-publish'
 apply from: '../jacoco.gradle'
 
-version = "1.0.2"
+version = "1.0.3"
 
 android {
     namespace = 'com.tealium.autotracking'

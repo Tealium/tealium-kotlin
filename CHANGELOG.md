@@ -1,5 +1,6 @@
 # Change Log
-
+- 1.7.2 Feb 2025
+  - Disable R8's full mode to fix ProGuard issues
 - 1.7.1 Jan 2025
   - Update targetSdk version to 35
   - Update Android Gradle Plugin to 1.8.22
