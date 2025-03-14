@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'maven-publish'
 apply from: '../jacoco.gradle'
 
-version = '1.2.5'
+version = '1.2.6'
 
 android {
     namespace = 'com.tealium.tagmanagementdispatcher'

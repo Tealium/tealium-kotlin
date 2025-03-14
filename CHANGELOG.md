@@ -1,4 +1,6 @@
 # Change Log
+- 1.7.3 Mar 2025
+  - ProGuard rules updated to prevent mix case class names
 - 1.7.2 Feb 2025
   - Disable R8's full mode to fix ProGuard issues
 - 1.7.1 Jan 2025
