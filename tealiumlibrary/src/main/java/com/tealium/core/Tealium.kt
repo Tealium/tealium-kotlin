@@ -1,5 +1,6 @@
 package com.tealium.core
 
+import android.net.Uri
 import com.tealium.core.collection.ModuleCollector
 import com.tealium.core.collection.SessionCollector
 import com.tealium.core.collection.TealiumCollector
@@ -444,6 +445,17 @@ class Tealium private constructor(
     fun killTraceVisitorSession() {
         backgroundScope.launch {
             deepLinkHandler.killTraceVisitorSession()
+        }
+    }
+
+    /**
+     * Handles a deep link Uri.The link and the query parameters are added to the data layer
+     * for the current session.
+     */
+    @Suppress("unused")
+    fun handleDeepLink(uri: Uri) {
+        backgroundScope.launch {
+            deepLinkHandler.handleDeepLink(uri)
         }
     }
 

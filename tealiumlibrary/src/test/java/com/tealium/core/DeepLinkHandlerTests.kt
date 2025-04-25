@@ -153,6 +153,48 @@ class DeepLinkHandlerTests {
     }
 
     @Test
+    fun testHandleDeepLinkSendsDeepLinkEventIfEnabled() {
+        every { mockContext.config } returns configWithDeepLinkingEnabled
+        mockContext.config.sendDeepLinkEvent = true
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
+        setupUriBuilder()
+
+        runBlocking {
+            deepLinkHandler.handleDeepLink(uri)
+            delay(100)
+        }
+
+        verify(exactly = 1) {
+            mockContext.track(
+                withArg { dispatch ->
+                    Assert.assertEquals("deep_link", dispatch["tealium_event"])
+                }
+            )
+        }
+    }
+
+    @Test
+    fun testHandleDeepLinkDoesNotSendDeepLinkEventIfDisabled() {
+        every { mockContext.config } returns configWithDeepLinkingEnabled
+        mockContext.config.sendDeepLinkEvent = false
+        val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
+        setupUriBuilder()
+
+        runBlocking {
+            deepLinkHandler.handleDeepLink(uri)
+            delay(100)
+        }
+
+        verify(exactly = 0) {
+            mockContext.track(
+                withArg { dispatch ->
+                    Assert.assertEquals("deep_link", dispatch["tealium_event"])
+                }
+            )
+        }
+    }
+
+    @Test
     fun testHandleDeepLinkFromActivityResume() {
         every { mockContext.config } returns configWithDeepLinkingEnabled
         val deepLinkHandler = DeepLinkHandler(mockContext, backgroundScope)
