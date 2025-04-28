@@ -49,18 +49,10 @@ class DeepLinkHandler(
         val uri = intent.data ?: return
         if (uri.isOpaque) return
 
-        if (context.config.qrTraceEnabled) {
-            uri.getQueryParameter(TRACE_ID_QUERY_PARAM)?.let { traceId ->
-                uri.getQueryParameter(KILL_VISITOR_SESSION)?.let {
-                    killTraceVisitorSession()
-                }
-                uri.getQueryParameter(LEAVE_TRACE_QUERY_PARAM)?.let {
-                    leaveTrace()
-                } ?: joinTrace(traceId)
-            }
-        }
         if (context.config.deepLinkTrackingEnabled) {
             handleDeepLink(uri)
+        } else {
+            checkQrTrace(uri)
         }
     }
 
@@ -70,10 +62,13 @@ class DeepLinkHandler(
     fun handleDeepLink(uri: Uri) {
         if (uri.isOpaque || uri == Uri.EMPTY) return
 
+        checkQrTrace(uri)
+
         val oldDeepLink = context.dataLayer.getString(Dispatch.Keys.DEEP_LINK_URL)
         if (uri.toString() == oldDeepLink) return
 
         removeOldDeepLinkData()
+
         val deepLinkData = mutableMapOf(
             Dispatch.Keys.DEEP_LINK_URL to uri.toString()
         )
@@ -94,6 +89,19 @@ class DeepLinkHandler(
                 data = deepLinkData
             )
             context.track(dispatch)
+        }
+    }
+
+    private fun checkQrTrace(uri: Uri) {
+        if (context.config.qrTraceEnabled) {
+            uri.getQueryParameter(TRACE_ID_QUERY_PARAM)?.let { traceId ->
+                uri.getQueryParameter(KILL_VISITOR_SESSION)?.let {
+                    killTraceVisitorSession()
+                }
+                uri.getQueryParameter(LEAVE_TRACE_QUERY_PARAM)?.let {
+                    leaveTrace()
+                } ?: joinTrace(traceId)
+            }
         }
     }
 
