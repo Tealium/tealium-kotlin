@@ -97,6 +97,11 @@ class TealiumConfig @JvmOverloads constructor(
     var deepLinkTrackingEnabled: Boolean = true
 
     /**
+     * Set to true to enable the library to immediately track a deep link event.
+     */
+    var sendDeepLinkEvent: Boolean = false
+
+    /**
      * Set to false to disable the QR code trace feature.
      */
     var qrTraceEnabled: Boolean = true

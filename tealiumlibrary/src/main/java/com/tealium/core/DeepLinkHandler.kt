@@ -49,18 +49,10 @@ class DeepLinkHandler(
         val uri = intent.data ?: return
         if (uri.isOpaque) return
 
-        if (context.config.qrTraceEnabled) {
-            uri.getQueryParameter(TRACE_ID_QUERY_PARAM)?.let { traceId ->
-                uri.getQueryParameter(KILL_VISITOR_SESSION)?.let {
-                    killTraceVisitorSession()
-                }
-                uri.getQueryParameter(LEAVE_TRACE_QUERY_PARAM)?.let {
-                    leaveTrace()
-                } ?: joinTrace(traceId)
-            }
-        }
         if (context.config.deepLinkTrackingEnabled) {
             handleDeepLink(uri)
+        } else {
+            checkQrTrace(uri)
         }
     }
 
@@ -70,18 +62,45 @@ class DeepLinkHandler(
     fun handleDeepLink(uri: Uri) {
         if (uri.isOpaque || uri == Uri.EMPTY) return
 
+        checkQrTrace(uri)
+
         val oldDeepLink = context.dataLayer.getString(Dispatch.Keys.DEEP_LINK_URL)
         if (uri.toString() == oldDeepLink) return
 
         removeOldDeepLinkData()
-        context.dataLayer.putString(Dispatch.Keys.DEEP_LINK_URL, uri.toString(), Expiry.SESSION)
+
+        val deepLinkData = mutableMapOf(
+            Dispatch.Keys.DEEP_LINK_URL to uri.toString()
+        )
+
         uri.queryParameterNames.forEach { name ->
             uri.getQueryParameter(name)?.let { value ->
-                context.dataLayer.putString(
-                    "${Dispatch.Keys.DEEP_LINK_QUERY_PREFIX}_$name",
-                    value,
-                    Expiry.SESSION
-                )
+                deepLinkData["${Dispatch.Keys.DEEP_LINK_QUERY_PREFIX}_$name"] = value
+            }
+        }
+
+        deepLinkData.forEach { (key, value) ->
+            context.dataLayer.putString(key, value, Expiry.SESSION)
+        }
+
+        if (context.config.sendDeepLinkEvent) {
+            val dispatch = TealiumEvent(
+                eventName = DEEPLINK,
+                data = deepLinkData
+            )
+            context.track(dispatch)
+        }
+    }
+
+    private fun checkQrTrace(uri: Uri) {
+        if (context.config.qrTraceEnabled) {
+            uri.getQueryParameter(TRACE_ID_QUERY_PARAM)?.let { traceId ->
+                uri.getQueryParameter(KILL_VISITOR_SESSION)?.let {
+                    killTraceVisitorSession()
+                }
+                uri.getQueryParameter(LEAVE_TRACE_QUERY_PARAM)?.let {
+                    leaveTrace()
+                } ?: joinTrace(traceId)
             }
         }
     }
@@ -119,5 +138,6 @@ class DeepLinkHandler(
         internal const val TRACE_ID_QUERY_PARAM = Dispatch.Keys.TEALIUM_TRACE_ID
         internal const val LEAVE_TRACE_QUERY_PARAM = "leave_trace"
         internal const val KILL_VISITOR_SESSION = "kill_visitor_session"
+        internal const val DEEPLINK = "deep_link"
     }
 }

@@ -1,4 +1,7 @@
 # Change Log
+- 1.8.0 Apr
+  - `sendDeepLinkEvent` added to `TealiumConfig` to allow for the deep link event to be sent
+  - `handleDeepLink` added to `Tealium` to allow for manual deep link handling
 - 1.7.3 Mar 2025
   - ProGuard rules updated to prevent mix case class names
 - 1.7.2 Feb 2025
