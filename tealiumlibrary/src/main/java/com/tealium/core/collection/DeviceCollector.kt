@@ -51,8 +51,9 @@ class DeviceCollector private constructor(private val context: Context) : Collec
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
     private val point = Point()
-    private val intent = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-    private val batteryStatus = context.registerReceiver(null, intent)
+    private val batteryIntentFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+    private val batteryStatus
+        get() = context.registerReceiver(null, batteryIntentFilter)
 
     override val device = if (Build.MODEL.startsWith(Build.MANUFACTURER)) Build.MODEL
             ?: "" else "${Build.MANUFACTURER} ${Build.MODEL}"
