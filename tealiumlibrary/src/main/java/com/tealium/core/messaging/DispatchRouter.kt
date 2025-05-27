@@ -210,6 +210,9 @@ internal class DispatchRouter(
             if (batchNo >= batches && dispatch != null) {
                 batch = batch.plus(dispatch)
             }
+            batch.forEach {
+                shouldQueue(it)
+            }
             sendDispatches(batch)
 
             batch = dispatchStore.dequeue(batchSize)

@@ -111,12 +111,12 @@ class ConsentManagerTest {
 
     @Test
     fun consentManagerShouldQueueDefaultsToFalse() {
-        assertFalse(consentManager.shouldQueue(mockk()))
+        assertFalse(consentManager.shouldQueue(mockk(relaxed = true)))
     }
 
     @Test
     fun consentManagerShouldDropDefaultsToFalse() {
-        assertFalse(consentManager.shouldDrop(mockk()))
+        assertFalse(consentManager.shouldDrop(mockk(relaxed = true)))
     }
 
     @Test
@@ -534,9 +534,25 @@ class ConsentManagerTest {
         every { mockPolicy.shouldDrop() } returns true
         every { mockPolicy.policyStatusInfo() } returns mapOf("my_policy_name" to "policy")
 
-        assertTrue(consentManager.shouldQueue(mockk()))
+        assertTrue(consentManager.shouldQueue(mockk(relaxed = true)))
         assertTrue(consentManager.shouldDrop(mockk()))
         val policyInfo = consentManager.collect()
         assertTrue(policyInfo["my_policy_name"] == "policy")
+    }
+
+    @Test
+    fun shouldQueue_Adds_PolicyStatus_To_Dispatch() {
+        ConsentPolicy.CUSTOM.setCustomPolicy(mockPolicy)
+        every { sharedPreferences.getString(KEY_STATUS, any()) } returns "consented"
+        consentManager = ConsentManager(mockTealiumContext, eventRouter, mockk(), ConsentPolicy.CUSTOM)
+
+        every { mockPolicy.shouldQueue() } returns true
+        every { mockPolicy.shouldDrop() } returns true
+        every { mockPolicy.policyStatusInfo() } returns mapOf("my_policy_name" to "policy")
+
+        val dispatch = TealiumEvent("event")
+        consentManager.shouldQueue(dispatch)
+
+        assertEquals("policy", dispatch.payload()["my_policy_name"])
     }
 }
