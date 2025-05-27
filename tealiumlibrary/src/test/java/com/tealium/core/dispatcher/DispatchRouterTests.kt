@@ -585,6 +585,17 @@ class DispatchRouterTests {
         }
     }
 
+    @Test
+    fun testShouldQueueIsCalledAgainWithPreviouslyQueuedDispatches() {
+        dispatchRouter.batchedDequeue(eventDispatch)
+
+        verify {
+            (queuedEvents + eventDispatch).forEach {
+                validator.shouldQueue(it)
+            }
+        }
+    }
+
     private fun createDispatches(count: Int): List<Dispatch> =
         (1 .. count).map {
             TealiumEvent("event_$it")
