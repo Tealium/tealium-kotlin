@@ -11,6 +11,7 @@ import com.tealium.core.validation.BatchingValidator
 import com.tealium.core.validation.BatteryValidator
 import com.tealium.core.validation.ConnectivityValidator
 import com.tealium.core.validation.DispatchValidator
+import com.tealium.dispatcher.AuditEvent
 import com.tealium.dispatcher.Dispatch
 import com.tealium.tealiumlibrary.BuildConfig
 import kotlinx.coroutines.CoroutineDispatcher
@@ -47,8 +48,10 @@ internal class DispatchRouter(
             dispatch.addAll(collect())
             transform(dispatch)
 
+            val isAuditEvent = AuditEvent.isAuditEvent(dispatch)
+
             // Validation - Drop
-            if (shouldDrop(dispatch)) {
+            if (!isAuditEvent && shouldDrop(dispatch)) {
                 scope.launch(Logger.exceptionHandler) {
                     eventRouter.onDispatchDropped(dispatch)
                 }
@@ -63,7 +66,7 @@ internal class DispatchRouter(
             // Validation - Queue
             val queueResult = shouldQueue(dispatch)
 
-            if (queueResult.shouldProcessRemoteCommand) {
+            if (isAuditEvent || queueResult.shouldProcessRemoteCommand) {
                 processRemoteCommand(dispatch)
             } else {
                 dispatch.addAll(mapOf(TEALIUM_RC_PROCESSED to false))
@@ -242,8 +245,6 @@ internal class DispatchRouter(
         }
     }
 
-
-
     /**
      * Sends the [dispatch] for processing of RemoteCommands.
      */
@@ -280,7 +281,7 @@ internal class DispatchRouter(
         policy: ConsentManagementPolicy
     ) {
         if (policy.shouldDrop()) {
-            dispatchStore.clear()
+            dispatchStore.clearNonAuditEvents()
         }
 
         if (dispatchStore.count() > 0 && !policy.shouldQueue()) {

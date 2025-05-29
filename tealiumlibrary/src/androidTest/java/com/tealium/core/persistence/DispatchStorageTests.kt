@@ -5,6 +5,8 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.Environment
 import com.tealium.core.TealiumConfig
+import com.tealium.dispatcher.AuditEvent
+import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.TealiumEvent
 import io.mockk.*
 import org.json.JSONObject
@@ -408,6 +410,22 @@ class DispatchStorageTests {
         assertEquals(dispatch.id, dequeuedItem?.id)
         assertEquals(dispatch.timestamp, dequeuedItem?.timestamp)
         assertEquals(dispatch.payload(), dequeuedItem?.payload())
+    }
+
+    @Test
+    fun testClearNonAuditEventsRemovesNonAuditEvents() {
+        val dispatchStorage = DispatchStorage(dbHelper, "table", ConcurrentLinkedQueue(), dispatchStore)
+        val auditEvent = AuditEvent("audit")
+        val nonAuditEvent = TealiumEvent("non-audit")
+        dispatchStorage.enqueue(listOf(auditEvent, nonAuditEvent))
+
+        dispatchStorage.clearNonAuditEvents()
+
+        val queue = dispatchStorage.dequeue(-1)
+        assertEquals(1, queue.size)
+        val event = queue[0]
+        assertTrue(AuditEvent.isAuditEvent(event))
+        assertEquals("audit", event[Dispatch.Keys.TEALIUM_EVENT])
     }
 
     /**

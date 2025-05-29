@@ -162,7 +162,7 @@ class ConsentManager(
             it.userConsentPreferences = preferences
             eventRouter.onUserConsentPreferencesUpdated(preferences, it)
 
-            if (isConsentLoggingEnabled) {
+            if (isConsentLoggingEnabled && userConsentStatus != ConsentStatus.UNKNOWN) {
                 logConsentUpdate()
             }
         }
