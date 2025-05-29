@@ -1,14 +1,15 @@
 package com.tealium.core.consent
 
-import com.tealium.core.*
+import com.tealium.core.Collector
+import com.tealium.core.Logger
+import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.EventRouter
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
+import com.tealium.dispatcher.AuditEvent
 import com.tealium.dispatcher.Dispatch
-import com.tealium.dispatcher.TealiumEvent
 import com.tealium.tealiumlibrary.BuildConfig
-import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
 class ConsentManager(
@@ -94,7 +95,7 @@ class ConsentManager(
             if (policy.consentLoggingEnabled) {
                 // profile override checked in dispatchers, url override checked in Collect dispatcher
                 context.track(
-                    TealiumEvent(
+                    AuditEvent(
                         policy.consentLoggingEventName,
                         policy.policyStatusInfo()
                     )
