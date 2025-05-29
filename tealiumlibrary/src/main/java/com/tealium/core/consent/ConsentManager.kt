@@ -173,6 +173,9 @@ class ConsentManager(
      */
     override fun shouldQueue(dispatch: Dispatch?): Boolean {
         expireConsent()
+
+        dispatch?.addAll(getPolicyStatusInfo())
+
         return consentManagementPolicy?.shouldQueue()
             ?: false
     }
@@ -189,17 +192,27 @@ class ConsentManager(
      * Returns the status information from the current [ConsentPolicy] in force, else an empty map.
      */
     override suspend fun collect(): Map<String, Any> {
-        return (if (userConsentStatus != ConsentStatus.UNKNOWN && consentManagementPolicy != null) {
-            consentManagementPolicy.policyStatusInfo().mapKeys { entry ->
-                if (entry.key == Dispatch.Keys.CONSENT_CATEGORIES)
-                    consentCategoriesKey ?: Dispatch.Keys.CONSENT_CATEGORIES
-                else entry.key
-            }.toMutableMap()
-        } else mutableMapOf()).apply {
-            lastConsentUpdate?.let {
-                put(Dispatch.Keys.CONSENT_LAST_UPDATED, it)
-            }
+        return getPolicyStatusInfo()
+    }
+
+    private fun getPolicyStatusInfo(): Map<String, Any> {
+        val lastUpdated = mutableMapOf<String, Any>()
+        lastConsentUpdate?.let {
+            lastUpdated.put(Dispatch.Keys.CONSENT_LAST_UPDATED, it)
         }
+
+        if (consentManagementPolicy == null)
+            return lastUpdated
+
+        val policyStatus = lastUpdated + consentManagementPolicy.policyStatusInfo()
+        if (consentCategoriesKey == null) {
+            return policyStatus
+        }
+
+        val categories = policyStatus[Dispatch.Keys.CONSENT_CATEGORIES]
+        return if (categories != null) {
+            policyStatus - Dispatch.Keys.CONSENT_CATEGORIES + (consentCategoriesKey to categories)
+        } else policyStatus
     }
 
     override fun onLibrarySettingsUpdated(settings: LibrarySettings) {

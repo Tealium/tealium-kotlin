@@ -616,6 +616,17 @@ class DispatchRouterTests {
     }
 
     @Test
+    fun testShouldQueueIsCalledAgainWithPreviouslyQueuedDispatches() {
+        dispatchRouter.batchedDequeue(eventDispatch)
+
+        verify {
+            (queuedEvents + eventDispatch).forEach {
+                validator.shouldQueue(it)
+            }
+        }
+    }
+
+    @Test
     fun onUserConsentPreferencesUpdatedClearsNonAuditEventsWhenPolicyShouldDrop() {
         val policy = mockk<ConsentManagementPolicy>(relaxed = true)
         every { policy.shouldDrop() } returns true
