@@ -1,20 +1,23 @@
 package com.tealium.installreferrer
 
-import com.tealium.core.*
 import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.android.installreferrer.api.InstallReferrerClient
-import com.android.installreferrer.api.InstallReferrerStateListener
 import com.android.installreferrer.api.ReferrerDetails
 import com.tealium.core.Environment
+import com.tealium.core.Tealium
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
+import com.tealium.core.messaging.EventDispatcher
+import com.tealium.core.messaging.MessengerService
 import com.tealium.core.persistence.DataLayer
 import com.tealium.core.persistence.Expiry
 import io.mockk.*
 import io.mockk.impl.annotations.RelaxedMockK
 import junit.framework.TestCase.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import org.junit.Before
 import org.junit.Test
 
@@ -33,12 +36,15 @@ class InstallReferrerTests {
     lateinit var context: Context
     lateinit var dataLayer: DataLayer
     lateinit var tealium: Tealium
+    lateinit var messengerService: MessengerService
 
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
 
+        messengerService = MessengerService(EventDispatcher(), CoroutineScope(Dispatchers.IO))
         context = ApplicationProvider.getApplicationContext<Context>()
+
         config = spyk(
             TealiumConfig(
                 context.applicationContext as Application,
@@ -56,7 +62,7 @@ class InstallReferrerTests {
             mockk(),
             dataLayer,
             mockk(),
-            mockk(),
+            messengerService,
             mockk()
         )
     }
@@ -69,7 +75,7 @@ class InstallReferrerTests {
         assertNull(installReferrer.referrerBegin)
         assertNull(installReferrer.referrerClick)
 
-        verify(exactly = 0) {
+        verify(exactly = 0, timeout = 1000) {
             dataLayer.putString(InstallReferrerConstants.KEY_INSTALL_REFERRER, any())
             dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP, any())
             dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP, any())
@@ -86,7 +92,7 @@ class InstallReferrerTests {
 
         installReferrer.save(referrerDetails)
 
-        verify {
+        verify(timeout = 1000) {
             dataLayer.putString(
                 InstallReferrerConstants.KEY_INSTALL_REFERRER,
                 "affiliate",
@@ -121,7 +127,7 @@ class InstallReferrerTests {
 
         installReferrer.save(referrerDetails)
 
-        verify(exactly = 0) {
+        verify(exactly = 0, timeout = 1000) {
             dataLayer.putString(InstallReferrerConstants.KEY_INSTALL_REFERRER, any())
             dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP, any())
             dataLayer.putLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP, any())
