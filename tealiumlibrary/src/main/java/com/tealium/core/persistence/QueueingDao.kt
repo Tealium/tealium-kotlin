@@ -27,4 +27,9 @@ interface QueueingDao<K, T> : KeyValueDao<K, T> {
      * Should resize the queue, removing entries from the queue if necessary.
      */
     fun resize(size: Int)
+
+    /**
+     * Removes all events excluding those deemed to be "audit" events
+     */
+    fun clearNonAuditEvents()
 }

@@ -121,6 +121,7 @@ internal class DispatchStorage(
     override fun count(): Int = dao.count()
     override fun contains(key: String): Boolean = dao.contains(key)
     override fun purgeExpired() = dao.purgeExpired()
+    override fun clearNonAuditEvents() = dao.clearNonAuditEvents()
 
     private fun convertToDispatch(json: PersistentItem): Dispatch {
         return JsonDispatch(json)

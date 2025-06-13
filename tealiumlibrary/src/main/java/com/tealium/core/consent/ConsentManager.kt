@@ -1,14 +1,15 @@
 package com.tealium.core.consent
 
-import com.tealium.core.*
+import com.tealium.core.Collector
+import com.tealium.core.Logger
+import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.EventRouter
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
+import com.tealium.dispatcher.AuditEvent
 import com.tealium.dispatcher.Dispatch
-import com.tealium.dispatcher.TealiumEvent
 import com.tealium.tealiumlibrary.BuildConfig
-import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
 class ConsentManager(
@@ -94,7 +95,7 @@ class ConsentManager(
             if (policy.consentLoggingEnabled) {
                 // profile override checked in dispatchers, url override checked in Collect dispatcher
                 context.track(
-                    TealiumEvent(
+                    AuditEvent(
                         policy.consentLoggingEventName,
                         policy.policyStatusInfo()
                     )
@@ -161,7 +162,7 @@ class ConsentManager(
             it.userConsentPreferences = preferences
             eventRouter.onUserConsentPreferencesUpdated(preferences, it)
 
-            if (isConsentLoggingEnabled) {
+            if (isConsentLoggingEnabled && userConsentStatus != ConsentStatus.UNKNOWN) {
                 logConsentUpdate()
             }
         }
@@ -223,8 +224,11 @@ class ConsentManager(
         const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
         fun isConsentGrantedEvent(dispatch: Dispatch): Boolean {
-            return (ConsentManagerConstants.GRANT_FULL_CONSENT == dispatch[Dispatch.Keys.TEALIUM_EVENT]
-                    || ConsentManagerConstants.GRANT_PARTIAL_CONSENT == dispatch[Dispatch.Keys.TEALIUM_EVENT])
+            val tealiumEvent = dispatch[Dispatch.Keys.TEALIUM_EVENT] ?: return false
+
+            return (ConsentManagerConstants.GRANT_FULL_CONSENT == tealiumEvent
+                    || ConsentManagerConstants.GRANT_PARTIAL_CONSENT == tealiumEvent
+                    || ConsentManagerConstants.DECLINE_CONSENT == tealiumEvent)
         }
     }
 }
