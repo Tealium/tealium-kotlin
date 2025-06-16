@@ -4,7 +4,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'kotlin-allopen'
 apply from: '../jacoco.gradle'
 
-version = '1.8.0'
+version = '1.9.0'
 
 android {
     namespace = 'com.tealium.tealiumlibrary'
