@@ -1,14 +1,15 @@
 package com.tealium.core.consent
 
-import com.tealium.core.*
+import com.tealium.core.Collector
+import com.tealium.core.Logger
+import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.EventRouter
 import com.tealium.core.messaging.LibrarySettingsUpdatedListener
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.core.validation.DispatchValidator
+import com.tealium.dispatcher.AuditEvent
 import com.tealium.dispatcher.Dispatch
-import com.tealium.dispatcher.TealiumEvent
 import com.tealium.tealiumlibrary.BuildConfig
-import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
 class ConsentManager(
@@ -94,7 +95,7 @@ class ConsentManager(
             if (policy.consentLoggingEnabled) {
                 // profile override checked in dispatchers, url override checked in Collect dispatcher
                 context.track(
-                    TealiumEvent(
+                    AuditEvent(
                         policy.consentLoggingEventName,
                         policy.policyStatusInfo()
                     )
@@ -161,7 +162,7 @@ class ConsentManager(
             it.userConsentPreferences = preferences
             eventRouter.onUserConsentPreferencesUpdated(preferences, it)
 
-            if (isConsentLoggingEnabled) {
+            if (isConsentLoggingEnabled && userConsentStatus != ConsentStatus.UNKNOWN) {
                 logConsentUpdate()
             }
         }
@@ -172,6 +173,9 @@ class ConsentManager(
      */
     override fun shouldQueue(dispatch: Dispatch?): Boolean {
         expireConsent()
+
+        dispatch?.addAll(getPolicyStatusInfo())
+
         return consentManagementPolicy?.shouldQueue()
             ?: false
     }
@@ -188,17 +192,27 @@ class ConsentManager(
      * Returns the status information from the current [ConsentPolicy] in force, else an empty map.
      */
     override suspend fun collect(): Map<String, Any> {
-        return (if (userConsentStatus != ConsentStatus.UNKNOWN && consentManagementPolicy != null) {
-            consentManagementPolicy.policyStatusInfo().mapKeys { entry ->
-                if (entry.key == Dispatch.Keys.CONSENT_CATEGORIES)
-                    consentCategoriesKey ?: Dispatch.Keys.CONSENT_CATEGORIES
-                else entry.key
-            }.toMutableMap()
-        } else mutableMapOf()).apply {
-            lastConsentUpdate?.let {
-                put(Dispatch.Keys.CONSENT_LAST_UPDATED, it)
-            }
+        return getPolicyStatusInfo()
+    }
+
+    private fun getPolicyStatusInfo(): Map<String, Any> {
+        val lastUpdated = mutableMapOf<String, Any>()
+        lastConsentUpdate?.let {
+            lastUpdated.put(Dispatch.Keys.CONSENT_LAST_UPDATED, it)
         }
+
+        if (consentManagementPolicy == null)
+            return lastUpdated
+
+        val policyStatus = lastUpdated + consentManagementPolicy.policyStatusInfo()
+        if (consentCategoriesKey == null) {
+            return policyStatus
+        }
+
+        val categories = policyStatus[Dispatch.Keys.CONSENT_CATEGORIES]
+        return if (categories != null) {
+            policyStatus - Dispatch.Keys.CONSENT_CATEGORIES + (consentCategoriesKey to categories)
+        } else policyStatus
     }
 
     override fun onLibrarySettingsUpdated(settings: LibrarySettings) {
@@ -210,8 +224,11 @@ class ConsentManager(
         const val MODULE_VERSION = BuildConfig.LIBRARY_VERSION
 
         fun isConsentGrantedEvent(dispatch: Dispatch): Boolean {
-            return (ConsentManagerConstants.GRANT_FULL_CONSENT == dispatch[Dispatch.Keys.TEALIUM_EVENT]
-                    || ConsentManagerConstants.GRANT_PARTIAL_CONSENT == dispatch[Dispatch.Keys.TEALIUM_EVENT])
+            val tealiumEvent = dispatch[Dispatch.Keys.TEALIUM_EVENT] ?: return false
+
+            return (ConsentManagerConstants.GRANT_FULL_CONSENT == tealiumEvent
+                    || ConsentManagerConstants.GRANT_PARTIAL_CONSENT == tealiumEvent
+                    || ConsentManagerConstants.DECLINE_CONSENT == tealiumEvent)
         }
     }
 }

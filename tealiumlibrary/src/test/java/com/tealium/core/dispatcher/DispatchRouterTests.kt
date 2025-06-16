@@ -4,7 +4,10 @@ import android.util.Log
 import com.tealium.core.Collector
 import com.tealium.core.Logger
 import com.tealium.core.Transformer
+import com.tealium.core.consent.ConsentManagementPolicy
 import com.tealium.core.consent.ConsentManager
+import com.tealium.core.consent.ConsentStatus
+import com.tealium.core.consent.UserConsentPreferences
 import com.tealium.core.messaging.DispatchRouter
 import com.tealium.core.messaging.EventDispatcher
 import com.tealium.core.messaging.EventRouter
@@ -16,6 +19,7 @@ import com.tealium.core.validation.BatchingValidator
 import com.tealium.core.validation.BatteryValidator
 import com.tealium.core.validation.ConnectivityValidator
 import com.tealium.core.validation.DispatchValidator
+import com.tealium.dispatcher.AuditEvent
 import com.tealium.dispatcher.Dispatch
 import com.tealium.dispatcher.Dispatcher
 import com.tealium.dispatcher.TealiumEvent
@@ -28,6 +32,7 @@ import io.mockk.excludeRecords
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.just
+import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.spyk
@@ -258,6 +263,20 @@ class DispatchRouterTests {
         verify(exactly = 0) {
             // no further routing should happen
             validator.shouldQueue(eventDispatch)
+        }
+    }
+
+    @Test
+    fun testIsNotDroppedWhenAuditEvent() {
+        every { validator.name } returns "mock_validator"
+        every { validator.shouldDrop(eventDispatch) } returns true
+        val auditEvent = AuditEvent("some_audit_event")
+
+        dispatchRouter.track(auditEvent)
+
+        verify(exactly = 1) {
+            // no further routing should happen
+            validator.shouldQueue(auditEvent)
         }
     }
 
@@ -496,6 +515,17 @@ class DispatchRouterTests {
     }
 
     @Test
+    fun trackProcessesForRemoteCommandsWhenQueuedButIsAuditEvent() = runBlocking {
+        every { validator.shouldQueue(any()) } returns true
+        val auditEvent = AuditEvent("some_audit_event")
+        dispatchRouter.track(auditEvent)
+
+        verify(timeout = 1000) {
+            eventRouter.onProcessRemoteCommand(auditEvent)
+        }
+    }
+
+    @Test
     fun trackDoesNotProcessForRemoteCommandsWhenQueued() = runBlocking {
         every { validator.shouldQueue(any()) } returns true
         dispatchRouter.track(eventDispatch)
@@ -585,8 +615,51 @@ class DispatchRouterTests {
         }
     }
 
+    @Test
+    fun testShouldQueueIsCalledAgainWithPreviouslyQueuedDispatches() {
+        dispatchRouter.batchedDequeue(eventDispatch)
+
+        verify {
+            (queuedEvents + eventDispatch).forEach {
+                validator.shouldQueue(it)
+            }
+        }
+    }
+
+    @Test
+    fun onUserConsentPreferencesUpdatedClearsNonAuditEventsWhenPolicyShouldDrop() {
+        val policy = mockk<ConsentManagementPolicy>(relaxed = true)
+        every { policy.shouldDrop() } returns true
+        every { policy.shouldQueue() } returns true
+
+        dispatchRouter.onUserConsentPreferencesUpdated(
+            UserConsentPreferences(ConsentStatus.CONSENTED),
+            policy
+        )
+
+        verify {
+            dispatchStore.clearNonAuditEvents()
+        }
+    }
+
+    @Test
+    fun onUserConsentPreferencesUpdatedRevalidatesWhenThereAreQueuedEventsAndPolicyShouldNotQueue() {
+        val policy = mockk<ConsentManagementPolicy>(relaxed = true)
+        every { policy.shouldDrop() } returns false
+        every { policy.shouldQueue() } returns false
+
+        dispatchRouter.onUserConsentPreferencesUpdated(
+            UserConsentPreferences(ConsentStatus.CONSENTED),
+            policy
+        )
+
+        verify {
+            dispatchStore.dequeue(any())
+        }
+    }
+
     private fun createDispatches(count: Int): List<Dispatch> =
-        (1 .. count).map {
+        (1..count).map {
             TealiumEvent("event_$it")
         }
 
@@ -595,7 +668,8 @@ class DispatchRouterTests {
      *
      * Only methods relevant to testing are properly implemented
      */
-    private class VolatileDispatchStore(initialList: List<Dispatch> = emptyList()) : QueueingDao<String, Dispatch> {
+    private class VolatileDispatchStore(initialList: List<Dispatch> = emptyList()) :
+        QueueingDao<String, Dispatch> {
         private val queue: Queue<Dispatch> = LinkedList(initialList)
 
         override fun enqueue(item: Dispatch) {
@@ -658,6 +732,10 @@ class DispatchRouterTests {
 
         override fun purgeExpired() {
             // no-op
+        }
+
+        override fun clearNonAuditEvents() {
+            queue.removeIf { !AuditEvent.isAuditEvent(it) }
         }
     }
 }

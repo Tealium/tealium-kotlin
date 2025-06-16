@@ -444,16 +444,17 @@ class TealiumTests {
             .commit()
     }
 
-    private suspend fun awaitCreateTealium(
-        name: String,
-        config: TealiumConfig,
-        onReady: Tealium.() -> Unit = {}
-    ): Tealium {
-        return suspendCancellableCoroutine { cont ->
-            Tealium.create(name, config) {
-                onReady.invoke(this)
-                cont.resume(this, null)
-            }
+}
+
+suspend fun awaitCreateTealium(
+    name: String,
+    config: TealiumConfig,
+    onReady: Tealium.() -> Unit = {}
+): Tealium {
+    return suspendCancellableCoroutine { cont ->
+        Tealium.create(name, config) {
+            onReady.invoke(this)
+            cont.resume(this, null)
         }
     }
 }

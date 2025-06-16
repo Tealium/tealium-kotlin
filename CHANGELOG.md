@@ -1,5 +1,11 @@
 # Change Log
-- 1.8.0 Apr
+- 1.9.0 Jun 2025
+  - Updates to ensure consent logging events are not dropped and that consent policy data is up-to-date
+  - Fix to ensure battery status data is up-to-date on each event
+  - InstallReferrer 1.2.0
+    - Fix for possible ANRs when saving referrer information
+    - Dependency bumped to v2.2
+- 1.8.0 Apr 2025
   - `sendDeepLinkEvent` added to `TealiumConfig` to allow for the deep link event to be sent
   - `handleDeepLink` added to `Tealium` to allow for manual deep link handling
 - 1.7.3 Mar 2025

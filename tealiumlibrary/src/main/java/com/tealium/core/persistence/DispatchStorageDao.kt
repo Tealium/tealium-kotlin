@@ -5,6 +5,7 @@ import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_EXPIRY
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_KEY
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_TIMESTAMP
 import com.tealium.core.persistence.SqlDataLayer.Columns.COLUMN_VALUE
+import com.tealium.dispatcher.AuditEvent
 import java.util.concurrent.TimeUnit
 
 /**
@@ -176,6 +177,16 @@ internal class DispatchStorageDao(
     override fun resize(size: Int) {
         maxQueueSize = size
         createSpaceIfRequired(0)
+    }
+
+    override fun clearNonAuditEvents() {
+        val storage = db ?: return
+
+        storage.delete(
+            tableName,
+            "$COLUMN_KEY NOT LIKE ?",
+            arrayOf("${AuditEvent.AUDIT_ID_PREFIX}%")
+        )
     }
 
     /**
