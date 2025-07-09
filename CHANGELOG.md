@@ -1,4 +1,6 @@
 # Change Log
+- 1.9.1 Jul 2025
+  - Reorder synchronized and try/catch to avoid potential VerifyError caused by third party instrumentation.
 - 1.9.0 Jun 2025
   - Updates to ensure consent logging events are not dropped and that consent policy data is up-to-date
   - Fix to ensure battery status data is up-to-date on each event
