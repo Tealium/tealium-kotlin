@@ -156,8 +156,8 @@ class ActivityManagerImpl internal constructor(
         override fun registerObserver(listener: ActivityManager.ActivityLifecycleListener?) {
             if (listener == null) return
 
-            try {
-                synchronized(mObservers) {
+            synchronized(mObservers) {
+                try {
                     super.registerObserver(listener)
 
                     if (!isTimedOut) {
@@ -165,8 +165,8 @@ class ActivityManagerImpl internal constructor(
                             listener.onActivityLifecycleUpdated(it)
                         }
                     }
+                } catch (ignore: Exception) {
                 }
-            } catch (ignore: Exception) {
             }
         }
 
