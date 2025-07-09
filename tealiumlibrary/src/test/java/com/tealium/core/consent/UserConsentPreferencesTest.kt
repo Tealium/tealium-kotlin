@@ -174,7 +174,7 @@ class UserConsentPreferencesTest {
 
         val policyInfo = ccpaPolicy.policyStatusInfo()
         assertEquals(ConsentPolicy.CCPA.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
-        assertEquals(false, policyInfo[Dispatch.Keys.CONSENT_DO_NOT_SELL])
+        assertFalse(policyInfo[Dispatch.Keys.CONSENT_DO_NOT_SELL] as Boolean)
         assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_STATUS))
         assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
     }
@@ -191,7 +191,7 @@ class UserConsentPreferencesTest {
 
         val policyInfo = ccpaPolicy.policyStatusInfo()
         assertEquals(ConsentPolicy.CCPA.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
-        assertTrue(policyInfo[Dispatch.Keys.CONSENT_DO_NOT_SELL] as Boolean)
+        assertFalse(policyInfo[Dispatch.Keys.CONSENT_DO_NOT_SELL] as Boolean)
         assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_STATUS))
         assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
     }
@@ -208,7 +208,7 @@ class UserConsentPreferencesTest {
 
         val policyInfo = ccpaPolicy.policyStatusInfo()
         assertEquals(ConsentPolicy.CCPA.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
-        assertTrue(policyInfo[Dispatch.Keys.CONSENT_DO_NOT_SELL] as Boolean)
+        assertFalse(policyInfo[Dispatch.Keys.CONSENT_DO_NOT_SELL] as Boolean)
         assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_STATUS))
         assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
     }
@@ -225,7 +225,7 @@ class UserConsentPreferencesTest {
 
         val policyInfo = ccpaPolicy.policyStatusInfo()
         assertEquals(ConsentPolicy.CCPA.value, policyInfo[Dispatch.Keys.CONSENT_POLICY])
-        assertFalse(policyInfo[Dispatch.Keys.CONSENT_DO_NOT_SELL] as Boolean)
+        assertTrue(policyInfo[Dispatch.Keys.CONSENT_DO_NOT_SELL] as Boolean)
         assertFalse(policyInfo.keys.contains(Dispatch.Keys.CONSENT_CATEGORIES))
     }
 

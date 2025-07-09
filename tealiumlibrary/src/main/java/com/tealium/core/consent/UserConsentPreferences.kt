@@ -277,7 +277,7 @@ private class CcpaConsentManagementPolicy(initialConsentPreferences: UserConsent
     override fun policyStatusInfo(): Map<String, Any> {
         return mapOf(
             Dispatch.Keys.CONSENT_POLICY to name,
-            Dispatch.Keys.CONSENT_DO_NOT_SELL to (userConsentPreferences.consentStatus == ConsentStatus.CONSENTED)
+            Dispatch.Keys.CONSENT_DO_NOT_SELL to (userConsentPreferences.consentStatus == ConsentStatus.NOT_CONSENTED)
         )
     }
 
