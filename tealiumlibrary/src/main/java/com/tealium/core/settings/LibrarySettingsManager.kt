@@ -73,6 +73,7 @@ class LibrarySettingsManager(
 
     init {
         setRefreshInterval(librarySettings.refreshInterval)
+        eventRouter.onLibrarySettingsUpdated(librarySettings)
     }
 
     private fun setRefreshInterval(seconds: Int) {
