@@ -1,25 +1,38 @@
 package com.tealium.core
 
 import android.app.Application
+import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import com.tealium.core.consent.ConsentCategory
 import com.tealium.core.consent.ConsentPolicy
 import com.tealium.core.consent.consentManagerPolicy
+import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.messaging.ExternalListener
 import com.tealium.core.messaging.Messenger
 import com.tealium.core.messaging.NewSessionListener
 import com.tealium.core.persistence.Expiry
 import com.tealium.core.settings.LibrarySettings
-import io.mockk.*
+import com.tealium.dispatcher.Dispatch
+import com.tealium.dispatcher.Dispatcher
+import com.tealium.dispatcher.TealiumEvent
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -420,6 +433,28 @@ class TealiumTests {
             assertEquals(Expiry.SESSION, tealium.dataLayer.getExpiry("session_int"))
         }
 
+    @Test
+    fun collect_And_TagManagement_Modules_Do_Not_Receive_Events_When_Disabled() = runBlocking {
+        val onDispatchSend = mockk<((Dispatch) -> Unit)>(relaxed = true)
+        val onBatchDispatchSend = mockk<((List<Dispatch>) -> Unit)>(relaxed = true)
+        val mockCollectDispatcher = dispatcherFactory("Collect", true, onDispatchSend, onBatchDispatchSend)
+        val mockTagManagementDispatcher = dispatcherFactory("TagManagement", true, onDispatchSend, onBatchDispatchSend)
+        val config = TealiumConfig(application, "test", " test", Environment.DEV)
+        config.overrideDefaultLibrarySettings = LibrarySettings(
+            collectDispatcherEnabled = false,
+            tagManagementDispatcherEnabled = false
+        )
+        config.dispatchers.addAll(listOf(mockCollectDispatcher, mockTagManagementDispatcher))
+
+        val tealium = awaitCreateTealium("name", config)
+        val dispatch = TealiumEvent("test")
+        tealium.track(dispatch)
+
+        verify(inverse = true, timeout = 1000) {
+            onDispatchSend.invoke(any())
+        }
+    }
+
     private fun containsOnlyValidTypes(data: Collection<*>): Boolean {
         return data.filterNotNull().fold(true) { initial, entry ->
             initial && when (entry) {
@@ -534,5 +569,33 @@ private fun collectorFactory(
         override val name: String
             get() = name
         override var enabled: Boolean = enabled
+    }
+}
+
+private fun dispatcherFactory(
+    dispatcherName: String,
+    enabled: Boolean = true,
+    onDispatchSend: ((Dispatch) -> Unit)? = null,
+    onBatchDispatchSend: ((List<Dispatch>) -> Unit)? = null
+): DispatcherFactory {
+    return object : DispatcherFactory {
+        override fun create(
+            context: TealiumContext,
+            callbacks: AfterDispatchSendCallbacks
+        ): Dispatcher {
+            return object : Dispatcher {
+                override val name: String = dispatcherName
+                override var enabled: Boolean = enabled
+
+                override suspend fun onDispatchSend(dispatch: Dispatch) {
+                    Log.d("Dispatcher", "onDispatchSend: ${dispatch.id}")
+                    onDispatchSend?.invoke(dispatch)
+                }
+
+                override suspend fun onBatchDispatchSend(dispatches: List<Dispatch>) {
+                    onBatchDispatchSend?.invoke(dispatches)
+                }
+            }
+        }
     }
 }
