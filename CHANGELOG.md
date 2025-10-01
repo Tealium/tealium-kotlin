@@ -1,6 +1,6 @@
 # Change Log
 - 1.9.3 Jul 2025
-  - RemoteCommandDispatcher 1.5.3
+  - RemoteCommandDispatcher 1.5.4
     - Added `remoteAPIEnabled` configuration property to control `remote_api` events
     - This property enables/disables `remote_api` events from being sent, required for RemoteCommands to function correctly
     - Default: false (disabled)
