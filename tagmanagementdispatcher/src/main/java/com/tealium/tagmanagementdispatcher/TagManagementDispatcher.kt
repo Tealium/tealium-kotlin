@@ -131,7 +131,7 @@ class TagManagementDispatcher(
             try {
                 webViewLoader.webView.evaluateJavascript(script, null)
             } catch (t: Throwable) {
-                Logger.prod(BuildConfig.TAG, t.localizedMessage)
+                Logger.prod(BuildConfig.TAG, t.message.toString())
             }
         }
     }

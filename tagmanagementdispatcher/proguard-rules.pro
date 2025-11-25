@@ -32,3 +32,5 @@
 -keep class com.tealium.tagmanagementdispatcher.TagManagementDispatcherKt { *; }
 -keep class com.tealium.tagmanagementdispatcher.TealiumConfigTagManagementDispatcherKt { *; }
 -keep class com.tealium.tagmanagementdispatcher.WebViewExceptionListener { *; }
+-keep class com.tealium.tagmanagementdispatcher.WebViewInitPolicy { *; }
+-keep class com.tealium.tagmanagementdispatcher.WebViewInitPolicy$* { *; }

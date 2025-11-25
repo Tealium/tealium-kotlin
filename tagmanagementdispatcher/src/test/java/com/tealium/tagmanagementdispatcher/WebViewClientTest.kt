@@ -104,7 +104,7 @@ class WebViewClientTest {
     fun webView_Init_LoadedSuccess() = runBlocking {
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
         webViewLoader.webViewInitialized.await()
-        webViewLoader.webViewClient.onPageFinished(mockWebView, "testUrl")
+        webViewLoader.tealiumWebViewClient.onPageFinished(mockWebView, "testUrl")
 
         assertEquals(PageStatus.LOADED_SUCCESS, webViewLoader.webViewStatus.get())
     }
@@ -151,11 +151,11 @@ class WebViewClientTest {
         every { mockUri.toString() } returns "some-other-url"
         every { mockResourceRequest.url } returns mockUri
 
-        webViewLoader.webViewClient.onReceivedHttpError(mockWebView, mockResourceRequest, mockErrorResponse)
+        webViewLoader.tealiumWebViewClient.onReceivedHttpError(mockWebView, mockResourceRequest, mockErrorResponse)
         assertNotEquals(PageStatus.LOADED_ERROR, webViewLoader.webViewStatus.get())
 
         every { mockUri.toString() } returns "testUrl"
-        webViewLoader.webViewClient.onReceivedHttpError(mockWebView, mockResourceRequest, mockErrorResponse)
+        webViewLoader.tealiumWebViewClient.onReceivedHttpError(mockWebView, mockResourceRequest, mockErrorResponse)
         assertEquals(PageStatus.LOADED_ERROR, webViewLoader.webViewStatus.get())
     }
 
@@ -163,10 +163,10 @@ class WebViewClientTest {
     fun webViewClient_LoadFailure_WhenResourceFails() = runBlocking {
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
         webViewLoader.webViewInitialized.await()
-        webViewLoader.webViewClient.onReceivedError(mockWebView, 404, "", "")
+        webViewLoader.tealiumWebViewClient.onReceivedError(mockWebView, 404, "", "")
 
         // any errors should not be overwritten even though the load has finished
-        webViewLoader.webViewClient.onPageFinished(mockWebView, "")
+        webViewLoader.tealiumWebViewClient.onPageFinished(mockWebView, "")
 
         assertEquals(PageStatus.LOADED_ERROR, webViewLoader.webViewStatus.get())
     }
@@ -179,10 +179,10 @@ class WebViewClientTest {
         val mockError: WebResourceError = mockk()
         every { mockError.errorCode } returns 404
         every { mockError.description } returns ""
-        webViewLoader.webViewClient.onReceivedError(webViewLoader.webView, mockRequest, mockError)
+        webViewLoader.tealiumWebViewClient.onReceivedError(webViewLoader.webView, mockRequest, mockError)
 
         // any errors should not be overwritten even though the load has finished
-        webViewLoader.webViewClient.onPageFinished(mockWebView, "")
+        webViewLoader.tealiumWebViewClient.onPageFinished(mockWebView, "")
 
         assertEquals(PageStatus.LOADED_ERROR, webViewLoader.webViewStatus.get())
     }
@@ -191,7 +191,7 @@ class WebViewClientTest {
     fun webViewClient_LoadFailure_WhenResourceFails_ExcludesFavicon() = runBlocking {
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockWebViewProvider)
         webViewLoader.webViewInitialized.await()
-        webViewLoader.webViewClient.onReceivedError(mockWebView, 404, "", "test/favicon.ico")
+        webViewLoader.tealiumWebViewClient.onReceivedError(mockWebView, 404, "", "test/favicon.ico")
         delay(50)
         // remains "loading" as no onPageFinished called
         assertEquals(PageStatus.LOADING, webViewLoader.webViewStatus.get())
@@ -201,7 +201,7 @@ class WebViewClientTest {
     fun webViewClient_LoadFailure_WhenSslError() = runBlocking {
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
         webViewLoader.webViewInitialized.await()
-        webViewLoader.webViewClient.onReceivedSslError(mockWebView, null, null)
+        webViewLoader.tealiumWebViewClient.onReceivedSslError(mockWebView, null, null)
 
         assertEquals(PageStatus.LOADED_ERROR, webViewLoader.webViewStatus.get())
     }
@@ -209,7 +209,7 @@ class WebViewClientTest {
     @Test
     fun webViewClient_ResourceLoad_GetsLogged() {
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
-        webViewLoader.webViewClient.onLoadResource(mockWebView, "myResource")
+        webViewLoader.tealiumWebViewClient.onLoadResource(mockWebView, "myResource")
 
         verify {
             Logger.dev(any(), match {
@@ -222,10 +222,10 @@ class WebViewClientTest {
     fun webViewClient_InterceptsOnlyWhenFavicon() = runBlocking {
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
 
-        assertNotNull(webViewLoader.webViewClient.shouldInterceptRequest(mockWebView, "test/favicon.ico"))
+        assertNotNull(webViewLoader.tealiumWebViewClient.shouldInterceptRequest(mockWebView, "test/favicon.ico"))
 
-        assertNull(webViewLoader.webViewClient.shouldInterceptRequest(mockWebView, "test/favicon"))
-        assertNull(webViewLoader.webViewClient.shouldInterceptRequest(mockWebView, "www.someresource.com"))
+        assertNull(webViewLoader.tealiumWebViewClient.shouldInterceptRequest(mockWebView, "test/favicon"))
+        assertNull(webViewLoader.tealiumWebViewClient.shouldInterceptRequest(mockWebView, "www.someresource.com"))
     }
 
     @Test
@@ -236,20 +236,20 @@ class WebViewClientTest {
         every { mockUri.toString() } returns "test/favicon.ico"
         every { mockResourceRequest.url } returns mockUri
 
-        assertNotNull(webViewLoader.webViewClient.shouldInterceptRequest(mockWebView, mockResourceRequest))
+        assertNotNull(webViewLoader.tealiumWebViewClient.shouldInterceptRequest(mockWebView, mockResourceRequest))
 
         every { mockUri.toString() } returns "test/favicon"
-        assertNull(webViewLoader.webViewClient.shouldInterceptRequest(mockWebView, mockResourceRequest))
+        assertNull(webViewLoader.tealiumWebViewClient.shouldInterceptRequest(mockWebView, mockResourceRequest))
         every { mockUri.toString() } returns "www.someresource.com"
-        assertNull(webViewLoader.webViewClient.shouldInterceptRequest(mockWebView, mockResourceRequest))
+        assertNull(webViewLoader.tealiumWebViewClient.shouldInterceptRequest(mockWebView, mockResourceRequest))
     }
 
     @Test
     fun webViewClient_ShouldOverrideUrlLoading_ForRemoteCommands() = runBlocking {
         webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
-        webViewLoader.webViewClient.shouldOverrideUrlLoading(mockWebView, "${TagManagementRemoteCommand.PREFIX}myRemoteCommandName")
+        webViewLoader.tealiumWebViewClient.shouldOverrideUrlLoading(mockWebView, "${TagManagementRemoteCommand.PREFIX}myRemoteCommandName")
         // should not override
-        webViewLoader.webViewClient.shouldOverrideUrlLoading(mockWebView, "http://myRemoteCommandName")
+        webViewLoader.tealiumWebViewClient.shouldOverrideUrlLoading(mockWebView, "http://myRemoteCommandName")
 
         coVerify(exactly = 1, timeout = 1500) {
             mockDispatchSendCallbacks.sendRemoteCommand(match {
@@ -265,11 +265,11 @@ class WebViewClientTest {
         val mockUri: Uri = mockk()
         every { mockUri.toString() } returns "${TagManagementRemoteCommand.PREFIX}myRemoteCommandName"
         every { mockResourceRequest.url } returns mockUri
-        webViewLoader.webViewClient.shouldOverrideUrlLoading(mockWebView, mockResourceRequest)
+        webViewLoader.tealiumWebViewClient.shouldOverrideUrlLoading(mockWebView, mockResourceRequest)
 
         // should not override
         every { mockUri.toString() } returns "http://myRemoteCommandName"
-        webViewLoader.webViewClient.shouldOverrideUrlLoading(mockWebView, mockResourceRequest)
+        webViewLoader.tealiumWebViewClient.shouldOverrideUrlLoading(mockWebView, mockResourceRequest)
 
         verify(exactly = 1, timeout = 1500) {
             mockDispatchSendCallbacks.sendRemoteCommand(match {
@@ -284,7 +284,7 @@ class WebViewClientTest {
         webViewLoader.webViewInitialized.await()
         val originalWebView = webViewLoader.webView
 
-        webViewLoader.webViewClient.onRenderProcessGone(mockWebView, null)
+        webViewLoader.tealiumWebViewClient.onRenderProcessGone(mockWebView, null)
         webViewLoader.webViewInitialized.await()
 
         assertNotSame(originalWebView, webViewLoader.webView)
