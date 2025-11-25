@@ -72,7 +72,7 @@ set(value) {
  *
  * Note. delays to the WebView initialization also delay event tracking.
  *
- * Default: [com.tealium.tagmanagementdispatcher.internal.Immediate]
+ * Default: [WebViewInitPolicy.immediate]
  *
  * @see WebViewInitPolicy
  */
