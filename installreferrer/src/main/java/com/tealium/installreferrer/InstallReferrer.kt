@@ -21,30 +21,17 @@ class InstallReferrer(
     application: Application,
     private val dataLayer: DataLayer,
     private val events: MessengerService,
-    private val referrerClient: InstallReferrerClient =
-        InstallReferrerClient.newBuilder(application)
-            .build()
+    private val referrerClient: InstallReferrerClient = InstallReferrerClient.newBuilder(application)
+        .build()
 ) : Module {
 
-    constructor(
-        context: TealiumContext,
-    ) : this(
-        context.config.application,
-        context.dataLayer,
-        context.events
+    constructor(context: TealiumContext) : this(
+        context.config.application, context.dataLayer, context.events
     )
 
     override val name: String
         get() = "InstallReferrer"
     override var enabled: Boolean = true
-
-    init {
-        // Install Referrer is kept, unmodified, for 90 days
-        // We only need to fetch it if we don't have it.
-        if (dataLayer.getString(InstallReferrerConstants.KEY_INSTALL_REFERRER).isNullOrEmpty()) {
-            fetchInstallReferrer()
-        }
-    }
 
     private fun fetchInstallReferrer() {
         events.subscribe(ReferrerClientConnectedListener(::onClientConnected))
@@ -60,8 +47,7 @@ class InstallReferrer(
 
                     InstallReferrerClient.InstallReferrerResponse.FEATURE_NOT_SUPPORTED -> {
                         Logger.prod(
-                            BuildConfig.TAG,
-                            "API not available on the current Play Store app."
+                            BuildConfig.TAG, "API not available on the current Play Store app."
                         )
                     }
 
@@ -77,19 +63,18 @@ class InstallReferrer(
         })
     }
 
-    var referrer: String? = null
+    var referrer: String? = dataLayer.getString(InstallReferrerConstants.KEY_INSTALL_REFERRER)
         set(value) {
             field = value
             value?.let {
                 dataLayer.putString(
-                    InstallReferrerConstants.KEY_INSTALL_REFERRER,
-                    it,
-                    Expiry.FOREVER
+                    InstallReferrerConstants.KEY_INSTALL_REFERRER, it, Expiry.FOREVER
                 )
             }
         }
 
-    var referrerBegin: Long? = null
+    var referrerBegin: Long? =
+        dataLayer.getLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP)
         set(value) {
             field = value
             value?.let {
@@ -101,7 +86,8 @@ class InstallReferrer(
             }
         }
 
-    var referrerClick: Long? = null
+    var referrerClick: Long? =
+        dataLayer.getLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP)
         set(value) {
             field = value
             value?.let {
@@ -112,6 +98,14 @@ class InstallReferrer(
                 )
             }
         }
+
+    init {
+        // Install Referrer is kept for 90 days, unmodified, unless uninstalled
+        // We only need to fetch it if we don't have it.
+        if (referrer.isNullOrEmpty()) {
+            fetchInstallReferrer()
+        }
+    }
 
     internal fun onClientConnected() {
         try {
