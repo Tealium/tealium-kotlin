@@ -1,12 +1,34 @@
 package com.tealium.mobile
 
 import android.app.Application
+import androidx.annotation.OptIn
+import androidx.webkit.WebViewCompat
 import com.android.billingclient.api.Purchase
 import com.tealium.adidentifier.AdIdentifier
-import com.tealium.autotracking.*
-import com.tealium.collectdispatcher.Collect
-import com.tealium.core.*
-import com.tealium.core.consent.*
+import com.tealium.autotracking.ActivityDataCollector
+import com.tealium.autotracking.AutoTracking
+import com.tealium.autotracking.AutoTrackingMode
+import com.tealium.autotracking.autoTrackingCollectorDelegate
+import com.tealium.autotracking.autoTrackingMode
+import com.tealium.core.Dispatchers
+import com.tealium.core.Environment
+import com.tealium.core.LogLevel
+import com.tealium.core.Logger
+import com.tealium.core.Module
+import com.tealium.core.ModuleFactory
+import com.tealium.core.Modules
+import com.tealium.core.QueryParameterProvider
+import com.tealium.core.Tealium
+import com.tealium.core.TealiumConfig
+import com.tealium.core.TealiumContext
+import com.tealium.core.consent.ConsentCategory
+import com.tealium.core.consent.ConsentExpiry
+import com.tealium.core.consent.ConsentManagementPolicy
+import com.tealium.core.consent.ConsentPolicy
+import com.tealium.core.consent.ConsentStatus
+import com.tealium.core.consent.UserConsentPreferences
+import com.tealium.core.consent.consentExpiry
+import com.tealium.core.consent.consentManagerPolicy
 import com.tealium.core.events.EventTrigger
 import com.tealium.core.messaging.UserConsentPreferencesUpdatedListener
 import com.tealium.core.validation.DispatchValidator
@@ -22,25 +44,26 @@ import com.tealium.lifecycle.Lifecycle
 import com.tealium.media.Media
 import com.tealium.media.mediaBackgroundSessionEnabled
 import com.tealium.media.mediaBackgroundSessionEndInterval
-import com.tealium.remotecommanddispatcher.RemoteCommands
-import com.tealium.remotecommanddispatcher.remoteCommandConfigRefresh
-import com.tealium.remotecommanddispatcher.remoteCommands
-import com.tealium.remotecommands.RemoteCommand
-import com.tealium.tagmanagementdispatcher.TagManagement
-import com.tealium.visitorservice.VisitorProfile
-import com.tealium.visitorservice.VisitorService
-import com.tealium.visitorservice.VisitorUpdatedListener
 import com.tealium.momentsapi.EngineResponse
-import com.tealium.momentsapi.ErrorCode
 import com.tealium.momentsapi.MomentsApi
 import com.tealium.momentsapi.MomentsApiRegion
 import com.tealium.momentsapi.ResponseListener
 import com.tealium.momentsapi.momentsApi
 import com.tealium.momentsapi.momentsApiRegion
+import com.tealium.remotecommanddispatcher.remoteCommandConfigRefresh
+import com.tealium.remotecommanddispatcher.remoteCommands
+import com.tealium.remotecommands.RemoteCommand
+import com.tealium.tagmanagementdispatcher.TagManagement
+import com.tealium.tagmanagementdispatcher.WebViewInitPolicy
+import com.tealium.tagmanagementdispatcher.webViewInitPolicy
+import com.tealium.visitorservice.VisitorProfile
+import com.tealium.visitorservice.VisitorService
+import com.tealium.visitorservice.VisitorUpdatedListener
 import java.util.concurrent.TimeUnit
 
 object TealiumHelper : ActivityDataCollector {
 
+    @OptIn(WebViewCompat.ExperimentalAsyncStartUp::class)
     fun init(application: Application) {
         val config = TealiumConfig(
             application,
@@ -60,11 +83,27 @@ object TealiumHelper : ActivityDataCollector {
                 Modules.MomentsApi
             ),
             dispatchers = mutableSetOf(
-                Dispatchers.Collect,
-//                Dispatchers.TagManagement,
-                Dispatchers.RemoteCommands
+//                Dispatchers.Collect,
+                Dispatchers.TagManagement,
+//                Dispatchers.RemoteCommands
             )
         ).apply {
+//            webViewInitPolicy = WebViewInitPolicy.delayed(5_000)
+//            webViewInitPolicy = WebViewInitPolicy.immediate()
+            webViewInitPolicy = WebViewInitPolicy.onMainThreadIdle()
+            // Example using initial WebView warmup.
+//            val webviewInit = WebViewInitPolicy.userTriggered()
+//        WebViewCompat.startUpWebView(
+//            application.applicationContext,
+//            WebViewStartUpConfig.Builder(Executors.newSingleThreadExecutor())
+//                .setShouldRunUiThreadStartUpTasks(false)
+//                .build()
+//            ) {
+//            webviewInit.ready()
+//        }
+//            webViewInitPolicy = webviewInit
+
+            logLevel = LogLevel.DEV
             useRemoteLibrarySettings = true
 //            sessionCountingEnabled = false
             hostedDataLayerEventMappings = mapOf("pdp" to "product_id")

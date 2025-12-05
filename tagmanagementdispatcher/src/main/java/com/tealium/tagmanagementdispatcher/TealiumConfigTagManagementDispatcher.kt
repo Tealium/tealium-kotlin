@@ -6,6 +6,8 @@ const val TAG_MANAGEMENT_OVERRIDE_URL = "override_tag_management_url"
 const val TAG_MANAGEMENT_REMOTE_API_ENABLED = "tag_management_remote_api_enabled"
 const val TAG_MANAGEMENT_WEBVIEW_SHOULD_QUEUE_ON_FAILURE = "tag_management_webview_should_queue_on_failure"
 const val TAG_MANAGEMENT_SESSION_COUNTING_ENABLED = "tag_management_session_counting_enabled"
+const val TAG_MANAGEMENT_WEBVIEW_INIT_POLICY: String = "tag_management_webview_init_policy"
+const val TAG_MANAGEMENT_WEBVIEW_LOGGING_ENABLED = "tag_management_webview_logging_enabled"
 
 /**
  * Sets the URL to use for the Tag Management module.
@@ -62,5 +64,37 @@ get() = options[TAG_MANAGEMENT_SESSION_COUNTING_ENABLED] as? Boolean
 set(value) {
     value?.let {
         options[TAG_MANAGEMENT_SESSION_COUNTING_ENABLED] = it
+    }
+}
+
+/**
+ * Sets the WebView initialization policy used by the TagManagement module.
+ *
+ * Note. delays to the WebView initialization also delay event tracking.
+ *
+ * Default: [WebViewInitPolicy.immediate]
+ *
+ * @see WebViewInitPolicy
+ */
+var TealiumConfig.webViewInitPolicy: WebViewInitPolicy?
+    get() = options[TAG_MANAGEMENT_WEBVIEW_INIT_POLICY] as? WebViewInitPolicy
+    set(value) {
+        value?.let {
+            options[TAG_MANAGEMENT_WEBVIEW_INIT_POLICY] = it
+        }
+    }
+
+/**
+ * Enables/Disables WebView console logging
+ *
+ * A value of `true` will enable console logs to be written to the Tealium Logger.
+ *
+ * Default: false
+ */
+var TealiumConfig.webViewLogsEnabled: Boolean?
+get() = options[TAG_MANAGEMENT_WEBVIEW_LOGGING_ENABLED] as? Boolean
+set(value) {
+    value?.let {
+        options[TAG_MANAGEMENT_WEBVIEW_LOGGING_ENABLED] = it
     }
 }

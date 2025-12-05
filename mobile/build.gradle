@@ -66,6 +66,7 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     implementation 'com.android.billingclient:billing:4.0.0'
+    implementation "androidx.webkit:webkit:1.14.0"
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test:runner:1.4.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
