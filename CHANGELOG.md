@@ -1,4 +1,6 @@
 # Change Log
+- 1.9.2 Aug 2025
+  - BugFix: Collect/TagManagement modules are now correctly disableable through the remote publish settings.
 - 1.9.1 Jul 2025
   - Reorder synchronized and try/catch to avoid potential VerifyError caused by third party instrumentation.
   - BugFix: `CcpaConsentManagementPolicy` was returning incorrect value for `do_not_sell`. 
