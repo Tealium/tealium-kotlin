@@ -434,6 +434,7 @@ class WebViewLoaderTest {
         )
 
         runBlocking {
+            webViewLoader.webViewInitialized.await()
             repeat(2) { // called once already on init
                 assertFalse(webViewLoader.hasReachedMaxErrors())
                 webViewLoader.initializeWebView().await()
