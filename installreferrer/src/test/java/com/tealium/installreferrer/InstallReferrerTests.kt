@@ -2,8 +2,6 @@ package com.tealium.installreferrer
 
 import InstallReferrerConstants
 import android.app.Application
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
 import com.android.installreferrer.api.InstallReferrerClient
 import com.android.installreferrer.api.ReferrerDetails
 import com.tealium.core.Environment
@@ -17,7 +15,6 @@ import com.tealium.core.persistence.DataLayer
 import com.tealium.core.persistence.Expiry
 import io.mockk.MockKAnnotations
 import io.mockk.every
-import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
@@ -28,12 +25,14 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 
+@RunWith(RobolectricTestRunner::class)
 class InstallReferrerTests {
 
-    @RelaxedMockK
-    private lateinit var mockReferrerClient: InstallReferrerClient
-
+    lateinit var mockReferrerClient: InstallReferrerClient
     lateinit var app: Application
     lateinit var dataLayer: DataLayer
     lateinit var tealium: Tealium
@@ -44,10 +43,11 @@ class InstallReferrerTests {
         MockKAnnotations.init(this)
 
         messengerService = spyk(MessengerService(EventDispatcher(), CoroutineScope(Dispatchers.IO)))
-        app = ApplicationProvider.getApplicationContext<Context>() as Application
+        app = RuntimeEnvironment.getApplication()
 
         // default to initial launch
         dataLayer = mockk(relaxed = true)
+        mockReferrerClient = mockk(relaxed = true)
         mockDataLayerContents(null, null, null)
     }
 
@@ -135,7 +135,7 @@ class InstallReferrerTests {
         val tealiumContext = TealiumContext(
             config, "", mockk(), dataLayer, mockk(), messengerService, mockk()
         )
-        val installReferrer = InstallReferrer.create(context = tealiumContext)
+        val installReferrer = InstallReferrer.Companion.create(context = tealiumContext)
         assertNotNull(installReferrer)
     }
 
