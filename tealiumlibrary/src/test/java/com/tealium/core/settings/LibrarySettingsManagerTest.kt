@@ -2,7 +2,6 @@ package com.tealium.core.settings
 
 import android.app.Application
 import android.os.Build
-import android.util.Log
 import com.tealium.core.Environment
 import com.tealium.core.Loader
 import com.tealium.core.TealiumConfig
@@ -10,14 +9,24 @@ import com.tealium.core.messaging.EventRouter
 import com.tealium.core.network.NetworkClient
 import com.tealium.core.network.ResourceEntity
 import com.tealium.core.network.ResponseStatus
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.Ordering
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.*
+import org.json.JSONObject
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -39,9 +48,6 @@ class LibrarySettingsManagerTest {
     lateinit var mockLoader: Loader
 
     @MockK
-    lateinit var mockScope: CoroutineScope
-
-    @MockK
     lateinit var mockFile: File
 
     @MockK
@@ -49,20 +55,25 @@ class LibrarySettingsManagerTest {
     lateinit var config: TealiumConfig
 
     val defaultLibrarySettings = LibrarySettings()
-    val defaultJsonLibrarySettings = "{\n" +
-            "  \"collect_dispatcher\": false,\n" +
-            "  \"tag_management_dispatcher\": false,\n" +
-            "  \"batching\": {\n" +
-            "    \"batch_size\": 10,\n" +
-            "    \"max_queue_size\": 100,\n" +
-            "    \"expiration\": \"1d\"\n" +
-            "  },\n" +
-            "  \"battery_saver\": false,\n" +
-            "  \"wifi_only\": false,\n" +
-            "  \"refresh_interval\": \"15m\",\n" +
-            "  \"log_level\": \"dev\",\n" +
-            "  \"disable_library\": false\n" +
-            "}"
+    val defaultJsonLibrarySettings = """{
+          "collect_dispatcher": false,
+          "tag_management_dispatcher": false,
+          "batching": {
+            "batch_size": 10,
+            "max_queue_size": 100,
+            "expiration": "1d"
+          },
+          "battery_saver": false,
+          "wifi_only": false,
+          "refresh_interval": "15m",
+          "log_level": "dev",
+          "disable_library": false
+        }""".trimIndent()
+
+    val malformedJson = """{
+          "collect dispatcher": true,
+          "tag management_dispatcher"
+        """.trimIndent()
 
     val backgroundScope = CoroutineScope(Dispatchers.IO)
 
@@ -70,50 +81,33 @@ class LibrarySettingsManagerTest {
     fun setUp() {
         MockKAnnotations.init(this)
         every { context.filesDir } returns mockFile
-        mockkStatic(Log::class)
-        every { Log.v(any(), any()) } returns 0
         mockNetworkClient = mockk()
 
         config = TealiumConfig(context, "test", "profile", Environment.QA)
     }
 
     @Test
-    fun librarySettingsNotNull() {
-        every { mockLoader.loadFromAsset(any()) } returns null
-        val librarySettingsManager = LibrarySettingsManager(
-            config,
-            mockNetworkClient,
-            mockLoader,
-            eventRouter = mockEventRouter,
-            backgroundScope = mockScope
-        )
+    fun librarySettings_Should_Not_Be_Null() {
+        mockStorage(cache = null, asset = null)
+        val librarySettingsManager = createLibrarySettingsManager()
+
         assertNotNull(librarySettingsManager.librarySettings)
     }
 
     @Test
-    fun librarySettingsDefaultsMatchDefaultLibrarySettings() {
-        every { mockLoader.loadFromAsset(any()) } returns null
-        val librarySettingsManager = LibrarySettingsManager(
-            config,
-            mockNetworkClient,
-            mockLoader,
-            eventRouter = mockEventRouter,
-            backgroundScope = mockScope
-        )
+    fun librarySettings_Defaults_Should_Match_Default_LibrarySettings() {
+        mockStorage(cache = null, asset = null)
+        val librarySettingsManager = createLibrarySettingsManager()
+
         assertEquals(defaultLibrarySettings, librarySettingsManager.librarySettings)
     }
 
     @Test
-    fun librarySettingsInitialShouldLoadFromAsset() {
+    fun librarySettings_Should_Load_Initial_From_Asset_If_Available_And_Not_Using_Remote_Settings() {
         config.useRemoteLibrarySettings = false
-        every { mockLoader.loadFromAsset(any()) } returns null
-        LibrarySettingsManager(
-            config,
-            mockNetworkClient,
-            mockLoader,
-            eventRouter = mockEventRouter,
-            backgroundScope = mockScope
-        )
+        mockStorage(cache = null, asset = null)
+
+        createLibrarySettingsManager()
 
         verify {
             mockLoader.loadFromAsset(any())
@@ -121,42 +115,31 @@ class LibrarySettingsManagerTest {
     }
 
     @Test
-    fun librarySettingsInitialShouldLoadFromCache() = runBlocking {
-        config.useRemoteLibrarySettings = true
-        every { mockLoader.loadFromFile(any()) } returns null
-        coEvery { mockNetworkClient.getResourceEntity(any()) } returns null
-        LibrarySettingsManager(
-            config,
-            mockNetworkClient,
-            mockLoader,
-            eventRouter = mockEventRouter,
-            backgroundScope = backgroundScope
-        )
+    fun librarySettings_Should_Load_Initial_From_Cache_If_Available_And_Using_Remote_Settings() =
+        runBlocking {
+            config.useRemoteLibrarySettings = true
+            mockStorage(cache = null, asset = null)
+            mockNullNetworkResponse()
 
-        coVerify {
-            mockLoader.loadFromFile(any())
+            createLibrarySettingsManager()
+
+            coVerify {
+                mockLoader.loadFromFile(any())
+            }
         }
-    }
 
     @Test
-    fun librarySettingsInitialShouldLoadFromOverriddenDefaultWhenNoAsset() {
+    fun librarySettings_Should_Load_Initial_From_Overridden_Default_When_No_Asset() {
         val defaultOverride = LibrarySettings(
             collectDispatcherEnabled = true,
             tagManagementDispatcherEnabled = true,
             batterySaver = true
         )
-
         config.useRemoteLibrarySettings = false
         config.overrideDefaultLibrarySettings = defaultOverride
+        mockStorage(cache = null, asset = null)
 
-        every { mockLoader.loadFromAsset(any()) } returns null
-        val librarySettingsManager = LibrarySettingsManager(
-            config,
-            mockNetworkClient,
-            mockLoader,
-            eventRouter = mockEventRouter,
-            backgroundScope = mockScope
-        )
+        val librarySettingsManager = createLibrarySettingsManager()
 
         verify {
             mockLoader.loadFromAsset(any())
@@ -167,25 +150,18 @@ class LibrarySettingsManagerTest {
     }
 
     @Test
-    fun librarySettingsInitialShouldLoadFromOverriddenDefaultWhenNoCache() = runBlocking {
+    fun librarySettings_Should_Load_Initial_From_Overridden_Default_When_No_Cache() = runBlocking {
         val defaultOverride = LibrarySettings(
             collectDispatcherEnabled = true,
             tagManagementDispatcherEnabled = true,
             batterySaver = true
         )
-
         config.useRemoteLibrarySettings = true
         config.overrideDefaultLibrarySettings = defaultOverride
+        mockStorage(cache = null, asset = null)
+        mockNullNetworkResponse()
 
-        every { mockLoader.loadFromFile(any()) } returns null
-        coEvery { mockNetworkClient.getResourceEntity(any()) } returns null
-        val librarySettingsManager = LibrarySettingsManager(
-            config,
-            mockNetworkClient,
-            mockLoader,
-            eventRouter = mockEventRouter,
-            backgroundScope = backgroundScope
-        )
+        val librarySettingsManager = createLibrarySettingsManager()
 
         coVerify {
             mockLoader.loadFromFile(any())
@@ -196,30 +172,17 @@ class LibrarySettingsManagerTest {
     }
 
     @Test
-    fun assetSettingsOverrideDefaultsWhenPresent() = runBlocking {
-        val jsonLibrarySettings = "{\n" +
-                "  \"collect_dispatcher\": false,\n" +
-                "  \"tag_management_dispatcher\": true,\n" +
-                "  \"batching\": {\n" +
-                "    \"batch_size\": 10,\n" +
-                "    \"max_queue_size\": 999,\n" +
-                "    \"expiration\": \"1d\"\n" +
-                "  },\n" +
-                "  \"battery_saver\": true,\n" +
-                "  \"wifi_only\": false,\n" +
-                "  \"refresh_interval\": \"15m\",\n" +
-                "  \"log_level\": \"dev\",\n" +
-                "  \"disable_library\": false\n" +
-                "}"
+    fun settings_From_Asset_Override_Defaults_When_Present() = runBlocking {
+        val jsonLibrarySettings = LibrarySettings(
+            collectDispatcherEnabled = false,
+            tagManagementDispatcherEnabled = true,
+            batching = Batching(maxQueueSize = 999),
+            batterySaver = true
+        ).toJsonString()
         config.useRemoteLibrarySettings = false
-        every { mockLoader.loadFromAsset(any()) } returns jsonLibrarySettings
-        val librarySettingsManager = LibrarySettingsManager(
-            config,
-            mockNetworkClient,
-            mockLoader,
-            eventRouter = mockEventRouter,
-            backgroundScope = backgroundScope
-        )
+        mockStorage(cache = null, asset = jsonLibrarySettings)
+
+        val librarySettingsManager = createLibrarySettingsManager()
 
         assertNotEquals(defaultLibrarySettings, librarySettingsManager.librarySettings)
         assertEquals(false, librarySettingsManager.librarySettings.collectDispatcherEnabled)
@@ -229,31 +192,18 @@ class LibrarySettingsManagerTest {
     }
 
     @Test
-    fun remoteSettingsOverrideDefaultsWhenPresent() = runBlocking {
-        val jsonLibrarySettings = "{\n" +
-                "  \"collect_dispatcher\": false,\n" +
-                "  \"tag_management_dispatcher\": true,\n" +
-                "  \"batching\": {\n" +
-                "    \"batch_size\": 10,\n" +
-                "    \"max_queue_size\": 999,\n" +
-                "    \"expiration\": \"1d\"\n" +
-                "  },\n" +
-                "  \"battery_saver\": true,\n" +
-                "  \"wifi_only\": false,\n" +
-                "  \"refresh_interval\": \"15m\",\n" +
-                "  \"log_level\": \"dev\",\n" +
-                "  \"disable_library\": false\n" +
-                "}"
+    fun remote_Json_Settings_Override_Defaults_When_Present() = runBlocking {
+        val jsonLibrarySettings = LibrarySettings(
+            collectDispatcherEnabled = false,
+            tagManagementDispatcherEnabled = true,
+            batching = Batching(maxQueueSize = 999),
+            batterySaver = true
+        ).toJsonString()
         config.useRemoteLibrarySettings = true
-        every { mockLoader.loadFromFile(any()) } returns jsonLibrarySettings
-        coEvery { mockNetworkClient.getResourceEntity(any(), any()) } returns null
-        val librarySettingsManager = LibrarySettingsManager(
-            config,
-            mockNetworkClient,
-            mockLoader,
-            eventRouter = mockEventRouter,
-            backgroundScope = backgroundScope
-        )
+        mockStorage(cache = jsonLibrarySettings, asset = null)
+        mockNullNetworkResponse()
+
+        val librarySettingsManager = createLibrarySettingsManager()
 
         assertNotEquals(defaultLibrarySettings, librarySettingsManager.librarySettings)
         assertEquals(false, librarySettingsManager.librarySettings.collectDispatcherEnabled)
@@ -263,38 +213,20 @@ class LibrarySettingsManagerTest {
     }
 
     @Test
-    fun remoteJsonSettingsOverrideCacheWhenPresent() = runBlocking {
-        val jsonLibrarySettings = "{\n" +
-                "  \"collect_dispatcher\": false,\n" +
-                "  \"tag_management_dispatcher\": true,\n" +
-                "  \"batching\": {\n" +
-                "    \"batch_size\": 10,\n" +
-                "    \"max_queue_size\": 999,\n" +
-                "    \"expiration\": \"1d\"\n" +
-                "  },\n" +
-                "  \"battery_saver\": true,\n" +
-                "  \"wifi_only\": false,\n" +
-                "  \"refresh_interval\": \"15m\",\n" +
-                "  \"log_level\": \"dev\",\n" +
-                "  \"disable_library\": false\n" +
-                "}"
-        val resource = ResourceEntity(jsonLibrarySettings, status = ResponseStatus.Success)
+    fun remote_Json_Settings_Override_Cache_When_Present() = runBlocking {
+        val jsonLibrarySettings = LibrarySettings(
+            collectDispatcherEnabled = false,
+            tagManagementDispatcherEnabled = true,
+            batching = Batching(maxQueueSize = 999),
+            batterySaver = true
+        ).toJsonString()
         config.useRemoteLibrarySettings = true
         config.overrideLibrarySettingsUrl = "tealium-settings.json"
-        every { mockLoader.loadFromFile(any()) } returns defaultJsonLibrarySettings
-        coEvery { mockNetworkClient.getResourceEntity(any(), any()) } returns resource
-        val librarySettingsManager = LibrarySettingsManager(
-            config,
-            mockNetworkClient,
-            mockLoader,
-            eventRouter = mockEventRouter,
-            backgroundScope = backgroundScope
-        )
+        mockStorage(cache = defaultJsonLibrarySettings, asset = null)
+        mockNetworkResponse(response = jsonLibrarySettings, status = ResponseStatus.Success)
 
+        val librarySettingsManager = createLibrarySettingsManager()
         delay(1000)
-        verify(exactly = 1, timeout = 3000) {
-            mockEventRouter.onLibrarySettingsUpdated(any())
-        }
 
         assertEquals(false, librarySettingsManager.librarySettings.collectDispatcherEnabled)
         assertEquals(true, librarySettingsManager.librarySettings.tagManagementDispatcherEnabled)
@@ -303,75 +235,53 @@ class LibrarySettingsManagerTest {
     }
 
     @Test
-    fun remoteJsonSettingsDoesNotCrashWhenMalformedAndReturnsDefault() = runBlocking {
-        val malformedJson = "{\n" +
-                "  \"collect dispatcher\": true,\n" +
-                "  \"tag management_dispatcher\": true,\n" +
-                "  \"batching\": {\n" +
-                "    \"batch_size\": 10,\n" +
-                "    \"max_queue_size\": 100,\n" +
-                "    \"expiration\" " +
-                "}"
-        val malFormedResource = ResourceEntity(malformedJson, status = ResponseStatus.Success)
+    fun remote_Json_Settings_Publish_Updated_Setting_When_Changed() = runBlocking {
+        val updatedLibrarySettings = LibrarySettings(
+            collectDispatcherEnabled = false,
+            tagManagementDispatcherEnabled = true,
+            batching = Batching(maxQueueSize = 999),
+            batterySaver = true
+        )
+        val jsonLibrarySettings = updatedLibrarySettings.toJsonString()
         config.useRemoteLibrarySettings = true
         config.overrideLibrarySettingsUrl = "tealium-settings.json"
-        every { mockLoader.loadFromFile(any()) } returns null
-        coEvery { mockNetworkClient.getResourceEntity(any(), any()) } returns malFormedResource
-        val librarySettingsManager = LibrarySettingsManager(
-            config,
-            mockNetworkClient,
-            mockLoader,
-            eventRouter = mockEventRouter,
-            backgroundScope = backgroundScope
-        )
+        mockStorage(cache = defaultJsonLibrarySettings, asset = null)
+        mockNetworkResponse(response = jsonLibrarySettings, status = ResponseStatus.Success)
 
-        verify(exactly = 0, timeout = 1500) {
-            mockEventRouter.onLibrarySettingsUpdated(any())
+        val initialSettings = createLibrarySettingsManager().librarySettings
+
+        verify(timeout = 1000, ordering = Ordering.ORDERED) {
+            mockEventRouter.onLibrarySettingsUpdated(initialSettings)
+            mockEventRouter.onLibrarySettingsUpdated(updatedLibrarySettings)
         }
-
-        assertEquals(defaultLibrarySettings, librarySettingsManager.librarySettings)
-        assertEquals(true, librarySettingsManager.librarySettings.collectDispatcherEnabled)
-        assertEquals(true, librarySettingsManager.librarySettings.tagManagementDispatcherEnabled)
-        assertEquals(100, librarySettingsManager.librarySettings.batching.maxQueueSize)
-        assertEquals(false, librarySettingsManager.librarySettings.batterySaver)
     }
 
     @Test
-    fun cachedJsonSettingsDoesNotCrashWhenMalformedAndReturnsDefault() = runBlocking {
-        val malformedJson = "{\n" +
-                "  \"collect dispatcher\": true,\n" +
-                "  \"tag management_dispatcher\": true,\n" +
-                "  \"batching\": {\n" +
-                "    \"batch_size\": 10,\n" +
-                "    \"max_queue_size\": 100,\n" +
-                "    \"expiration\" " +
-                "}"
-        val malFormedResource = ResourceEntity(malformedJson, status = ResponseStatus.Success)
+    fun remote_Json_Settings_Does_Not_Crash_When_Malformed_And_Returns_Default() = runBlocking {
         config.useRemoteLibrarySettings = true
         config.overrideLibrarySettingsUrl = "tealium-settings.json"
-        every { mockLoader.loadFromFile(any()) } returns malformedJson
-        coEvery { mockNetworkClient.getResourceEntity(any(), any()) } returns malFormedResource
-        val librarySettingsManager = LibrarySettingsManager(
-            config,
-            mockNetworkClient,
-            mockLoader,
-            eventRouter = mockEventRouter,
-            backgroundScope = backgroundScope
-        )
+        mockStorage(cache = null, asset = null)
+        mockNetworkResponse(response = malformedJson, status = ResponseStatus.Success)
 
-        verify(exactly = 0, timeout = 1500) {
-            mockEventRouter.onLibrarySettingsUpdated(any())
-        }
+        val librarySettingsManager = createLibrarySettingsManager()
 
         assertEquals(defaultLibrarySettings, librarySettingsManager.librarySettings)
-        assertEquals(true, librarySettingsManager.librarySettings.collectDispatcherEnabled)
-        assertEquals(true, librarySettingsManager.librarySettings.tagManagementDispatcherEnabled)
-        assertEquals(100, librarySettingsManager.librarySettings.batching.maxQueueSize)
-        assertEquals(false, librarySettingsManager.librarySettings.batterySaver)
     }
 
     @Test
-    fun remoteHtmlSettingsOverrideCacheWhenPresent() = runBlocking {
+    fun cached_Settings_Does_Not_Crash_When_Malformed_An_dReturns_Default() = runBlocking {
+        config.useRemoteLibrarySettings = true
+        config.overrideLibrarySettingsUrl = "tealium-settings.json"
+        mockStorage(cache = malformedJson, asset = null)
+        mockNetworkResponse(response = malformedJson, status = ResponseStatus.Success)
+
+        val librarySettingsManager = createLibrarySettingsManager()
+
+        assertEquals(defaultLibrarySettings, librarySettingsManager.librarySettings)
+    }
+
+    @Test
+    fun remote_Html_Settings_Override_Cache_When_Present() = runBlocking {
         val htmlLibrarySettings = """<!DOCTYPE html>
                 <!--tealium tag management - mobile.webview ut4.0.202006041357, Copyright 2020 Tealium.com Inc. All Rights Reserved.-->
                 <html>
@@ -387,22 +297,13 @@ class LibrarySettingsManagerTest {
                 <script type="text/javascript" src="//tags.tiqcdn.com/utag/tealium/test/dev/utag.js"></script>
                 </body>
                 </html>"""
-        val resource = ResourceEntity(htmlLibrarySettings, status = ResponseStatus.Success)
         config.useRemoteLibrarySettings = true
         config.overrideLibrarySettingsUrl = "mobile.html"
-        every { mockLoader.loadFromFile(any()) } returns defaultJsonLibrarySettings
-        coEvery { mockNetworkClient.getResourceEntity(any(), any()) } returns resource
-        val librarySettingsManager = LibrarySettingsManager(
-            config,
-            mockNetworkClient,
-            mockLoader,
-            eventRouter = mockEventRouter,
-            backgroundScope = backgroundScope
-        )
+        mockStorage(cache = defaultJsonLibrarySettings, asset = null)
+        mockNetworkResponse(response = htmlLibrarySettings, status = ResponseStatus.Success)
 
-        coVerify(exactly = 1, timeout = 1500) {
-            mockEventRouter.onLibrarySettingsUpdated(any())
-        }
+        val librarySettingsManager = createLibrarySettingsManager()
+        delay(1000)
 
         assertEquals(false, librarySettingsManager.librarySettings.collectDispatcherEnabled)
         assertEquals(false, librarySettingsManager.librarySettings.tagManagementDispatcherEnabled)
@@ -412,55 +313,25 @@ class LibrarySettingsManagerTest {
 
     @Test
     fun localSettingsDoesNotOverrideDefaultsOnMalformedJson() = runBlocking {
-        val malformedJson = "{\n" +
-                "  \"collect dispatcher\": true,\n" +
-                "  \"tag management_dispatcher\": true,\n" +
-                "  \"batching\": {\n" +
-                "    \"batch_size\": 10,\n" +
-                "    \"max_queue_size\": 100,\n" +
-                "    \"expiration\": \"1d\"\n" +
-                "  },\n" +
-                "  \"battery_saver\": false,\n" +
-                "  \"wifi_only\": false,\n" +
-                "  \"refresh_interval\": \"15m\",\n" +
-                "  \"log_level\": \"dev\",\n" +
-                "  \"disable_library\": false\n" +
-                "}"
         config.useRemoteLibrarySettings = false
-        every { mockLoader.loadFromAsset(any<String>()) } returns malformedJson
-        val librarySettingsManager = LibrarySettingsManager(
-            config,
-            mockNetworkClient,
-            mockLoader,
-            eventRouter = mockEventRouter,
-            backgroundScope = backgroundScope
-        )
-        val default = librarySettingsManager.librarySettings
+        mockStorage(cache = null, asset = malformedJson)
+        val librarySettingsManager = createLibrarySettingsManager()
 
-        assertEquals(default, librarySettingsManager.librarySettings)
+        assertEquals(defaultLibrarySettings, librarySettingsManager.librarySettings)
 
         coVerify(timeout = 500, exactly = 0) {
-            mockEventRouter.onLibrarySettingsUpdated(any())
+            mockEventRouter.onLibrarySettingsUpdated(match { it != defaultLibrarySettings })
         }
     }
 
     @Test
     fun fetchRemoteLibrarySettings_AdheresTo_RefreshInterval() = runBlocking {
         config.useRemoteLibrarySettings = true
-        every { mockLoader.loadFromAsset(any()) } returns null
-        every { mockLoader.loadFromFile(any()) } returns null
-        coEvery { mockNetworkClient.getResourceEntity(any(), any()) } returns ResourceEntity(
-            null,
-            null,
-            ResponseStatus.Non200Response(304)
-        )
-        val librarySettingsManager = LibrarySettingsManager(
-            config,
-            mockNetworkClient,
-            mockLoader,
-            eventRouter = mockEventRouter,
-            backgroundScope = backgroundScope
-        )
+        mockStorage(cache = null, asset = null)
+        mockNetworkResponse(response = null, status = ResponseStatus.Non200Response(304))
+
+        val librarySettingsManager = createLibrarySettingsManager()
+
         // these should be ignored
         librarySettingsManager.fetchLibrarySettings()
         librarySettingsManager.fetchLibrarySettings()
@@ -474,33 +345,14 @@ class LibrarySettingsManagerTest {
     fun fetchRemoteLibrarySettings_Updates_RefreshInterval() = runBlocking {
         config.useRemoteLibrarySettings = true
         config.overrideLibrarySettingsUrl = "test.com/settings.json"
-        every { mockLoader.loadFromAsset(any()) } returns null
-        every { mockLoader.loadFromFile(any()) } returns null
-        coEvery { mockNetworkClient.getResourceEntity(any(), any()) } returns ResourceEntity(
-            "{\n" +
-                    "  \"collect_dispatcher\": false,\n" +
-                    "  \"tag_management_dispatcher\": false,\n" +
-                    "  \"batching\": {\n" +
-                    "    \"batch_size\": 10,\n" +
-                    "    \"max_queue_size\": 100,\n" +
-                    "    \"expiration\": \"1d\"\n" +
-                    "  },\n" +
-                    "  \"battery_saver\": false,\n" +
-                    "  \"wifi_only\": false,\n" +
-                    "  \"refresh_interval\": \"25m\",\n" + // 25 minutes
-                    "  \"log_level\": \"dev\",\n" +
-                    "  \"disable_library\": false\n" +
-                    "}",
-            null,
-            ResponseStatus.Success
+        mockStorage(cache = null, asset = null)
+        mockNetworkResponse(
+            response = """{
+              "refresh_interval": "25m"
+            }""".trimIndent(),
+            status = ResponseStatus.Success
         )
-        val librarySettingsManager = LibrarySettingsManager(
-            config,
-            mockNetworkClient,
-            mockLoader,
-            eventRouter = mockEventRouter,
-            backgroundScope = backgroundScope
-        )
+        val librarySettingsManager = createLibrarySettingsManager()
 
         delay(500)
         assertEquals(25, librarySettingsManager.resourceRetriever.refreshInterval)
@@ -509,10 +361,9 @@ class LibrarySettingsManagerTest {
     @Test
     fun initialSettings_Returns_Null_When_NoCache_And_RemoteSetting_Enabled() {
         config.useRemoteLibrarySettings = true
-        every { mockLoader.loadFromFile(any()) } returns null
-        every { mockLoader.loadFromAsset(any()) } returns null
+        mockStorage(cache = null, asset = null)
 
-        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
+        val librarySettingsManager = createLibrarySettingsManager()
 
         assertNull(librarySettingsManager.initialSettings)
     }
@@ -520,10 +371,9 @@ class LibrarySettingsManagerTest {
     @Test
     fun initialSettings_Returns_Null_When_NoAsset_And_RemoteSetting_Disabled() {
         config.useRemoteLibrarySettings = false
-        every { mockLoader.loadFromFile(any()) } returns null
-        every { mockLoader.loadFromAsset(any()) } returns null
+        mockStorage(cache = null, asset = null)
 
-        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
+        val librarySettingsManager = createLibrarySettingsManager()
 
         assertNull(librarySettingsManager.initialSettings)
     }
@@ -531,10 +381,9 @@ class LibrarySettingsManagerTest {
     @Test
     fun initialSettings_Returns_CachedSettings_When_RemoteSetting_Enabled() {
         config.useRemoteLibrarySettings = true
-        every { mockLoader.loadFromFile(any()) } returns LibrarySettings.toJson(LibrarySettings()).toString()
-        every { mockLoader.loadFromAsset(any()) } returns null
+        mockStorage(cache = LibrarySettings().toJsonString(), asset = null)
 
-        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
+        val librarySettingsManager = createLibrarySettingsManager()
 
         assertEquals(defaultLibrarySettings, librarySettingsManager.initialSettings)
     }
@@ -542,11 +391,69 @@ class LibrarySettingsManagerTest {
     @Test
     fun initialSettings_Returns_AssetSettings_When_RemoteSetting_Disabled() {
         config.useRemoteLibrarySettings = false
-        every { mockLoader.loadFromFile(any()) } returns null
-        every { mockLoader.loadFromAsset(any()) } returns LibrarySettings.toJson(LibrarySettings()).toString()
+        mockStorage(cache = null, asset = LibrarySettings().toJsonString())
 
-        val librarySettingsManager = LibrarySettingsManager(config, mockNetworkClient, mockLoader, eventRouter = mockEventRouter, backgroundScope = backgroundScope)
+        val librarySettingsManager = createLibrarySettingsManager()
 
         assertEquals(defaultLibrarySettings, librarySettingsManager.initialSettings)
+    }
+
+    @Test
+    fun settings_Are_Published_To_Event_Router_On_Init() {
+        mockStorage(cache = null, asset = null)
+        createLibrarySettingsManager()
+
+        verify(exactly = 1) {
+            mockEventRouter.onLibrarySettingsUpdated(defaultLibrarySettings)
+        }
+    }
+
+    /**
+     * Use to set the initially stored settings data.
+     */
+    private fun mockStorage(cache: String?, asset: String?) {
+        every { mockLoader.loadFromFile(any()) } returns cache
+        every { mockLoader.loadFromAsset(any()) } returns asset
+    }
+
+    /**
+     * Sets the response for any remote settings
+     */
+    private fun mockNetworkResponse(
+        response: String?,
+        etag: String? = null,
+        status: ResponseStatus = ResponseStatus.Success
+    ) {
+        val entity = ResourceEntity(response, etag, status)
+        coEvery { mockNetworkClient.getResourceEntity(any(), any()) } returns entity
+    }
+
+    /**
+     * Returns a `null` from the network client
+     */
+    private fun mockNullNetworkResponse() {
+        coEvery { mockNetworkClient.getResourceEntity(any(), any()) } returns null
+    }
+
+    private fun LibrarySettings.toJson(): JSONObject =
+        LibrarySettings.toJson(this)
+
+    private fun LibrarySettings.toJsonString(): String =
+        this.toJson().toString()
+
+    private fun createLibrarySettingsManager(
+        config: TealiumConfig = this.config,
+        networkClient: NetworkClient = this.mockNetworkClient,
+        loader: Loader = this.mockLoader,
+        eventRouter: EventRouter = this.mockEventRouter,
+        backgroundScope: CoroutineScope = this.backgroundScope
+    ): LibrarySettingsManager {
+        return LibrarySettingsManager(
+            config,
+            networkClient,
+            loader,
+            eventRouter,
+            backgroundScope
+        )
     }
 }

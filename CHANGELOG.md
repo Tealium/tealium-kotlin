@@ -1,4 +1,15 @@
 # Change Log
+- 1.9.2 Dec 2025
+  - BugFix: Collect/TagManagement modules are now correctly disableable through the remote publish settings.
+  - TagManagement 1.3.0
+    - `WebView` updates
+      - Breaks up init code into smaller blocks to assist in alleviating some ANRs
+      - Added `WebViewInitPolicy` to allow more flexibility around when the TagManagement WebView initializes
+        - Default remains `Immediate` which will be behaviourally the same as previous releases
+    - Disables WebView console logs by default; can be enabled by new configuration property `TealiumConfig.webViewLogsEnabled`
+  - InstallReferrer 1.3.0
+    - Fix for possible ANRs when closing connections to InstallReferrer service
+    - Only makes check when there is not an install referrer already retrieved
 - 1.9.1 Jul 2025
   - Reorder synchronized and try/catch to avoid potential VerifyError caused by third party instrumentation.
   - BugFix: `CcpaConsentManagementPolicy` was returning incorrect value for `do_not_sell`. 

@@ -3,24 +3,51 @@ package com.tealium.tagmanagementdispatcher
 import android.app.Application
 import android.net.Uri
 import android.os.SystemClock
-import android.webkit.*
-import com.tealium.core.*
+import android.webkit.CookieManager
+import android.webkit.WebSettings
+import android.webkit.WebView
+import com.tealium.core.Module
+import com.tealium.core.ModuleFactory
+import com.tealium.core.QueryParameterProvider
+import com.tealium.core.TealiumConfig
+import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.AfterDispatchSendCallbacks
 import com.tealium.core.messaging.MessengerService
 import com.tealium.core.network.Connectivity
 import com.tealium.core.network.HttpClient
 import com.tealium.core.settings.LibrarySettings
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.Runs
+import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
-import kotlinx.coroutines.*
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.mockkConstructor
+import io.mockk.mockkStatic
+import io.mockk.spyk
+import io.mockk.verify
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.setMain
-import org.junit.Assert.*
+import kotlinx.coroutines.withTimeout
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.io.File
-import java.lang.Exception
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class WebViewLoaderTest {
 
@@ -70,6 +97,7 @@ class WebViewLoaderTest {
         every { mockTealiumConfig.application } returns mockContext
         every { mockTealiumConfig.accountName } returns "test"
         every { mockTealiumConfig.profileName } returns "profile"
+        every { mockTealiumConfig.webViewInitPolicy } returns null
         every { mockContext.applicationContext } returns mockContext
         every { mockTealiumContext.config } returns mockTealiumConfig
         every { mockTealiumContext.httpClient } returns mockHttpClient
@@ -102,7 +130,12 @@ class WebViewLoaderTest {
     @Test
     fun loadUrlToWebView_OnlyExecutesOnce() = runBlocking {
         every { mockConnectivity.isConnected() } returns false // cancels the initial load
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        webViewLoader = WebViewLoader(
+            mockTealiumContext,
+            "testUrl",
+            mockDispatchSendCallbacks,
+            mockConnectivity
+        )
         webViewLoader.webViewInitialized.await()
         webViewLoader.webView = mockWebView
         every { mockConnectivity.isConnected() } returns true
@@ -124,7 +157,12 @@ class WebViewLoaderTest {
     @Test
     fun librarySettingsUpdated_ChangesTimeout() = runBlocking {
         every { mockConnectivity.isConnected() } returns false // cancels the initial load
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        webViewLoader = WebViewLoader(
+            mockTealiumContext,
+            "testUrl",
+            mockDispatchSendCallbacks,
+            mockConnectivity
+        )
         webViewLoader.webViewInitialized.await()
 
         every { SystemClock.elapsedRealtime() } returns 10000L // up for 10s
@@ -139,7 +177,12 @@ class WebViewLoaderTest {
     @Test
     fun isTimedOut() = runBlocking {
         every { mockConnectivity.isConnected() } returns false // cancels the initial load
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        webViewLoader = WebViewLoader(
+            mockTealiumContext,
+            "testUrl",
+            mockDispatchSendCallbacks,
+            mockConnectivity
+        )
         webViewLoader.webViewInitialized.await()
 
         // defaults should be true
@@ -159,7 +202,12 @@ class WebViewLoaderTest {
     @Test
     fun newSession_IsRegisteredWhenWebViewIsLoaded() = runBlocking {
         every { mockTealiumConfig.sessionCountingEnabled } returns true
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        webViewLoader = WebViewLoader(
+            mockTealiumContext,
+            "testUrl",
+            mockDispatchSendCallbacks,
+            mockConnectivity
+        )
         webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
         webViewLoader.onSessionStarted(12345L)
 
@@ -170,7 +218,12 @@ class WebViewLoaderTest {
 
     @Test
     fun newSession_IsNotRegisteredWhenWebViewIsNotLoaded() = runBlocking {
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        webViewLoader = WebViewLoader(
+            mockTealiumContext,
+            "testUrl",
+            mockDispatchSendCallbacks,
+            mockConnectivity
+        )
         webViewLoader.webViewStatus.set(PageStatus.LOADED_ERROR)
         webViewLoader.onSessionStarted(12345L)
         webViewLoader.webViewStatus.set(PageStatus.LOADING)
@@ -185,7 +238,12 @@ class WebViewLoaderTest {
 
     @Test
     fun newSession_IsNotRegisteredWhenSessionIdIsInvalid() = runBlocking {
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        webViewLoader = WebViewLoader(
+            mockTealiumContext,
+            "testUrl",
+            mockDispatchSendCallbacks,
+            mockConnectivity
+        )
         webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
         webViewLoader.onSessionStarted(WebViewLoader.INVALID_SESSION_ID)
 
@@ -197,7 +255,12 @@ class WebViewLoaderTest {
     @Test
     fun newSession_IsNotRegisteredWhenNoConnectivity() {
         every { mockConnectivity.isConnected() } returns false
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        webViewLoader = WebViewLoader(
+            mockTealiumContext,
+            "testUrl",
+            mockDispatchSendCallbacks,
+            mockConnectivity
+        )
         webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
         webViewLoader.onSessionStarted(WebViewLoader.INVALID_SESSION_ID)
 
@@ -209,7 +272,12 @@ class WebViewLoaderTest {
     @Test
     fun newSession_IsNotRegisteredWhenSessionCountingDisabled() {
         every { mockTealiumConfig.sessionCountingEnabled } returns false
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        webViewLoader = WebViewLoader(
+            mockTealiumContext,
+            "testUrl",
+            mockDispatchSendCallbacks,
+            mockConnectivity
+        )
         webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
         webViewLoader.onSessionStarted(12345L)
 
@@ -220,7 +288,13 @@ class WebViewLoaderTest {
 
     @Test
     fun newSession_OnlyReloadsWebViewUrl_When_NewSession() = runBlocking {
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, webViewProvider = mockWebViewProvider)
+        webViewLoader = WebViewLoader(
+            mockTealiumContext,
+            "testUrl",
+            mockDispatchSendCallbacks,
+            mockConnectivity,
+            webViewProvider = mockWebViewProvider
+        )
         webViewLoader.webViewInitialized.await()
 
         webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
@@ -234,7 +308,13 @@ class WebViewLoaderTest {
 
     @Test
     fun newSession_ReloadsWebViewUrl_When_NewSession() = runBlocking {
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, webViewProvider = mockWebViewProvider)
+        webViewLoader = WebViewLoader(
+            mockTealiumContext,
+            "testUrl",
+            mockDispatchSendCallbacks,
+            mockConnectivity,
+            webViewProvider = mockWebViewProvider
+        )
         webViewLoader.webViewInitialized.await()
 
         webViewLoader.webViewStatus.set(PageStatus.LOADED_SUCCESS)
@@ -250,7 +330,13 @@ class WebViewLoaderTest {
 
     @Test
     fun newSession_DoesNot_ReloadWebViewUrl_When_NotLoadedSuccess() = runBlocking {
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, webViewProvider = mockWebViewProvider)
+        webViewLoader = WebViewLoader(
+            mockTealiumContext,
+            "testUrl",
+            mockDispatchSendCallbacks,
+            mockConnectivity,
+            webViewProvider = mockWebViewProvider
+        )
         webViewLoader.webViewInitialized.await()
 
         webViewLoader.lastUrlLoadTimestamp = 0L
@@ -272,14 +358,21 @@ class WebViewLoaderTest {
 
     @Test
     fun createSessionUrlIsCorrect() {
-        assertEquals("https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=test/profile/12345&cb=12345",
-                WebViewLoader.createSessionUrl(mockTealiumConfig, 12345L))
+        assertEquals(
+            "https://tags.tiqcdn.com/utag/tiqapp/utag.v.js?a=test/profile/12345&cb=12345",
+            WebViewLoader.createSessionUrl(mockTealiumConfig, 12345L)
+        )
     }
 
     @Test
     fun initializeWebView_OnlyInitializes_WhenStatusIsInit() = runBlocking {
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockWebViewProvider)
-        webViewLoader.webViewInitialized.await()
+        webViewLoader = WebViewLoader(
+            mockTealiumContext,
+            "testUrl",
+            mockDispatchSendCallbacks,
+            mockConnectivity,
+            mockWebViewProvider
+        )
 
         webViewLoader.initializeWebView().await()
         webViewLoader.webViewStatus.set(PageStatus.INITIALIZED)
@@ -332,10 +425,17 @@ class WebViewLoaderTest {
         val mockProvider = spyk<() -> WebView>({
             throw Exception()
         })
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity, mockProvider)
+        webViewLoader = WebViewLoader(
+            mockTealiumContext,
+            "testUrl",
+            mockDispatchSendCallbacks,
+            mockConnectivity,
+            mockProvider
+        )
 
         runBlocking {
-            repeat (2) { // called once already on init
+            webViewLoader.webViewInitialized.await()
+            repeat(2) { // called once already on init
                 assertFalse(webViewLoader.hasReachedMaxErrors())
                 webViewLoader.initializeWebView().await()
             }
@@ -355,8 +455,15 @@ class WebViewLoaderTest {
         every { mockConnectivity.isConnected() } returns false
         every { mockTealiumContext.events } returns mockMessengerService
         every { mockTealiumContext.tealium.modules } returns mockk()
-        every { mockTealiumContext.tealium.modules.getModulesForType(Module::class.java) } returns setOf(QueryParamProviderModule.create(mockTealiumContext))
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        every { mockTealiumContext.tealium.modules.getModulesForType(Module::class.java) } returns setOf(
+            QueryParamProviderModule.create(mockTealiumContext)
+        )
+        webViewLoader = WebViewLoader(
+            mockTealiumContext,
+            "testUrl",
+            mockDispatchSendCallbacks,
+            mockConnectivity
+        )
         webViewLoader.webViewInitialized.await()
         webViewLoader.webView = mockWebView
         every { mockConnectivity.isConnected() } returns true
@@ -382,8 +489,15 @@ class WebViewLoaderTest {
         every { mockConnectivity.isConnected() } returns false
         every { mockTealiumContext.events } returns mockMessengerService
         every { mockTealiumContext.tealium.modules } returns mockk()
-        every { mockTealiumContext.tealium.modules.getModulesForType(Module::class.java) } returns setOf(DelayedQueryParamProviderModule.create(mockTealiumContext))
-        webViewLoader = WebViewLoader(mockTealiumContext, "testUrl", mockDispatchSendCallbacks, mockConnectivity)
+        every { mockTealiumContext.tealium.modules.getModulesForType(Module::class.java) } returns setOf(
+            DelayedQueryParamProviderModule.create(mockTealiumContext)
+        )
+        webViewLoader = WebViewLoader(
+            mockTealiumContext,
+            "testUrl",
+            mockDispatchSendCallbacks,
+            mockConnectivity
+        )
         delay(WebViewLoader.PARAM_PROVIDERS_TIMEOUT + 1000L)
         webViewLoader.webView = mockWebView
         every { mockConnectivity.isConnected() } returns true
@@ -398,7 +512,7 @@ class WebViewLoaderTest {
     }
 }
 
-private class QueryParamProviderModule: Module, QueryParameterProvider {
+private class QueryParamProviderModule : Module, QueryParameterProvider {
     override val name: String = "test"
     override var enabled: Boolean = true
 
@@ -413,7 +527,7 @@ private class QueryParamProviderModule: Module, QueryParameterProvider {
     }
 }
 
-private class DelayedQueryParamProviderModule: Module, QueryParameterProvider {
+private class DelayedQueryParamProviderModule : Module, QueryParameterProvider {
     override val name: String = "test"
     override var enabled: Boolean = true
 

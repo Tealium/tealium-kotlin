@@ -1,5 +1,7 @@
 package com.tealium.installreferrer
 
+import InstallReferrerConstants
+import android.app.Application
 import android.os.RemoteException
 import com.android.installreferrer.api.InstallReferrerClient
 import com.android.installreferrer.api.InstallReferrerStateListener
@@ -11,44 +13,41 @@ import com.tealium.core.Modules
 import com.tealium.core.TealiumContext
 import com.tealium.core.messaging.ExternalListener
 import com.tealium.core.messaging.ExternalMessenger
+import com.tealium.core.messaging.MessengerService
+import com.tealium.core.persistence.DataLayer
 import com.tealium.core.persistence.Expiry
-import com.tealium.installreferrer.InstallReferrer.ReferrerDetailsUpdatedListener
 
 class InstallReferrer(
-    private val context: TealiumContext,
-    private val referrerClient: InstallReferrerClient =
-        InstallReferrerClient.newBuilder(context.config.application)
-            .build()
+    application: Application,
+    private val dataLayer: DataLayer,
+    private val events: MessengerService,
+    private val referrerClient: InstallReferrerClient = InstallReferrerClient.newBuilder(application)
+        .build()
 ) : Module {
+
+    constructor(context: TealiumContext) : this(
+        context.config.application, context.dataLayer, context.events
+    )
 
     override val name: String
         get() = "InstallReferrer"
     override var enabled: Boolean = true
 
-    init {
-        context.events.subscribe(ReferrerDetailsUpdatedListener { referrerDetails ->
-            save(referrerDetails)
-        })
+    private fun fetchInstallReferrer() {
+        events.subscribe(ReferrerClientConnectedListener(::onClientConnected))
         referrerClient.startConnection(object : InstallReferrerStateListener {
 
             override fun onInstallReferrerSetupFinished(responseCode: Int) {
                 when (responseCode) {
                     InstallReferrerClient.InstallReferrerResponse.OK -> {
                         Logger.dev(BuildConfig.TAG, "Connection established")
-                        try {
-                            val referrerDetails = referrerClient.installReferrer
-                            context.events.send(ReferrerDetailsUpdatedMessenger(referrerDetails))
-                        } catch (e: RemoteException) {
-                            Logger.prod(BuildConfig.TAG, "InstallReferrer Remote Exception")
-                        } finally {
-                            referrerClient.endConnection()
-                        }
+                        // take the fetching of referrer details, and unbinding off of the main thread
+                        events.send(ReferrerClientConnectedMessenger())
                     }
 
                     InstallReferrerClient.InstallReferrerResponse.FEATURE_NOT_SUPPORTED -> {
                         Logger.prod(
-                            BuildConfig.TAG,
-                            "API not available on the current Play Store app."
+                            BuildConfig.TAG, "API not available on the current Play Store app."
                         )
                     }
 
@@ -64,23 +63,22 @@ class InstallReferrer(
         })
     }
 
-    var referrer: String? = null
+    var referrer: String? = dataLayer.getString(InstallReferrerConstants.KEY_INSTALL_REFERRER)
         set(value) {
             field = value
             value?.let {
-                context.dataLayer.putString(
-                    InstallReferrerConstants.KEY_INSTALL_REFERRER,
-                    it,
-                    Expiry.FOREVER
+                dataLayer.putString(
+                    InstallReferrerConstants.KEY_INSTALL_REFERRER, it, Expiry.FOREVER
                 )
             }
         }
 
-    var referrerBegin: Long? = null
+    var referrerBegin: Long? =
+        dataLayer.getLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP)
         set(value) {
             field = value
             value?.let {
-                context.dataLayer.putLong(
+                dataLayer.putLong(
                     InstallReferrerConstants.KEY_INSTALL_REFERRER_BEGIN_TIMESTAMP,
                     it,
                     Expiry.FOREVER
@@ -88,17 +86,37 @@ class InstallReferrer(
             }
         }
 
-    var referrerClick: Long? = null
+    var referrerClick: Long? =
+        dataLayer.getLong(InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP)
         set(value) {
             field = value
             value?.let {
-                context.dataLayer.putLong(
+                dataLayer.putLong(
                     InstallReferrerConstants.KEY_INSTALL_REFERRER_CLICK_TIMESTAMP,
                     it,
                     Expiry.FOREVER
                 )
             }
         }
+
+    init {
+        // Install Referrer is kept for 90 days, unmodified, unless uninstalled
+        // We only need to fetch it if we don't have it.
+        if (referrer.isNullOrEmpty()) {
+            fetchInstallReferrer()
+        }
+    }
+
+    internal fun onClientConnected() {
+        try {
+            val referrerDetails = referrerClient.installReferrer
+            save(referrerDetails)
+        } catch (_: RemoteException) {
+            Logger.prod(BuildConfig.TAG, "InstallReferrer Remote Exception")
+        } finally {
+            referrerClient.endConnection()
+        }
+    }
 
     internal fun save(details: ReferrerDetails) {
         if (details.installReferrer.isEmpty()) {
@@ -109,14 +127,14 @@ class InstallReferrer(
         referrerClick = details.referrerClickTimestampSeconds
     }
 
-    private fun interface ReferrerDetailsUpdatedListener : ExternalListener {
-        fun onReferrerDetailsUpdated(referrerDetails: ReferrerDetails)
+    private fun interface ReferrerClientConnectedListener : ExternalListener {
+        fun onReferrerClientConnected()
     }
 
-    private class ReferrerDetailsUpdatedMessenger(private val referrerDetails: ReferrerDetails) :
-        ExternalMessenger<ReferrerDetailsUpdatedListener>(ReferrerDetailsUpdatedListener::class) {
-        override fun deliver(listener: ReferrerDetailsUpdatedListener) {
-            listener.onReferrerDetailsUpdated(referrerDetails)
+    private class ReferrerClientConnectedMessenger() :
+        ExternalMessenger<ReferrerClientConnectedListener>(ReferrerClientConnectedListener::class) {
+        override fun deliver(listener: ReferrerClientConnectedListener) {
+            listener.onReferrerClientConnected()
         }
     }
 

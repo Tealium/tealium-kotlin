@@ -211,7 +211,8 @@ class Tealium private constructor(
                 Logger,
                 sessionManager,
                 deepLinkHandler,
-                LogLevelUpdateHandler(config.logLevel)
+                LogLevelUpdateHandler(config.logLevel),
+                modules
             )
         )
         timedEvents = TimedEventsManager(context)

@@ -5,20 +5,45 @@ import android.net.Uri
 import android.net.http.SslError
 import android.os.Build
 import android.os.SystemClock
-import android.view.View
-import android.webkit.*
-import com.tealium.core.*
-import com.tealium.core.messaging.*
+import android.webkit.CookieManager
+import android.webkit.RenderProcessGoneDetail
+import android.webkit.SslErrorHandler
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import com.tealium.core.Logger
+import com.tealium.core.Module
+import com.tealium.core.QueryParameterProvider
+import com.tealium.core.Tealium
+import com.tealium.core.TealiumConfig
+import com.tealium.core.TealiumContext
+import com.tealium.core.messaging.AfterDispatchSendCallbacks
+import com.tealium.core.messaging.InstanceShutdownListener
+import com.tealium.core.messaging.LibrarySettingsUpdatedListener
+import com.tealium.core.messaging.SessionStartedListener
+import com.tealium.core.messaging.ValidationChangedMessenger
 import com.tealium.core.network.Connectivity
 import com.tealium.core.network.ConnectivityRetriever
 import com.tealium.core.settings.LibrarySettings
 import com.tealium.remotecommands.RemoteCommand
 import com.tealium.remotecommands.RemoteCommandRequest
-import kotlinx.coroutines.*
+import com.tealium.tagmanagementdispatcher.internal.Immediate
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
+import org.jetbrains.annotations.VisibleForTesting
 import org.json.JSONObject
 import java.lang.ref.WeakReference
-import java.util.*
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
@@ -43,6 +68,9 @@ class WebViewLoader(
     private val webViewCreationRetries = 3
     private val sessionCountingEnabled: Boolean = context.config.sessionCountingEnabled ?: true
     private var queryParams: Map<String, List<String>> = emptyMap()
+    private val initPolicy: WebViewInitPolicy = context.config.webViewInitPolicy
+        ?: Immediate
+    private val webViewLogsEnabled = context.config.webViewLogsEnabled ?: false
 
     @Volatile
     private var webViewCreationErrorCount = 0
@@ -50,10 +78,11 @@ class WebViewLoader(
     @Volatile
     lateinit var webView: WebView
 
-    var webViewInitialized: Deferred<Unit>
+    @VisibleForTesting
+    var webViewInitialized: Deferred<Result<WebView>>
         private set
 
-    internal val webViewClient = object : WebViewClient() {
+    internal val tealiumWebViewClient = object : WebViewClient() {
         override fun onPageFinished(view: WebView?, url: String?) {
             super.onPageFinished(view, url)
 
@@ -281,41 +310,63 @@ class WebViewLoader(
         return queryParams.toMap()
     }
 
-    internal fun initializeWebView(): Deferred<Unit> {
-        return mainScope.async {
-            // ensure only initializing once
-            if (!webViewStatus.compareAndSet(PageStatus.INIT, PageStatus.INITIALIZING)) return@async
-            if (hasReachedMaxErrors()) return@async
+    internal fun initializeWebView(): Deferred<Result<WebView>> {
+        // ensure only initializing once
+        if (!webViewStatus.compareAndSet(PageStatus.INIT, PageStatus.INITIALIZING)
+            || hasReachedMaxErrors()
+        ) return webViewInitialized
 
+        val deferred = CompletableDeferred<Result<WebView>>()
+        webViewInitialized = deferred
+
+        initPolicy.subscribe {
+            Logger.qa(BuildConfig.TAG, "WebViewInitPolicy ready. Initializing WebView")
+            initializeWebViewActual(deferred)
+        }
+        return deferred
+    }
+
+    private fun initializeWebViewActual(onComplete: CompletableDeferred<Result<WebView>>) {
+        mainScope.launch {
             try {
                 webView = webViewProvider()
-                queryParams = fetchQueryParams()
+
+                webView.apply {
+                    settings.apply {
+                        databaseEnabled = true
+                        javaScriptEnabled = true
+                        domStorageEnabled = true
+                        cacheMode = WebSettings.LOAD_DEFAULT
+                    }
+
+                    setWillNotDraw(true)
+                    if (webViewLogsEnabled) {
+                        webChromeClient = WebChromeClientLoader()
+                    }
+                    webViewClient = tealiumWebViewClient
+                }
+                webViewStatus.set(PageStatus.INITIALIZED)
             } catch (ex: Exception) {
                 webViewCreationErrorCount++
                 webViewStatus.set(PageStatus.INIT)
-                Logger.qa(BuildConfig.TAG, "Exception whilst creating the WebView: ${ex.message}")
+                onComplete.complete(Result.failure(ex))
+                Logger.qa(
+                    BuildConfig.TAG,
+                    "Exception whilst creating the WebView: ${ex.message}"
+                )
                 Logger.qa(BuildConfig.TAG, ex.stackTraceToString())
                 context.events.send(WebViewExceptionMessenger(ex))
-                return@async
+                return@launch
             }
-            webView.let { view ->
-                view.settings.run {
-                    databaseEnabled = true
-                    javaScriptEnabled = true
-                    domStorageEnabled = true
-                    cacheMode = WebSettings.LOAD_DEFAULT
-                }
 
-                // unrendered webview, disable hardware acceleration
-                view.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-                view.webChromeClient = WebChromeClientLoader()
-                view.webViewClient = webViewClient
+            launch {
+                queryParams = fetchQueryParams()
+
+                loadUrlToWebView()
+                enableCookieManager()
+                onComplete.complete(Result.success(webView))
             }
-            webViewStatus.set(PageStatus.INITIALIZED)
-
-            loadUrlToWebView()
-            enableCookieManager()
-        }.also { webViewInitialized = it }
+        }
     }
 
     private fun createResponseHandler(): RemoteCommand.ResponseHandler {
@@ -402,7 +453,8 @@ class WebViewLoader(
     override fun onSessionStarted(sessionId: Long) {
         if (this.sessionId != INVALID_SESSION_ID
             && this.sessionId != sessionId
-            && webViewStatus.compareAndSet(PageStatus.LOADED_SUCCESS, PageStatus.LOADED_ERROR)) {
+            && webViewStatus.compareAndSet(PageStatus.LOADED_SUCCESS, PageStatus.LOADED_ERROR)
+        ) {
             loadUrlToWebView()
         }
 
@@ -450,11 +502,11 @@ class WebViewLoader(
         const val PARAM_PROVIDERS_TIMEOUT = 5000L
 
         private fun isFavicon(url: String): Boolean {
-            return url.toLowerCase(Locale.ROOT).contains("favicon.ico")
+            return url.lowercase(Locale.ROOT).contains("favicon.ico")
         }
 
         private fun isAboutScheme(url: String): Boolean {
-            return url.toLowerCase(Locale.ROOT).startsWith("about:")
+            return url.lowercase(Locale.ROOT).startsWith("about:")
         }
 
         fun createSessionUrl(config: TealiumConfig, sessionId: Long): String {
