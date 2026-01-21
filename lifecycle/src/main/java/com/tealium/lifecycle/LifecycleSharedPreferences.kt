@@ -151,6 +151,13 @@ internal class LifecycleSharedPreferences(
         ++countTotalCrash
     }
 
+    fun registerSleep(timestamp: Long, secondsAwake: Int) {
+        timestampLastSleep = timestamp
+        lastLifecycleEvent = LifecycleEvent.SLEEP
+        incrementSleep()
+        updateSecondsAwake(secondsAwake)
+    }
+
     fun updateSecondsAwake(seconds: Int) {
         totalSecondsAwake += seconds
         secondsAwakeSinceLaunch += seconds
@@ -158,6 +165,8 @@ internal class LifecycleSharedPreferences(
 
     fun setFirstLaunchTimestamp(timestamp: Long) {
         timestampFirstLaunch = timestamp
+        timestampLastLaunch = timestamp
+        timestampLastWake = timestamp
     }
 
     fun getLastEvent(eventName: String): Long? {

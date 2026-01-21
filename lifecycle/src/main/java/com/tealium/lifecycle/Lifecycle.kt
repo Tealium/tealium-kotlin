@@ -134,8 +134,8 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
     private fun trackSleepEvent(timestamp: Long, data: Map<String, Any>? = null) {
         val foregroundStart: Long = lifecycleSharedPreferences.timestampLastWake ?: timestamp
         val secondsAwakeDelta: Int = ((timestamp - foregroundStart) / 1000L).toInt()
-        lifecycleSharedPreferences.incrementSleep()
-        lifecycleSharedPreferences.updateSecondsAwake(secondsAwakeDelta)
+
+        lifecycleSharedPreferences.registerSleep(timestamp, secondsAwakeDelta)
 
         val state: MutableMap<String, Any> = mutableMapOf()
 
@@ -146,10 +146,9 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
         lifecycleSharedPreferences.lastLifecycleEvent = LifecycleEvent.SLEEP
 
         state[LifecycleStateKey.LIFECYCLE_TYPE] = LifecycleEvent.SLEEP
-        state[LifecycleStateKey.LIFECYCLE_SECONDSAWAKE] = (secondsAwakeDelta).toString()
+        state[LifecycleStateKey.LIFECYCLE_SECONDSAWAKE] = secondsAwakeDelta.toString()
 
         lifecycleService.lastSleepString = LifecycleService.formatTimestamp(timestamp)
-
 
         val dispatch = TealiumEvent("sleep", state)
         context.track(dispatch)
