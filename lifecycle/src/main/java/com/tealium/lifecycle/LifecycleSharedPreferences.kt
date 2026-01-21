@@ -10,17 +10,6 @@ internal class LifecycleSharedPreferences(
     private val lifecycleSharedPreferences: SharedPreferences = config.application.getSharedPreferences(sharedPreferencesName(config), 0)
 ) {
 
-    var formatIso8601 = SimpleDateFormat(LifecycleDefaults.FORMAT_ISO_8601, Locale.ROOT)
-    var reusableDate: Date = Date(LifecycleDefaults.TIMESTAMP_INVALID)
-
-    var updateLaunchDate: String? = null
-    var firstLaunch: String? = null
-
-    var firstLaunchMmDdYyyy: String? = null
-    var lastLaunch: String? = null
-    var lastSleep: String? = null
-    var lastWake: String? = null
-
     var currentAppVersion: String?
         get() { return lifecycleSharedPreferences.getString("app_version", null) }
         set(value) { lifecycleSharedPreferences.edit()
@@ -32,35 +21,75 @@ internal class LifecycleSharedPreferences(
         get() { return (lifecycleSharedPreferences.getInt(LifecycleSPKey.PRIOR_SECONDS_AWAKE, 0)).toString() }
         set(value) { lifecycleSharedPreferences.edit().putString(LifecycleSPKey.PRIOR_SECONDS_AWAKE, value).apply() }
 
-    var timestampUpdate: Long
-        get() { return lifecycleSharedPreferences.getLong(LifecycleSPKey.TIMESTAMP_UPDATE, LifecycleDefaults.TIMESTAMP_INVALID) }
-        set(value) { lifecycleSharedPreferences.edit().putLong(LifecycleSPKey.TIMESTAMP_UPDATE, value).apply() }
-
-    var timestampFirstLaunch: Long
-        get() { return lifecycleSharedPreferences.getLong(LifecycleSPKey.TIMESTAMP_FIRST_LAUNCH, LifecycleDefaults.TIMESTAMP_INVALID) }
+    var timestampUpdate: Long?
+        get() { return lifecycleSharedPreferences.getNullableLong(LifecycleSPKey.TIMESTAMP_UPDATE) }
         set(value) {
-            lifecycleSharedPreferences.edit()
-                    .putLong(LifecycleSPKey.TIMESTAMP_FIRST_LAUNCH, value)
-                    .putLong(LifecycleSPKey.TIMESTAMP_LAST_LAUNCH, value)
-                    .putLong(LifecycleSPKey.TIMESTAMP_LAST_WAKE, value)
+            if (value == null) {
+                lifecycleSharedPreferences.edit().remove(LifecycleSPKey.TIMESTAMP_UPDATE).apply()
+            }
+            else {
+                lifecycleSharedPreferences.edit()
+                    .putLong(LifecycleSPKey.TIMESTAMP_UPDATE, value)
                     .apply()
+            }
         }
 
-    var timestampLaunch: Long
-        get() { return lifecycleSharedPreferences.getLong(LifecycleSPKey.TIMESTAMP_LAUNCH, LifecycleDefaults.TIMESTAMP_INVALID) }
-        set(value) { lifecycleSharedPreferences.edit().putLong(LifecycleSPKey.TIMESTAMP_LAUNCH, value).apply()}
+    var timestampFirstLaunch: Long?
+        get() { return lifecycleSharedPreferences.getNullableLong(LifecycleSPKey.TIMESTAMP_FIRST_LAUNCH) }
+        set(value) {
+            if (value == null) {
+                lifecycleSharedPreferences.edit().remove(LifecycleSPKey.TIMESTAMP_FIRST_LAUNCH)
+                    .apply()
+            }
+            else {
+                lifecycleSharedPreferences.edit()
+                    .putLong(LifecycleSPKey.TIMESTAMP_FIRST_LAUNCH, value)
+                    .apply()
+            }
+        }
 
-    var timestampLastLaunch: Long
-        get() { return lifecycleSharedPreferences.getLong(LifecycleSPKey.TIMESTAMP_LAST_LAUNCH, LifecycleDefaults.TIMESTAMP_INVALID) }
-        set(value) { lifecycleSharedPreferences.edit().putLong(LifecycleSPKey.TIMESTAMP_LAST_LAUNCH, value).apply() }
+    var timestampLaunch: Long?
+        get() { return lifecycleSharedPreferences.getNullableLong(LifecycleSPKey.TIMESTAMP_LAUNCH) }
+        set(value) {
+            if (value == null) {
+                lifecycleSharedPreferences.edit().remove(LifecycleSPKey.TIMESTAMP_LAUNCH).apply()
+            }
+            else {
+                lifecycleSharedPreferences.edit()
+                    .putLong(LifecycleSPKey.TIMESTAMP_LAUNCH, value)
+                    .apply()
+            }
+        }
 
-    var timestampLastSleep: Long
-        get() { return lifecycleSharedPreferences.getLong(LifecycleSPKey.TIMESTAMP_LAST_SLEEP, LifecycleDefaults.TIMESTAMP_INVALID) }
-        set(value) { lifecycleSharedPreferences.edit().putLong(LifecycleSPKey.TIMESTAMP_LAST_SLEEP, value).apply() }
+    var timestampLastLaunch: Long?
+        get() { return lifecycleSharedPreferences.getNullableLong(LifecycleSPKey.TIMESTAMP_LAST_LAUNCH) }
+        set(value) {
+            if (value == null) {
+                lifecycleSharedPreferences.edit().remove(LifecycleSPKey.TIMESTAMP_LAST_LAUNCH).apply()
+            } else {
+                lifecycleSharedPreferences.edit().putLong(LifecycleSPKey.TIMESTAMP_LAST_LAUNCH, value).apply()
+            }
+        }
 
-    var timestampLastWake: Long
-        get() { return lifecycleSharedPreferences.getLong(LifecycleSPKey.TIMESTAMP_LAST_WAKE, LifecycleDefaults.TIMESTAMP_INVALID) }
-        set(value) { lifecycleSharedPreferences.edit().putLong(LifecycleSPKey.TIMESTAMP_LAST_WAKE, value).apply() }
+    var timestampLastSleep: Long?
+        get() { return lifecycleSharedPreferences.getNullableLong(LifecycleSPKey.TIMESTAMP_LAST_SLEEP) }
+        set(value) {
+            if (value == null) {
+                lifecycleSharedPreferences.edit().remove(LifecycleSPKey.TIMESTAMP_LAST_SLEEP).apply()
+            } else {
+                lifecycleSharedPreferences.edit().putLong(LifecycleSPKey.TIMESTAMP_LAST_SLEEP, value).apply()
+            }
+        }
+
+    var timestampLastWake: Long?
+        get() { return lifecycleSharedPreferences.getNullableLong(LifecycleSPKey.TIMESTAMP_LAST_WAKE) }
+        set(value) {
+            if (value == null) {
+                lifecycleSharedPreferences.edit().remove(LifecycleSPKey.TIMESTAMP_LAST_WAKE).apply()
+            } else {
+                lifecycleSharedPreferences.edit().putLong(LifecycleSPKey.TIMESTAMP_LAST_WAKE, value).apply()
+            }
+        }
 
     var totalSecondsAwake: Int
         get() { return lifecycleSharedPreferences.getInt(LifecycleSPKey.TOTAL_SECONDS_AWAKE, 0) }
@@ -127,43 +156,12 @@ internal class LifecycleSharedPreferences(
         secondsAwakeSinceLaunch += seconds
     }
 
-    @JvmOverloads
-    fun setFirstLaunch(fallbackTimestamp: Long = System.currentTimeMillis()): String? {
-        reusableDate.time = LifecycleService.validOrDefault(timestampFirstLaunch, fallbackTimestamp)
-        firstLaunch = formatIso8601.format(reusableDate)
-        return firstLaunch
+    fun setFirstLaunchTimestamp(timestamp: Long) {
+        timestampFirstLaunch = timestamp
     }
 
-    @JvmOverloads
-    fun setFirstLaunchMmDdYyyy(fallbackTimestamp: Long = System.currentTimeMillis()): String? {
-        val formatMmDdYyyy = SimpleDateFormat("MM/dd/yyy", Locale.ROOT)
-        formatMmDdYyyy.timeZone = TimeZone.getTimeZone("UTC")
-        reusableDate.time = LifecycleService.validOrDefault(timestampFirstLaunch, fallbackTimestamp)
-        firstLaunchMmDdYyyy = formatMmDdYyyy.format(reusableDate)
-
-        return firstLaunchMmDdYyyy
-    }
-
-    fun setLastLaunch(timestamp: Long) {
-        reusableDate.time = timestamp
-        lastLaunch = formatIso8601.format(reusableDate)
-        this.timestampLastLaunch = timestamp
-    }
-
-    fun setLastSleep(timestamp: Long) {
-        reusableDate.time = timestamp
-        lastSleep = formatIso8601.format(reusableDate)
-        timestampLastSleep = timestamp
-    }
-
-    fun setLastWake(timestamp: Long) {
-        reusableDate.time = timestamp
-        lastWake = formatIso8601.format(reusableDate)
-        timestampLastWake = timestamp
-    }
-
-    fun getLastEvent(eventName: String, fallback: Long): Long{
-        return lifecycleSharedPreferences.getLong(eventName, fallback)
+    fun getLastEvent(eventName: String): Long? {
+        return lifecycleSharedPreferences.getNullableLong(eventName)
     }
 
     fun resetCountsAfterAppUpdate(timestampLaunch: Long, newAppVersion: String) {

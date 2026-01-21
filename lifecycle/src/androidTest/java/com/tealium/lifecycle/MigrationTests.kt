@@ -100,9 +100,9 @@ class MigrationTests {
         assertEquals(now, lifecycleSharedPreferences.timestampLastWake)
         assertEquals(now, lifecycleSharedPreferences.timestampLastSleep)
 
-        assertEquals(now, lifecycleSharedPreferences.getLastEvent("timestamp_last_launch", -1))
-        assertEquals(now, lifecycleSharedPreferences.getLastEvent("timestamp_last_sleep", -1))
-        assertEquals(now, lifecycleSharedPreferences.getLastEvent("timestamp_last_wake", -1))
+        assertEquals(now, lifecycleSharedPreferences.getLastEvent("timestamp_last_launch"))
+        assertEquals(now, lifecycleSharedPreferences.getLastEvent("timestamp_last_sleep"))
+        assertEquals(now, lifecycleSharedPreferences.getLastEvent("timestamp_last_wake"))
     }
 
 

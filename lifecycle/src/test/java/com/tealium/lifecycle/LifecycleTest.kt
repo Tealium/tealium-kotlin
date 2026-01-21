@@ -148,6 +148,10 @@ class LifecycleTest {
 
     @Test
     fun getCurrentState() {
+        every { mockSharedPreferences.getNullableLong(any()) } returns System.currentTimeMillis()
+        every { mockSharedPreferences.contains(any()) } returns true
+        every { mockSharedPreferences.getLong(any(), any()) } returns System.currentTimeMillis()
+
         config.options["is_lifecycle_autotracking"] = false
         tealiumContext = TealiumContext(config, "", mockk(), mockk(), mockk(), mockk(), tealium)
 
@@ -181,6 +185,10 @@ class LifecycleTest {
         config.options["is_lifecycle_autotracking"] = false
         tealiumContext = TealiumContext(config, "", mockk(), mockk(), mockk(), mockk(), tealium)
 
+        every { mockSharedPreferences.getNullableLong(LifecycleSPKey.TIMESTAMP_LAST_LAUNCH) } returns System.currentTimeMillis()
+        every { mockSharedPreferences.contains(LifecycleSPKey.TIMESTAMP_LAST_LAUNCH) } returns true
+        every { mockSharedPreferences.getLong(any(), any()) } returns System.currentTimeMillis()
+
         lifecycle = Lifecycle(tealiumContext)
 
         lifecycle.trackLaunchEvent()
@@ -210,7 +218,7 @@ class LifecycleTest {
 
         val dataMap = lifecycle.lifecycleService.getCurrentState(System.currentTimeMillis()).toMap()
         for (entry in dataMap) {
-            assertTrue(entry.value != LifecycleDefaults.TIMESTAMP_INVALID)
+            assertTrue(entry.value != null)
         }
     }
 }

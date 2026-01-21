@@ -27,8 +27,8 @@ class LifecycleServiceTest {
         every { mockLifecycleSharedPreferences.lastLifecycleEvent } returns null
         assertFalse(lifecycleService.didDetectCrash(LifecycleEvent.LAUNCH))
 
-        every { mockLifecycleSharedPreferences.lastLifecycleEvent } returns LifecycleEvent.LAUNCH
-        assertFalse(lifecycleService.didDetectCrash(LifecycleEvent.SLEEP))
+        every { mockLifecycleSharedPreferences.lastLifecycleEvent } returns LifecycleEvent.SLEEP
+        assertFalse(lifecycleService.didDetectCrash(LifecycleEvent.WAKE))
 
         every { mockLifecycleSharedPreferences.lastLifecycleEvent } returns LifecycleEvent.WAKE
         assertFalse(lifecycleService.didDetectCrash(LifecycleEvent.SLEEP))
@@ -53,28 +53,6 @@ class LifecycleServiceTest {
 
         every { mockLifecycleSharedPreferences.lastLifecycleEvent } returns LifecycleEvent.WAKE
         assertTrue(lifecycleService.didDetectCrash(LifecycleEvent.WAKE))
-
-        verify(exactly = 4) {
-            mockLifecycleSharedPreferences.incrementCrash()
-        }
-    }
-
-    @Test
-    fun isFirstLaunch_ShouldBeFalse() {
-        every { mockLifecycleSharedPreferences.timestampFirstLaunch } returns 1L
-        assertFalse(lifecycleService.isFirstLaunch(1L))
-    }
-
-    @Test
-    fun isFirstLaunch_ShouldBeTrue() {
-        every { mockLifecycleSharedPreferences.timestampFirstLaunch } returns LifecycleDefaults.TIMESTAMP_INVALID
-        assertTrue(lifecycleService.isFirstLaunch(1L))
-
-        verify {
-            mockLifecycleSharedPreferences.timestampFirstLaunch = 1L
-            mockLifecycleSharedPreferences.timestampLastLaunch = 1L
-            mockLifecycleSharedPreferences.timestampLastWake = 1L
-        }
     }
 
     @Test
@@ -102,30 +80,30 @@ class LifecycleServiceTest {
         var futureTimeMs = addDays(currentTimeMs, 3)
 
         var daysSince = LifecycleService.daysSince(currentTimeMs, futureTimeMs)
-        assertEquals(3, daysSince)
+        assertEquals(3L, daysSince)
 
         futureTimeMs = addDays(currentTimeMs, 10)
         daysSince = LifecycleService.daysSince(currentTimeMs, futureTimeMs)
-        assertEquals(10, daysSince)
+        assertEquals(10L, daysSince)
     }
 
     @Test
-    fun daysSince_NegativeStartAndEndDates_IsAtLeastZero() {
+    fun daysSince_NegativeStartAndEndDates_ReturnsNull() {
         val currentTimeMs = getCurrentTime()
         var futureTimeMs = Long.MIN_VALUE
 
         var daysSince = LifecycleService.daysSince(currentTimeMs, futureTimeMs)
-        assertEquals(0L, daysSince)
+        assertEquals(null, daysSince)
 
         futureTimeMs = -1L
         daysSince = LifecycleService.daysSince(currentTimeMs, futureTimeMs)
-        assertEquals(0L, daysSince)
+        assertEquals(null, daysSince)
 
         daysSince = LifecycleService.daysSince(currentTimeMs, currentTimeMs)
         assertEquals(0L, daysSince)
 
         daysSince = LifecycleService.daysSince(Long.MIN_VALUE, 0L)
-        assertEquals(0L, daysSince)
+        assertEquals(null, daysSince)
     }
 
     private fun getCurrentTime(): Long {
