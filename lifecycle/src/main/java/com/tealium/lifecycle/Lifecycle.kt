@@ -95,7 +95,7 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
         }
 
         state[LifecycleStateKey.LIFECYCLE_TYPE] = LifecycleEvent.LAUNCH
-        lifecycleService.setFirstLaunch(timestamp)
+        lifecycleService.lastLaunchString = LifecycleService.formatTimestamp(timestamp)
         onForegrounding(LifecycleEvent.LAUNCH, state, timestamp)
         lifecycleSharedPreferences.lastLifecycleEvent = LifecycleEvent.LAUNCH
 

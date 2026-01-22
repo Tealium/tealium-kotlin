@@ -113,10 +113,6 @@ internal class LifecycleService(private val lifecycleSharedPreferences: Lifecycl
         return crashDetected
     }
 
-    fun setFirstLaunch(timestamp: Long) {
-        firstLaunchString = formatTimestamp(timestamp)
-    }
-
     fun didUpdate(timestamp: Long, initializedCurrentVersion: String): Boolean {
         val cachedVersion = lifecycleSharedPreferences.currentAppVersion
 
