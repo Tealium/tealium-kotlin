@@ -94,6 +94,33 @@ class LifecycleTest {
         assertFalse(lifecycle.isAutoTracking)
     }
 
+    @Test(expected = UnsupportedOperationException::class)
+    fun manualLifecycleLaunchTrack_ThrowsException_WhenIsAutoTracking() {
+        config.options["is_lifecycle_autotracking"] = true
+        tealiumContext = TealiumContext(config, "", mockk(), mockk(), mockk(), mockk(), tealium)
+        lifecycle = Lifecycle(tealiumContext)
+
+        lifecycle.trackLaunchEvent()
+    }
+
+    @Test(expected = UnsupportedOperationException::class)
+    fun manualLifecycleWakeTrack_ThrowsException_WhenIsAutoTracking() {
+        config.options["is_lifecycle_autotracking"] = true
+        tealiumContext = TealiumContext(config, "", mockk(), mockk(), mockk(), mockk(), tealium)
+        lifecycle = Lifecycle(tealiumContext)
+
+        lifecycle.trackWakeEvent()
+    }
+
+    @Test(expected = UnsupportedOperationException::class)
+    fun manualLifecycleSleepTrack_ThrowsException_WhenIsAutoTracking() {
+        config.options["is_lifecycle_autotracking"] = true
+        tealiumContext = TealiumContext(config, "", mockk(), mockk(), mockk(), mockk(), tealium)
+        lifecycle = Lifecycle(tealiumContext)
+
+        lifecycle.trackSleepEvent()
+    }
+
     @Test
     fun incrementLaunch() {
         config.options["is_lifecycle_autotracking"] = false

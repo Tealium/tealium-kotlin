@@ -7,6 +7,9 @@ import io.mockk.verify
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 
 class LifecycleServiceTest {
@@ -104,6 +107,49 @@ class LifecycleServiceTest {
 
         daysSince = LifecycleService.daysSince(Long.MIN_VALUE, 0L)
         assertEquals(null, daysSince)
+    }
+
+    @Test
+    fun setFirstLaunch_ReturnsCurrentDate_WhenTimestampFirstLaunch_IsNull() {
+        every { mockLifecycleSharedPreferences.timestampFirstLaunch } returns null
+
+        val currentDate = getCurrentTime()
+        val currentDateFormatMmDdYyyy = SimpleDateFormat("MM/dd/yyyy", Locale.ROOT)
+        currentDateFormatMmDdYyyy.timeZone = TimeZone.getTimeZone("UTC")
+
+        val firstLaunchDateMmDdYyyy = lifecycleService.setFirstLaunchMmDdYyyy(currentDate)
+
+        assertEquals(currentDateFormatMmDdYyyy.format(currentDate), firstLaunchDateMmDdYyyy)
+    }
+
+    @Test
+    fun setFormattedEvent_lastLaunch_SavesValue() {
+        val expectedFormattedDate = "2023-03-01T00:00:00Z"
+        every { mockLifecycleSharedPreferences.getLastEvent(LifecycleSPKey.TIMESTAMP_LAST_LAUNCH) } returns 1677628800000L
+
+        lifecycleService.setFormattedEvent(LifecycleSPKey.TIMESTAMP_LAST_LAUNCH)
+
+        assertEquals(expectedFormattedDate, lifecycleService.lastLaunchString)
+    }
+
+    @Test
+    fun setFormattedEvent_lastWake_SavesValue() {
+        val expectedFormattedDate = "2023-03-01T00:00:00Z"
+        every { mockLifecycleSharedPreferences.getLastEvent(LifecycleSPKey.TIMESTAMP_LAST_WAKE) } returns 1677628800000L
+
+        lifecycleService.setFormattedEvent(LifecycleSPKey.TIMESTAMP_LAST_WAKE)
+
+        assertEquals(expectedFormattedDate, lifecycleService.lastWakeString)
+    }
+
+    @Test
+    fun setFormattedEvent_LastSleep_SavesValue() {
+        val expectedFormattedDate = "2023-03-01T00:00:00Z"
+        every { mockLifecycleSharedPreferences.getLastEvent(LifecycleSPKey.TIMESTAMP_LAST_SLEEP) } returns 1677628800000L
+
+        lifecycleService.setFormattedEvent(LifecycleSPKey.TIMESTAMP_LAST_SLEEP)
+
+        assertEquals(expectedFormattedDate, lifecycleService.lastSleepString)
     }
 
     private fun getCurrentTime(): Long {

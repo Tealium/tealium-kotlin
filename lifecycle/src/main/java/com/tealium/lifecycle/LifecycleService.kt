@@ -73,7 +73,7 @@ internal class LifecycleService(private val lifecycleSharedPreferences: Lifecycl
         return updateLaunchDate
     }
 
-    private fun setFormattedEvent(eventKey: String): String? {
+    internal fun setFormattedEvent(eventKey: String): String? {
         val timestamp = lifecycleSharedPreferences.getLastEvent(eventKey)
         val formattedTimestamp = timestamp?.let { formatTimestamp(it) }
 
@@ -86,7 +86,7 @@ internal class LifecycleService(private val lifecycleSharedPreferences: Lifecycl
         return formattedTimestamp
     }
 
-    private fun setFirstLaunchMmDdYyyy(fallbackTimestamp: Long = System.currentTimeMillis()): String? {
+    internal fun setFirstLaunchMmDdYyyy(fallbackTimestamp: Long = System.currentTimeMillis()): String? {
         val formatMmDdYyyy = SimpleDateFormat("MM/dd/yyyy", Locale.ROOT)
         formatMmDdYyyy.timeZone = TimeZone.getTimeZone("UTC")
         val date = Date(lifecycleSharedPreferences.timestampFirstLaunch ?: fallbackTimestamp)
@@ -95,7 +95,7 @@ internal class LifecycleService(private val lifecycleSharedPreferences: Lifecycl
         return firstLaunchMmDdYyyyString
     }
 
-    private fun setFormattedFirstLaunch(fallbackTimestamp: Long = System.currentTimeMillis()): String? {
+    internal fun setFormattedFirstLaunch(fallbackTimestamp: Long = System.currentTimeMillis()): String? {
         firstLaunchString = formatTimestamp(lifecycleSharedPreferences.timestampFirstLaunch ?: fallbackTimestamp)
         return firstLaunchString
     }
