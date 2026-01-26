@@ -54,9 +54,9 @@ class LifecycleSharedPreferencesTest {
 
     @Test
     fun setters_PriorSecondsAwake_SavesValue() {
-        lifecycleSharedPreferences.priorSecondsAwake = "100"
+        lifecycleSharedPreferences.priorSecondsAwake = 100L
         verify {
-            mockEditor.putString(LifecycleSPKey.PRIOR_SECONDS_AWAKE, "100")
+            mockEditor.putLong(LifecycleSPKey.PRIOR_SECONDS_AWAKE, 100L)
             mockEditor.apply()
         }
     }
@@ -75,15 +75,6 @@ class LifecycleSharedPreferencesTest {
         lifecycleSharedPreferences.timestampFirstLaunch = 100L
         verify {
             mockEditor.putLong(LifecycleSPKey.TIMESTAMP_FIRST_LAUNCH, 100L)
-            mockEditor.apply()
-        }
-    }
-
-    @Test
-    fun setters_TimestampLaunch_SavesValue() {
-        lifecycleSharedPreferences.timestampLaunch = 100L
-        verify {
-            mockEditor.putLong(LifecycleSPKey.TIMESTAMP_LAUNCH, 100L)
             mockEditor.apply()
         }
     }
@@ -120,15 +111,6 @@ class LifecycleSharedPreferencesTest {
         lifecycleSharedPreferences.totalSecondsAwake = 100
         verify {
             mockEditor.putInt(LifecycleSPKey.TOTAL_SECONDS_AWAKE, 100)
-            mockEditor.apply()
-        }
-    }
-
-    @Test
-    fun setters_SecondsAwakeSinceLaunch_SavesValue() {
-        lifecycleSharedPreferences.secondsAwakeSinceLaunch = 100
-        verify {
-            mockEditor.putInt(LifecycleSPKey.PRIOR_SECONDS_AWAKE, 100)
             mockEditor.apply()
         }
     }
@@ -255,11 +237,9 @@ class LifecycleSharedPreferencesTest {
     fun setters_UpdateSecondsAwake_SavesValue() {
         val spykLifecycleSharedPreferences = spyk(lifecycleSharedPreferences)
         every { spykLifecycleSharedPreferences.totalSecondsAwake } returns 50
-        every { spykLifecycleSharedPreferences.secondsAwakeSinceLaunch } returns 150
         spykLifecycleSharedPreferences.updateSecondsAwake(100)
         verify {
             spykLifecycleSharedPreferences.totalSecondsAwake = 150
-            spykLifecycleSharedPreferences.secondsAwakeSinceLaunch = 250
         }
     }
 

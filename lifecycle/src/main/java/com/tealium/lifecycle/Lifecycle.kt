@@ -85,8 +85,7 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
         val currentVersion = getPackageContext().versionName?.toString() ?: ""
         val didUpdate = lifecycleService.didUpdate(timestamp, currentVersion)
 
-        lifecycleSharedPreferences.incrementLaunch()
-        lifecycleSharedPreferences.incrementWake()
+        lifecycleSharedPreferences.registerLaunch(timestamp)
 
         val state: MutableMap<String, Any> = mutableMapOf()
 
@@ -101,6 +100,7 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
 
         state[LifecycleStateKey.LIFECYCLE_PRIORSECONDSAWAKE] =
             lifecycleSharedPreferences.priorSecondsAwake
+        lifecycleSharedPreferences.resetPriorSecondsAwake()
 
         if (isFirstLaunch) {
             state[LifecycleStateKey.LIFECYCLE_ISFIRSTLAUNCH] = (true).toString()
@@ -115,8 +115,6 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
     }
 
     private fun trackWakeEvent(timestamp: Long, data: Map<String, Any>? = null) {
-        lifecycleSharedPreferences.incrementWake()
-
         val state: MutableMap<String, Any> = mutableMapOf()
 
         data?.let {
@@ -125,15 +123,16 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
 
         state[LifecycleStateKey.LIFECYCLE_TYPE] = LifecycleEvent.WAKE
         onForegrounding(LifecycleEvent.WAKE, state, timestamp)
+        lifecycleSharedPreferences.registerWake(timestamp)
         lifecycleSharedPreferences.lastLifecycleEvent = LifecycleEvent.WAKE
+        lifecycleService.lastWakeString = LifecycleService.formatTimestamp(timestamp)
 
         val dispatch = TealiumEvent("wake", state)
         context.track(dispatch)
     }
 
     private fun trackSleepEvent(timestamp: Long, data: Map<String, Any>? = null) {
-        val foregroundStart: Long = lifecycleSharedPreferences.timestampLastWake ?: timestamp
-        val secondsAwakeDelta: Int = ((timestamp - foregroundStart) / 1000L).toInt()
+        val secondsAwakeDelta = calculateSecondsAwakeDelta(timestamp)
 
         lifecycleSharedPreferences.registerSleep(timestamp, secondsAwakeDelta)
 
@@ -196,7 +195,11 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
         }
 
         return state
+    }
 
+    private fun calculateSecondsAwakeDelta(timestamp: Long): Int {
+        val foregroundStart: Long = lifecycleSharedPreferences.timestampLastWake ?: timestamp
+        return ((timestamp - foregroundStart) / 1000L).toInt()
     }
 
     override fun onActivityResumed(activity: Activity?) {
@@ -236,7 +239,7 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
             trackLaunchEvent(timestampLastLaunch, eventData)
         }
 
-        lifecycleSharedPreferences.lastLifecycleEvent = LifecycleEvent.PAUSE
+        lifecycleSharedPreferences.lastLifecycleEvent = LifecycleEvent.SLEEP
         lastPause = SystemClock.elapsedRealtime()
 
         handler.postDelayed({

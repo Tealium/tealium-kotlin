@@ -17,9 +17,9 @@ internal class LifecycleSharedPreferences(
                 .apply()
         }
 
-    var priorSecondsAwake: String
-        get() { return (lifecycleSharedPreferences.getInt(LifecycleSPKey.PRIOR_SECONDS_AWAKE, 0)).toString() }
-        set(value) { lifecycleSharedPreferences.edit().putString(LifecycleSPKey.PRIOR_SECONDS_AWAKE, value).apply() }
+    var priorSecondsAwake: Long
+        get() { return (lifecycleSharedPreferences.getLong(LifecycleSPKey.PRIOR_SECONDS_AWAKE, 0)) }
+        set(value) { lifecycleSharedPreferences.edit().putLong(LifecycleSPKey.PRIOR_SECONDS_AWAKE, value).apply() }
 
     var timestampUpdate: Long?
         get() { return lifecycleSharedPreferences.getNullableLong(LifecycleSPKey.TIMESTAMP_UPDATE) }
@@ -44,19 +44,6 @@ internal class LifecycleSharedPreferences(
             else {
                 lifecycleSharedPreferences.edit()
                     .putLong(LifecycleSPKey.TIMESTAMP_FIRST_LAUNCH, value)
-                    .apply()
-            }
-        }
-
-    var timestampLaunch: Long?
-        get() { return lifecycleSharedPreferences.getNullableLong(LifecycleSPKey.TIMESTAMP_LAUNCH) }
-        set(value) {
-            if (value == null) {
-                lifecycleSharedPreferences.edit().remove(LifecycleSPKey.TIMESTAMP_LAUNCH).apply()
-            }
-            else {
-                lifecycleSharedPreferences.edit()
-                    .putLong(LifecycleSPKey.TIMESTAMP_LAUNCH, value)
                     .apply()
             }
         }
@@ -94,10 +81,6 @@ internal class LifecycleSharedPreferences(
     var totalSecondsAwake: Int
         get() { return lifecycleSharedPreferences.getInt(LifecycleSPKey.TOTAL_SECONDS_AWAKE, 0) }
         set(value) { lifecycleSharedPreferences.edit().putInt(LifecycleSPKey.TOTAL_SECONDS_AWAKE, value).apply() }
-
-    var secondsAwakeSinceLaunch: Int
-        get() { return lifecycleSharedPreferences.getInt(LifecycleSPKey.PRIOR_SECONDS_AWAKE, 0) }
-        set(value) { lifecycleSharedPreferences.edit().putInt(LifecycleSPKey.PRIOR_SECONDS_AWAKE, value).apply() }
 
     var countLaunch: Int
         get() { return lifecycleSharedPreferences.getInt(LifecycleSPKey.COUNT_LAUNCH, 0) }
@@ -151,6 +134,14 @@ internal class LifecycleSharedPreferences(
         ++countTotalCrash
     }
 
+    fun registerLaunch(timestamp: Long) {
+        timestampLastLaunch = timestamp
+        timestampLastWake = timestamp
+
+        incrementLaunch()
+        incrementWake()
+    }
+
     fun registerSleep(timestamp: Long, secondsAwake: Int) {
         timestampLastSleep = timestamp
         lastLifecycleEvent = LifecycleEvent.SLEEP
@@ -158,15 +149,18 @@ internal class LifecycleSharedPreferences(
         updateSecondsAwake(secondsAwake)
     }
 
+    fun registerWake(timestamp: Long) {
+        timestampLastWake = timestamp
+        incrementWake()
+    }
+
     fun updateSecondsAwake(seconds: Int) {
         totalSecondsAwake += seconds
-        secondsAwakeSinceLaunch += seconds
+        priorSecondsAwake += seconds
     }
 
     fun setFirstLaunchTimestamp(timestamp: Long) {
         timestampFirstLaunch = timestamp
-        timestampLastLaunch = timestamp
-        timestampLastWake = timestamp
     }
 
     fun getLastEvent(eventName: String): Long? {
@@ -181,6 +175,10 @@ internal class LifecycleSharedPreferences(
                 .remove(LifecycleSPKey.COUNT_SLEEP)
                 .remove(LifecycleSPKey.COUNT_WAKE)
                 .apply()
+    }
+
+    fun resetPriorSecondsAwake() {
+        lifecycleSharedPreferences.edit().remove(LifecycleSPKey.PRIOR_SECONDS_AWAKE).apply()
     }
 
     companion object {
