@@ -167,7 +167,7 @@ internal class LifecycleService(private val lifecycleSharedPreferences: Lifecycl
             startEventMs = lifecycleSharedPreferences.timestampUpdate,
             endEventMs = timestamp
         )?.also {
-            data[LifecycleStateKey.LIFECYCLE_DAYSSINCEUPDATE] = it
+            data[LifecycleStateKey.LIFECYCLE_DAYSSINCEUPDATE] = it.toString()
         }
 
         return data
@@ -184,8 +184,10 @@ internal class LifecycleService(private val lifecycleSharedPreferences: Lifecycl
          * Calculates the number of days, as a whole number of days, between two events recorded in
          * milliseconds.
          *
-         * [startEventMs] and [endEventMs] should be positive numbers, but all results will be at
-         * least 0.
+         * [startEventMs] and [endEventMs] should be non-negative numbers, with [endEventMs] greater
+         * than or equal to [startEventMs], in order to produce a numeric result. When a result is
+         * returned, it will be a whole number of days and will be at least 0; otherwise this
+         * function returns null for invalid inputs.
          */
         internal fun daysSince(startEventMs: Long?, endEventMs: Long): Long? {
             val daysInMs = TimeUnit.DAYS.toMillis(1)

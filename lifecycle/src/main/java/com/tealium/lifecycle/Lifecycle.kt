@@ -157,21 +157,14 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
         val lastWake = lifecycleSharedPreferences.timestampLastWake
 
         lifecycleService.lastWakeString = LifecycleService.formatTimestamp(timestamp)
-
-        if (lastWake == null) {
-            // First Launch
-            data[LifecycleStateKey.LIFECYCLE_ISFIRSTWAKEMONTH] = (true).toString()
-            data[LifecycleStateKey.LIFECYCLE_ISFIRSTWAKETODAY] = (true).toString()
-        }
+        data.putAll(addWakeState(lastWake, timestamp))
 
         if (lifecycleService.didDetectCrash(eventName)) {
+            lifecycleSharedPreferences.incrementCrash()
+
             data[LifecycleStateKey.LIFECYCLE_DIDDETECTCRASH] = (true).toString()
             data[LifecycleStateKey.LIFECYCLE_TOTALCRASHCOUNT] = lifecycleSharedPreferences.countTotalCrash
-
-            lifecycleSharedPreferences.incrementCrash()
         }
-
-        data.putAll(addWakeState(lastWake, timestamp))
     }
 
     private fun getPackageContext(): PackageInfo {
@@ -179,13 +172,13 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
         return config.application.packageManager.getPackageInfo(packageName, 0)
     }
 
-    private fun addWakeState(lasWake: Long?, timestamp: Long): Map<String, Any> {
+    private fun addWakeState(lastWake: Long?, timestamp: Long): Map<String, Any> {
         val state = mutableMapOf<String, Any>()
-        if (lasWake == null) {
+        if (lastWake == null) {
             state[LifecycleStateKey.LIFECYCLE_ISFIRSTWAKEMONTH] = true.toString()
             state[LifecycleStateKey.LIFECYCLE_ISFIRSTWAKETODAY] = true.toString()
         } else {
-            val isFirstWakeResult = FirstWakeType.fromTimestamps(lasWake, timestamp)
+            val isFirstWakeResult = FirstWakeType.fromTimestamps(lastWake, timestamp)
             if (isFirstWakeResult.isFirstWakeMonth)  {
                 state[LifecycleStateKey.LIFECYCLE_ISFIRSTWAKEMONTH] = true.toString()
                 state[LifecycleStateKey.LIFECYCLE_ISFIRSTWAKETODAY] = true.toString()
