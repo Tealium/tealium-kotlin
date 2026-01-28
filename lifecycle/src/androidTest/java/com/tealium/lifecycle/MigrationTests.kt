@@ -118,7 +118,7 @@ class MigrationTests {
             putInt("count_total_sleep", count)
             putInt("count_total_wake", count)
             putInt("total_seconds_awake", count)
-            putInt("prior_seconds_awake", count)
+            putLong("prior_seconds_awake", 15L)
         }.commit()
 
         assertEquals(count, lifecycleSharedPreferences.countLaunch)
@@ -129,7 +129,7 @@ class MigrationTests {
         assertEquals(count, lifecycleSharedPreferences.countTotalWake)
         assertEquals(count, lifecycleSharedPreferences.countTotalSleep)
         assertEquals(count, lifecycleSharedPreferences.totalSecondsAwake)
-        assertEquals(count.toString(), lifecycleSharedPreferences.priorSecondsAwake)
+        assertEquals(15L, lifecycleSharedPreferences.priorSecondsAwake)
     }
 
     fun getHashCodeString(config: TealiumConfig, delimiter: String = ""): String {

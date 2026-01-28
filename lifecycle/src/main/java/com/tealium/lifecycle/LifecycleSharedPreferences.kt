@@ -154,6 +154,10 @@ internal class LifecycleSharedPreferences(
         incrementWake()
     }
 
+    fun registerLastLifecycleEvent(eventName: String) {
+        lastLifecycleEvent = eventName
+    }
+
     fun updateSecondsAwake(seconds: Int) {
         totalSecondsAwake += seconds
         priorSecondsAwake += seconds

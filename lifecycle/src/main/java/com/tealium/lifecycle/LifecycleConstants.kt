@@ -27,6 +27,7 @@ object LifecycleEvent {
     const val LAUNCH = "launch"
     const val WAKE = "wake"
     const val SLEEP = "sleep"
+    const val PAUSE = "pause"
 }
 
 object LifecycleStateKey {

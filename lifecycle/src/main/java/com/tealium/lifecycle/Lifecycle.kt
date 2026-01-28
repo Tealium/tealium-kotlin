@@ -96,7 +96,7 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
         state[LifecycleStateKey.LIFECYCLE_TYPE] = LifecycleEvent.LAUNCH
         lifecycleService.lastLaunchString = LifecycleService.formatTimestamp(timestamp)
         onForegrounding(LifecycleEvent.LAUNCH, state, timestamp)
-        lifecycleSharedPreferences.lastLifecycleEvent = LifecycleEvent.LAUNCH
+        lifecycleSharedPreferences.registerLastLifecycleEvent(LifecycleEvent.LAUNCH)
 
         state[LifecycleStateKey.LIFECYCLE_PRIORSECONDSAWAKE] =
             lifecycleSharedPreferences.priorSecondsAwake
@@ -124,7 +124,7 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
         state[LifecycleStateKey.LIFECYCLE_TYPE] = LifecycleEvent.WAKE
         onForegrounding(LifecycleEvent.WAKE, state, timestamp)
         lifecycleSharedPreferences.registerWake(timestamp)
-        lifecycleSharedPreferences.lastLifecycleEvent = LifecycleEvent.WAKE
+        lifecycleSharedPreferences.registerLastLifecycleEvent(LifecycleEvent.WAKE)
         lifecycleService.lastWakeString = LifecycleService.formatTimestamp(timestamp)
 
         val dispatch = TealiumEvent("wake", state)
@@ -142,7 +142,7 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
             state.putAll(it)
         }
 
-        lifecycleSharedPreferences.lastLifecycleEvent = LifecycleEvent.SLEEP
+        lifecycleSharedPreferences.registerLastLifecycleEvent(LifecycleEvent.SLEEP)
 
         state[LifecycleStateKey.LIFECYCLE_TYPE] = LifecycleEvent.SLEEP
         state[LifecycleStateKey.LIFECYCLE_SECONDSAWAKE] = secondsAwakeDelta.toString()
@@ -239,7 +239,7 @@ class Lifecycle(private val context: TealiumContext) : Collector, ActivityObserv
             trackLaunchEvent(timestampLastLaunch, eventData)
         }
 
-        lifecycleSharedPreferences.lastLifecycleEvent = LifecycleEvent.SLEEP
+        lifecycleSharedPreferences.registerLastLifecycleEvent(LifecycleEvent.PAUSE)
         lastPause = SystemClock.elapsedRealtime()
 
         handler.postDelayed({
