@@ -44,7 +44,7 @@ class MomentsApiService @JvmOverloads constructor(
     override val name: String = MODULE_NAME
 
     private val engineUrl: String =
-        "https://personalization-api.${region.value}.prod.tealiumapis.com/personalization/accounts/${context.config.accountName}/profiles/${context.config.profileName}/"
+        "https://personalization-api.${region.value}.prod.tealiumapis.com/personalization/accounts/${context.config.accountName}/profiles/${context.config.profileName}"
 
     private val referrer = context.config.momentsApiReferrer
         ?: "https://tags.tiqcdn.com/utag/${context.config.accountName}/${context.config.profileName}/${context.config.environment.environment}/mobile.html"
