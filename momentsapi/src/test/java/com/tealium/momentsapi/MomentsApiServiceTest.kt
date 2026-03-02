@@ -108,7 +108,7 @@ class MomentsApiServiceTest {
     }
 
     @Test
-    fun fetchEngineResponse_Builds_Valid_URL() {
+    fun fetchEngineResponseBuildsValidUrl() {
         coEvery { networkClient.get(any(), any(), any<ResponseListener<String>>()) } just Runs
 
         apiService.fetchEngineResponse("test-engine", listener)
