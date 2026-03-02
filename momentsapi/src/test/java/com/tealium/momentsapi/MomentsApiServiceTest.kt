@@ -6,9 +6,12 @@ import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.momentsapi.network.NetworkClient
 import io.mockk.MockKAnnotations
+import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.Before
@@ -61,7 +64,6 @@ class MomentsApiServiceTest {
 
         coEvery { networkClient.get(any(), any(), any<ResponseListener<String>>()) } answers {
             thirdArg<ResponseListener<String>>().success("{ \"audiences\": {\"audience_1\": \"VIP\", \"audience_2\": \"Women's Apparel\", \"audience_2\": \"Lifetime visit count\"} }")
-            thirdArg<ResponseListener<String>>().failure(ErrorCode.INVALID_JSON, ErrorCode.INVALID_JSON.message)
         }
 
         apiService.fetchEngineResponse(engineId, listener)
@@ -102,6 +104,19 @@ class MomentsApiServiceTest {
                 ErrorCode.INVALID_JSON,
                 ErrorCode.INVALID_JSON.message
             )
+        }
+    }
+
+    @Test
+    fun fetchEngineResponseBuildsValidUrl() {
+        coEvery { networkClient.get(any(), any(), any<ResponseListener<String>>()) } just Runs
+
+        apiService.fetchEngineResponse("test-engine", listener)
+
+        coVerify(timeout = 1000) {
+            networkClient.get(match {
+                it.toString() == "https://personalization-api.us-east-1.prod.tealiumapis.com/personalization/accounts/test/profiles/test/engines/test-engine/visitors/abc123?ignoreTapid=true"
+            }, any(), any())
         }
     }
 }

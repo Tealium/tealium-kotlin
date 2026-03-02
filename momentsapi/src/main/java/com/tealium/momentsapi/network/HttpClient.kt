@@ -20,6 +20,7 @@ class HttpClient(
     override fun get(url: URL, referrer: String, listener: ResponseListener<String>) {
         if (!connectivityRetriever.isConnected()) {
             listener.failure(ErrorCode.NOT_CONNECTED, ErrorCode.NOT_CONNECTED.message)
+            return
         }
 
         with(url.openConnection() as HttpURLConnection) {
