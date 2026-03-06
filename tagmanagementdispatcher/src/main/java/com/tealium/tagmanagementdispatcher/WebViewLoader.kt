@@ -340,9 +340,7 @@ class WebViewLoader(
                     }
 
                     setWillNotDraw(true)
-                    if (webViewLogsEnabled) {
-                        webChromeClient = WebChromeClientLoader()
-                    }
+                    webChromeClient = WebChromeClientLoader(webViewLogsEnabled)
                     webViewClient = tealiumWebViewClient
                 }
                 webViewStatus.set(PageStatus.INITIALIZED)
