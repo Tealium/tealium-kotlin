@@ -2,134 +2,115 @@ package com.tealium.lifecycle
 
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 internal class LifecycleService(private val lifecycleSharedPreferences: LifecycleSharedPreferences) {
 
     private val calendar: Calendar = Calendar.getInstance()
-    var formatIso8601 = SimpleDateFormat(LifecycleDefaults.FORMAT_ISO_8601, Locale.ROOT)
-    var reusableDate: Date = Date(LifecycleDefaults.TIMESTAMP_INVALID)
-
-    init {
-        formatIso8601.timeZone = TimeZone.getTimeZone("UTC")
-    }
+    internal var updateLaunchDate: String? = null
+    internal var firstLaunchString: String? = null
+    internal var firstLaunchMmDdYyyyString: String? = null
+    internal var lastLaunchString: String? = null
+    internal var lastSleepString: String? = null
+    internal var lastWakeString: String? = null
 
     fun getCurrentState(timestamp: Long): MutableMap<String, Any> {
-        val data = mutableMapOf<String, Any>(
-            LifecycleStateKey.LIFECYCLE_DAYOFWEEK_LOCAL to getDayOfWeekLocal(timestamp),
-            LifecycleStateKey.LIFECYCLE_DAYSSINCELAUNCH to lifecycleSharedPreferences.timestampFirstLaunch.let { firstLaunch ->
-                daysSince(
-                    startEventMs = firstLaunch,
-                    endEventMs = timestamp
-                ).toString()
-            },
-            LifecycleStateKey.LIFECYCLE_DAYSSINCELASTWAKE to lifecycleSharedPreferences.timestampLastWake.let { lastWake ->
-                daysSince(
-                    startEventMs = lastWake,
-                    endEventMs = timestamp
-                ).toString()
-            },
-            LifecycleStateKey.LIFECYCLE_DAYSSINCEUPDATE to lifecycleSharedPreferences.timestampUpdate.let { lastUpdate ->
-                daysSince(
-                    startEventMs = lastUpdate,
-                    endEventMs = timestamp
-                ).toString()
-            },
-            LifecycleStateKey.LIFECYCLE_HOUROFDAY_LOCAL to getHourOfDayLocal(timestamp).toString(),
-            LifecycleStateKey.LIFECYCLE_LAUNCHCOUNT to lifecycleSharedPreferences.countLaunch,
-            LifecycleStateKey.LIFECYCLE_SLEEPCOUNT to lifecycleSharedPreferences.countSleep,
-            LifecycleStateKey.LIFECYCLE_WAKECOUNT to lifecycleSharedPreferences.countWake,
-            LifecycleStateKey.LIFECYCLE_TOTALCRASHCOUNT to lifecycleSharedPreferences.countTotalCrash,
-            LifecycleStateKey.LIFECYCLE_TOTALLAUNCHCOUNT to lifecycleSharedPreferences.countTotalLaunch,
-            LifecycleStateKey.LIFECYCLE_TOTALSLEEPCOUNT to lifecycleSharedPreferences.countSleep.toString(),
-            LifecycleStateKey.LIFECYCLE_TOTALWAKECOUNT to lifecycleSharedPreferences.countWake.toString(),
-            LifecycleStateKey.LIFECYCLE_TOTALSECONDSAWAKE to lifecycleSharedPreferences.totalSecondsAwake.toString()
-        )
+        val data = mutableMapOf<String, Any>().also { data ->
+            data.putAll(updateDaysSince(timestamp))
 
-        lifecycleSharedPreferences.firstLaunch?.let {
+            data[LifecycleStateKey.LIFECYCLE_DAYOFWEEK_LOCAL] = getDayOfWeekLocal(timestamp)
+            data[LifecycleStateKey.LIFECYCLE_HOUROFDAY_LOCAL] = getHourOfDayLocal(timestamp).toString()
+            data[LifecycleStateKey.LIFECYCLE_LAUNCHCOUNT] = lifecycleSharedPreferences.countLaunch
+            data[LifecycleStateKey.LIFECYCLE_SLEEPCOUNT] = lifecycleSharedPreferences.countSleep
+            data[LifecycleStateKey.LIFECYCLE_WAKECOUNT] = lifecycleSharedPreferences.countWake
+            data[LifecycleStateKey.LIFECYCLE_TOTALCRASHCOUNT] = lifecycleSharedPreferences.countTotalCrash
+            data[LifecycleStateKey.LIFECYCLE_TOTALLAUNCHCOUNT] = lifecycleSharedPreferences.countTotalLaunch
+            data[LifecycleStateKey.LIFECYCLE_TOTALSLEEPCOUNT] = lifecycleSharedPreferences.countSleep.toString()
+            data[LifecycleStateKey.LIFECYCLE_TOTALWAKECOUNT] = lifecycleSharedPreferences.countWake.toString()
+            data[LifecycleStateKey.LIFECYCLE_TOTALSECONDSAWAKE] = lifecycleSharedPreferences.totalSecondsAwake.toString()
+        }
+
+        val firstLaunchString = this.firstLaunchString ?: setFormattedFirstLaunch(timestamp)
+        firstLaunchString?.let {
             data[LifecycleStateKey.LIFECYCLE_FIRSTLAUNCHDATE] = it
-        } ?: run {
-            val launch = lifecycleSharedPreferences.setFirstLaunch(timestamp)
-            launch?.let {
-                data[LifecycleStateKey.LIFECYCLE_FIRSTLAUNCHDATE] = it
-            }
         }
 
-        lifecycleSharedPreferences.firstLaunchMmDdYyyy?.let {
+        val firstLaunchMmDdYyyyString = this.firstLaunchMmDdYyyyString ?: setFirstLaunchMmDdYyyy(timestamp)
+        firstLaunchMmDdYyyyString?.let {
             data[LifecycleStateKey.LIFECYCLE_FIRSTLAUNCHDATE_MMDDYYYY] = it
-        } ?: run {
-            val launchDataMmDdYyyy = lifecycleSharedPreferences.setFirstLaunchMmDdYyyy(timestamp)
-            launchDataMmDdYyyy?.let {
-                data[LifecycleStateKey.LIFECYCLE_FIRSTLAUNCHDATE_MMDDYYYY] = it
-            }
         }
 
-        lifecycleSharedPreferences.lastLaunch?.let {
+        val lastLaunch = lastLaunchString ?: setFormattedEvent(LifecycleSPKey.TIMESTAMP_LAST_LAUNCH)
+        lastLaunch?.let {
             data[LifecycleStateKey.LIFECYCLE_LASTLAUNCHDATE] = it
-        } ?: run {
-            lifecycleSharedPreferences.lastLaunch = getLastEvent(
-                LifecycleSPKey.TIMESTAMP_LAST_LAUNCH,
-                lifecycleSharedPreferences.timestampLaunch
-            )
         }
 
-        lifecycleSharedPreferences.lastWake?.let {
+        val lastWake = lastWakeString ?: setFormattedEvent(LifecycleSPKey.TIMESTAMP_LAST_WAKE)
+        lastWake?.let {
             data[LifecycleStateKey.LIFECYCLE_LASTWAKEDATE] = it
-        } ?: run {
-            lifecycleSharedPreferences.lastWake = getLastEvent(
-                LifecycleSPKey.TIMESTAMP_LAST_WAKE,
-                lifecycleSharedPreferences.timestampLaunch
-            )
         }
 
-        lifecycleSharedPreferences.lastSleep?.let {
+        val lastSleep = lastSleepString ?: setFormattedEvent(LifecycleSPKey.TIMESTAMP_LAST_SLEEP)
+        lastSleep?.let {
             data[LifecycleStateKey.LIFECYCLE_LASTSLEEPDATE] = it
-        } ?: run {
-            lifecycleSharedPreferences.lastSleep = getLastEvent(
-                LifecycleSPKey.TIMESTAMP_LAST_SLEEP,
-                LifecycleDefaults.TIMESTAMP_INVALID
-            )
         }
 
-        if (lifecycleSharedPreferences.timestampUpdate != LifecycleDefaults.TIMESTAMP_INVALID) {
-            lifecycleSharedPreferences.updateLaunchDate?.let {
-                data[LifecycleStateKey.LIFECYCLE_UPDATELAUNCHDATE] = it
-            } ?: run {
-                lifecycleSharedPreferences.updateLaunchDate = getUpdateLaunchDate()
+        if (lifecycleSharedPreferences.timestampUpdate != null) {
+            val lastUpdate = updateLaunchDate ?: setUpdateLaunchDate()
+            if (lastUpdate != null) {
+                data[LifecycleStateKey.LIFECYCLE_UPDATELAUNCHDATE] = lastUpdate
             }
         }
 
-        return data
-            .filterNot { it.value == LifecycleDefaults.TIMESTAMP_INVALID }.toMutableMap()
+        return data.toMutableMap()
+    }
+
+    private fun setUpdateLaunchDate(): String? {
+        updateLaunchDate = lifecycleSharedPreferences.timestampUpdate?.let {
+            formatTimestamp(it)
+        }
+
+        return updateLaunchDate
+    }
+
+    internal fun setFormattedEvent(eventKey: String): String? {
+        val timestamp = lifecycleSharedPreferences.getLastEvent(eventKey)
+        val formattedTimestamp = timestamp?.let { formatTimestamp(it) }
+
+        when(eventKey) {
+            LifecycleSPKey.TIMESTAMP_LAST_LAUNCH -> lastLaunchString = formattedTimestamp
+            LifecycleSPKey.TIMESTAMP_LAST_SLEEP -> lastSleepString = formattedTimestamp
+            LifecycleSPKey.TIMESTAMP_LAST_WAKE -> lastWakeString = formattedTimestamp
+        }
+
+        return formattedTimestamp
+    }
+
+    internal fun setFirstLaunchMmDdYyyy(fallbackTimestamp: Long = System.currentTimeMillis()): String? {
+        val formatMmDdYyyy = SimpleDateFormat("MM/dd/yyyy", Locale.ROOT)
+        formatMmDdYyyy.timeZone = TimeZone.getTimeZone("UTC")
+        val date = Date(lifecycleSharedPreferences.timestampFirstLaunch ?: fallbackTimestamp)
+        firstLaunchMmDdYyyyString = formatMmDdYyyy.format(date)
+
+        return firstLaunchMmDdYyyyString
+    }
+
+    internal fun setFormattedFirstLaunch(fallbackTimestamp: Long = System.currentTimeMillis()): String? {
+        firstLaunchString = formatTimestamp(lifecycleSharedPreferences.timestampFirstLaunch ?: fallbackTimestamp)
+        return firstLaunchString
     }
 
     fun didDetectCrash(event: String): Boolean {
-        val lastEvent = lifecycleSharedPreferences.lastLifecycleEvent
+        val lastEvent = lifecycleSharedPreferences.lastLifecycleEvent ?: return false
 
-        lastEvent?.let {
-            val lastIsForegrounding = LifecycleEvent.LAUNCH == it || LifecycleEvent.WAKE == it
-            val currentIsForegrounding =
-                LifecycleEvent.LAUNCH == event || LifecycleEvent.WAKE == event
+        val lastIsForegrounding =
+            LifecycleEvent.LAUNCH == lastEvent || LifecycleEvent.WAKE == lastEvent
+        val currentIsForegrounding =
+            LifecycleEvent.LAUNCH == event || LifecycleEvent.WAKE == event
 
-            val crashDetected = lastIsForegrounding && currentIsForegrounding
+        val crashDetected = lastIsForegrounding && currentIsForegrounding
 
-            if (crashDetected) {
-                lifecycleSharedPreferences.incrementCrash()
-            }
-
-            return crashDetected
-        }
-        return false
-    }
-
-    fun isFirstLaunch(timestampLaunch: Long): Boolean {
-        if (lifecycleSharedPreferences.timestampFirstLaunch == LifecycleDefaults.TIMESTAMP_INVALID) {
-            lifecycleSharedPreferences.timestampFirstLaunch = timestampLaunch
-            lifecycleSharedPreferences.timestampLastLaunch = timestampLaunch
-            lifecycleSharedPreferences.timestampLastWake = timestampLaunch
-            return true
-        }
-
-        return false
+        return crashDetected
     }
 
     fun didUpdate(timestamp: Long, initializedCurrentVersion: String): Boolean {
@@ -148,25 +129,6 @@ internal class LifecycleService(private val lifecycleSharedPreferences: Lifecycl
         return false
     }
 
-    fun getUpdateLaunchDate(): String? {
-        if (lifecycleSharedPreferences.timestampUpdate == LifecycleDefaults.TIMESTAMP_INVALID) {
-            return null
-        }
-
-        reusableDate.time = lifecycleSharedPreferences.timestampUpdate
-        return formatIso8601.format(reusableDate)
-    }
-
-    fun getLastEvent(eventKey: String, fallback: Long): String? {
-        val lastEventTimestamp = lifecycleSharedPreferences.getLastEvent(eventKey, fallback)
-        if (lastEventTimestamp != LifecycleDefaults.TIMESTAMP_INVALID) {
-            reusableDate.time = lastEventTimestamp
-            return formatIso8601.format(reusableDate)
-        }
-
-        return null
-    }
-
     fun getDayOfWeekLocal(currentTime: Long): Int {
         if (calendar.timeInMillis != currentTime) {
             calendar.timeInMillis = currentTime
@@ -183,82 +145,62 @@ internal class LifecycleService(private val lifecycleSharedPreferences: Lifecycl
         return calendar.get(Calendar.HOUR_OF_DAY)
     }
 
-    fun isFirstWake(timestampA: Long, timestampB: Long): Int {
-        calendar.timeInMillis = timestampA
-
-        val monthA = calendar.get(Calendar.MONTH)
-        val yearA = calendar.get(Calendar.YEAR)
-        val dayA = calendar.get(Calendar.DAY_OF_MONTH)
-
-        calendar.timeInMillis = timestampB
-
-        val monthB = calendar.get(Calendar.MONTH)
-        val yearB = calendar.get(Calendar.YEAR)
-        val dayB = calendar.get(Calendar.DAY_OF_MONTH)
-
-        var result = 0
-        val isFirsWakeMonth = yearA != yearB || monthA != monthB
-        if (isFirsWakeMonth) {
-            result = IS_FIRST_WAKE_MONTH
+    private fun updateDaysSince(
+        timestamp: Long,
+    ): MutableMap<String, Any> {
+        val data: MutableMap<String, Any> = mutableMapOf()
+        daysSince(
+            startEventMs = lifecycleSharedPreferences.timestampLastLaunch,
+            endEventMs = timestamp
+        )?.also {
+            data[LifecycleStateKey.LIFECYCLE_DAYSSINCELAUNCH] = it.toString()
         }
 
-        if (isFirsWakeMonth || dayA != dayB) {
-            result = result or IS_FIRST_WAKE_TODAY
+        daysSince(
+            startEventMs = lifecycleSharedPreferences.timestampLastWake,
+            endEventMs = timestamp
+        )?.also {
+            data[LifecycleStateKey.LIFECYCLE_DAYSSINCELASTWAKE] = it.toString()
         }
 
-        return result
-    }
+        daysSince(
+            startEventMs = lifecycleSharedPreferences.timestampUpdate,
+            endEventMs = timestamp
+        )?.also {
+            data[LifecycleStateKey.LIFECYCLE_DAYSSINCEUPDATE] = it.toString()
+        }
 
-    fun isFirstWakeMonth(firstWake: Int): Boolean {
-        return firstWake and IS_FIRST_WAKE_MONTH == IS_FIRST_WAKE_MONTH
-    }
-
-    fun isFirstWakeToday(firstWake: Int): Boolean {
-        return firstWake and IS_FIRST_WAKE_TODAY == IS_FIRST_WAKE_TODAY
+        return data
     }
 
     companion object {
+        var formatIso8601 = SimpleDateFormat(LifecycleDefaults.FORMAT_ISO_8601, Locale.ROOT)
 
-        private const val IS_FIRST_WAKE_MONTH = 1
-        private const val IS_FIRST_WAKE_TODAY = 1 shl 1
-
-        /**
-         * If [timestamp] is valid, i.e. that it is not equal to [LifecycleDefaults.TIMESTAMP_INVALID]
-         * then it returns the [valid] value, else the [default] provided.
-         *
-         * @param timestamp The timestamp to check the validity of
-         * @param default The result to return if [timestamp] is invalid
-         * @param valid The result to return if valid; defaults to the provided [timestamp]
-         */
-        internal fun validOrDefault(timestamp: Long, default: Long, valid: Long = timestamp): Long {
-            return if (timestamp != LifecycleDefaults.TIMESTAMP_INVALID)
-                valid
-            else
-                default
+        init {
+            formatIso8601.timeZone = TimeZone.getTimeZone("UTC")
         }
 
         /**
          * Calculates the number of days, as a whole number of days, between two events recorded in
          * milliseconds.
          *
-         * [startEventMs] and [endEventMs] should be positive numbers, but all results will be at
-         * least 0.
+         * [startEventMs] and [endEventMs] should be non-negative numbers, with [endEventMs] greater
+         * than or equal to [startEventMs], in order to produce a numeric result. When a result is
+         * returned, it will be a whole number of days and will be at least 0; otherwise this
+         * function returns null for invalid inputs.
          */
-        internal fun daysSince(startEventMs: Long, endEventMs: Long): Long {
-            if (startEventMs == LifecycleDefaults.TIMESTAMP_INVALID ||
-                endEventMs == LifecycleDefaults.TIMESTAMP_INVALID
-            ) {
-                return 0L
-            }
-
-            val positiveStartMs = startEventMs.coerceAtLeast(0L)
-            val positiveEndMs = endEventMs.coerceAtLeast(0L)
-            val deltaMs = if (positiveEndMs <= positiveStartMs) {
-                0L
+        internal fun daysSince(startEventMs: Long?, endEventMs: Long): Long? {
+            val daysInMs = TimeUnit.DAYS.toMillis(1)
+            return if (startEventMs != null && startEventMs >= 0 && endEventMs >= startEventMs) {
+                val deltaMs = endEventMs - startEventMs
+                deltaMs / daysInMs
             } else {
-                positiveEndMs - positiveStartMs
+                null
             }
-            return (deltaMs / LifecycleDefaults.DAY_IN_MS)
+        }
+
+        fun formatTimestamp(timestamp: Long): String {
+            return formatIso8601.format(Date(timestamp))
         }
     }
 }
