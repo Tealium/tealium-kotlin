@@ -1,7 +1,4 @@
 # Change Log
-- 1.9.3 Mar 2026
-  - TagManagement 1.3.1
-    - BugFix: WebView `console.log()` messages are now always intercepted by `WebChromeClient`, preventing `I/chromium` logs from appearing in logcat regardless of `LogLevel` setting
 - 1.9.2 Dec 2025
   - BugFix: Collect/TagManagement modules are now correctly disableable through the remote publish settings.
   - TagManagement 1.3.0
