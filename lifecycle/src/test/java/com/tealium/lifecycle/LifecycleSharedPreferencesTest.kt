@@ -54,9 +54,9 @@ class LifecycleSharedPreferencesTest {
 
     @Test
     fun setters_PriorSecondsAwake_SavesValue() {
-        lifecycleSharedPreferences.priorSecondsAwake = "100"
+        lifecycleSharedPreferences.priorSecondsAwake = 100L
         verify {
-            mockEditor.putString(LifecycleSPKey.PRIOR_SECONDS_AWAKE, "100")
+            mockEditor.putLong(LifecycleSPKey.PRIOR_SECONDS_AWAKE, 100L)
             mockEditor.apply()
         }
     }
@@ -75,17 +75,6 @@ class LifecycleSharedPreferencesTest {
         lifecycleSharedPreferences.timestampFirstLaunch = 100L
         verify {
             mockEditor.putLong(LifecycleSPKey.TIMESTAMP_FIRST_LAUNCH, 100L)
-            mockEditor.putLong(LifecycleSPKey.TIMESTAMP_LAST_LAUNCH, 100L)
-            mockEditor.putLong(LifecycleSPKey.TIMESTAMP_LAST_WAKE, 100L)
-            mockEditor.apply()
-        }
-    }
-
-    @Test
-    fun setters_TimestampLaunch_SavesValue() {
-        lifecycleSharedPreferences.timestampLaunch = 100L
-        verify {
-            mockEditor.putLong(LifecycleSPKey.TIMESTAMP_LAUNCH, 100L)
             mockEditor.apply()
         }
     }
@@ -122,15 +111,6 @@ class LifecycleSharedPreferencesTest {
         lifecycleSharedPreferences.totalSecondsAwake = 100
         verify {
             mockEditor.putInt(LifecycleSPKey.TOTAL_SECONDS_AWAKE, 100)
-            mockEditor.apply()
-        }
-    }
-
-    @Test
-    fun setters_SecondsAwakeSinceLaunch_SavesValue() {
-        lifecycleSharedPreferences.secondsAwakeSinceLaunch = 100
-        verify {
-            mockEditor.putInt(LifecycleSPKey.PRIOR_SECONDS_AWAKE, 100)
             mockEditor.apply()
         }
     }
@@ -257,47 +237,9 @@ class LifecycleSharedPreferencesTest {
     fun setters_UpdateSecondsAwake_SavesValue() {
         val spykLifecycleSharedPreferences = spyk(lifecycleSharedPreferences)
         every { spykLifecycleSharedPreferences.totalSecondsAwake } returns 50
-        every { spykLifecycleSharedPreferences.secondsAwakeSinceLaunch } returns 150
         spykLifecycleSharedPreferences.updateSecondsAwake(100)
         verify {
             spykLifecycleSharedPreferences.totalSecondsAwake = 150
-            spykLifecycleSharedPreferences.secondsAwakeSinceLaunch = 250
-        }
-    }
-
-    @Test
-    fun setters_SetLastLaunch_SavesValue() {
-        val midnightMillennium = 946684800000L // 2000-01-01 00:00:00
-        val spykLifecycleSharedPreferences = spyk(lifecycleSharedPreferences)
-        spykLifecycleSharedPreferences.setLastLaunch(midnightMillennium)
-
-        assertEquals("2000-01-01T00:00:00Z", spykLifecycleSharedPreferences.lastLaunch)
-        verify {
-            mockEditor.putLong(LifecycleSPKey.TIMESTAMP_LAST_LAUNCH, 946684800000L)
-        }
-    }
-
-    @Test
-    fun setters_SetLastWake_SavesValue() {
-        val midnightMillennium = 946684800000L // 2000-01-01 00:00:00
-        val spykLifecycleSharedPreferences = spyk(lifecycleSharedPreferences)
-        spykLifecycleSharedPreferences.setLastWake(midnightMillennium)
-
-        assertEquals("2000-01-01T00:00:00Z", spykLifecycleSharedPreferences.lastWake)
-        verify {
-            mockEditor.putLong(LifecycleSPKey.TIMESTAMP_LAST_WAKE, 946684800000L)
-        }
-    }
-
-    @Test
-    fun setters_SetLastSleep_SavesValue() {
-        val midnightMillennium = 946684800000L // 2000-01-01 00:00:00
-        val spykLifecycleSharedPreferences = spyk(lifecycleSharedPreferences)
-        spykLifecycleSharedPreferences.setLastSleep(midnightMillennium)
-
-        assertEquals("2000-01-01T00:00:00Z", spykLifecycleSharedPreferences.lastSleep)
-        verify {
-            mockEditor.putLong(LifecycleSPKey.TIMESTAMP_LAST_SLEEP, 946684800000L)
         }
     }
 
@@ -316,40 +258,6 @@ class LifecycleSharedPreferencesTest {
             mockEditor.remove(LifecycleSPKey.COUNT_WAKE)
             mockEditor.apply()
         }
-    }
-
-    @Test
-    fun setFirstLaunch_ReturnsCurrentDate_WhenInvalidTimestamp() {
-        every {
-            mockSharedPreferences.getLong(
-                LifecycleSPKey.TIMESTAMP_FIRST_LAUNCH,
-                any()
-            )
-        } returns LifecycleDefaults.TIMESTAMP_INVALID
-
-        val currentDate = Date(System.currentTimeMillis())
-
-        val spykLifecycleSharedPreferences = spyk(lifecycleSharedPreferences)
-        val firstLaunchDate = spykLifecycleSharedPreferences.setFirstLaunch()
-
-        assertTrue(firstLaunchDate!!.startsWith(currentDate.absoluteYear.toString()))
-    }
-
-    @Test
-    fun setFirstLaunchMmDdYyyy_ReturnsCurrentDate_WhenInvalidTimestamp() {
-        every {
-            mockSharedPreferences.getLong(
-                LifecycleSPKey.TIMESTAMP_FIRST_LAUNCH,
-                any()
-            )
-        } returns LifecycleDefaults.TIMESTAMP_INVALID
-
-        val currentDate = Date(System.currentTimeMillis())
-
-        val spykLifecycleSharedPreferences = spyk(lifecycleSharedPreferences)
-        val firstLaunchDdMmYyyy = spykLifecycleSharedPreferences.setFirstLaunchMmDdYyyy()
-
-        assertTrue(firstLaunchDdMmYyyy!!.endsWith(currentDate.absoluteYear.toString()))
     }
 
     private val Date.absoluteYear: Int

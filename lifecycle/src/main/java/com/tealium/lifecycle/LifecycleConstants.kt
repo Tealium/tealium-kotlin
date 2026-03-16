@@ -2,14 +2,11 @@ package com.tealium.lifecycle
 
 object LifecycleDefaults {
     const val FORMAT_ISO_8601 = "yyyy-MM-dd'T'HH:mm:ss'Z'";
-    const val TIMESTAMP_INVALID = Long.MIN_VALUE
-    const val DAY_IN_MS = 86400000L
     const val SLEEP_THRESHOLD = 5000L
 }
 
 object LifecycleSPKey {
     const val TIMESTAMP_UPDATE = "timestamp_update"
-    const val TIMESTAMP_LAUNCH = "timestamp_launch"
     const val TIMESTAMP_FIRST_LAUNCH = "timestamp_first_launch"
     const val TIMESTAMP_LAST_LAUNCH = "timestamp_last_launch"
     const val TIMESTAMP_LAST_WAKE = "timestamp_last_wake"
@@ -30,7 +27,6 @@ object LifecycleEvent {
     const val LAUNCH = "launch"
     const val WAKE = "wake"
     const val SLEEP = "sleep"
-    const val DISABLE = "disable"
     const val PAUSE = "pause"
 }
 
