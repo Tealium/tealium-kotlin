@@ -142,6 +142,12 @@ class Tealium private constructor(
     val dataLayer: DataLayer
         get() = _dataLayer
 
+    init {
+        // requires DataLayer to be available, but must happen before VisitorIdProvider
+        // in order to correctly migrate the VisitorId
+        migratePersistentData()
+    }
+
     /**
      * Object representing the current Tealium session in progress.
      */
@@ -188,7 +194,6 @@ class Tealium private constructor(
         ConsentManager(context, eventRouter, librarySettingsManager.librarySettings)
 
     init {
-        migratePersistentData()
         if (sessionManager.isNewSessionOnLaunch) {
             _dataLayer.clearSessionData(session.id)
         }
