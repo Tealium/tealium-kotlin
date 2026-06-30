@@ -7,12 +7,18 @@ import com.tealium.core.consent.ConsentCategory
 import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
 import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
 import com.tealium.core.consent.ConsentStatus
+import com.tealium.dispatcher.Dispatch
 import io.mockk.MockKAnnotations
+import kotlinx.coroutines.runBlocking
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.util.*
+import java.util.Arrays
 
 class MigrationTests {
 
@@ -143,6 +149,38 @@ class MigrationTests {
         assertTrue(tealium.dataLayer.getBoolean("my_boolean_true")!!)
         assertFalse(tealium.dataLayer.getBoolean("my_boolean_false")!!)
         assertTrue(Arrays.equals(arrayOf("string_value_1", "string_value_2"), tealium.dataLayer.getStringArray("my_string_set")!!.sortedArray()))
+    }
+
+    @Test
+    fun visitorId_GetsMigrated_FromSharedPreferences() {
+        val migratedVisitorId = "visitor_1"
+        dataSourcesPreferences.edit()
+            .putString(Dispatch.Keys.TEALIUM_VISITOR_ID, migratedVisitorId)
+            .commit()
+
+        tealium = Tealium.create("instance_name", config)
+        assertEquals(
+            tealium.dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID),
+            tealium.visitorId
+        )
+        assertEquals(
+            migratedVisitorId,
+            tealium.dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID)
+        )
+        assertEquals(migratedVisitorId, tealium.visitorId)
+    }
+
+    @Test
+    fun visitorId_FromProvider_Is_Collected_After_Migration() = runBlocking {
+        val migratedVisitorId = "visitor_1"
+        dataSourcesPreferences.edit()
+            .putString(Dispatch.Keys.TEALIUM_VISITOR_ID, migratedVisitorId)
+            .commit()
+
+        tealium = awaitCreateTealium("instance_name", config)
+        val secureVisitorId = tealium.visitorId
+        val trackData = tealium.gatherTrackData()
+        assertEquals(secureVisitorId, trackData[Dispatch.Keys.TEALIUM_VISITOR_ID])
     }
 
     fun getHashCodeString(config: TealiumConfig, delimiter: String = ""): String {
