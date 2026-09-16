@@ -9,6 +9,7 @@ import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
 import com.tealium.core.consent.ConsentStatus
 import com.tealium.core.persistence.DatabaseHelper
 import com.tealium.core.persistence.DefaultVisitorStorage
+import com.tealium.core.persistence.PersistentStorageDao
 import com.tealium.dispatcher.Dispatch
 import io.mockk.MockKAnnotations
 import kotlinx.coroutines.runBlocking
@@ -40,8 +41,15 @@ class MigrationTests {
 
         application = ApplicationProvider.getApplicationContext()
         config = TealiumConfig(application, "test", "test", Environment.DEV)
-        // remove any visitor id persisted by previous tests so that migrated values are observable
-        DefaultVisitorStorage(DatabaseHelper(config)).clear()
+        // remove any visitor id persisted by previous tests (both the visitors table and the
+        // datalayer fallback) so that migrated values are observable
+        val dbHelper = DatabaseHelper(config)
+        try {
+            DefaultVisitorStorage(dbHelper).clear()
+            PersistentStorageDao(dbHelper, "datalayer").delete(Dispatch.Keys.TEALIUM_VISITOR_ID)
+        } finally {
+            dbHelper.close()
+        }
         consentPreferences = application.getSharedPreferences("$consentPreferencesNamePrefix.${getHashCodeString(config)}", 0)
         dataSourcesPreferences = application.getSharedPreferences("$persistentDataSourcesPreferencesNamePrefix.${getHashCodeString(config, ".")}", 0)
     }
