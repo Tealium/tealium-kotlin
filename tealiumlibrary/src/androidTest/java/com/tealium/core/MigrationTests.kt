@@ -7,12 +7,21 @@ import com.tealium.core.consent.ConsentCategory
 import com.tealium.core.consent.ConsentManagerConstants.KEY_CATEGORIES
 import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
 import com.tealium.core.consent.ConsentStatus
+import com.tealium.core.persistence.DatabaseHelper
+import com.tealium.core.persistence.DefaultVisitorStorage
+import com.tealium.core.persistence.PersistentStorageDao
+import com.tealium.dispatcher.Dispatch
 import io.mockk.MockKAnnotations
+import kotlinx.coroutines.runBlocking
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.util.*
+import java.util.Arrays
 
 class MigrationTests {
 
@@ -32,14 +41,24 @@ class MigrationTests {
 
         application = ApplicationProvider.getApplicationContext()
         config = TealiumConfig(application, "test", "test", Environment.DEV)
+        // remove any visitor id persisted by previous tests (both the visitors table and the
+        // datalayer fallback) so that migrated values are observable
+        val dbHelper = DatabaseHelper(config)
+        try {
+            DefaultVisitorStorage(dbHelper).clear()
+            PersistentStorageDao(dbHelper, "datalayer").delete(Dispatch.Keys.TEALIUM_VISITOR_ID)
+        } finally {
+            dbHelper.close()
+        }
         consentPreferences = application.getSharedPreferences("$consentPreferencesNamePrefix.${getHashCodeString(config)}", 0)
         dataSourcesPreferences = application.getSharedPreferences("$persistentDataSourcesPreferencesNamePrefix.${getHashCodeString(config, ".")}", 0)
     }
 
     @After
     fun tearDown() {
-        consentPreferences.edit().clear()
-        dataSourcesPreferences.edit().clear()
+        consentPreferences.edit().clear().commit()
+        dataSourcesPreferences.edit().clear().commit()
+        Tealium.destroy("instance_name")
     }
 
     @Test
@@ -143,6 +162,34 @@ class MigrationTests {
         assertTrue(tealium.dataLayer.getBoolean("my_boolean_true")!!)
         assertFalse(tealium.dataLayer.getBoolean("my_boolean_false")!!)
         assertTrue(Arrays.equals(arrayOf("string_value_1", "string_value_2"), tealium.dataLayer.getStringArray("my_string_set")!!.sortedArray()))
+    }
+
+    @Test
+    fun visitorId_GetsMigrated_FromSharedPreferences() {
+        val migratedVisitorId = "visitor_1"
+        dataSourcesPreferences.edit()
+            .putString(Dispatch.Keys.TEALIUM_VISITOR_ID, migratedVisitorId)
+            .commit()
+
+        tealium = Tealium.create("instance_name", config)
+        assertEquals(
+            migratedVisitorId,
+            tealium.dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID)
+        )
+        assertEquals(migratedVisitorId, tealium.visitorId)
+    }
+
+    @Test
+    fun visitorId_FromProvider_Is_Collected_After_Migration() = runBlocking {
+        val migratedVisitorId = "visitor_1"
+        dataSourcesPreferences.edit()
+            .putString(Dispatch.Keys.TEALIUM_VISITOR_ID, migratedVisitorId)
+            .commit()
+
+        tealium = awaitCreateTealium("instance_name", config)
+        val trackData = tealium.gatherTrackData()
+        assertEquals(migratedVisitorId, trackData[Dispatch.Keys.TEALIUM_VISITOR_ID])
+        assertEquals(tealium.visitorId, trackData[Dispatch.Keys.TEALIUM_VISITOR_ID])
     }
 
     fun getHashCodeString(config: TealiumConfig, delimiter: String = ""): String {

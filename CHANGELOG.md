@@ -1,4 +1,6 @@
 # Change Log
+- 1.10.0 Sept 2026
+  - Fix: move migration to begin before VisitorIdProvider instantiation
 - 1.9.2 Dec 2025
   - BugFix: Collect/TagManagement modules are now correctly disableable through the remote publish settings.
   - TagManagement 1.3.0
