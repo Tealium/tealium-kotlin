@@ -252,17 +252,18 @@ class MigrationTests {
         val visitorId = "matching_visitor_id"
         seedVisitorIdState(storedVisitorId = visitorId, dataLayerVisitorId = visitorId)
 
-        val latch = CountDownLatch(1)
+        val updatedIds = CopyOnWriteArrayList<String>()
         config.events.add(object : VisitorIdUpdatedListener {
             override fun onVisitorIdUpdated(visitorId: String) {
-                latch.countDown()
+                updatedIds.add(visitorId)
             }
         })
 
         tealium = awaitCreateTealium("instance_name", config)
 
-        assertFalse(latch.await(1, TimeUnit.SECONDS))
-        assertEquals(1, latch.count)
+        // setReady() drains the queued events synchronously before onReady is invoked, so any
+        // notification would already have been delivered by the time create() returns
+        assertTrue(updatedIds.isEmpty())
         assertEquals(visitorId, tealium.visitorId)
     }
 

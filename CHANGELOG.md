@@ -1,7 +1,7 @@
 # Change Log
 - 1.10.0 Sept 2026
   - Fix: move migration to begin before VisitorIdProvider instantiation
-  - Fix: the `tealium_visitor_id` value in the DataLayer is now authoritative at startup; installs where it differs from the stored visitor id are reconciled to the DataLayer value, and any `VisitorIdUpdatedListener` is notified of the reconciled id once the instance is ready
+  - Fix: the `tealium_visitor_id` value in the DataLayer is now authoritative at startup; installs where it differs from the stored visitor id are reconciled to the DataLayer value
 - 1.9.2 Dec 2025
   - BugFix: Collect/TagManagement modules are now correctly disableable through the remote publish settings.
   - TagManagement 1.3.0

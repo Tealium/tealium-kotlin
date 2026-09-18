@@ -29,20 +29,6 @@ internal class VisitorIdProvider(
         onVisitorIdUpdated
     )
 
-    /**
-     * Whether construction has completed. Declared before [currentVisitorId] so that it is
-     * initialized before the [currentVisitorId] initializer can invoke the setter.
-     */
-    @Volatile
-    private var initialized = false
-
-    /**
-     * Holds a visitor id change that happened during construction, before any listeners could be
-     * subscribed. Consumed via [consumePendingVisitorIdUpdate].
-     */
-    @Volatile
-    private var pendingVisitorIdUpdate: String? = null
-
     var currentVisitorId: String = getOrCreateVisitorId()
         private set(value) {
             if (field != value) {
@@ -52,13 +38,7 @@ internal class VisitorIdProvider(
                     visitorStorage.saveVisitorId(currentIdentity, currentVisitorId)
                 }
                 putInDataLayer(value)
-                if (initialized) {
-                    onVisitorIdUpdated(value)
-                } else {
-                    // Listeners are subscribed after this object is constructed, so notifying now
-                    // would be a race; record it for the owner to deliver once subscribed.
-                    pendingVisitorIdUpdate = value
-                }
+                onVisitorIdUpdated(value)
             }
         }
 
@@ -73,29 +53,20 @@ internal class VisitorIdProvider(
         // Reconciled before [retrieveIdentityFromDataLayer] so that any stored identity is
         // relinked to the reconciled id, and so that a genuine identity change detected in the
         // DataLayer still takes precedence and resets the visitor id afterward.
-        //
-        // Any visitor id change made here happens before listeners have been subscribed, so
-        // [onVisitorIdUpdated] is deferred: the new id is held in [pendingVisitorIdUpdate] and the
-        // owner delivers it through [consumePendingVisitorIdUpdate] once subscriptions are in
-        // place. Once [initialized] is true, changes notify immediately as before.
         val dataLayerVisitorId = dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID)
         when {
             dataLayerVisitorId.isNullOrEmpty() -> putInDataLayer(currentVisitorId)
-            dataLayerVisitorId != currentVisitorId -> currentVisitorId = dataLayerVisitorId
+            dataLayerVisitorId != currentVisitorId -> {
+                Logger.dev(
+                    BuildConfig.TAG,
+                    "Visitor id in DataLayer ($dataLayerVisitorId) differs from stored visitor " +
+                            "id ($currentVisitorId); using DataLayer value."
+                )
+                currentVisitorId = dataLayerVisitorId
+            }
         }
 
         retrieveIdentityFromDataLayer()
-
-        initialized = true
-    }
-
-    /**
-     * Returns any visitor id change that occurred during construction - before listeners could be
-     * subscribed - and clears it. Returns null if the visitor id did not change, or if the change
-     * has already been consumed.
-     */
-    internal fun consumePendingVisitorIdUpdate(): String? {
-        return pendingVisitorIdUpdate.also { pendingVisitorIdUpdate = null }
     }
 
     fun resetVisitorId(): String {
@@ -172,7 +143,8 @@ internal class VisitorIdProvider(
 
     private fun getOrCreateVisitorId(): String {
         return visitorStorage.currentVisitorId
-            ?: (dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID)   // previously saved visitor id
+            ?: (dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID)
+                ?.takeIf { it.isNotEmpty() }                            // previously saved visitor id
                 ?: existingVisitorId                                    // known existing Id
                 ?: generateVisitorId()).also {
                 // notify of new visitor id

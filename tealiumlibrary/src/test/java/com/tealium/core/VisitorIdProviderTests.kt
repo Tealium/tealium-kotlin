@@ -108,34 +108,7 @@ class VisitorIdProviderTests {
 
         assertEquals("datalayer_id", visitorIdProvider.currentVisitorId)
         assertEquals("datalayer_id", visitorStorage.currentVisitorId)
-        // listeners are not subscribed during construction, so the update is deferred
-        verify(exactly = 0) { onVisitorIdUpdated(any()) }
-        assertEquals("datalayer_id", visitorIdProvider.consumePendingVisitorIdUpdate())
-        assertNull(visitorIdProvider.consumePendingVisitorIdUpdate())
-    }
-
-    @Test
-    fun init_NoPendingUpdate_When_DataLayerMatches() {
-        val visitorStorage = MockVisitorStorage(initialVisitorId = "stored_id")
-        every { dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID) } returns "stored_id"
-
-        val visitorIdProvider = createDefaultVisitorIdProvider(visitorStorage = visitorStorage)
-
-        assertNull(visitorIdProvider.consumePendingVisitorIdUpdate())
-        verify(exactly = 0) { onVisitorIdUpdated(any()) }
-    }
-
-    @Test
-    fun resetVisitorId_NotifiesImmediately_AfterInit_AndLeavesNoPendingUpdate() {
-        val visitorStorage = MockVisitorStorage(initialVisitorId = defaultVisitorId)
-        every { dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID) } returns defaultVisitorId
-        val visitorIdProvider = createDefaultVisitorIdProvider(visitorStorage = visitorStorage)
-        assertNull(visitorIdProvider.consumePendingVisitorIdUpdate())
-
-        val newVisitorId = visitorIdProvider.resetVisitorId()
-
-        verify(exactly = 1) { onVisitorIdUpdated(newVisitorId) }
-        assertNull(visitorIdProvider.consumePendingVisitorIdUpdate())
+        verify(exactly = 1) { onVisitorIdUpdated("datalayer_id") }
     }
 
     @Test
@@ -189,6 +162,28 @@ class VisitorIdProviderTests {
     }
 
     @Test
+    fun init_GeneratesNewId_When_DataLayerVisitorIdIsEmpty_AndNoVisitorIdSaved() {
+        val visitorStorage = MockVisitorStorage()
+        every { dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID) } returns ""
+
+        val visitorIdProvider = createCustomVisitorIdProvider(
+            visitorIdKey = visitorIdKey,
+            existingVisitorId = null,
+            visitorStorage = visitorStorage
+        )
+
+        val generatedVisitorId = visitorIdProvider.currentVisitorId
+        assertTrue(generatedVisitorId.isNotEmpty())
+        // same format as generateVisitorId(); a UUID without its dashes
+        assertEquals(32, generatedVisitorId.length)
+        assertFalse(generatedVisitorId.contains("-"))
+        assertEquals(generatedVisitorId, visitorStorage.currentVisitorId)
+        verify {
+            dataLayer.putString(Dispatch.Keys.TEALIUM_VISITOR_ID, generatedVisitorId, any())
+        }
+    }
+
+    @Test
     fun init_IdentityIsSet_When_PopulatedInDataLayer_AndLinkedWhenCurrentIdentity_IsNull() {
         val visitorStorage = MockVisitorStorage(
             initialVisitorId = defaultVisitorId,
@@ -221,12 +216,9 @@ class VisitorIdProviderTests {
         assertEquals("newIdentity".sha256(), visitorStorage.currentIdentity)
         assertNotNull(visitorStorage.getVisitorId("newIdentity".sha256()))
         assertNotEquals(defaultVisitorId, visitorStorage.getVisitorId("newIdentity".sha256()))
-        // reset happened during construction, so the notification is deferred
-        verify(exactly = 0) { onVisitorIdUpdated(any()) }
-        assertEquals(
-            visitorIdProvider.currentVisitorId,
-            visitorIdProvider.consumePendingVisitorIdUpdate()
-        )
+        verify(exactly = 1) {
+            onVisitorIdUpdated(any())
+        }
     }
 
     @Test

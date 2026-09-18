@@ -52,14 +52,9 @@ class InstrumentedVisitorIdProviderTests {
 
         assertNotNull(visitorIdProvider.currentVisitorId)
         assertTrue(visitorIdProvider.currentVisitorId.isNotBlank())
-        // generated during construction, so the notification is deferred until consumed
-        verify(exactly = 0) {
+        verify(exactly = 1) {
             onVisitorIdUpdated(any())
         }
-        assertEquals(
-            visitorIdProvider.currentVisitorId,
-            visitorIdProvider.consumePendingVisitorIdUpdate()
-        )
     }
 
     @Test
@@ -73,11 +68,9 @@ class InstrumentedVisitorIdProviderTests {
 
         assertNotNull(newVisitorId)
         assertEquals(originalVisitorId, newVisitorId)
-        // the only change was the id generated during construction, which is deferred
-        verify(exactly = 0) {
+        verify(exactly = 1) {
             onVisitorIdUpdated(any())
         }
-        assertEquals(originalVisitorId, visitorIdProvider.consumePendingVisitorIdUpdate())
     }
 
     @Test
@@ -109,11 +102,9 @@ class InstrumentedVisitorIdProviderTests {
         assertEquals(knownId1, knownId1Reverted)
         // Switch back again
         assertEquals(knownId2, knownId2Reverted)
-        // 3 identity switches notify immediately; the id generated during construction is deferred
-        verify(exactly = 3) {
+        verify(exactly = 4) {
             onVisitorIdUpdated(any())
         }
-        assertNotNull(visitorIdProvider.consumePendingVisitorIdUpdate())
     }
 
 }
