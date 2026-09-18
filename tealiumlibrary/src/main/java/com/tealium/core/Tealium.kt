@@ -327,6 +327,12 @@ class Tealium private constructor(
         )
         eventRouter.subscribeAll(listOf(dispatchRouter, dispatchStore))
 
+        // All listeners - user supplied and modules - are now subscribed, so it is safe to deliver
+        // any visitor id change that happened while the VisitorIdProvider was being constructed.
+        visitorIdProvider.consumePendingVisitorIdUpdate()?.let { visitorId ->
+            eventRouter.onVisitorIdUpdated(visitorId)
+        }
+
         onInstanceReady()
     }
 
