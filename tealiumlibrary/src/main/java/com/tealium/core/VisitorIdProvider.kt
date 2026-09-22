@@ -43,10 +43,30 @@ internal class VisitorIdProvider(
         }
 
     init {
-        retrieveIdentityFromDataLayer()
-        if (dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID) == null) {
-            putInDataLayer(currentVisitorId)
+        // The DataLayer entry is authoritative for the visitor id. Events are attributed using
+        // the "tealium_visitor_id" value found in the DataLayer, and amending it there is
+        // documented as affecting attribution (see Tealium.visitorId). Installs that migrated
+        // from the legacy library before 1.10.0 can be left with a generated id in
+        // [visitorStorage] but the legacy id in the DataLayer; reconciling to the DataLayer value
+        // keeps consumers of [currentVisitorId] (VisitorService, Moments API) in line with the id
+        // that events have already been attributed to.
+        // Reconciled before [retrieveIdentityFromDataLayer] so that any stored identity is
+        // relinked to the reconciled id, and so that a genuine identity change detected in the
+        // DataLayer still takes precedence and resets the visitor id afterward.
+        val dataLayerVisitorId = dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID)
+        when {
+            dataLayerVisitorId.isNullOrEmpty() -> putInDataLayer(currentVisitorId)
+            dataLayerVisitorId != currentVisitorId -> {
+                Logger.dev(
+                    BuildConfig.TAG,
+                    "Visitor id in DataLayer ($dataLayerVisitorId) differs from stored visitor " +
+                            "id ($currentVisitorId); using DataLayer value."
+                )
+                currentVisitorId = dataLayerVisitorId
+            }
         }
+
+        retrieveIdentityFromDataLayer()
     }
 
     fun resetVisitorId(): String {
@@ -123,7 +143,8 @@ internal class VisitorIdProvider(
 
     private fun getOrCreateVisitorId(): String {
         return visitorStorage.currentVisitorId
-            ?: (dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID)   // previously saved visitor id
+            ?: (dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID)
+                ?.takeIf { it.isNotEmpty() }                            // previously saved visitor id
                 ?: existingVisitorId                                    // known existing Id
                 ?: generateVisitorId()).also {
                 // notify of new visitor id
