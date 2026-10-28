@@ -1,4 +1,16 @@
 # Change Log
+- Unreleased
+  - Location 1.2.0
+    - Built against `com.google.android.gms:play-services-location:21.0.1`, fixing the `IncompatibleClassChangeError` crash in apps that resolve version 21.x
+      - __important__ - Apps now require `play-services-location` 21.0.1 or higher; versions 20.x and lower are no longer supported
+    - BugFix: Geofence events received before a `Tealium` instance has created the Location module are now held in memory and tracked once it is created, instead of being dropped
+    - BugFix: Geofences are only marked as active once Play services confirms they were added; failed adds, and geofences removed by Play services (`GEOFENCE_NOT_AVAILABLE`), are retried on the next location update
+    - BugFix: Invalid geofence entries are now dropped individually with a log message, instead of failing the whole list
+      - Entries are rejected when the radius is missing or 0, the name is longer than 100 characters, there is no enter, exit or dwell trigger, the latitude or longitude is missing, or the entry is not a JSON object
+    - BugFix: A missing geofence asset file is now logged instead of throwing an exception
+    - BugFix: `startLocationTracking` no longer crashes when called from a thread without a `Looper`; location updates are delivered on the main thread
+    - BugFix: Loading geofences from a URL while location updates are running could throw `ConcurrentModificationException`
+    - BugFix: Geofence entries that repeat an earlier name are now dropped with a log message; the first entry with each name is kept
 - 1.9.2 Dec 2025
   - BugFix: Collect/TagManagement modules are now correctly disableable through the remote publish settings.
   - TagManagement 1.3.0

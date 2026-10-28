@@ -2,6 +2,7 @@ package com.tealium.location
 
 import android.Manifest
 import android.app.Application
+import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
@@ -71,7 +72,10 @@ class LocationTests {
         config = TealiumConfig(mockContext, "test_account", "test_profile", Environment.QA)
 
         mockkStatic(LocationServices::class)
-        every { LocationServices.getFusedLocationProviderClient(any()) } returns mockFusedLocationProviderClient
+        every {
+            LocationServices.getFusedLocationProviderClient(any<Context>())
+        } returns mockFusedLocationProviderClient
+        every { LocationServices.getGeofencingClient(any<Context>()) } returns mockk(relaxed = true)
     }
 
     @After
@@ -142,7 +146,7 @@ class LocationTests {
         location = LocationManager(tealiumContext)
 
         every { mockFusedLocationProviderClient.lastLocation } returns LocationTask(mockLocation)
-        every { mockLocationClient.lastLocation } returns null
+        every { mockLocationClient.lastLocation } returns mockk()
 
         val lastLocation = location.lastLocation()
 
@@ -154,7 +158,7 @@ class LocationTests {
     @Test
     fun startLocationTrackingValidIntervalValue() {
         val mockLocationClient = mockkClass(FusedLocationProviderClient::class)
-        every { mockLocationClient.requestLocationUpdates(any(), any(), any()) } returns mockk()
+        every { mockLocationClient.requestLocationUpdates(any(), any<LocationCallback>(), any()) } returns mockk()
 
         config.options[LOCATION_CLIENT] = mockLocationClient
 
@@ -166,13 +170,13 @@ class LocationTests {
 
         location.startLocationTracking(true, 5000)
 
-        verify { mockLocationClient.requestLocationUpdates(any(), any(), any()) }
+        verify { mockLocationClient.requestLocationUpdates(any(), any<LocationCallback>(), any()) }
     }
 
     @Test
     fun startLocationTrackingInvalidIntervalValue() {
         val mockLocationClient = mockkClass(FusedLocationProviderClient::class)
-        every { mockLocationClient.requestLocationUpdates(any(), any(), any()) } returns mockk()
+        every { mockLocationClient.requestLocationUpdates(any(), any<LocationCallback>(), any()) } returns mockk()
 
         config.options[LOCATION_CLIENT] = mockLocationClient
 
@@ -184,13 +188,13 @@ class LocationTests {
 
         location.startLocationTracking(true, -3000)
 
-        verify(exactly = 0) { mockLocationClient.requestLocationUpdates(any(), any(), any()) }
+        verify(exactly = 0) { mockLocationClient.requestLocationUpdates(any(), any<LocationCallback>(), any()) }
     }
 
     @Test
     fun stopLocationTracking() {
         val mockLocationClient = mockkClass(FusedLocationProviderClient::class)
-        every { mockLocationClient.requestLocationUpdates(any(), any(), any()) } returns mockk()
+        every { mockLocationClient.requestLocationUpdates(any(), any<LocationCallback>(), any()) } returns mockk()
 
         config.options[LOCATION_CLIENT] = mockLocationClient
 
@@ -213,7 +217,7 @@ class LocationTests {
     @Test
     fun createAndAddNewGeofenceWithValidInputs() {
         val mockLocationClient = mockkClass(FusedLocationProviderClient::class)
-        every { mockLocationClient.requestLocationUpdates(any(), any(), any()) } returns mockk()
+        every { mockLocationClient.requestLocationUpdates(any(), any<LocationCallback>(), any()) } returns mockk()
 
         config.options[LOCATION_CLIENT] = mockLocationClient
 
@@ -240,7 +244,7 @@ class LocationTests {
     @Test
     fun removeGeofenceWithValidInputs() {
         val mockLocationClient = mockkClass(FusedLocationProviderClient::class)
-        every { mockLocationClient.requestLocationUpdates(any(), any(), any()) } returns mockk()
+        every { mockLocationClient.requestLocationUpdates(any(), any<LocationCallback>(), any()) } returns mockk()
 
         config.options[LOCATION_CLIENT] = mockLocationClient
 
@@ -268,7 +272,7 @@ class LocationTests {
     @Test
     fun createAndAddNewGeofenceWithInvalidInputs() {
         val mockLocationClient = mockkClass(FusedLocationProviderClient::class)
-        every { mockLocationClient.requestLocationUpdates(any(), any(), any()) } returns mockk()
+        every { mockLocationClient.requestLocationUpdates(any(), any<LocationCallback>(), any()) } returns mockk()
 
         config.options[LOCATION_CLIENT] = mockLocationClient
 

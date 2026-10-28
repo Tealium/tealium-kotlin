@@ -3,9 +3,12 @@ package com.tealium.location
 import android.content.Context
 import android.content.Intent
 import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingEvent
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import org.junit.After
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -30,6 +33,7 @@ class GeofenceBroadcastReceiverTest {
         MockKAnnotations.init(this)
         // default to valid event
         every { mockGeofencingEvent.hasError() } returns false
+        every { mockGeofencingEvent.errorCode } returns GeofenceStatusCodes.ERROR
         every { mockGeofence.requestId } returns "geofenceName"
 
         mockkObject(LocationManager)
@@ -37,6 +41,11 @@ class GeofenceBroadcastReceiverTest {
 
         mockkStatic(GeofencingEvent::class)
         every { GeofencingEvent.fromIntent(any()) } returns mockGeofencingEvent
+    }
+
+    @After
+    fun tearDown() {
+        LocationManager.activeGeofences.clear()
     }
 
     @Test
@@ -47,6 +56,16 @@ class GeofenceBroadcastReceiverTest {
         verify(exactly = 0) {
             LocationManager.sendGeofenceEvent(any(), any())
         }
+    }
+
+    @Test
+    fun onReceive_ClearsActiveGeofences_WhenGeofencesNotAvailable() {
+        LocationManager.activeGeofences.add("geofenceName")
+        every { mockGeofencingEvent.hasError() } returns true
+        every { mockGeofencingEvent.errorCode } returns GeofenceStatusCodes.GEOFENCE_NOT_AVAILABLE
+        geofenceBroadcastReceiver.onReceive(mockContext, mockIntent)
+
+        assertTrue(LocationManager.activeGeofences.isEmpty())
     }
 
     @Test

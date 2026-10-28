@@ -45,6 +45,8 @@ data class GeofenceLocation(val name: String,
     }
 
     companion object {
+        private const val MAX_NAME_LENGTH = 100
+
         fun create(name: String,
                    latitude: Double,
                    longitude: Double,
@@ -58,18 +60,24 @@ data class GeofenceLocation(val name: String,
                 return null
             }
 
-            if (latitude <= -90 || latitude >= 90) {
+            if (name.length > MAX_NAME_LENGTH) {
+                Logger.dev(BuildConfig.TAG, "Geofence name must be $MAX_NAME_LENGTH characters or fewer: $name")
+                return null
+            }
+
+            // written to also reject NaN, which is what a missing value parses to
+            if (!(latitude > -90 && latitude < 90)) {
                 Logger.dev(BuildConfig.TAG, "Latitude must be between -90.0 and 90.0!")
                 return null
             }
 
-            if (longitude <= -180 || longitude >= 180) {
+            if (!(longitude > -180 && longitude < 180)) {
                 Logger.dev(BuildConfig.TAG, "Longitude must be between -180.0 and 180.0!")
                 return null
             }
 
-            if (radius < 0) {
-                Logger.dev(BuildConfig.TAG, "Radius greater than 0")
+            if (radius <= 0) {
+                Logger.dev(BuildConfig.TAG, "Radius must be greater than 0")
                 return null
             }
 
@@ -83,14 +91,24 @@ data class GeofenceLocation(val name: String,
                 return null
             }
 
+            if (!triggerEnter && !triggerExit && loiterTime == 0) {
+                Logger.dev(BuildConfig.TAG, "Geofence must trigger on enter, exit or dwell")
+                return null
+            }
+
             return GeofenceLocation(name, latitude, longitude, radius, expireTime, loiterTime, triggerEnter, triggerExit)
         }
 
         fun jsonArrayToGeofenceLocation(geofenceJsonArray: JSONArray): List<GeofenceLocation> {
             val geofenceArray = ArrayList<GeofenceLocation>()
+            val names = HashSet<String>()
 
             for (i in 0 until geofenceJsonArray.length()) {
-                val geofenceItem = geofenceJsonArray.getJSONObject(i)
+                val geofenceItem = geofenceJsonArray.optJSONObject(i)
+                if (geofenceItem == null) {
+                    Logger.dev(BuildConfig.TAG, "Geofence at index $i is not a JSON object")
+                    continue
+                }
 
                 val geofenceName = geofenceItem.optString(GeofenceObject.NAME)
                 val geofenceLatitude = geofenceItem.optDouble(GeofenceObject.LATITUDE)
@@ -111,7 +129,12 @@ data class GeofenceLocation(val name: String,
                         geofenceTriggerExit)
 
                 geofenceLocation?.let {
-                    geofenceArray.add(it)
+                    // names identify the registered geofences, so keep only the first of each
+                    if (names.add(it.name)) {
+                        geofenceArray.add(it)
+                    } else {
+                        Logger.dev(BuildConfig.TAG, "Duplicate geofence name ${it.name} dropped")
+                    }
                 }
             }
             return geofenceArray

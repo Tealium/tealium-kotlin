@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import java.net.URL
+import java.util.concurrent.CopyOnWriteArraySet
 
 /**
  * The LocationManager controls the starting and stopping of location tracking - including both
@@ -146,7 +147,12 @@ class LocationManager(private val context: TealiumContext) :
     private fun loadGeofenceAsset() {
         // Check for asset first, else load from URL
         geofenceFilename?.let { filename ->
-            val jsonArray = JSONArray(jsonLoader.loadFromAsset(filename))
+            val geofenceJson = jsonLoader.loadFromAsset(filename)
+            if (geofenceJson == null) {
+                Logger.qa(BuildConfig.TAG, "Geofence asset not found ($filename); no geofences loaded")
+                return
+            }
+            val jsonArray = JSONArray(geofenceJson)
             val geofenceList = GeofenceLocation.jsonArrayToGeofenceLocation(jsonArray)
             geofenceList.forEach { geofence ->
                 Logger.dev(BuildConfig.TAG, "Loading Geofence from assets: ${geofence.name}")
@@ -185,11 +191,22 @@ class LocationManager(private val context: TealiumContext) :
         private var instance: LocationManager? = null
         private val contexts = mutableListOf<TealiumContext>()
 
+        // Geofence events received before any Tealium instance has created this module, e.g. when
+        // a transition starts the app's process.
+        private val pendingGeofenceEvents = mutableListOf<TealiumEvent>()
+        private const val MAX_PENDING_GEOFENCE_EVENTS = 100
+
         val activeGeofences = mutableSetOf<String>()
-        val allGeofenceLocations = mutableSetOf<GeofenceLocation>()
+        // Written from the IO thread when geofences load from a URL, and iterated on the main
+        // thread by the location callback; iteration is over a snapshot so it cannot throw.
+        val allGeofenceLocations: MutableSet<GeofenceLocation> = CopyOnWriteArraySet()
 
         override fun create(context: TealiumContext): Collector {
-            contexts.add(context)
+            synchronized(contexts) {
+                contexts.add(context)
+                pendingGeofenceEvents.forEach { context.track(it) }
+                pendingGeofenceEvents.clear()
+            }
 
             return instance ?: synchronized(this) {
                 instance ?: LocationManager(context).also {
@@ -206,8 +223,26 @@ class LocationManager(private val context: TealiumContext) :
                     GeofenceEventConstants.GEOFENCE_TRANSITION_TYPE to transitionType
                 )
             )
-            for (context in contexts) {
-                context.track(dispatch)
+            synchronized(contexts) {
+                if (contexts.isEmpty()) {
+                    if (pendingGeofenceEvents.size >= MAX_PENDING_GEOFENCE_EVENTS) {
+                        Logger.qa(
+                            BuildConfig.TAG,
+                            "Dropped $transitionType on $geofenceName; no Tealium instance is ready"
+                        )
+                        return
+                    }
+                    Logger.dev(
+                        BuildConfig.TAG,
+                        "No Tealium instance is ready; holding $transitionType on $geofenceName"
+                    )
+                    pendingGeofenceEvents.add(dispatch)
+                    return
+                }
+
+                for (context in contexts) {
+                    context.track(dispatch)
+                }
             }
         }
 
