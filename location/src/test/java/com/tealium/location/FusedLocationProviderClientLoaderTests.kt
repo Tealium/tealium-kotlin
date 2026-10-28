@@ -1,12 +1,19 @@
 package com.tealium.location
 
 import android.app.Application
+import android.app.PendingIntent
+import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
+import com.google.android.gms.tasks.Task
 import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import com.tealium.core.network.Connectivity
@@ -65,6 +72,9 @@ class FusedLocationProviderClientLoaderTests {
         every { ConnectivityRetriever.getInstance(mockApplication) } returns mockConnectivity
         every { mockConnectivity.isConnected() } returns true
 
+        mockkStatic(LocationServices::class)
+        every { LocationServices.getGeofencingClient(any<Context>()) } returns mockk(relaxed = true)
+
         fusedLocationProviderClientLoader = FusedLocationProviderClientLoader(mockContext)
     }
 
@@ -95,7 +105,8 @@ class FusedLocationProviderClientLoaderTests {
         verify {
             mockGeofenceLocationClient.addGeofence(listOf(geofenceLocation))
         }
-        assertTrue(LocationManager.activeGeofences.contains(geofenceLocation.name))
+        // only marked active once Play services reports the add succeeded
+        assertFalse(LocationManager.activeGeofences.contains(geofenceLocation.name))
     }
 
     @Test
@@ -139,7 +150,7 @@ class FusedLocationProviderClientLoaderTests {
         assertEquals(10L, fusedLocationProviderClientLoader.locationRequest?.interval)
 
         verify {
-            mockLocationClient.requestLocationUpdates(fusedLocationProviderClientLoader.locationRequest,
+            mockLocationClient.requestLocationUpdates(fusedLocationProviderClientLoader.locationRequest!!,
                     fusedLocationProviderClientLoader.locationCallback,
                     any())
         }
@@ -225,6 +236,40 @@ class FusedLocationProviderClientLoaderTests {
     }
 
     @Test
+    fun callback_RetriesGeofence_AfterFailedAdd() {
+        val geofencingClient = mockGeofencingClient(addSucceeds = false)
+        val locationResult = nearbyLocationResult()
+
+        fusedLocationProviderClientLoader.startLocationTracking(true, 10)
+        LocationManager.allGeofenceLocations.add(geofenceLocation)
+
+        fusedLocationProviderClientLoader.locationCallback.onLocationResult(locationResult)
+        assertFalse(LocationManager.activeGeofences.contains(geofenceLocation.name))
+        fusedLocationProviderClientLoader.locationCallback.onLocationResult(locationResult)
+
+        verify(exactly = 2) {
+            geofencingClient.addGeofences(any(), any())
+        }
+    }
+
+    @Test
+    fun callback_DoesNotReAddGeofence_AfterSuccessfulAdd() {
+        val geofencingClient = mockGeofencingClient(addSucceeds = true)
+        val locationResult = nearbyLocationResult()
+
+        fusedLocationProviderClientLoader.startLocationTracking(true, 10)
+        LocationManager.allGeofenceLocations.add(geofenceLocation)
+
+        fusedLocationProviderClientLoader.locationCallback.onLocationResult(locationResult)
+        assertTrue(LocationManager.activeGeofences.contains(geofenceLocation.name))
+        fusedLocationProviderClientLoader.locationCallback.onLocationResult(locationResult)
+
+        verify(exactly = 1) {
+            geofencingClient.addGeofences(any(), any())
+        }
+    }
+
+    @Test
     fun createLocationRequest_ConvertsAllLocationRequestOptions() {
         val opts1 = FusedLocationProviderClientLoader.createLocationRequest(
             LocationTrackingOptions(LocationTrackingAccuracy.HighAccuracy, 1000L, 100.0f)
@@ -257,5 +302,39 @@ class FusedLocationProviderClientLoaderTests {
         assertEquals(opts4.interval, 4000L)
         assertEquals(opts4.fastestInterval, 4000L)
         assertEquals(opts4.smallestDisplacement, 400.0f)
+    }
+
+    private fun nearbyLocationResult(): LocationResult {
+        val location: Location = mockk(relaxed = true)
+        every { location.distanceTo(any()) } returns 100f
+        val locationResult: LocationResult = mockk(relaxed = true)
+        every { locationResult.lastLocation } returns location
+        return locationResult
+    }
+
+    /**
+     * Returns a [GeofencingClient] whose add requests complete immediately, either successfully
+     * or with a failure.
+     */
+    private fun mockGeofencingClient(addSucceeds: Boolean): GeofencingClient {
+        val task: Task<Void> = mockk()
+        every { task.addOnSuccessListener(any<OnSuccessListener<in Void>>()) } answers {
+            if (addSucceeds) firstArg<OnSuccessListener<in Void>>().onSuccess(null)
+            task
+        }
+        every { task.addOnFailureListener(any<OnFailureListener>()) } answers {
+            if (!addSucceeds) firstArg<OnFailureListener>().onFailure(Exception("Geofence not available"))
+            task
+        }
+
+        val geofencingClient: GeofencingClient = mockk(relaxed = true)
+        every { geofencingClient.addGeofences(any(), any()) } returns task
+
+        every { LocationServices.getGeofencingClient(any<Context>()) } returns geofencingClient
+        mockkStatic(PendingIntent::class)
+        every { PendingIntent.getBroadcast(any(), any(), any(), any()) } returns mockk()
+        every { mockApplication.packageName } returns "com.example.app"
+
+        return geofencingClient
     }
 }

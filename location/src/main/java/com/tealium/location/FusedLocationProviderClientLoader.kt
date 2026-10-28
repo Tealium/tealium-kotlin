@@ -31,8 +31,8 @@ class FusedLocationProviderClientLoader(
 
     private fun createLocationCallback(): LocationCallback {
         return object : LocationCallback() {
-            override fun onLocationResult(p0: LocationResult?) {
-                p0?.let { locationResult ->
+            override fun onLocationResult(p0: LocationResult) {
+                p0.let { locationResult ->
                     val lastLocation = locationResult.lastLocation
                     _lastLocation = lastLocation
 
@@ -88,10 +88,6 @@ class FusedLocationProviderClientLoader(
         }
 
         if (geofencesList.isNotEmpty()) {
-            for (geofence in geofencesList) {
-                LocationManager.activeGeofences.add(geofence.name)
-            }
-
             geofenceLocationClient.addGeofence(geofencesList)
         }
     }
@@ -130,12 +126,13 @@ class FusedLocationProviderClientLoader(
         }
 
         geofenceLocationClient = GeofenceLocationClient(context)
-        locationRequest = createLocationRequest(options)
+        val request = createLocationRequest(options)
+        locationRequest = request
         _isHighAccuracy =
             options.accuracy == LocationTrackingAccuracy.HighAccuracy
         locationCallback = createLocationCallback()
         locationClient.requestLocationUpdates(
-            locationRequest,
+            request,
             locationCallback,
             null
         ) // TODO null Looper?

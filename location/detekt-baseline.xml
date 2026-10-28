@@ -3,10 +3,12 @@
   <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>LongParameterList:GeofenceLocation.kt$GeofenceLocation.Companion$(name: String, latitude: Double, longitude: Double, radius: Int, expireTime: Int, loiterTime: Int, triggerEnter: Boolean, triggerExit: Boolean)</ID>
+    <ID>LongParameterList:LocationManager.kt$LocationManager$( name: String, latitude: Double, longitude: Double, radius: Int, expireTime: Int, loiterTime: Int, triggerEnter: Boolean, triggerExit: Boolean )</ID>
     <ID>LongParameterList:LocationManager.kt$LocationManager$(name: String, latitude: Double, longitude: Double, radius: Int, expireTime: Int, loiterTime: Int, triggerEnter: Boolean, triggerExit: Boolean)</ID>
     <ID>MagicNumber:FusedLocationProviderClientLoader.kt$FusedLocationProviderClientLoader.&lt;no name provided>$500.0</ID>
     <ID>MagicNumber:GeofenceLocation.kt$GeofenceLocation.Companion$180</ID>
     <ID>MagicNumber:GeofenceLocation.kt$GeofenceLocation.Companion$90</ID>
+    <ID>MaxLineLength:FusedLocationProviderClientLoader.kt$FusedLocationProviderClientLoader$accuracy = if (isHighAccuracy) LocationTrackingAccuracy.HighAccuracy else LocationTrackingAccuracy.BalancedAccuracy</ID>
     <ID>MaxLineLength:FusedLocationProviderClientLoader.kt$FusedLocationProviderClientLoader.&lt;no name provided>$Logger.dev(BuildConfig.TAG, "Geofence ${geofence.name} added to active monitoring")</ID>
     <ID>MaxLineLength:FusedLocationProviderClientLoader.kt$FusedLocationProviderClientLoader.&lt;no name provided>$Logger.dev(BuildConfig.TAG, "Geofence ${geofence.name} removed from active monitoring")</ID>
     <ID>MaxLineLength:FusedLocationProviderClientLoaderTests.kt$FusedLocationProviderClientLoaderTests$assertEquals(LocationRequest.PRIORITY_HIGH_ACCURACY, fusedLocationProviderClientLoader.locationRequest?.priority)</ID>
@@ -38,8 +40,11 @@
     <ID>NewLineAtEndOfFile:LocationManagerTests.kt$com.tealium.location.LocationManagerTests.kt</ID>
     <ID>NewLineAtEndOfFile:LocationTask.kt$com.tealium.location.LocationTask.kt</ID>
     <ID>NewLineAtEndOfFile:LocationTests.kt$com.tealium.location.LocationTests.kt</ID>
+    <ID>NewLineAtEndOfFile:LocationTrackingAccuracy.kt$com.tealium.location.LocationTrackingAccuracy.kt</ID>
+    <ID>NewLineAtEndOfFile:LocationTrackingOptions.kt$com.tealium.location.LocationTrackingOptions.kt</ID>
     <ID>NewLineAtEndOfFile:TealiumConfigLocation.kt$com.tealium.location.TealiumConfigLocation.kt</ID>
     <ID>NewLineAtEndOfFile:TealiumConfigLocationTests.kt$com.tealium.location.TealiumConfigLocationTests.kt</ID>
+    <ID>ReturnCount:FusedLocationProviderClientLoader.kt$FusedLocationProviderClientLoader$fun startLocationTracking(options: LocationTrackingOptions)</ID>
     <ID>ReturnCount:GeofenceLocation.kt$GeofenceLocation.Companion$fun create(name: String, latitude: Double, longitude: Double, radius: Int, expireTime: Int, loiterTime: Int, triggerEnter: Boolean, triggerExit: Boolean): GeofenceLocation?</ID>
     <ID>TooManyFunctions:LocationManager.kt$LocationManager : Collector</ID>
     <ID>VariableNaming:LocationTests.kt$LocationTests$val LOCATION_CLIENT = "location_client"</ID>

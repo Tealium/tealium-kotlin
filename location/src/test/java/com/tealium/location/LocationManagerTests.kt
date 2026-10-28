@@ -91,6 +91,25 @@ class LocationManagerTests {
     }
 
     @Test
+    fun sendGeofenceEvent_BeforeCreate_IsTrackedOnCreate() {
+        clearContexts()
+        LocationManager.sendGeofenceEvent("Geofence 1", GeofenceTransitionType.ENTER)
+        verify(exactly = 0) { context.track(any()) }
+
+        LocationManager.create(context)
+        LocationManager.create(context2)
+
+        verify(exactly = 1) {
+            context.track(
+                    withArg {
+                        assertEquals("Geofence 1", it[GeofenceEventConstants.GEOFENCE_NAME])
+                        assertEquals("geofence_entered", it[GeofenceEventConstants.GEOFENCE_TRANSITION_TYPE])
+                    })
+        }
+        verify(exactly = 0) { context2.track(any()) }
+    }
+
+    @Test
     fun create_DoesNotLoadRemoteGeofence_WhenNoConnectivity() {
         every { mockConnectivity.isConnected() } returns false
 
@@ -141,5 +160,15 @@ class LocationManagerTests {
 
         assertEquals(50.0, result[LocationConstants.DEVICE_LAST_LATITUDE] as Double, 0.0)
         assertEquals(-50.0, result[LocationConstants.DEVICE_LAST_LONGITUDE] as Double, 0.0)
+    }
+
+    /**
+     * Empties the instances shared by all tests, as a process woken by a geofence transition
+     * has no instances yet.
+     */
+    private fun clearContexts() {
+        val field = LocationManager::class.java.getDeclaredField("contexts")
+        field.isAccessible = true
+        (field.get(null) as MutableList<*>).clear()
     }
 }

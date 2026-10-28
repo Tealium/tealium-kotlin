@@ -40,7 +40,11 @@ class GeofenceLocationClient(private val context: TealiumContext) {
                     Logger.dev(BuildConfig.TAG, "Geofences SUCCESSFULLY created.");
                 }
                 addOnFailureListener {
-                    Logger.dev(BuildConfig.TAG, "Geofences FAILED to be created.")
+                    // not registered, so allow the next location update to retry them
+                    geofencesToAdd.forEach { failedGeofence ->
+                        LocationManager.activeGeofences.remove(failedGeofence.name)
+                    }
+                    Logger.dev(BuildConfig.TAG, "Geofences FAILED to be created: ${it.message}")
                 }
             }
         } catch (ex: SecurityException) {

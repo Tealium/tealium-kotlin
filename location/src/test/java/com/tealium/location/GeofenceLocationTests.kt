@@ -2,6 +2,7 @@ package com.tealium.location
 
 import com.google.android.gms.location.Geofence
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -117,6 +118,59 @@ class GeofenceLocationTests {
                 -1,
                 default.triggerEnter,
                 default.triggerExit
+        )
+        assertNull(geofenceLocation)
+    }
+
+    @Test
+    fun create_ReturnsNull_WhenZeroRadius() {
+        val geofenceLocation = GeofenceLocation.create(default.name,
+                default.latitude,
+                default.longitude,
+                0,
+                default.expireTime,
+                default.loiterTime,
+                default.triggerEnter,
+                default.triggerExit
+        )
+        assertNull(geofenceLocation)
+    }
+
+    @Test
+    fun create_ReturnsNull_WhenNameTooLong() {
+        val geofenceLocation = GeofenceLocation.create("a".repeat(101),
+                default.latitude,
+                default.longitude,
+                default.radius,
+                default.expireTime,
+                default.loiterTime,
+                default.triggerEnter,
+                default.triggerExit
+        )
+        assertNull(geofenceLocation)
+
+        val geofenceLocation2 = GeofenceLocation.create("a".repeat(100),
+                default.latitude,
+                default.longitude,
+                default.radius,
+                default.expireTime,
+                default.loiterTime,
+                default.triggerEnter,
+                default.triggerExit
+        )
+        assertNotNull(geofenceLocation2)
+    }
+
+    @Test
+    fun create_ReturnsNull_WhenNoTransitionTypes() {
+        val geofenceLocation = GeofenceLocation.create(default.name,
+                default.latitude,
+                default.longitude,
+                default.radius,
+                default.expireTime,
+                0,
+                false,
+                false
         )
         assertNull(geofenceLocation)
     }
