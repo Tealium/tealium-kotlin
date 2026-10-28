@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
+import android.os.Looper
 import com.google.android.gms.location.*
 import com.tealium.core.DateUtils
 import com.tealium.core.Logger
@@ -134,8 +135,8 @@ class FusedLocationProviderClientLoader(
         locationClient.requestLocationUpdates(
             request,
             locationCallback,
-            null
-        ) // TODO null Looper?
+            Looper.getMainLooper()
+        )
     }
 
     fun stopLocationUpdates() {

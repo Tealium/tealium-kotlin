@@ -6,6 +6,7 @@ import com.tealium.core.TealiumConfig
 import com.tealium.core.TealiumContext
 import io.mockk.every
 import io.mockk.mockk
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,6 +37,22 @@ class PlayServicesClientTests {
     @Test
     fun startLocationTracking_WithPlayServicesClient_DoesNotThrow() {
         FusedLocationProviderClientLoader(context).startLocationTracking(LocationTrackingOptions())
+    }
+
+    @Test
+    fun startLocationTracking_FromThreadWithoutLooper_DoesNotThrow() {
+        var error: Throwable? = null
+        val thread = Thread {
+            try {
+                FusedLocationProviderClientLoader(context).startLocationTracking(LocationTrackingOptions())
+            } catch (t: Throwable) {
+                error = t
+            }
+        }
+        thread.start()
+        thread.join()
+
+        assertNull(error)
     }
 
     @Test
