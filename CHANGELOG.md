@@ -9,6 +9,8 @@
       - Entries are rejected when the radius is missing or 0, the name is longer than 100 characters, there is no enter, exit or dwell trigger, the latitude or longitude is missing, or the entry is not a JSON object
     - BugFix: A missing geofence asset file is now logged instead of throwing an exception
     - BugFix: `startLocationTracking` no longer crashes when called from a thread without a `Looper`; location updates are delivered on the main thread
+    - BugFix: Loading geofences from a URL while location updates are running could throw `ConcurrentModificationException`
+    - BugFix: Geofence entries that repeat an earlier name are now dropped with a log message; the first entry with each name is kept
 - 1.9.2 Dec 2025
   - BugFix: Collect/TagManagement modules are now correctly disableable through the remote publish settings.
   - TagManagement 1.3.0

@@ -137,6 +137,19 @@ class LocationGeofenceLoaderTests {
     }
 
     @Test
+    fun jsonToGeofenceLocation_KeepsFirstEntry_WhenNamesDuplicated() {
+        val jsonArray = JSONArray()
+            .put(geofenceJson("Geofence 1"))
+            .put(geofenceJson("Geofence 2"))
+            .put(geofenceJson("Geofence 1").put(GeofenceObject.LATITUDE, 30.0))
+
+        val geofenceLocationResult = GeofenceLocation.jsonArrayToGeofenceLocation(jsonArray)
+
+        Assert.assertEquals(listOf("Geofence 1", "Geofence 2"), geofenceLocationResult.map { it.name })
+        Assert.assertEquals(10.0, geofenceLocationResult[0].latitude, 0.0)
+    }
+
+    @Test
     fun locationManager_DoesNotThrow_WhenGeofenceAssetMissing() {
         val app = RuntimeEnvironment.getApplication()
         val config = TealiumConfig(app, "test", "test", Environment.DEV)

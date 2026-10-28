@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import java.net.URL
+import java.util.concurrent.CopyOnWriteArraySet
 
 /**
  * The LocationManager controls the starting and stopping of location tracking - including both
@@ -196,7 +197,9 @@ class LocationManager(private val context: TealiumContext) :
         private const val MAX_PENDING_GEOFENCE_EVENTS = 100
 
         val activeGeofences = mutableSetOf<String>()
-        val allGeofenceLocations = mutableSetOf<GeofenceLocation>()
+        // Written from the IO thread when geofences load from a URL, and iterated on the main
+        // thread by the location callback; iteration is over a snapshot so it cannot throw.
+        val allGeofenceLocations: MutableSet<GeofenceLocation> = CopyOnWriteArraySet()
 
         override fun create(context: TealiumContext): Collector {
             synchronized(contexts) {

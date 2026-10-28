@@ -28,6 +28,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import kotlin.concurrent.thread
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
@@ -208,6 +209,31 @@ class FusedLocationProviderClientLoaderTests {
         verify {
             mockGeofenceLocationClient.addGeofence(listOf(withinRadius))
         }
+    }
+
+    @Test
+    fun callback_DoesNotThrow_WhenGeofencesAddedDuringScan() {
+        fusedLocationProviderClientLoader.startLocationTracking(true, 10)
+        fusedLocationProviderClientLoader.geofenceLocationClient = mockGeofenceLocationClient
+
+        val locationResult: LocationResult = mockk(relaxed = true)
+        val location: Location = mockk(relaxed = true)
+        every { locationResult.lastLocation } returns location
+        LocationManager.allGeofenceLocations.add(geofenceLocation.copy(name = "Geofence 1"))
+        LocationManager.allGeofenceLocations.add(geofenceLocation.copy(name = "Geofence 2"))
+
+        // a geofence list loading on another thread adds an entry while the callback iterates
+        var added = 0
+        every { location.distanceTo(any()) } answers {
+            thread {
+                LocationManager.allGeofenceLocations.add(geofenceLocation.copy(name = "Loaded ${added++}"))
+            }.join()
+            1000f
+        }
+
+        fusedLocationProviderClientLoader.locationCallback.onLocationResult(locationResult)
+
+        assertEquals(4, LocationManager.allGeofenceLocations.size)
     }
 
     @Test

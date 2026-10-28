@@ -101,6 +101,7 @@ data class GeofenceLocation(val name: String,
 
         fun jsonArrayToGeofenceLocation(geofenceJsonArray: JSONArray): List<GeofenceLocation> {
             val geofenceArray = ArrayList<GeofenceLocation>()
+            val names = HashSet<String>()
 
             for (i in 0 until geofenceJsonArray.length()) {
                 val geofenceItem = geofenceJsonArray.optJSONObject(i)
@@ -128,7 +129,12 @@ data class GeofenceLocation(val name: String,
                         geofenceTriggerExit)
 
                 geofenceLocation?.let {
-                    geofenceArray.add(it)
+                    // names identify the registered geofences, so keep only the first of each
+                    if (names.add(it.name)) {
+                        geofenceArray.add(it)
+                    } else {
+                        Logger.dev(BuildConfig.TAG, "Duplicate geofence name ${it.name} dropped")
+                    }
                 }
             }
             return geofenceArray
