@@ -9,7 +9,11 @@ import com.tealium.core.consent.ConsentManagerConstants.KEY_STATUS
 import com.tealium.core.consent.ConsentStatus
 import com.tealium.core.persistence.DatabaseHelper
 import com.tealium.core.persistence.DefaultVisitorStorage
+import com.tealium.core.persistence.Expiry
+import com.tealium.core.persistence.PersistentItem
 import com.tealium.core.persistence.PersistentStorageDao
+import com.tealium.core.persistence.Serialization
+import com.tealium.core.messaging.VisitorIdUpdatedListener
 import com.tealium.dispatcher.Dispatch
 import io.mockk.MockKAnnotations
 import kotlinx.coroutines.runBlocking
@@ -22,6 +26,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.util.Arrays
+import java.util.UUID
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class MigrationTests {
 
@@ -190,6 +198,130 @@ class MigrationTests {
         val trackData = tealium.gatherTrackData()
         assertEquals(migratedVisitorId, trackData[Dispatch.Keys.TEALIUM_VISITOR_ID])
         assertEquals(tealium.visitorId, trackData[Dispatch.Keys.TEALIUM_VISITOR_ID])
+    }
+
+    @Test
+    fun visitorId_FromDataLayer_TakesPrecedence_Over_StoredVisitorId() = runBlocking {
+        // simulates an install that upgraded before 1.10.0: migration ran after the
+        // VisitorIdProvider was created, leaving a generated id in the visitors table while the
+        // legacy id was written to the data layer.
+        val legacyVisitorId = "legacy_visitor_id"
+        seedVisitorIdState(
+            storedVisitorId = UUID.randomUUID().toString().replace("-", ""),
+            dataLayerVisitorId = legacyVisitorId
+        )
+
+        tealium = awaitCreateTealium("instance_name", config)
+
+        assertEquals(legacyVisitorId, tealium.visitorId)
+        assertEquals(
+            legacyVisitorId,
+            tealium.dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID)
+        )
+        assertEquals(
+            legacyVisitorId,
+            tealium.gatherTrackData()[Dispatch.Keys.TEALIUM_VISITOR_ID]
+        )
+    }
+
+    @Test
+    fun visitorIdUpdatedListener_IsNotified_When_VisitorIdIsReconciled() = runBlocking {
+        val legacyVisitorId = "legacy_visitor_id"
+        seedVisitorIdState(
+            storedVisitorId = UUID.randomUUID().toString().replace("-", ""),
+            dataLayerVisitorId = legacyVisitorId
+        )
+
+        val updatedIds = CopyOnWriteArrayList<String>()
+        val latch = CountDownLatch(1)
+        config.events.add(object : VisitorIdUpdatedListener {
+            override fun onVisitorIdUpdated(visitorId: String) {
+                updatedIds.add(visitorId)
+                latch.countDown()
+            }
+        })
+
+        tealium = awaitCreateTealium("instance_name", config)
+
+        assertTrue(latch.await(5, TimeUnit.SECONDS))
+        assertEquals(listOf(legacyVisitorId), updatedIds.toList())
+    }
+
+    @Test
+    fun visitorIdUpdatedListener_IsNotNotified_When_VisitorIdMatches() = runBlocking {
+        val visitorId = "matching_visitor_id"
+        seedVisitorIdState(storedVisitorId = visitorId, dataLayerVisitorId = visitorId)
+
+        val updatedIds = CopyOnWriteArrayList<String>()
+        config.events.add(object : VisitorIdUpdatedListener {
+            override fun onVisitorIdUpdated(visitorId: String) {
+                updatedIds.add(visitorId)
+            }
+        })
+
+        tealium = awaitCreateTealium("instance_name", config)
+
+        // setReady() drains the queued events synchronously before onReady is invoked, so any
+        // notification would already have been delivered by the time create() returns
+        assertTrue(updatedIds.isEmpty())
+        assertEquals(visitorId, tealium.visitorId)
+    }
+
+    @Test
+    fun visitorId_FromDataLayer_IsNotAdopted_On_SubsequentLaunch() = runBlocking {
+        val legacyVisitorId = "legacy_visitor_id"
+        seedVisitorIdState(
+            storedVisitorId = UUID.randomUUID().toString().replace("-", ""),
+            dataLayerVisitorId = legacyVisitorId
+        )
+
+        // first launch on 1.10.0: reconciles to the data layer value
+        tealium = awaitCreateTealium("instance_name", config)
+        assertEquals(legacyVisitorId, tealium.visitorId)
+        Tealium.destroy("instance_name")
+
+        // amending the data layer entry afterwards must not alter the stored visitor id
+        seedDataLayerVisitorId("edited_visitor_id")
+
+        tealium = awaitCreateTealium("instance_name", config)
+        assertEquals(legacyVisitorId, tealium.visitorId)
+    }
+
+    /**
+     * Seeds the visitors table and the data layer directly, as they would be on an install that
+     * upgraded before 1.10.0.
+     */
+    private fun seedVisitorIdState(storedVisitorId: String, dataLayerVisitorId: String) {
+        val dbHelper = DatabaseHelper(config)
+        try {
+            DefaultVisitorStorage(dbHelper).currentVisitorId = storedVisitorId
+            seedDataLayerVisitorId(dbHelper, dataLayerVisitorId)
+        } finally {
+            dbHelper.close()
+        }
+    }
+
+    /**
+     * Writes [dataLayerVisitorId] directly into the datalayer table.
+     */
+    private fun seedDataLayerVisitorId(dataLayerVisitorId: String) {
+        val dbHelper = DatabaseHelper(config)
+        try {
+            seedDataLayerVisitorId(dbHelper, dataLayerVisitorId)
+        } finally {
+            dbHelper.close()
+        }
+    }
+
+    private fun seedDataLayerVisitorId(dbHelper: DatabaseHelper, dataLayerVisitorId: String) {
+        PersistentStorageDao(dbHelper, "datalayer").upsert(
+            PersistentItem(
+                key = Dispatch.Keys.TEALIUM_VISITOR_ID,
+                value = dataLayerVisitorId,
+                expiry = Expiry.FOREVER,
+                type = Serialization.STRING
+            )
+        )
     }
 
     fun getHashCodeString(config: TealiumConfig, delimiter: String = ""): String {

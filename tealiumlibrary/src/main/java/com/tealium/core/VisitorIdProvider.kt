@@ -43,10 +43,35 @@ internal class VisitorIdProvider(
         }
 
     init {
-        retrieveIdentityFromDataLayer()
-        if (dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID) == null) {
-            putInDataLayer(currentVisitorId)
+        // One-time reconciliation of the stored visitor id with the "tealium_visitor_id" entry in
+        // the DataLayer. Installs that upgraded from the legacy library on a version before
+        // 1.10.0 ran migration after the VisitorIdProvider was created, leaving a generated id in
+        // [visitorStorage] but the legacy id (which events had already been attributed to) in
+        // the DataLayer. The first launch on 1.10.0 or later adopts the DataLayer value so that
+        // consumers of [currentVisitorId] (VisitorService, Moments API) stay in line with it.
+        // On every later launch the stored id is authoritative and the DataLayer entry is not
+        // read back, so amending it there no longer alters the stored visitor id or identity.
+        // Reconciled before [retrieveIdentityFromDataLayer] so that any stored identity is
+        // relinked to the reconciled id, and so that a genuine identity change detected in the
+        // DataLayer still takes precedence and resets the visitor id afterward.
+        val dataLayerVisitorId = dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID)
+        val isReconciled = visitorStorage.isVisitorIdReconciled
+        when {
+            dataLayerVisitorId.isNullOrEmpty() -> putInDataLayer(currentVisitorId)
+            !isReconciled && dataLayerVisitorId != currentVisitorId -> {
+                Logger.dev(
+                    BuildConfig.TAG,
+                    "Visitor id in DataLayer ($dataLayerVisitorId) differs from stored visitor " +
+                            "id ($currentVisitorId); using DataLayer value."
+                )
+                currentVisitorId = dataLayerVisitorId
+            }
         }
+        if (!isReconciled) {
+            visitorStorage.isVisitorIdReconciled = true
+        }
+
+        retrieveIdentityFromDataLayer()
     }
 
     fun resetVisitorId(): String {
@@ -61,6 +86,9 @@ internal class VisitorIdProvider(
         Logger.dev(BuildConfig.TAG, "Clearing stored visitor ids")
         visitorStorage.clear()
         resetVisitorId()
+        // the new id has just been written to both storage and the DataLayer; clear() wiped the
+        // flag, so restore it or a later DataLayer edit would be adopted on the next launch
+        visitorStorage.isVisitorIdReconciled = true
 
         // required to stop stitching issues
         retrieveIdentityFromDataLayer()
@@ -123,7 +151,8 @@ internal class VisitorIdProvider(
 
     private fun getOrCreateVisitorId(): String {
         return visitorStorage.currentVisitorId
-            ?: (dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID)   // previously saved visitor id
+            ?: (dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID)
+                ?.takeIf { it.isNotEmpty() }                            // previously saved visitor id
                 ?: existingVisitorId                                    // known existing Id
                 ?: generateVisitorId()).also {
                 // notify of new visitor id

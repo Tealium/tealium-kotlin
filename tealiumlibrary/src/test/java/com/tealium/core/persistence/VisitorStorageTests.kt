@@ -1,6 +1,7 @@
 package com.tealium.core.persistence
 
 import com.tealium.core.persistence.DefaultVisitorStorage.Companion.KEY_CURRENT_IDENTITY
+import com.tealium.core.persistence.DefaultVisitorStorage.Companion.KEY_VISITOR_ID_RECONCILED
 import com.tealium.dispatcher.Dispatch
 import io.mockk.MockKAnnotations
 import io.mockk.Runs
@@ -9,7 +10,9 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.just
 import io.mockk.verify
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.util.*
@@ -64,6 +67,26 @@ class VisitorStorageTests {
         every { storage.get(KEY_CURRENT_IDENTITY) } returns null
 
         assertNull(visitorStorage.currentIdentity)
+    }
+
+    @Test
+    fun isVisitorIdReconciled_DefaultsToFalse_AndPersistsTrue_WhenSet() {
+        every { storage.get(KEY_VISITOR_ID_RECONCILED) } returns null
+        assertFalse(visitorStorage.isVisitorIdReconciled)
+
+        visitorStorage.isVisitorIdReconciled = true
+
+        verify {
+            storage.upsert(match {
+                it.key == KEY_VISITOR_ID_RECONCILED && it.value == "true"
+            })
+        }
+        every { storage.get(KEY_VISITOR_ID_RECONCILED) } returns PersistentItem(
+            key = KEY_VISITOR_ID_RECONCILED,
+            value = "true",
+            type = Serialization.STRING
+        )
+        assertTrue(visitorStorage.isVisitorIdReconciled)
     }
 
     @Test

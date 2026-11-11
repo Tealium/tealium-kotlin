@@ -5,6 +5,7 @@ import com.tealium.dispatcher.Dispatch
 internal interface VisitorStorage {
     var currentVisitorId: String?
     var currentIdentity: String?
+    var isVisitorIdReconciled: Boolean
 
     fun getVisitorId(identity: String): String?
     fun saveVisitorId(identity: String, visitorId: String)
@@ -33,6 +34,12 @@ internal class DefaultVisitorStorage(
             value?.let {
                 save(KEY_CURRENT_IDENTITY, it)
             }
+        }
+
+    override var isVisitorIdReconciled: Boolean
+        get() = storage.get(KEY_VISITOR_ID_RECONCILED)?.value == "true"
+        set(value) {
+            save(KEY_VISITOR_ID_RECONCILED, value.toString())
         }
 
     private fun save(key: String, value: String) {
@@ -77,5 +84,6 @@ internal class DefaultVisitorStorage(
 
     companion object {
         const val KEY_CURRENT_IDENTITY = "current_identity"
+        const val KEY_VISITOR_ID_RECONCILED = "visitor_id_reconciled"
     }
 }
