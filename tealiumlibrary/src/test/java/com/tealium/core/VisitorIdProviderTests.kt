@@ -162,6 +162,44 @@ class VisitorIdProviderTests {
     }
 
     @Test
+    fun init_DoesNotAdoptDataLayerVisitorId_When_AlreadyReconciled() {
+        val visitorStorage = MockVisitorStorage(
+            initialVisitorId = "stored_id",
+            initialReconciled = true
+        )
+        every { dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID) } returns "datalayer_id"
+
+        val visitorIdProvider = createDefaultVisitorIdProvider(visitorStorage = visitorStorage)
+
+        assertEquals("stored_id", visitorIdProvider.currentVisitorId)
+        assertEquals("stored_id", visitorStorage.currentVisitorId)
+        assertEquals(0, visitorStorage.visitorIdWriteCount)
+        verify(exactly = 0) { onVisitorIdUpdated(any()) }
+    }
+
+    @Test
+    fun init_MarksVisitorIdReconciled_After_FirstInit() {
+        val visitorStorage = MockVisitorStorage(initialVisitorId = "stored_id")
+        every { dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID) } returns "datalayer_id"
+        assertFalse(visitorStorage.isVisitorIdReconciled)
+
+        createDefaultVisitorIdProvider(visitorStorage = visitorStorage)
+
+        assertTrue(visitorStorage.isVisitorIdReconciled)
+    }
+
+    @Test
+    fun init_MarksVisitorIdReconciled_After_FirstInit_When_DataLayerEmpty() {
+        val visitorStorage = MockVisitorStorage(initialVisitorId = "stored_id")
+        every { dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID) } returns null
+        assertFalse(visitorStorage.isVisitorIdReconciled)
+
+        createDefaultVisitorIdProvider(visitorStorage = visitorStorage)
+
+        assertTrue(visitorStorage.isVisitorIdReconciled)
+    }
+
+    @Test
     fun init_GeneratesNewId_When_DataLayerVisitorIdIsEmpty_AndNoVisitorIdSaved() {
         val visitorStorage = MockVisitorStorage()
         every { dataLayer.getString(Dispatch.Keys.TEALIUM_VISITOR_ID) } returns ""
@@ -361,6 +399,16 @@ class VisitorIdProviderTests {
     }
 
     @Test
+    fun clearStoredVisitorIds_MarksVisitorIdReconciled() {
+        val visitorStorage = MockVisitorStorage(initialVisitorId = defaultVisitorId)
+        val visitorIdProvider = createDefaultVisitorIdProvider(visitorStorage = visitorStorage)
+
+        visitorIdProvider.clearStoredVisitorIds()
+
+        assertTrue(visitorStorage.isVisitorIdReconciled)
+    }
+
+    @Test
     fun clearStoredVisitorIds_ResetsCurrentVisitorId_ButStoresIdentityFromDataLayer() {
         val visitorStorage = MockVisitorStorage(
             initialVisitorId = defaultVisitorId,
@@ -417,7 +465,8 @@ class VisitorIdProviderTests {
     private class MockVisitorStorage(
         initialVisitorId: String? = null,
         initialIdentity: String? = null,
-        initialVisitorMap: Map<String, String> = mapOf()
+        initialVisitorMap: Map<String, String> = mapOf(),
+        initialReconciled: Boolean = false
     ) : VisitorStorage {
 
         var visitorIdWriteCount = 0
@@ -432,6 +481,7 @@ class VisitorIdProviderTests {
             set(value) {
                 field = value
             }
+        override var isVisitorIdReconciled: Boolean = initialReconciled
         private val _visitorMap = initialVisitorMap.mapKeys { (k, _) -> k.sha256() }.toMutableMap()
 
         override fun getVisitorId(identity: String): String? {
@@ -446,6 +496,8 @@ class VisitorIdProviderTests {
             _visitorMap.clear()
             currentVisitorId = null
             currentIdentity = null
+            // mirrors DefaultVisitorStorage, which wipes the whole table
+            isVisitorIdReconciled = false
         }
     }
 }

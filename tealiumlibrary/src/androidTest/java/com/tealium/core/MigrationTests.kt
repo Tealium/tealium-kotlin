@@ -267,6 +267,26 @@ class MigrationTests {
         assertEquals(visitorId, tealium.visitorId)
     }
 
+    @Test
+    fun visitorId_FromDataLayer_IsNotAdopted_On_SubsequentLaunch() = runBlocking {
+        val legacyVisitorId = "legacy_visitor_id"
+        seedVisitorIdState(
+            storedVisitorId = UUID.randomUUID().toString().replace("-", ""),
+            dataLayerVisitorId = legacyVisitorId
+        )
+
+        // first launch on 1.10.0: reconciles to the data layer value
+        tealium = awaitCreateTealium("instance_name", config)
+        assertEquals(legacyVisitorId, tealium.visitorId)
+        Tealium.destroy("instance_name")
+
+        // amending the data layer entry afterwards must not alter the stored visitor id
+        seedDataLayerVisitorId("edited_visitor_id")
+
+        tealium = awaitCreateTealium("instance_name", config)
+        assertEquals(legacyVisitorId, tealium.visitorId)
+    }
+
     /**
      * Seeds the visitors table and the data layer directly, as they would be on an install that
      * upgraded before 1.10.0.
@@ -275,17 +295,33 @@ class MigrationTests {
         val dbHelper = DatabaseHelper(config)
         try {
             DefaultVisitorStorage(dbHelper).currentVisitorId = storedVisitorId
-            PersistentStorageDao(dbHelper, "datalayer").upsert(
-                PersistentItem(
-                    key = Dispatch.Keys.TEALIUM_VISITOR_ID,
-                    value = dataLayerVisitorId,
-                    expiry = Expiry.FOREVER,
-                    type = Serialization.STRING
-                )
-            )
+            seedDataLayerVisitorId(dbHelper, dataLayerVisitorId)
         } finally {
             dbHelper.close()
         }
+    }
+
+    /**
+     * Writes [dataLayerVisitorId] directly into the datalayer table.
+     */
+    private fun seedDataLayerVisitorId(dataLayerVisitorId: String) {
+        val dbHelper = DatabaseHelper(config)
+        try {
+            seedDataLayerVisitorId(dbHelper, dataLayerVisitorId)
+        } finally {
+            dbHelper.close()
+        }
+    }
+
+    private fun seedDataLayerVisitorId(dbHelper: DatabaseHelper, dataLayerVisitorId: String) {
+        PersistentStorageDao(dbHelper, "datalayer").upsert(
+            PersistentItem(
+                key = Dispatch.Keys.TEALIUM_VISITOR_ID,
+                value = dataLayerVisitorId,
+                expiry = Expiry.FOREVER,
+                type = Serialization.STRING
+            )
+        )
     }
 
     fun getHashCodeString(config: TealiumConfig, delimiter: String = ""): String {
